@@ -555,7 +555,7 @@
   <div id="journal-detail-meta" class="journal-detail-meta"></div>
   <div id="journal-detail-bilan" class="journal-detail-bilan"></div>
   <section class="journal-detail-review"><h3>Avis</h3><p id="journal-detail-review"></p></section>
-  <div class="modal-actions modal-edit-actions"><div class="modal-secondary-actions"><button class="btn btn-ghost" id="journal-detail-edit" type="button">Modifier le parcours</button></div><div class="modal-primary-actions"><button class="btn btn-primary" id="journal-detail-close" type="button">Fermer</button></div></div>
+  <div class="modal-actions modal-edit-actions"><div class="modal-secondary-actions"><button class="btn btn-ghost" id="journal-detail-edit" type="button">Modifier le parcours</button><button class="btn btn-ghost" id="journal-detail-replay" type="button">Rejouer</button></div><div class="modal-primary-actions"><button class="btn btn-primary" id="journal-detail-close" type="button">Fermer</button></div></div>
  </div>
 </div>
 
@@ -566,7 +566,7 @@
    <div class="form-section-title">Jeu</div>
    <div id="j-identity-card" class="game-identity-summary hidden"></div>
    <div id="j-details" class="game-identity-editor">
-    <div class="field" id="j-source-field"><label for="j-source">Exemplaire de la collection</label><select id="j-source"><option value="">Nouvelle entrée</option></select></div>
+    <div class="field" id="j-source-field"><label for="j-source-search">Rechercher dans la collection</label><input id="j-source-search" type="search" placeholder="Titre ou plateforme" autocomplete="off"><label for="j-source">Exemplaire de la collection</label><select id="j-source"><option value="">Nouvelle entrée</option></select><span id="j-source-empty" class="hidden">Aucun exemplaire trouvé.</span></div>
     <div class="field"><label for="j-kind">Type</label><select id="j-kind"><option value="game">Jeu</option><option value="extension">Extension</option></select></div>
     <div class="field hidden" id="j-parent-field"><label for="j-parentName">Jeu de base</label><input id="j-parentName" maxlength="500"></div>
     <div class="field"><label for="j-nom">Titre</label><input id="j-nom" maxlength="500" required></div>
