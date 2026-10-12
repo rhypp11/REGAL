@@ -35,7 +35,16 @@
  function displayRecord(r){const g=linkedGame(r);return g?{...r,nom:g.nom,plateforme:g.plateforme,image:g.image||'',imageFit:g.imageFit||'contain',kind:'game',parentName:'',medium:'physical',access:'owned'}:r;}
  function metadata(r,platform=true){r=displayRecord(r);const label=collectionLabel(r),collection=label==='Collection',format=collection?'collection':r.access==='emulation'?'emulation':r.medium;return (platform?'<span class="journal-platform">'+esc(r.plateforme)+'</span>':'')+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+'<span class="journal-format format-'+format+'">'+(collection?bookshelf:icons[format])+esc(collection?'Collection':format==='emulation'?'Émulation':format==='physical'?'Physique':'Numérique')+'</span>'+(!collection&&['family','subscription'].includes(r.access)?'<span>'+esc(r.access==='family'?'Partage familial':'Abonnement')+'</span>':'')+(label&&!collection?'<span>'+esc(label)+'</span>':'');}
  function selectTab(tab){document.querySelector('.journal-layout').dataset.tab=tab;document.querySelectorAll('[data-journal-tab]').forEach(x=>{const active=x.dataset.journalTab===tab;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});}
- function filterSources(){const query=fold($('j-source-search').value);const selected=$('j-source').value||draft?.collectionId||'';const matches=GAMES.filter(g=>fold(g.nom+' '+g.plateforme).includes(query));$('j-source').innerHTML='<option value="">Nouvelle entrée</option>'+matches.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.nom+' · '+g.plateforme)+'</option>').join('');if(selected&&!matches.some(g=>g.id===selected)){const g=GAMES.find(g=>g.id===selected);if(g)$('j-source').add(new Option(g.nom+' · '+g.plateforme,g.id));}$('j-source').value=selected;$('j-source-empty').classList.toggle('hidden',!!matches.length||!query);}
+ function sourceGames(){return [...GAMES,...CEMETERY];}
+ function sourceLabel(g){const location=GAMES.some(item=>item.id===g.id)?'Collection':g.saleStatus==='sold'?'Vendu':'À vendre';return g.nom+' · '+g.plateforme+' · '+location+(g.collector?' · Collector':'')+(g.japanese?' · Japonais':'')+(g.date?' · '+g.date:'')+(g.source?' · '+g.source:'')+' · réf. '+g.id;}
+ function filterSources(){
+  const query=JTDData.foldImport($('j-source-search').value),selected=$('j-source').value||draft?.collectionId||'';
+  const matches=sourceGames().filter(g=>JTDData.foldImport(g.nom+' '+g.plateforme+' '+JTDData.importPlatform(g.plateforme)).includes(query));
+  $('j-source').replaceChildren(new Option('Sans lien avec un exemplaire',''));
+  for(const g of matches)$('j-source').add(new Option(sourceLabel(g),g.id));
+  if(selected&&!matches.some(g=>g.id===selected)){const g=sourceGames().find(g=>g.id===selected);if(g)$('j-source').add(new Option(sourceLabel(g),g.id));}
+  $('j-source').value=selected;$('j-source-empty').classList.toggle('hidden',!!matches.length||!query);
+ }
  function row(r,compact=false){
   r=displayRecord(r);
   const day=r.finishedAt?.slice(8), month=r.finishedAt?MONTH_NAMES_FULL[Number(r.finishedAt.slice(5,7))-1]:'';
@@ -71,7 +80,7 @@
   $('j-identity-card').querySelector('.identity-copy')?.insertAdjacentHTML('beforeend','<div class="journal-meta">'+metadata(r,false)+'</div>');
   const edit=$('j-identity-card').querySelector('.identity-edit-btn');
   if(edit){if(linked){edit.title='Changer l’exemplaire';edit.setAttribute('aria-label','Changer l’exemplaire');}edit.addEventListener('click',()=>{setGameEditor(true);if(linked)$('j-source-picker').open=true;$(linked?'j-source-search':'j-nom').focus();});}
-  $('j-link-info').textContent=r.collectionId?(GAMES.some(g=>g.id===r.collectionId)?'Lié à un exemplaire de la collection.':'Exemplaire absent de la collection ; historique conservé.') : '';
+  $('j-link-info').textContent=r.collectionId?(GAMES.some(g=>g.id===r.collectionId)?'Lié à un exemplaire de la collection.':(CEMETERY.some(g=>g.id===r.collectionId)?'Lié à un exemplaire du cimetière ; historique conservé.':'Exemplaire absent de la collection ; historique conservé.')) : '';
   $('j-unlink').classList.toggle('hidden',!r.collectionId);
  }
  function setGameEditor(expanded){
@@ -98,7 +107,6 @@
  function commit(next){
   if(generation!==currentGeneration())throw Error('Le compte a changé. Rouvre le journal.');
   const data=JTDData.normalizeData({...buildBackupPayload().data,journal:next});
-  if(new TextEncoder().encode(JSON.stringify(data)).length>900000)throw Error('La sauvegarde approche de sa limite. Télécharge une sauvegarde avant de réduire les images ou les avis.');
   window.persistAppData(data); // storage failure must leave memory and editor untouched
   replaceAppData(data);window.JTDDataChanged?.();
   render();buildStatusToggles();renderJournal();
@@ -147,7 +155,7 @@
  $('journal-detail-replay').addEventListener('click',()=>{const r=detailGeneration===currentGeneration()&&JOURNAL.find(r=>r.id===detailId);if(r){closeDetail();startReplay(r);}});
  document.querySelectorAll('[data-journal-tab]').forEach(b=>b.onclick=()=>selectTab(b.dataset.journalTab));
  $('j-source-search').addEventListener('input',filterSources);
- $('j-source').addEventListener('change',e=>{const g=GAMES.find(g=>g.id===e.target.value);if(g){draft.collectionId=g.id;for(const f of ['nom','plateforme','image','imageFit'])$('j-'+f).value=g[f]|| (f==='imageFit'?'contain':'');$('j-kind').value='game';$('j-medium').value='physical';$('j-access').value='owned';}else draft.collectionId=null;reflect();if(g)setGameEditor(false);});
+ $('j-source').addEventListener('change',e=>{const g=sourceGames().find(g=>g.id===e.target.value);if(g){draft.collectionId=g.id;for(const f of ['nom','plateforme','image','imageFit'])$('j-'+f).value=g[f]|| (f==='imageFit'?'contain':'');$('j-kind').value='game';$('j-medium').value='physical';$('j-access').value='owned';}else draft.collectionId=null;reflect();if(g)setGameEditor(false);});
  $('j-unlink').addEventListener('click',()=>{draft.collectionId=null;$('j-source').value='';reflect();});
  fields.forEach(f=>$('j-'+f).addEventListener('input',reflect));
  $('j-save').addEventListener('click',save);$('j-cancel').addEventListener('click',close);
@@ -168,3 +176,4 @@
  document.querySelectorAll('[data-journal-tab]').forEach(b=>b.innerHTML=(b.dataset.journalTab==='playing'?ICON_STATUS_PLAYING:b.dataset.journalTab==='backlog'?icons.backlog:icon('<path d="M4 4h7a3 3 0 0 1 3 3v14a3 3 0 0 0-3-3H4Zm16 0h-4"/>'))+b.textContent);
  renderJournal();
 })();
+

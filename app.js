@@ -95,7 +95,10 @@ function replaceAppData(data){
   PROFILE_AVATAR = data.profileAvatar;
 }
 window.replaceAppData = replaceAppData;
-window.persistAppData = data => IS_PREVIEW_MODE ? savePreviewData(data) : accountStorage.atomicWrite(restoredStorageEntries(data));
+window.persistAppData = data => {
+  JTDData.assertCloudSize({...data,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
+  return IS_PREVIEW_MODE ? savePreviewData(data) : accountStorage.atomicWrite(restoredStorageEntries(data));
+};
 
 const STORAGE_KEY = 'ludotheque:games-v2';
 const ARRIVALS_KEY = 'ludotheque:arrivals-v1';
@@ -596,8 +599,7 @@ function cleanBackupData(parsed){
   return JTDData.parseBackup(parsed, {profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR});
 }
 function applyRestoredData(data){
-  if(IS_PREVIEW_MODE) savePreviewData(data);
-  else accountStorage.atomicWrite(restoredStorageEntries(data));
+  window.persistAppData(data);
   replaceAppData(data);
   state.platform = null;
   buildPlatformList();
@@ -613,6 +615,7 @@ function applyRestoredData(data){
 
 // Cemetery imports write only the boards they actually change.
 window.JTDApplyCemeteryImport = (games, cemetery) => {
+  JTDData.assertCloudSize({...buildBackupPayload().data,games,cemetery,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
   if(IS_PREVIEW_MODE) savePreviewData({games, cemetery});
   else accountStorage.atomicWrite([
     [STORAGE_KEY, JSON.stringify(games)],
@@ -627,7 +630,8 @@ window.JTDApplyCemeteryImport = (games, cemetery) => {
 };
 window.JTDGetCemeteryImportState = () => ({
   games: GAMES.map(game => ({...game})),
-  cemetery: CEMETERY.map(game => ({...game}))
+  cemetery: CEMETERY.map(game => ({...game})),
+  usedIds: [...GAMES,...CEMETERY,...ARRIVALS,...WISHLIST].map(item=>item.id)
 });
 
 function restoreBackup(file){
@@ -637,6 +641,7 @@ function restoreBackup(file){
     if(accountGeneration !== window.JTDAccountGeneration) return;
     try{
       const data = cleanBackupData(JSON.parse(e.target.result));
+      JTDData.assertCloudSize({...data,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
       const summary = [
         data.games.length + ' jeu(x)',
         data.wishlist.length + ' souhait(s)',
@@ -645,7 +650,7 @@ function restoreBackup(file){
         data.journal.length + ' parcours dans le journal'
       ].join(' • ');
       confirmAction(
-        'Cette restauration remplacera les données actuelles par : ' + summary + '.',
+        'Cette restauration remplacera toutes les listes, le journal, le profil et les plateformes par le contenu du fichier : ' + summary + '. Les sections absentes d’une ancienne sauvegarde seront vidées. Tu peux annuler et télécharger une sauvegarde complète avant de continuer.',
         () => {
           if(accountGeneration !== window.JTDAccountGeneration) return;
           try{
@@ -660,7 +665,7 @@ function restoreBackup(file){
       );
     }catch(err){
       console.error('Restauration impossible', err);
-      showToast("Ce fichier n'est pas une sauvegarde Jeux Tout Doux valide.");
+      showToast(err.message || "Ce fichier n’est pas une sauvegarde Jeux Tout Doux valide.");
     }
   };
   reader.onerror = () => showToast('Lecture du fichier impossible.');
@@ -2364,19 +2369,7 @@ restoreInput.addEventListener('change', (e) => {
 
 function downloadChatGPTSnapshot(){
   try{
-    const data = JTDData.createPublicSharePayload({
-      games:GAMES,
-      wishlist:WISHLIST,
-      arrivals:ARRIVALS,
-      cemetery:CEMETERY
-    });
-    data.journal = JOURNAL.map(({nom,plateforme,kind,parentName,status,completion,medium,access,finishedAt,feeling,review}) => ({nom,plateforme,kind,parentName,status,completion,medium,access,finishedAt,feeling,review}));
-    const payload = {
-      app:'Jeux Tout Doux',
-      purpose:'Conseils dans ChatGPT',
-      exportedAt:new Date().toISOString(),
-      data
-    };
+    const payload = JTDData.createChatGPTPayload(buildBackupPayload().data);
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -2394,18 +2387,6 @@ function downloadChatGPTSnapshot(){
 }
 
 document.getElementById('chatgpt-export-btn').addEventListener('click', downloadChatGPTSnapshot);
-
-document.getElementById('share-btn').addEventListener('click', () => {
-  if(window.JTDShare && typeof window.JTDShare.createOrCopy === 'function') window.JTDShare.createOrCopy();
-});
-document.getElementById('share-disable-btn').addEventListener('click', () => {
-  if(!window.JTDShare || typeof window.JTDShare.disable !== 'function') return;
-  confirmAction(
-    'Le lien actuel cessera immédiatement de fonctionner.',
-    () => window.JTDShare.disable(),
-    { title:'Désactiver le partage ?', confirmLabel:'Désactiver' }
-  );
-});
 
 document.getElementById('profile-menu-btn').addEventListener('click', (e) => {
   e.stopPropagation();
@@ -2764,3 +2745,4 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
+
