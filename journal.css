@@ -92,7 +92,7 @@ select{color-scheme:inherit}select option,select optgroup{color:var(--text);back
 
 /* Small semantic cues; titles keep the strongest visual weight. */
 :is(#page-journal,#page-collection,.journal-modal,.journal-detail-modal,#modal-overlay){--j-green:#326950;--j-blue:#38679a;--j-purple:#76528e;--j-gold:#866019;--j-rose:#a64c61}
-:root[data-theme="dark"] :is(#page-journal,#page-collection,.journal-modal,.journal-detail-modal){--j-green:#91c9aa;--j-blue:#9abfe8;--j-purple:#c2a5e4;--j-gold:#dfc080;--j-rose:#e4a0b2}
+:root[data-theme="dark"] :is(#page-journal,#page-collection,.journal-modal,.journal-detail-modal,#modal-overlay){--j-green:#91c9aa;--j-blue:#9abfe8;--j-purple:#c2a5e4;--j-gold:#dfc080;--j-rose:#e4a0b2}
 .journal-result>span,.journal-detail-bilan>span{display:inline-flex;align-items:center;gap:5px}
 .journal-result svg,.journal-detail-bilan svg{width:13px;height:13px;flex-shrink:0}
 .journal-format{padding:2px 6px;border-radius:5px;font-size:10px;font-weight:500;line-height:1.5;background:color-mix(in srgb,currentColor 9%,transparent)}
