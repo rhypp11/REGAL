@@ -96,11 +96,11 @@
     return {games, arrivals, wishlist, cemetery, journal, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
   }
   function parseBackup(parsed, defaults){
-    if(isRecord(parsed) && parsed.purpose) throw new Error('Cet export est destiné à ChatGPT. Choisis une sauvegarde complète pour restaurer JTD.');
+    if(isRecord(parsed) && parsed.purpose) throw new Error('Cet export sert au partage et à l’analyse, notamment dans ChatGPT. Choisis une sauvegarde complète pour restaurer JTD.');
     let data;
     if(Array.isArray(parsed)) data = {games:parsed};
     else if(isRecord(parsed) && parsed.app === 'Jeux Tout Doux'){
-      if(!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 4) throw new Error('Version de sauvegarde incompatible');
+      if(!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 5) throw new Error('Version de sauvegarde incompatible');
       data = parsed.data;
     }else data = parsed;
     return normalizeData(data, defaults);
@@ -210,7 +210,7 @@
   const platformAliases = new Map([
     ['switch','Nintendo Switch'],['nintendo switch','Nintendo Switch'],['ns','Nintendo Switch'],['n switch','Nintendo Switch'],['nsw','Nintendo Switch'],
     ['switch 2','Nintendo Switch 2'],['switch2','Nintendo Switch 2'],['nintendo switch 2','Nintendo Switch 2'],['ns2','Nintendo Switch 2'],
-    ['3ds','Nintendo 3DS'],['nintendo 3ds','Nintendo 3DS'],['ds','Nintendo DS'],['nintendo ds','Nintendo DS'],
+    ['3ds','Nintendo 3DS'],['nintendo 3ds','Nintendo 3DS'],['ds','Nintendo DS'],['nds','Nintendo DS'],['nintendo ds','Nintendo DS'],
     ['wu','Nintendo Wii U'],['wii u','Nintendo Wii U'],['nintendo wii u','Nintendo Wii U'],['wii','Nintendo Wii'],['nintendo wii','Nintendo Wii'],
     ['gc','Nintendo Gamecube'],['gamecube','Nintendo Gamecube'],['game cube','Nintendo Gamecube'],['nintendo gamecube','Nintendo Gamecube'],
     ['gba','Nintendo Game Boy Advance'],['gb','Nintendo Game Boy'],['gbc','Nintendo Game Boy Color'],
@@ -238,7 +238,7 @@
     for(const key of ['games','arrivals','wishlist','cemetery']) shared[key]=shared[key].map((item,i)=>({...item,id:normalized[key][i].id}));
     shared.cemetery=shared.cemetery.map((item,i)=>normalized.cemetery[i].saleId?{...item,saleId:normalized.cemetery[i].saleId}:item);
     shared.journal=normalized.journal.map(({id,nom,plateforme,kind,parentName,collectionId,status,completion,medium,access,finishedAt,feeling,review})=>({id,nom,plateforme,kind,parentName,collectionId,status,completion,medium,access,finishedAt,feeling,review}));
-    return {app:'Jeux Tout Doux',purpose:'Conseils dans ChatGPT',exportedAt,definitions:{
+    return {app:'Jeux Tout Doux',purpose:'Analyse et partage de données',exportedAt,definitions:{
       games:'Exemplaires physiques actuellement dans la collection.',
       cemetery:'Exemplaires physiques à vendre (pending) ou vendus (sold).',
       journal:'Parcours indépendants ou liés à un exemplaire par collectionId. Plusieurs parcours peuvent être des replays ; ne pas les compter comme plusieurs jeux possédés.',
@@ -252,6 +252,7 @@
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+
 
 
 

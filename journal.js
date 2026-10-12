@@ -32,8 +32,8 @@
  const fold=s=>s.normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr').trim();
  function collectionLabel(r){if(!r.collectionId)return '';if(GAMES.some(g=>g.id===r.collectionId))return 'Collection';const old=CEMETERY.find(g=>g.id===r.collectionId);return old?(old.saleStatus==='sold'?'Vendu':'À vendre'):'';}
  function linkedGame(r){return r.collectionId&&(GAMES.find(g=>g.id===r.collectionId)||CEMETERY.find(g=>g.id===r.collectionId));}
- function displayRecord(r){const g=linkedGame(r);return g?{...r,nom:g.nom,plateforme:g.plateforme,image:g.image||'',imageFit:g.imageFit||'contain',kind:'game',parentName:'',medium:'physical',access:'owned'}:r;}
- function metadata(r,platform=true){r=displayRecord(r);const label=collectionLabel(r),collection=label==='Collection',format=collection?'collection':r.access==='emulation'?'emulation':r.medium;return (platform?'<span class="journal-platform">'+esc(r.plateforme)+'</span>':'')+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+'<span class="journal-format format-'+format+'">'+(collection?bookshelf:icons[format])+esc(collection?'Collection':format==='emulation'?'Émulation':format==='physical'?'Physique':'Numérique')+'</span>'+(!collection&&['family','subscription'].includes(r.access)?'<span>'+esc(r.access==='family'?'Partage familial':'Abonnement')+'</span>':'')+(label&&!collection?'<span>'+esc(label)+'</span>':'');}
+ function displayRecord(r){const g=linkedGame(r);return g?{...r,nom:g.nom,plateforme:g.plateforme,image:g.image||'',imageFit:g.imageFit||'contain',kind:'game',parentName:''}:r;}
+ function metadata(r,platform=true){r=displayRecord(r);const label=collectionLabel(r),collection=label==='Collection',format=collection&&r.medium==='physical'?'collection':r.access==='emulation'?'emulation':r.medium;return (platform?'<span class="journal-platform">'+esc(r.plateforme)+'</span>':'')+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+'<span class="journal-format format-'+format+'">'+(format==='collection'?bookshelf:icons[format])+esc(format==='collection'?'Collection':format==='emulation'?'Émulation':format==='physical'?'Physique':'Numérique')+'</span>'+(!collection&&['family','subscription'].includes(r.access)?'<span>'+esc(r.access==='family'?'Partage familial':'Abonnement')+'</span>':'')+(label&&format!=='collection'?'<span>'+esc(label)+'</span>':'');}
  function selectTab(tab){document.querySelector('.journal-layout').dataset.tab=tab;document.querySelectorAll('[data-journal-tab]').forEach(x=>{const active=x.dataset.journalTab===tab;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});}
  function sourceGames(){return [...GAMES,...CEMETERY];}
  function sourceLabel(g){const location=GAMES.some(item=>item.id===g.id)?'Collection':g.saleStatus==='sold'?'Vendu':'À vendre';return g.nom+' · '+g.plateforme+' · '+location+(g.collector?' · Collector':'')+(g.japanese?' · Japonais':'')+(g.date?' · '+g.date:'')+(g.source?' · '+g.source:'')+' · réf. '+g.id;}
@@ -47,8 +47,8 @@
  }
  function row(r,compact=false){
   r=displayRecord(r);
-  const day=r.finishedAt?.slice(8), month=r.finishedAt?MONTH_NAMES_FULL[Number(r.finishedAt.slice(5,7))-1]:'';
-  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span>'+(!compact?'<span class="journal-result">'+completionMark(r)+feelingMark(r)+(r.review?'<span class="journal-review-mark">'+icons.review+'Avis rédigé</span>':'')+'</span>':'')+'</span></button>';
+  const day=r.finishedAt?.slice(8), month=r.finishedAt?.length>=7?MONTH_NAMES_FULL[Number(r.finishedAt.slice(5,7))-1]:'';
+  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':r.finishedAt?'<small>'+esc(month?month.slice(0,3):r.finishedAt)+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span>'+(!compact?'<span class="journal-result">'+completionMark(r)+feelingMark(r)+(r.review?'<span class="journal-review-mark">'+icons.review+'Avis rédigé</span>':'')+'</span>':'')+'</span></button>';
  }
  function renderJournal(){
   const selected=year;
@@ -58,7 +58,7 @@
   const past=JOURNAL.filter(r=>r.status==='done'&&(!r.finishedAt||r.finishedAt.startsWith(year))).sort((a,b)=>(b.finishedAt||'').localeCompare(a.finishedAt||'')||a.nom.localeCompare(b.nom,'fr'));
   const groups=new Map();for(const r of past){const key=r.finishedAt?r.finishedAt.slice(0,7):'none';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
   const dated=[...groups.keys()].filter(k=>k!=='none');const shown=dated.slice(0,monthLimit);
-  $('journal-feed').innerHTML=shown.map(k=>'<section class="journal-month"><h2>'+esc(MONTH_NAMES_FULL[Number(k.slice(5))-1])+'</h2>'+groups.get(k).map(r=>row(r)).join('')+'</section>').join('')+(dated.length>monthLimit?'<button class="btn btn-ghost" id="journal-more">Voir les mois précédents</button>':'')+(groups.has('none')?'<section class="journal-month"><h2>Sans date</h2>'+groups.get('none').map(r=>row(r)).join('')+'</section>':'')+(!past.length?'<p class="journal-empty">Aucun jeu terminé cette année.</p>':'');
+  $('journal-feed').innerHTML=shown.map(k=>'<section class="journal-month"><h2>'+esc(k.length===4?'Mois non précisé':MONTH_NAMES_FULL[Number(k.slice(5))-1])+'</h2>'+groups.get(k).map(r=>row(r)).join('')+'</section>').join('')+(dated.length>monthLimit?'<button class="btn btn-ghost" id="journal-more">Voir les mois précédents</button>':'')+(groups.has('none')?'<section class="journal-month"><h2>Sans date</h2>'+groups.get('none').map(r=>row(r)).join('')+'</section>':'')+(!past.length?'<p class="journal-empty">Aucun jeu terminé cette année.</p>':'');
   for(const status of ['playing','backlog']){const list=JOURNAL.filter(r=>r.status===status);$('journal-'+status).innerHTML=list.length?list.map(r=>row(r,true)).join(''):'<p class="journal-empty">'+(status==='playing'?'Aucun jeu en cours.':'Backlog vide.')+'</p>';}
   $('journal-more')?.addEventListener('click',()=>{monthLimit+=3;renderJournal();});
  }
@@ -121,7 +121,7 @@
   try{r=JTDJournalData.normalizeJournal([r])[0];const next=JOURNAL.some(x=>x.id===r.id)?JOURNAL.map(x=>x.id===r.id?r:x):[...JOURNAL,r];commit(next);close(false);if(r.status==='done'){year=r.finishedAt?r.finishedAt.slice(0,4):String(new Date().getFullYear());monthLimit=3;selectTab('feed');renderJournal();showRecord(r);}showToast('Journal enregistré.');}
   catch(e){$('j-error').textContent=e.message;}
  }
- function dateLabel(r){return r.finishedAt?new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(r.finishedAt+'T12:00:00Z')):'';}
+ function dateLabel(r){return JTDJournalData.dateLabel(r.finishedAt);}
  function bilan(r){return r.status==='done'?completionMark(r)+(r.finishedAt?'<span>'+icons.date+esc(dateLabel(r))+'</span>':'')+feelingMark(r):'<span>'+(r.status==='playing'?ICON_STATUS_PLAYING:icons.backlog)+esc(statusNames[r.status])+'</span>';}
  function closeDetail(){JTDDialogs.close('journal-detail-overlay');detailId=null;}
  function showRecord(r){
@@ -167,7 +167,7 @@
   });
  });
  function startReplay(previous){
-  close(false);open({...previous,id:crypto.randomUUID(),status:'playing',completion:'finished',finishedAt:'',feeling:'',review:''});returnDetailId=previous.id;
+  close(false);open({...previous,importSource:undefined,id:crypto.randomUUID(),status:'playing',completion:'finished',finishedAt:'',feeling:'',review:''});returnDetailId=previous.id;
   $('journal-modal-title').textContent='Rejouer';$('j-delete').classList.add('hidden');
  }
  $('j-replay').addEventListener('click',()=>{const previous=JOURNAL.find(r=>r.id===draft.id);if(previous)startReplay(previous);});
@@ -176,4 +176,5 @@
  document.querySelectorAll('[data-journal-tab]').forEach(b=>b.innerHTML=(b.dataset.journalTab==='playing'?ICON_STATUS_PLAYING:b.dataset.journalTab==='backlog'?icons.backlog:icon('<path d="M4 4h7a3 3 0 0 1 3 3v14a3 3 0 0 0-3-3H4Zm16 0h-4"/>'))+b.textContent);
  renderJournal();
 })();
+
 

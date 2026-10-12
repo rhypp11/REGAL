@@ -16,10 +16,18 @@
     return result;
   }
   function validDate(value){
-    if(!value) return true;
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000')) return false;
-    const date = new Date(value + 'T12:00:00Z');
-    return Number.isFinite(date.getTime()) && date.toISOString().slice(0,10) === value;
+    if(!value)return true;
+    if(!/^\d{4}(?:-\d{2}(?:-\d{2})?)?$/.test(value)||value.startsWith('0000'))return false;
+    if(value.length===4)return true;
+    const month=Number(value.slice(5,7));if(month<1||month>12)return false;
+    if(value.length===7)return true;
+    const date=new Date(value+'T12:00:00Z');return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value;
+  }
+  function dateLabel(value){
+    if(!value)return '';
+    if(value.length===4)return value;
+    const date=value+(value.length===7?'-01':'')+'T12:00:00Z';
+    return new Intl.DateTimeFormat('fr-FR',{...(value.length===10?{day:'numeric'}:{}),month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(date));
   }
   function normalizeJournal(input = []){
     if(!Array.isArray(input)) throw Error('Journal invalide');
@@ -44,7 +52,7 @@
         collectionId=String(value.collectionId);
       }
       if(kind==='extension' && collectionId) throw Error('Une extension reste indépendante de la collection');
-      return {id,nom,plateforme,kind,parentName:kind==='extension'?parentName:'',collectionId,
+      return {...(value.importSource?{importSource:string(value.importSource,'source import',2000)}:{}),id,nom,plateforme,kind,parentName:kind==='extension'?parentName:'',collectionId,
         status:choice(value.status==='abandoned'?'backlog':value.status,statuses,'backlog','statut'),
         completion:choice(value.completion==='both'?'achievements':value.completion,completions,'finished','complétion'),
         medium:choice(value.medium,['physical','digital'],'digital','support'),
@@ -81,7 +89,8 @@
     return record.kind==='extension'&&!record.nom.toLocaleLowerCase('fr').startsWith(record.parentName.toLocaleLowerCase('fr'))
       ? record.parentName+' — '+record.nom : record.nom;
   }
-  const api={normalizeJournal,collectionProgress,syncGames,title,validDate};
+  const api={normalizeJournal,collectionProgress,syncGames,title,validDate,dateLabel};
   root.JTDJournalData=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
+

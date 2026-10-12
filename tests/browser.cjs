@@ -124,9 +124,9 @@ async function restore(page, value, confirm=true){
       const chatGPTDownloadEvent=page.waitForEvent('download');
       await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
       const chatGPTDownload=await chatGPTDownloadEvent;
-      assert.match(chatGPTDownload.suggestedFilename(),/^jeux-tout-doux-chatgpt-\d{4}-\d{2}-\d{2}\.json$/);
+      assert.match(chatGPTDownload.suggestedFilename(),/^jeux-tout-doux-export-\d{4}-\d{2}-\d{2}\.json$/);
       const shared=JSON.parse(fs.readFileSync(await chatGPTDownload.path(),'utf8'));
-      assert.equal(shared.app,'Jeux Tout Doux');assert.equal(shared.purpose,'Conseils dans ChatGPT');
+      assert.equal(shared.app,'Jeux Tout Doux');assert.equal(shared.purpose,'Analyse et partage de données');
       assert.deepEqual(Object.keys(shared.data).sort(),['arrivals','cemetery','games','journal','publishedAt','version','wishlist']);
       assert.equal(Object.hasOwn(shared.data.games[0],'prix'),false);
       assert.equal(Object.hasOwn(shared.data.games[0],'source'),false);
@@ -149,5 +149,6 @@ async function restore(page, value, confirm=true){
     }
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+
 
 

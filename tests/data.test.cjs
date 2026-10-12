@@ -34,7 +34,7 @@ test('legacy arrays migrate collector and numeric, missing or duplicate ids', ()
 });
 test('malformed sections, profile, prices, metadata and future versions are rejected', () => {
   for(const data of [{games:[],wishlist:'bad'},{games:[game({nom:''})]},{games:[game({prix:'20'})]},{games:[game({date:{}})]},{games:[],platformMeta:{PC:'bad'}},{games:[],platformMeta:{PC:{color:'red;display:none'}}},{games:[],platformOrder:[{}]},{games:[],profile:[]}]) assert.throws(()=>D.parseBackup(data));
-  for(const version of [5,'3','2',null]) assert.throws(()=>D.parseBackup({app:'Jeux Tout Doux',version,data:{games:[]}}));
+  for(const version of [6,'3','2',null]) assert.throws(()=>D.parseBackup({app:'Jeux Tout Doux',version,data:{games:[]}}));
 });
 test('text and URLs do not become markup or script protocols', () => {
   assert.equal(D.escapeHTML('<img src=x onerror="x"> & \'x\''),'&lt;img src=x onerror=&quot;x&quot;&gt; &amp; &#39;x&#39;');
@@ -261,4 +261,5 @@ test('retired backup metadata preserves entries without becoming public collecti
   assert.equal(Object.hasOwn(shared,'format'),false);
   assert.equal(Object.hasOwn(shared,'type'),false);
 });
+
 

@@ -20,8 +20,16 @@
 .cemetery-import-other > summary { padding:16px 0; cursor:pointer; color:var(--muted); font-weight:600; }
 .cemetery-import-error { color:var(--danger,#c43d32); min-height:1em; }
 .cemetery-import-modal .modal-actions { flex-shrink:0; }
+.journal-import-year { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px; }
+.journal-import-year input { width:80px; padding:6px; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); color:var(--text); }
+.journal-import-field { display:flex; flex-direction:column; gap:4px; margin-top:8px; }
+.journal-import-field input,.journal-import-field textarea { box-sizing:border-box; width:100%; padding:8px; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); color:var(--text); font:inherit; }
+.journal-import-edit summary { cursor:pointer; font-size:13px; color:var(--muted); }
+.journal-import-impact { font-size:13px; max-height:100px; overflow:auto; }
+.journal-import-modal #journal-import-warning:empty { display:none; }
 @media(max-width:620px) {
   .cemetery-import-modal { max-height:90vh; }
   .cemetery-import-row { grid-template-columns:1fr; gap:8px; }
 }
+
 

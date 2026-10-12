@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="styles.css?v=edge-cases-1">
 <link rel="stylesheet" href="cemetery.css?v=global-2">
 <link rel="stylesheet" href="home-boards-v2.css?v=css-cleanup-1">
-<link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
+<link rel="stylesheet" href="cemetery-import.css?v=journal-import-1">
 <link rel="stylesheet" href="ui-foundations.css?v=journal-1">
 <link rel="stylesheet" href="collection.css?v=global-2">
 <link rel="stylesheet" href="journal.css?v=journal-1">
@@ -114,21 +114,22 @@
           </div>
           <div class="profile-menu-divider"></div>
           <button class="profile-menu-item" id="backup-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Sauvegarde complète</span></span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2Zm2 0v7h10V3M7 21v-7h10v7"/></svg><span>Sauvegarde complète</span></span>
             <span class="profile-menu-sub" id="backup-note"></span>
           </button>
           <label class="profile-menu-item" id="restore-trigger" for="restore-input">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Restaurer une sauvegarde</span></span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M5 16v5h14v-5"/></svg><span>Restaurer une sauvegarde</span></span>
             <span class="profile-menu-sub">Remplacer toutes les données par celles du fichier</span>
           </label>
           <label class="profile-menu-item" id="cemetery-import-trigger" for="cemetery-import-input">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg><span>Importer des ventes</span></span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M5 16v5h14v-5"/></svg><span>Importer des ventes</span></span>
             <span class="profile-menu-sub">Ajouter au cimetière · CSV, TSV ou sauvegarde</span>
           </label>
+          <label class="profile-menu-item" id="journal-import-trigger" for="journal-import-input"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M5 16v5h14v-5"/></svg><span>Importer le journal</span></span><span class="profile-menu-sub">Depuis Sheets · CSV, TSV ou JSON préparé</span></label>
           <div class="profile-menu-divider"></div>
           <button class="profile-menu-item" id="chatgpt-export-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Exporter pour ChatGPT</span></span>
-            <span class="profile-menu-sub">Collection, journal et avis · fichier à joindre dans ChatGPT</span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v5h14v-5"/></svg><span>Exporter mes données</span></span>
+            <span class="profile-menu-sub">JSON · collection, journal et avis à partager</span>
           </button>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
@@ -138,6 +139,7 @@
       </div>
       <input type="file" id="restore-input" accept="application/json,.json" style="display:none;">
       <input type="file" id="cemetery-import-input" accept="application/json,.json,.csv,.tsv,text/csv,text/tab-separated-values" style="display:none;">
+      <input type="file" id="journal-import-input" accept=".csv,.tsv,.json,text/csv,application/json" style="display:none;">
       <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
     </div>
   </div>
@@ -577,7 +579,7 @@
   </div>
   <div id="j-finished-fields" class="form-section journal-finish-section">
    <div class="form-section-title">Bilan</div>
-   <div class="field-row"><div class="field" id="j-completion-field"><label for="j-completion">Complétion</label><select id="j-completion"><option value="finished">Jeu terminé</option><option value="hundred">100 %</option><option value="achievements">Tous les succès</option></select></div><div class="field"><label for="j-finishedAt">Date de fin</label><input type="date" id="j-finishedAt"></div></div>
+   <div class="field-row"><div class="field" id="j-completion-field"><label for="j-completion">Complétion</label><select id="j-completion"><option value="finished">Jeu terminé</option><option value="hundred">100 %</option><option value="achievements">Tous les succès</option></select></div><div class="field"><label for="j-finishedAt">Date de fin</label><input type="text" id="j-finishedAt" placeholder="AAAA-MM-JJ, AAAA-MM ou AAAA" maxlength="10"></div></div>
    <div class="field"><label for="j-feeling">Ressenti</label><select id="j-feeling"><option value="">Non renseigné</option><option value="gem">Pépite</option><option value="love">Adoré</option><option value="like">Aimé</option><option value="mixed">Mitigé</option><option value="dislike">Pas aimé</option></select></div>
    <div class="field"><label for="j-review">Avis</label><textarea id="j-review" rows="5" maxlength="20000"></textarea></div>
   </div>
@@ -594,13 +596,27 @@
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<script src="journal-data.js?v=journal-1"></script>
-<script src="jtd-data.js?v=import-review-2"></script>
+<script src="journal-data.js?v=journal-import-1"></script>
+<script src="jtd-data.js?v=journal-import-1"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=import-review-2"></script>
+<script src="app.js?v=journal-import-1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
-<script src="cemetery-import.js?v=import-review-2"></script>
-<script src="journal.js?v=import-review-2"></script>
+<script src="cemetery-import.js?v=journal-import-1"></script>
+<div class="modal-overlay hidden" id="journal-import-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-import-title">
+ <div class="modal cemetery-import-modal journal-import-modal">
+  <h2 id="journal-import-title">Importer le journal</h2>
+  <p class="cemetery-import-help">Uniquement les jeux terminés du journal. Les blocs En cours, backlog et sorties sont exclus. Aucun exemplaire ne sera créé dans la collection.</p>
+  <label class="journal-import-year">Année des dates sans année <input id="journal-import-year" type="number" min="1" max="9999"></label>
+  <p id="journal-import-warning" class="cemetery-import-help"></p>
+  <p id="journal-import-summary" class="cemetery-note" aria-live="polite"></p>
+  <div id="journal-import-list" class="cemetery-import-list"></div>
+  <p id="journal-import-error" class="cemetery-import-error" role="alert"></p>
+  <div class="modal-actions"><button class="btn btn-ghost" id="journal-import-cancel" type="button">Annuler</button><button class="btn btn-primary" id="journal-import-apply" type="button">Ajouter au journal</button></div>
+ </div>
+</div>
+<script src="journal-import-data.js?v=journal-import-1"></script>
+<script src="journal-import.js?v=journal-import-1"></script>
+<script src="journal.js?v=journal-import-1"></script>
 <script src="lifecycle.js?v=cemetery-sale-3"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
@@ -612,4 +628,5 @@
 </script>
 </body>
 </html>
+
 

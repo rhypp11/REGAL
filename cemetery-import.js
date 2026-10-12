@@ -97,7 +97,7 @@
     const content = await file.text();
     if(/\.json$/i.test(file.name) || file.type.includes('json')){
       const parsed = JSON.parse(content);
-      if(parsed && parsed.app === 'Jeux Tout Doux' && (!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 4)) throw new Error('Version de sauvegarde incompatible.');
+      if(parsed && parsed.app === 'Jeux Tout Doux' && (!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 5)) throw new Error('Version de sauvegarde incompatible.');
       const entries = Array.isArray(parsed) ? parsed : parsed?.data?.cemetery || parsed?.cemetery;
       if(!Array.isArray(entries)) throw new Error('Aucune liste de cimetière trouvée dans ce fichier.');
       return entries;
@@ -269,4 +269,5 @@
     }
   });
 })();
+
 

@@ -540,7 +540,7 @@ function saveWishlist(){
   return writeStoredValue(WISHLIST_KEY, JSON.stringify(WISHLIST));
 }
 
-const BACKUP_VERSION = 4;
+const BACKUP_VERSION = 5;
 const LAST_BACKUP_KEY = 'ludotheque:last-backup-v2';
 const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
 
@@ -2374,12 +2374,12 @@ function downloadChatGPTSnapshot(){
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'jeux-tout-doux-chatgpt-' + new Date().toISOString().slice(0,10) + '.json';
+    link.download = 'jeux-tout-doux-export-' + new Date().toISOString().slice(0,10) + '.json';
     document.body.appendChild(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('Fichier prêt à joindre dans ChatGPT.');
+    showToast('Export JSON prêt à partager, notamment avec ChatGPT.');
   }catch(error){
     console.error('Export ChatGPT impossible', error);
     showToast('Impossible de préparer le fichier pour ChatGPT.');
@@ -2745,4 +2745,5 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
+
 
