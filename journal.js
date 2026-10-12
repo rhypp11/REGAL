@@ -7,6 +7,25 @@
  const feelings={gem:'Pépite',love:'Adoré',like:'Aimé',mixed:'Mitigé',dislike:'Pas aimé'};
  const bookshelf='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4v16M8 8v12M12 6v14m4-14 4 14"/></svg>';
  const puzzle='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h6V2a2 2 0 0 1 4 0v2h6v6h-2a2 2 0 0 0 0 4h2v6h-6v-2a2 2 0 0 0-4 0v2H4v-6h2a2 2 0 0 0 0-4H4Z"/></svg>';
+ const icon=paths=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths+'</svg>';
+ const icons={
+  physical:icon('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="m7 6-2 3m14 6-2 3"/>'),
+  digital:icon('<path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/>'),
+  emulation:'<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3 1h2v2H3zm8 0h2v2h-2zM5 3h6v2h2v2h2v6h-2V9h-2v4H5V9H3v4H1V7h2V5h2zm0 4v2h2V7zm4 0v2h2V7zM5 13h2v2H3v-2zm4 0h2v2h2v-2z" fill-rule="evenodd"/></svg>',
+  finished:icon('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'),
+  hundred:icon('<path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.7l6.2-.9Z"/>'),
+  achievements:icon('<path d="M8 3h8v6a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 2v6m-4 2h8"/>'),
+  gem:icon('<path d="m3 8 4-5h10l4 5-9 13L3 8Zm0 0h18M7 3l5 18 5-18"/>'),
+  love:icon('<path d="M20 5a5 5 0 0 0-8 1 5 5 0 0 0-8-1c-4 5 3 10 8 15 5-5 12-10 8-15Z"/>'),
+  like:icon('<path d="M3 10h4v11H3zm4 9 4 2h7l3-11h-7l1-5c0-3-3-3-3-3L7 10"/>'),
+  mixed:icon('<circle cx="12" cy="12" r="9"/><path d="M8 9h.01M16 9h.01M8 15h8"/>'),
+  dislike:icon('<circle cx="12" cy="12" r="9"/><path d="M8 9h.01M16 9h.01m-8 8c1-4 7-4 8 0"/>'),
+  review:icon('<path d="M21 11a8 8 0 0 1-8 8H8l-5 3 1-6a8 8 0 0 1-1-5 8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/><path d="M7 9h10M7 13h7"/>'),
+  backlog:icon('<path d="M4 4h16v16H4zm0 5h16m-12 5h8"/>'),
+  date:icon('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/>')
+ };
+ function completionMark(r){return '<span class="journal-completion completion-'+esc(r.completion)+'">'+icons[r.completion]+esc(completionNames[r.completion])+'</span>';}
+ function feelingMark(r){return r.feeling?'<span class="journal-feeling feeling-'+esc(r.feeling)+'">'+icons[r.feeling]+esc(feelings[r.feeling])+'</span>':'';}
  const fields=['nom','plateforme','kind','parentName','status','completion','medium','access','finishedAt','feeling','review','image','imageFit'];
  let year=String(new Date().getFullYear()), monthLimit=3, draft=null, generation=0, detailId=null, detailGeneration=0, returnDetailId=null;
  const currentGeneration=()=>window.JTDAccountGeneration||0;
@@ -14,13 +33,13 @@
  function collectionLabel(r){if(!r.collectionId)return '';if(GAMES.some(g=>g.id===r.collectionId))return 'Collection';const old=CEMETERY.find(g=>g.id===r.collectionId);return old?(old.saleStatus==='sold'?'Vendu':'À vendre'):'';}
  function linkedGame(r){return r.collectionId&&(GAMES.find(g=>g.id===r.collectionId)||CEMETERY.find(g=>g.id===r.collectionId));}
  function displayRecord(r){const g=linkedGame(r);return g?{...r,nom:g.nom,plateforme:g.plateforme,image:g.image||'',imageFit:g.imageFit||'contain',kind:'game',parentName:'',medium:'physical',access:'owned'}:r;}
- function metadata(r,platform=true){r=displayRecord(r);const label=collectionLabel(r),collection=label==='Collection';return (platform?'<span>'+esc(r.plateforme)+'</span>':'')+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+'<span>'+(collection?bookshelf+'Collection':esc(r.access==='emulation'?'Émulation':r.medium==='physical'?'Physique':'Numérique'))+'</span>'+(!collection&&['family','subscription'].includes(r.access)?'<span>'+esc(r.access==='family'?'Partage familial':'Abonnement')+'</span>':'')+(label&&!collection?'<span>'+esc(label)+'</span>':'');}
+ function metadata(r,platform=true){r=displayRecord(r);const label=collectionLabel(r),collection=label==='Collection',format=collection?'collection':r.access==='emulation'?'emulation':r.medium;return (platform?'<span class="journal-platform">'+esc(r.plateforme)+'</span>':'')+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+'<span class="journal-format format-'+format+'">'+(collection?bookshelf:icons[format])+esc(collection?'Collection':format==='emulation'?'Émulation':format==='physical'?'Physique':'Numérique')+'</span>'+(!collection&&['family','subscription'].includes(r.access)?'<span>'+esc(r.access==='family'?'Partage familial':'Abonnement')+'</span>':'')+(label&&!collection?'<span>'+esc(label)+'</span>':'');}
  function selectTab(tab){document.querySelector('.journal-layout').dataset.tab=tab;document.querySelectorAll('[data-journal-tab]').forEach(x=>{const active=x.dataset.journalTab===tab;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});}
  function filterSources(){const query=fold($('j-source-search').value);const selected=$('j-source').value||draft?.collectionId||'';const matches=GAMES.filter(g=>fold(g.nom+' '+g.plateforme).includes(query));$('j-source').innerHTML='<option value="">Nouvelle entrée</option>'+matches.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.nom+' · '+g.plateforme)+'</option>').join('');if(selected&&!matches.some(g=>g.id===selected)){const g=GAMES.find(g=>g.id===selected);if(g)$('j-source').add(new Option(g.nom+' · '+g.plateforme,g.id));}$('j-source').value=selected;$('j-source-empty').classList.toggle('hidden',!!matches.length||!query);}
  function row(r,compact=false){
   r=displayRecord(r);
   const day=r.finishedAt?.slice(8), month=r.finishedAt?MONTH_NAMES_FULL[Number(r.finishedAt.slice(5,7))-1]:'';
-  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span>'+(!compact?'<span class="journal-result"><span>'+(r.status==='playing'?ICON_STATUS_PLAYING:'')+esc(r.status==='done'?completionNames[r.completion]:statusNames[r.status])+'</span>'+(r.status==='done'&&r.feeling?'<span>'+esc(feelings[r.feeling])+'</span>':'')+(r.status==='done'&&r.review?'<span class="journal-review-mark">Avis rédigé</span>':'')+'</span>':'')+'</span></button>';
+  return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span>'+(!compact?'<span class="journal-result">'+completionMark(r)+feelingMark(r)+(r.review?'<span class="journal-review-mark">'+icons.review+'Avis rédigé</span>':'')+'</span>':'')+'</span></button>';
  }
  function renderJournal(){
   const selected=year;
@@ -99,7 +118,7 @@
   $('journal-detail-identity').innerHTML=identitySummaryHtml({...r,nom:JTDJournalData.title(r)});
   $('journal-detail-identity').querySelector('.identity-edit-btn')?.remove();
   $('journal-detail-meta').innerHTML=metadata(r,false);
-  $('journal-detail-bilan').innerHTML=bilan(r).map(value=>'<span>'+esc(value)+'</span>').join('');
+  $('journal-detail-bilan').innerHTML=completionMark(r)+(r.finishedAt?'<span>'+icons.date+esc(dateLabel(r))+'</span>':'')+feelingMark(r);
   $('journal-detail-review').textContent=r.review||'Aucun avis rédigé.';
   $('journal-detail-review').classList.toggle('journal-empty',!r.review);
   JTDDialogs.open('journal-detail-overlay',{initialFocus:'#journal-detail-close',onDismiss:closeDetail});
@@ -140,5 +159,7 @@
  }
  $('j-replay').addEventListener('click',()=>{const previous=JOURNAL.find(r=>r.id===draft.id);if(previous)startReplay(previous);});
  $('f-journal-btn').addEventListener('click',()=>openForGame(editingId));
+ for(const status of ['playing','backlog']){document.querySelector('[data-journal-panel="'+status+'"] h2').innerHTML=(status==='playing'?ICON_STATUS_PLAYING:icons.backlog)+statusNames[status];}
+ document.querySelectorAll('[data-journal-tab]').forEach(b=>b.innerHTML=(b.dataset.journalTab==='playing'?ICON_STATUS_PLAYING:b.dataset.journalTab==='backlog'?icons.backlog:icon('<path d="M4 4h7a3 3 0 0 1 3 3v14a3 3 0 0 0-3-3H4Zm16 0h-4"/>'))+b.textContent);
  renderJournal();
 })();

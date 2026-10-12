@@ -21,7 +21,7 @@
 .journal-meta,.journal-result{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;font-size:11px;color:var(--muted);line-height:1.5}
 .journal-meta>span{display:inline-flex;align-items:center;gap:4px}
 .journal-meta svg{width:13px;height:13px;flex-shrink:0}
-.journal-result{font-size:11px}.journal-result>span:first-child{color:var(--accent)}
+.journal-result{font-size:11px}
 .journal-review-mark{border-left:1px solid var(--hairline);padding-left:10px}
 .journal-date{flex:0 0 38px;display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:7px 0;gap:3px}
 .journal-date strong{font-size:17px;line-height:1}.journal-date small{font-size:9px;color:var(--muted);text-transform:uppercase}
@@ -83,11 +83,29 @@ select{color-scheme:inherit}select option,select optgroup{color:var(--text);back
 .journal-detail-meta>span{display:inline-flex;align-items:center;gap:5px}
 .journal-detail-meta svg{width:13px;height:13px}
 .journal-detail-bilan{padding:14px;background:rgba(var(--ui-rgb),.025);border-radius:12px;color:var(--text)}
-.journal-detail-bilan>span:first-child{color:var(--accent);font-weight:600}
+.journal-detail-bilan .journal-completion{font-weight:600}
 .journal-detail-review h3{font-size:13px;margin:0 0 12px}
 .journal-detail-review p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.75}
 .journal-detail-review p.journal-empty{font-size:12px;padding:0}
 @media(max-width:736px){.journal-detail-modal .modal-edit-actions .modal-primary-actions{grid-template-columns:1fr}}
+
+/* Small semantic cues; titles keep the strongest visual weight. */
+#page-journal,.journal-detail-modal{--j-green:#326950;--j-blue:#38679a;--j-purple:#76528e;--j-gold:#866019;--j-rose:#a64c61}
+:root[data-theme="dark"] #page-journal,:root[data-theme="dark"] .journal-detail-modal{--j-green:#91c9aa;--j-blue:#9abfe8;--j-purple:#c2a5e4;--j-gold:#dfc080;--j-rose:#e4a0b2}
+.journal-result>span,.journal-detail-bilan>span{display:inline-flex;align-items:center;gap:5px}
+.journal-result svg,.journal-detail-bilan svg{width:13px;height:13px;flex-shrink:0}
+.journal-format{padding:2px 6px;border-radius:5px;font-size:10px;font-weight:500;line-height:1.5;background:color-mix(in srgb,currentColor 9%,transparent)}
+.format-collection{color:var(--teal)}.format-physical{color:var(--muted)}.format-digital{color:var(--j-blue)}.format-emulation{color:var(--j-purple)}
+.completion-finished{color:var(--j-green)}.completion-hundred{color:var(--j-blue)}.completion-achievements{color:var(--j-gold)}
+.feeling-gem{color:var(--j-purple)}.feeling-love{color:var(--j-rose)}.feeling-like{color:var(--j-green)}.feeling-mixed{color:var(--muted)}.feeling-dislike{color:var(--muted)}
+.journal-panel h2{display:flex;align-items:center;gap:8px}
+.journal-panel h2 svg{width:18px;height:18px;flex-shrink:0}
+.journal-panel[data-journal-panel="playing"]{border-top:2px solid color-mix(in srgb,var(--teal) 50%,var(--hairline))}
+.journal-panel[data-journal-panel="playing"] h2 svg{color:var(--teal)}
+.journal-panel[data-journal-panel="backlog"]{border-top:2px solid color-mix(in srgb,var(--j-blue) 40%,var(--hairline))}
+.journal-panel[data-journal-panel="backlog"] h2 svg{color:var(--j-blue)}
+.journal-tabs .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;white-space:nowrap}
+.journal-tabs svg{width:14px;height:14px;flex-shrink:0}
 #page-collection .card-identity .card-status-badge{min-height:22px;padding:3px 5px;gap:4px;font-size:10px;border-radius:6px;line-height:1.2}
 #page-collection .card-identity .card-status-badge>svg{width:11px;height:11px}
 .card-identity .card-status-badge .card-journal-origin{display:inline-flex;flex-shrink:0;align-items:center;opacity:.75}
