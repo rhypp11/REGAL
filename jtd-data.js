@@ -1,6 +1,7 @@
 /* Shared data boundary: no DOM or Firebase dependency. */
 (function(root){
   'use strict';
+  const journalData = root.JTDJournalData || require('./journal-data.js');
   const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
   const text = (value, field, nullable = true) => {
     if(value == null && nullable) return null;
@@ -39,7 +40,7 @@
         }
         used.add(id);
         const item = {id, nom, plateforme};
-        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId']){
+        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId','journalPreviousStatus']){
           if(value[field] !== undefined) item[field] = text(value[field], field);
         }
         for(const field of ['collector','japanese']){
@@ -70,7 +71,9 @@
         return item;
       });
     };
-    const games = list('games'), arrivals = list('arrivals'), wishlist = list('wishlist'), cemetery = list('cemetery');
+    let games = list('games'); const arrivals = list('arrivals'), wishlist = list('wishlist'), cemetery = list('cemetery');
+    const journal = journalData.normalizeJournal(data.journal).map(item => ({...item, image:safeURL(item.image, true) || ''}));
+    games = journalData.syncGames(games, journal);
     if(data.platformMeta !== undefined && !isRecord(data.platformMeta)) throw new Error('Métadonnées invalides');
     const platformMeta = Object.create(null);
     for(const [name, meta] of Object.entries(data.platformMeta || {})){
@@ -84,13 +87,13 @@
     const profile = data.profile || {};
     const profileName = text(profile.name ?? data.profileName ?? defaults.profileName ?? '', 'profil', false);
     const avatar = text(profile.avatar !== undefined ? profile.avatar : (data.profileAvatar !== undefined ? data.profileAvatar : defaults.profileAvatar), 'avatar');
-    return {games, arrivals, wishlist, cemetery, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
+    return {games, arrivals, wishlist, cemetery, journal, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
   }
   function parseBackup(parsed, defaults){
     let data;
     if(Array.isArray(parsed)) data = {games:parsed};
     else if(isRecord(parsed) && parsed.app === 'Jeux Tout Doux'){
-      if(!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 3) throw new Error('Version de sauvegarde incompatible');
+      if(!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 4) throw new Error('Version de sauvegarde incompatible');
       data = parsed.data;
     }else data = parsed;
     return normalizeData(data, defaults);

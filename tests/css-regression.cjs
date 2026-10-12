@@ -64,6 +64,7 @@ async function scene(page,name){
       if(name!=='index.html'&&!name.endsWith('.css'))return route.fallback();
       // Current markup/scripts (including dialog lifecycle), previous styles.
       // This isolates CSS changes from deliberate accessibility attributes.
+      if(name.endsWith('.css')&&!fs.existsSync(path.join(baselineDir,name)))return route.fallback();
       let body=fs.readFileSync(name==='index.html'?path.join(__dirname,'..',name):path.join(baselineDir,name),'utf8');
       if(name==='index.html')body=body.replace('window.JTD_PREVIEW_MODE =','window.JTD_PREVIEW_MODE = true ||');
       return route.fulfill({contentType:name==='index.html'?'text/html':'text/css',body});

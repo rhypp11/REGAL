@@ -45,6 +45,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       arrivals: ARRIVALS,
       wishlist: WISHLIST,
       cemetery: CEMETERY,
+      journal: JOURNAL,
       platformMeta: platformMeta,
       platformOrder: platformOrder,
       profileName: PROFILE_NAME,
@@ -73,6 +74,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     render();
     renderArrivals();
     renderWishlist();
+    window.renderJournal?.();
     renderProfileAvatar();
     updateBackupNote();
   }
@@ -431,6 +433,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     accountStorage.setAccount(user && user.uid);
     replaceAppData(emptyData());
     SHARE_TOKEN = null;
+    window.JTDJournal?.close();
     closeModal();
     window.closeSaleModal?.();
     closeArrivalModal();

@@ -127,7 +127,7 @@ async function restore(page, value, confirm=true){
       assert.match(chatGPTDownload.suggestedFilename(),/^jeux-tout-doux-chatgpt-\d{4}-\d{2}-\d{2}\.json$/);
       const shared=JSON.parse(fs.readFileSync(await chatGPTDownload.path(),'utf8'));
       assert.equal(shared.app,'Jeux Tout Doux');assert.equal(shared.purpose,'Conseils dans ChatGPT');
-      assert.deepEqual(Object.keys(shared.data).sort(),['arrivals','cemetery','games','publishedAt','version','wishlist']);
+      assert.deepEqual(Object.keys(shared.data).sort(),['arrivals','cemetery','games','journal','publishedAt','version','wishlist']);
       assert.equal(Object.hasOwn(shared.data.games[0],'prix'),false);
       assert.equal(Object.hasOwn(shared.data.games[0],'source'),false);
       const downloadEvent=page.waitForEvent('download');

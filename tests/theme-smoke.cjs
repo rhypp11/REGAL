@@ -30,6 +30,13 @@ const fs=require('fs');
           return linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722;
         }
         const result = [];
+        // Transparent status text is painted over the card and its ancestor layers.
+        function background(element) {
+          const ancestors = [];for(let node=element;node;node=node.parentElement) ancestors.push(node);
+          ctx.clearRect(0,0,1,1);ctx.fillStyle='#fff';ctx.fillRect(0,0,1,1);
+          for(const node of ancestors.reverse()){ctx.fillStyle=getComputedStyle(node).backgroundColor;ctx.fillRect(0,0,1,1);}
+          const rgb=ctx.getImageData(0,0,1,1).data;return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+        }
         for(const status of ['todo','multi','done','elsewhere']) {
           const badge = document.createElement('button'); badge.className = 'card-status-badge';
           badge.style.setProperty('--status-color', `var(--status-${status})`);
@@ -37,7 +44,7 @@ const fs=require('fs');
           badge.style.transition = 'none'; badge.textContent = status; group.appendChild(badge);
           for(const state of ['normal','hover']) {
             if(state === 'hover') badge.style.background = 'color-mix(in srgb,var(--status-fill) 36%,var(--surface))';
-            const css = getComputedStyle(badge), a = luminance(css.color), b = luminance(css.backgroundColor);
+            const css = getComputedStyle(badge), backdrop=background(badge), a = luminance(css.color), b = luminance(backdrop);
             result.push({status,state,ratio:(Math.max(a,b) + .05)/(Math.min(a,b) + .05)});
           }
           badge.remove();

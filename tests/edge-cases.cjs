@@ -25,7 +25,7 @@ const server=createSandboxServer();
    },view);
    assert.equal(result.overflow,false,'Long lists stay within viewport');
    assert.equal(result.broken,0,'Unavailable artwork shows its fallback');
-   for(const n of result.nav){assert.ok(n.iconLeft>=n.left-.5&&n.labelRight<=n.right+.5,'Navigation contents stay in their own tab '+width+'px '+JSON.stringify(n));assert.ok(width<=380?n.iconBottom<=n.labelTop+.5:n.iconRight<=n.labelLeft+.5,'Icon and label never overlap');}
+   for(const n of result.nav){assert.ok(n.iconLeft>=n.left-.5&&n.labelRight<=n.right+.5,'Navigation contents stay in their own tab '+width+'px '+JSON.stringify(n));assert.ok(width<=420?n.iconBottom<=n.labelTop+.5:n.iconRight<=n.labelLeft+.5,'Icon and label never overlap');}
   }
   await page.evaluate(()=>{goToPage('collection');state.search='RechercheSansEspace'.repeat(40);state.collector=true;state.japanese=true;state.status='termine_ailleurs';render();});
   assert.match(await page.locator('.empty-state').textContent(),/Aucun jeu ne correspond/);

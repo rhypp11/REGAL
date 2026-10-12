@@ -19,8 +19,9 @@
 <link rel="stylesheet" href="cemetery.css?v=global-2">
 <link rel="stylesheet" href="home-boards-v2.css?v=css-cleanup-1">
 <link rel="stylesheet" href="cemetery-import.css?v=css-cleanup-1">
-<link rel="stylesheet" href="ui-foundations.css?v=image-modes-1">
+<link rel="stylesheet" href="ui-foundations.css?v=journal-1">
 <link rel="stylesheet" href="collection.css?v=global-2">
+<link rel="stylesheet" href="journal.css?v=journal-1">
 </head>
 <body>
 
@@ -84,6 +85,7 @@
     </button>
     <div class="topnav-nav" aria-label="Navigation principale">
       <button class="nav-tab active" data-page="home" title="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg><span class="nav-tab-label">Accueil</span></button>
+      <button class="nav-tab" data-page="journal" title="Journal"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h6a3 3 0 0 1 3 3v14a4 4 0 0 0-4-2H4V4Zm16 0h-4a3 3 0 0 0-3 3v14a4 4 0 0 1 4-2h3V4Z"/></svg><span class="nav-tab-label">Journal</span></button>
       <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
       <button class="nav-tab" data-page="cemetery" title="Cimetière"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V10a6 6 0 0 1 12 0v11M4 21h16M9 10h6M12 7v6"/></svg><span class="nav-tab-label">Cimetière</span></button>
     </div>
@@ -394,6 +396,7 @@
   <div class="modal">
     <h2 id="modal-title">Ajouter un jeu</h2>
 
+
     <div class="form-section">
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
       <div class="game-identity-editor" id="f-identity-editor">
@@ -441,8 +444,11 @@
       </div>
     </div>
 
+    <div class="collection-journal-row hidden" id="f-journal-row"><div class="collection-journal-heading"><span>Journal</span><button class="btn btn-ghost hidden" type="button" id="f-journal-btn">Ajouter un parcours</button></div><div id="f-journal-entries"></div></div>
+
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
+      
       <button type="button" class="btn btn-ghost hidden" data-modal-action="context" id="f-sell-btn">Mettre en vente</button>
       <button class="btn btn-danger hidden" data-modal-action="delete" id="delete-btn">Supprimer</button>
       </div>
@@ -537,6 +543,58 @@
 </div>
 
 
+<section class="page hidden" id="page-journal">
+  <div class="journal-shell">
+  <aside class="journal-sidebar" aria-label="Année du journal"><h1>Mon journal</h1><div class="field"><label for="journal-year">Année</label><select id="journal-year"></select></div></aside>
+  <main class="journal-main"><header class="journal-heading"><button class="btn btn-primary" id="journal-add">Ajouter</button></header>
+  <div class="journal-tabs" role="group" aria-label="Vue du journal"><button class="btn active" data-journal-tab="feed" aria-pressed="true">Journal</button><button class="btn" data-journal-tab="playing" aria-pressed="false">En cours</button><button class="btn" data-journal-tab="backlog" aria-pressed="false">Backlog</button></div>
+  <div class="journal-layout" data-tab="feed"><div id="journal-feed"></div><aside class="journal-side"><section class="journal-panel" data-journal-panel="playing"><h2>En cours</h2><div id="journal-playing"></div></section><section class="journal-panel" data-journal-panel="backlog"><h2>Backlog</h2><div id="journal-backlog"></div></section></aside></div>
+  </main></div>
+</section>
+<div class="modal-overlay hidden" id="journal-detail-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-detail-title">
+ <div class="modal journal-detail-modal">
+  <h2 id="journal-detail-title">Parcours terminé</h2>
+  <div id="journal-detail-identity" class="game-identity-summary"></div>
+  <div id="journal-detail-meta" class="journal-detail-meta"></div>
+  <div id="journal-detail-bilan" class="journal-detail-bilan"></div>
+  <section class="journal-detail-review"><h3>Avis</h3><p id="journal-detail-review"></p></section>
+  <div class="modal-actions modal-edit-actions"><div class="modal-secondary-actions"><button class="btn btn-ghost" id="journal-detail-edit" type="button">Modifier le parcours</button><button class="btn btn-ghost" id="journal-detail-replay" type="button">Rejouer</button></div><div class="modal-primary-actions"><button class="btn btn-primary" id="journal-detail-close" type="button">Fermer</button></div></div>
+ </div>
+</div>
+
+<div class="modal-overlay hidden" id="journal-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-modal-title">
+ <div class="modal journal-modal"><h2 id="journal-modal-title">Ajouter au journal</h2>
+
+  <div class="form-section journal-game-section">
+   <div class="form-section-title">Jeu</div>
+   <div id="j-identity-card" class="game-identity-summary hidden"></div>
+   <div id="j-details" class="game-identity-editor">
+    <details id="j-source-picker"><summary>Choisir dans la collection</summary><div class="field" id="j-source-field"><label for="j-source-search">Rechercher dans la collection</label><input id="j-source-search" type="search" placeholder="Titre ou plateforme" autocomplete="off"><label for="j-source">Exemplaire de la collection</label><select id="j-source"><option value="">Nouvelle entrée</option></select><span id="j-source-empty" class="hidden">Aucun exemplaire trouvé.</span></div></details>
+    <div class="field hidden" id="j-parent-field"><label for="j-parentName">Jeu de base</label><input id="j-parentName" maxlength="500"></div>
+    <div class="field" id="j-name-field"><label for="j-nom">Titre</label><input id="j-nom" maxlength="500" required></div>
+    <div class="field" id="j-kind-field"><label for="j-kind">Type</label><select id="j-kind"><option value="game">Jeu</option><option value="extension">Extension</option></select></div>
+    <div class="field" id="j-platform-field"><label for="j-plateforme">Plateforme</label><input id="j-plateforme" list="j-platforms" maxlength="150" required><datalist id="j-platforms"></datalist></div>
+   <div class="field-row" id="j-access-fields"><div class="field"><label for="j-medium">Support joué</label><select id="j-medium"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div><div class="field"><label for="j-access">Accès</label><select id="j-access"><option value="owned">Possédé</option><option value="subscription">Abonnement</option><option value="family">Partage familial</option><option value="emulation">Émulation</option></select></div></div>
+    <details id="j-art-details"><summary>Image</summary><div class="field"><label for="j-image">Image (URL)</label><input id="j-image" type="url"></div><div class="field"><label for="j-imageFit">Affichage de l’image</label><select id="j-imageFit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div></details>
+    <div id="j-link-info"></div><button class="btn btn-ghost hidden" id="j-unlink" type="button">Délier de la collection</button>
+   </div>
+  </div>
+  <div class="form-section journal-progress-section">
+   <div class="form-section-title">Parcours</div>
+   <div class="field"><label for="j-status">Statut</label><select id="j-status"><option value="playing">En cours</option><option value="backlog">Backlog</option><option value="done">Terminé</option></select></div>
+  </div>
+  <div id="j-finished-fields" class="form-section journal-finish-section">
+   <div class="form-section-title">Bilan</div>
+   <div class="field-row"><div class="field" id="j-completion-field"><label for="j-completion">Complétion</label><select id="j-completion"><option value="finished">Jeu terminé</option><option value="hundred">100 %</option><option value="achievements">Tous les succès</option></select></div><div class="field"><label for="j-finishedAt">Date de fin</label><input type="date" id="j-finishedAt"></div></div>
+   <div class="field"><label for="j-feeling">Ressenti</label><select id="j-feeling"><option value="">Non renseigné</option><option value="gem">Pépite</option><option value="love">Adoré</option><option value="like">Aimé</option><option value="mixed">Mitigé</option><option value="dislike">Pas aimé</option></select></div>
+   <div class="field"><label for="j-review">Avis</label><textarea id="j-review" rows="5" maxlength="20000"></textarea></div>
+  </div>
+
+  <p id="j-error" role="alert" class="journal-error"></p>
+  <div class="modal-actions modal-edit-actions"><div class="modal-secondary-actions"><button class="btn btn-danger hidden" id="j-delete" type="button">Supprimer</button><button class="btn btn-ghost hidden" id="j-replay" type="button">Rejouer</button></div><div class="modal-primary-actions"><button class="btn btn-ghost" id="j-cancel" type="button">Annuler</button><button class="btn btn-primary" id="j-save" type="button">Enregistrer</button></div></div>
+ </div>
+</div>
+
 </div>
 
 <script>
@@ -544,17 +602,19 @@
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<script src="jtd-data.js?v=image-modes-1"></script>
+<script src="journal-data.js?v=journal-1"></script>
+<script src="jtd-data.js?v=journal-1"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=image-modes-1"></script>
+<script src="app.js?v=journal-1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=platform-alias-fix-1"></script>
+<script src="journal.js?v=journal-1"></script>
 <script src="lifecycle.js?v=cemetery-sale-3"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
     const firebaseScript = document.createElement('script');
     firebaseScript.type = 'module';
-    firebaseScript.src = 'firebase.js?v=auth-load-retry-1';
+    firebaseScript.src = 'firebase.js?v=journal-1';
     document.body.appendChild(firebaseScript);
   }
 </script>
