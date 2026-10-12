@@ -367,6 +367,7 @@ function updateSortButtonUI(){
 const ICON_STATUS_TODO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3"></circle><line x1="12" y1="9" x2="12" y2="15"></line><rect x="6" y="15" width="12" height="5" rx="1.5"></rect></svg>`;
 const ICON_STATUS_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15c-1.66 0-3-1.34-3-3s1.34-3 3-3c2.5 0 4 3 6 3s3.5-3 6-3c1.66 0 3 1.34 3 3s-1.34 3-3 3c-2.5 0-4-3-6-3s-3.5 3-6 3z"></path></svg>`;
+const JOURNAL_COMPLETION_ICONS = {"finished":"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8 12 3 3 5-6\"/></svg>","hundred":"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.7l6.2-.9Z\"/></svg>","achievements":"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 3h8v6a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 2v6m-4 2h8\"/></svg>"};
 const ICON_JOURNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h5a3 3 0 0 1 3 3v14a4 4 0 0 0-4-2H4V4Zm16 0h-5a3 3 0 0 0-3 3v14a4 4 0 0 1 4-2h3V4Z"/></svg>`;
 const ICON_STATUS_PLAYING = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 7h9c2 0 3.2 1.5 3.6 3.4l1.2 6.1c.5 2.5-2.2 3.9-3.8 2.1L15 16H9l-2.5 2.6c-1.6 1.8-4.3.4-3.8-2.1l1.2-6.1C4.3 8.5 5.5 7 7.5 7Z"/><path d="M7 10v4m-2-2h4"/><circle cx="16" cy="11" r=".6" fill="currentColor"/><circle cx="18" cy="13" r=".6" fill="currentColor"/></svg>`;
 const STATUS_OPTIONS = [
@@ -882,7 +883,10 @@ function renderCard(g, options = {}){
   const journalProgress = JTDJournalData.collectionProgress(JOURNAL, g.id);
   const originalStatus = STATUS_OPTIONS.find(s => s.key === g.status);
   const completionLabel = {hundred:'100 %',achievements:'Succès'}[journalProgress?.completion];
-  const activeStatus = originalStatus && journalProgress ? {...originalStatus, label:journalProgress.replay ? 'En cours' : completionLabel && g.status === 'termine' ? completionLabel : originalStatus.label} : originalStatus;
+  const finishedStatus = ['termine','termine_ailleurs'].includes(g.status);
+  const completion = finishedStatus ? journalProgress?.completion || 'finished' : null;
+  const completionColor = {finished:'var(--j-green)',hundred:'var(--j-blue)',achievements:'var(--j-gold)'}[completion];
+  const activeStatus = originalStatus ? {...originalStatus, ...(completion ? {icon:JOURNAL_COMPLETION_ICONS[completion],color:completionColor} : {}), label:journalProgress?.replay ? 'En cours' : completionLabel && finishedStatus ? completionLabel : originalStatus.label} : originalStatus;
   const statusIcon = activeStatus ? activeStatus.icon : '<span class="card-status-empty-dot"></span>';
   const statusTitle = journalProgress ? (journalProgress.replay ? 'En cours · déjà terminé' : journalProgress.completion === 'achievements' ? 'Tous les succès' : activeStatus.label) + ' · Depuis le journal' : activeStatus ? activeStatus.label : 'Définir le statut';
   const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';

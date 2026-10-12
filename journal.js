@@ -12,9 +12,9 @@
   physical:icon('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="m7 6-2 3m14 6-2 3"/>'),
   digital:icon('<path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/>'),
   emulation:'<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3 1h2v2H3zm8 0h2v2h-2zM5 3h6v2h2v2h2v6h-2V9h-2v4H5V9H3v4H1V7h2V5h2zm0 4v2h2V7zm4 0v2h2V7zM5 13h2v2H3v-2zm4 0h2v2h2v-2z" fill-rule="evenodd"/></svg>',
-  finished:icon('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'),
-  hundred:icon('<path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.7l6.2-.9Z"/>'),
-  achievements:icon('<path d="M8 3h8v6a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 2v6m-4 2h8"/>'),
+  finished:JOURNAL_COMPLETION_ICONS.finished,
+  hundred:JOURNAL_COMPLETION_ICONS.hundred,
+  achievements:JOURNAL_COMPLETION_ICONS.achievements,
   gem:icon('<path d="m3 8 4-5h10l4 5-9 13L3 8Zm0 0h18M7 3l5 18 5-18"/>'),
   love:icon('<path d="M20 5a5 5 0 0 0-8 1 5 5 0 0 0-8-1c-4 5 3 10 8 15 5-5 12-10 8-15Z"/>'),
   like:icon('<path d="M3 10h4v11H3zm4 9 4 2h7l3-11h-7l1-5c0-3-3-3-3-3L7 10"/>'),
@@ -64,6 +64,7 @@
   $('j-finished-fields').classList.toggle('hidden',!done);
   $('j-completion-field').classList.toggle('hidden',!done);
   $('j-identity-card').innerHTML=r.nom?identitySummaryHtml({...r,nom:JTDJournalData.title(r)}):'';
+  $('j-identity-card').querySelector('.identity-copy')?.insertAdjacentHTML('beforeend','<div class="journal-meta">'+metadata(r,false)+'</div>');
   const edit=$('j-identity-card').querySelector('.identity-edit-btn');
   if(edit){if(linked){edit.title='Changer l’exemplaire';edit.setAttribute('aria-label','Changer l’exemplaire');}edit.addEventListener('click',()=>{setGameEditor(true);$(linked?'j-source-search':'j-nom').focus();});}
   $('j-link-info').textContent=r.collectionId?(GAMES.some(g=>g.id===r.collectionId)?'Lié à un exemplaire de la collection.':'Exemplaire absent de la collection ; historique conservé.') : '';

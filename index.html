@@ -574,6 +574,7 @@
     <div class="field hidden" id="j-parent-field"><label for="j-parentName">Jeu de base</label><input id="j-parentName" maxlength="500"></div>
     <div class="field" id="j-name-field"><label for="j-nom">Titre</label><input id="j-nom" maxlength="500" required></div>
     <div class="field" id="j-platform-field"><label for="j-plateforme">Plateforme</label><input id="j-plateforme" list="j-platforms" maxlength="150" required><datalist id="j-platforms"></datalist></div>
+   <div class="field-row" id="j-access-fields"><div class="field"><label for="j-medium">Support joué</label><select id="j-medium"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div><div class="field"><label for="j-access">Accès</label><select id="j-access"><option value="owned">Possédé</option><option value="subscription">Abonnement</option><option value="family">Partage familial</option><option value="emulation">Émulation</option></select></div></div>
     <details id="j-art-details"><summary>Image</summary><div class="field"><label for="j-image">Image (URL)</label><input id="j-image" type="url"></div><div class="field"><label for="j-imageFit">Affichage de l’image</label><select id="j-imageFit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div></details>
     <div id="j-link-info"></div><button class="btn btn-ghost hidden" id="j-unlink" type="button">Délier de la collection</button>
    </div>
@@ -581,7 +582,6 @@
   <div class="form-section journal-progress-section">
    <div class="form-section-title">Parcours</div>
    <div class="field"><label for="j-status">Statut</label><select id="j-status"><option value="playing">En cours</option><option value="backlog">Backlog</option><option value="done">Terminé</option></select></div>
-   <div class="field-row" id="j-access-fields"><div class="field"><label for="j-medium">Support joué</label><select id="j-medium"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div><div class="field"><label for="j-access">Accès</label><select id="j-access"><option value="owned">Possédé</option><option value="subscription">Abonnement</option><option value="family">Partage familial</option><option value="emulation">Émulation</option></select></div></div>
   </div>
   <div id="j-finished-fields" class="form-section journal-finish-section">
    <div class="form-section-title">Bilan</div>
