@@ -12,10 +12,13 @@
  const currentGeneration=()=>window.JTDAccountGeneration||0;
  const fold=s=>s.normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr').trim();
  function collectionLabel(r){if(!r.collectionId)return '';if(GAMES.some(g=>g.id===r.collectionId))return 'Collection';const old=CEMETERY.find(g=>g.id===r.collectionId);return old?(old.saleStatus==='sold'?'Vendu':'À vendre'):'';}
- function metadata(r,platform=true){const label=collectionLabel(r);return (platform?'<span>'+esc(r.plateforme)+'</span>':'')+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+(label?'<span>'+bookshelf+esc(label)+'</span>':'');}
+ function linkedGame(r){return r.collectionId&&(GAMES.find(g=>g.id===r.collectionId)||CEMETERY.find(g=>g.id===r.collectionId));}
+ function displayRecord(r){const g=linkedGame(r);return g?{...r,nom:g.nom,plateforme:g.plateforme,image:g.image||'',imageFit:g.imageFit||'contain',kind:'game',parentName:'',medium:'physical',access:'owned'}:r;}
+ function metadata(r,platform=true){r=displayRecord(r);const label=collectionLabel(r),collection=label==='Collection';return (platform?'<span>'+esc(r.plateforme)+'</span>':'')+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+'<span>'+(collection?bookshelf+'Collection':esc(r.access==='emulation'?'Émulation':r.medium==='physical'?'Physique':'Numérique'))+'</span>'+(!collection&&['family','subscription'].includes(r.access)?'<span>'+esc(r.access==='family'?'Partage familial':'Abonnement')+'</span>':'')+(label&&!collection?'<span>'+esc(label)+'</span>':'');}
  function selectTab(tab){document.querySelector('.journal-layout').dataset.tab=tab;document.querySelectorAll('[data-journal-tab]').forEach(x=>{const active=x.dataset.journalTab===tab;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});}
  function filterSources(){const query=fold($('j-source-search').value);const selected=$('j-source').value||draft?.collectionId||'';const matches=GAMES.filter(g=>fold(g.nom+' '+g.plateforme).includes(query));$('j-source').innerHTML='<option value="">Nouvelle entrée</option>'+matches.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.nom+' · '+g.plateforme)+'</option>').join('');if(selected&&!matches.some(g=>g.id===selected)){const g=GAMES.find(g=>g.id===selected);if(g)$('j-source').add(new Option(g.nom+' · '+g.plateforme,g.id));}$('j-source').value=selected;$('j-source-empty').classList.toggle('hidden',!!matches.length||!query);}
  function row(r,compact=false){
+  r=displayRecord(r);
   const day=r.finishedAt?.slice(8), month=r.finishedAt?MONTH_NAMES_FULL[Number(r.finishedAt.slice(5,7))-1]:'';
   return '<button class="journal-entry'+(compact?' compact':'')+'" data-journal-id="'+esc(r.id)+'">'+(!compact?'<span class="journal-date">'+(day?'<strong>'+esc(day)+'</strong><small>'+esc(month.slice(0,3))+'</small>':'<span>—</span>')+'</span>':'')+boardThumb(r)+'<span class="journal-entry-body"><strong>'+esc(JTDJournalData.title(r))+'</strong><span class="journal-meta">'+metadata(r)+'</span>'+(!compact?'<span class="journal-result"><span>'+(r.status==='playing'?ICON_STATUS_PLAYING:'')+esc(r.status==='done'?completionNames[r.completion]:statusNames[r.status])+'</span>'+(r.status==='done'&&r.feeling?'<span>'+esc(feelings[r.feeling])+'</span>':'')+(r.status==='done'&&r.review?'<span class="journal-review-mark">Avis rédigé</span>':'')+'</span>':'')+'</span></button>';
  }
@@ -31,9 +34,10 @@
   for(const status of ['playing','backlog']){const list=JOURNAL.filter(r=>r.status===status);$('journal-'+status).innerHTML=list.length?list.map(r=>row(r,true)).join(''):'<p class="journal-empty">'+(status==='playing'?'Aucun jeu en cours.':'Backlog vide.')+'</p>';}
   $('journal-more')?.addEventListener('click',()=>{monthLimit+=3;renderJournal();});
  }
- function read(){return {...draft,...Object.fromEntries(fields.map(f=>[f,$('j-'+f).value]))};}
+ function read(){return displayRecord({...draft,...Object.fromEntries(fields.map(f=>[f,$('j-'+f).value]))});}
  function reflect(){
-  const r=read(), done=r.status==='done';
+  const r=read(), done=r.status==='done',linked=!!linkedGame(r);
+  ['j-kind-field','j-name-field','j-platform-field','j-art-details','j-access-fields'].forEach(id=>$(id).classList.toggle('hidden',linked));
   $('j-parent-field').classList.toggle('hidden',r.kind!=='extension');
   $('j-kind').disabled=!!r.collectionId;
   $('j-source').disabled=r.kind==='extension';
@@ -41,18 +45,19 @@
   $('j-finished-fields').classList.toggle('hidden',!done);
   $('j-completion-field').classList.toggle('hidden',!done);
   $('j-identity-card').innerHTML=r.nom?identitySummaryHtml({...r,nom:JTDJournalData.title(r)}):'';
-  $('j-identity-card').querySelector('.identity-edit-btn')?.addEventListener('click',()=>{setGameEditor(true);$('j-nom').focus();});
+  const edit=$('j-identity-card').querySelector('.identity-edit-btn');
+  if(edit){if(linked){edit.title='Changer l’exemplaire';edit.setAttribute('aria-label','Changer l’exemplaire');}edit.addEventListener('click',()=>{setGameEditor(true);$(linked?'j-source-search':'j-nom').focus();});}
   $('j-link-info').textContent=r.collectionId?(GAMES.some(g=>g.id===r.collectionId)?'Lié à un exemplaire de la collection.':'Exemplaire absent de la collection ; historique conservé.') : '';
   $('j-unlink').classList.toggle('hidden',!r.collectionId);
  }
  function setGameEditor(expanded){
   $('j-details').classList.toggle('hidden',!expanded);
-  $('j-identity-card').classList.toggle('hidden',expanded);
+  $('j-identity-card').classList.toggle('hidden',expanded&&!linkedGame(read()));
  }
  function open(record=null,collectionId=null){
   generation=currentGeneration();
   const g=collectionId?GAMES.find(g=>g.id===collectionId):null;
-  draft=record?{...record}:{id:crypto.randomUUID(),nom:g?.nom||'',plateforme:g?.plateforme||'',kind:'game',parentName:'',collectionId:g?.id||null,status:'playing',completion:'finished',medium:g?'physical':'digital',access:'owned',finishedAt:'',feeling:'',review:'',image:g?.image||'',imageFit:g?.imageFit||'contain'};
+  draft=record?{...displayRecord(record)}:{id:crypto.randomUUID(),nom:g?.nom||'',plateforme:g?.plateforme||'',kind:'game',parentName:'',collectionId:g?.id||null,status:'playing',completion:'finished',medium:g?'physical':'digital',access:'owned',finishedAt:'',feeling:'',review:'',image:g?.image||'',imageFit:g?.imageFit||'contain'};
   fields.forEach(f=>$('j-'+f).value=draft[f]||'');
   $('journal-modal-title').textContent=record?'Modifier le parcours':'Ajouter au journal';
   $('j-source-field').classList.remove('hidden');
@@ -88,11 +93,12 @@
  function bilan(r){return [r.status==='done'?completionNames[r.completion]:statusNames[r.status],r.status==='done'?dateLabel(r):'',r.status==='done'?feelings[r.feeling]:''].filter(Boolean);}
  function closeDetail(){JTDDialogs.close('journal-detail-overlay');detailId=null;}
  function showRecord(r){
+  r=displayRecord(r);
   if(r.status!=='done'){open(r);return;}
   detailId=r.id;detailGeneration=currentGeneration();
   $('journal-detail-identity').innerHTML=identitySummaryHtml({...r,nom:JTDJournalData.title(r)});
   $('journal-detail-identity').querySelector('.identity-edit-btn')?.remove();
-  $('journal-detail-meta').innerHTML=metadata(r,false)+'<span>'+esc(r.medium==='physical'?'Physique':'Numérique')+'</span><span>'+esc(({owned:'Possédé',subscription:'Abonnement',family:'Partage familial',emulation:'Émulation'})[r.access])+'</span>';
+  $('journal-detail-meta').innerHTML=metadata(r,false);
   $('journal-detail-bilan').innerHTML=bilan(r).map(value=>'<span>'+esc(value)+'</span>').join('');
   $('journal-detail-review').textContent=r.review||'Aucun avis rédigé.';
   $('journal-detail-review').classList.toggle('journal-empty',!r.review);
