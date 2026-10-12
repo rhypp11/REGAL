@@ -34,10 +34,15 @@ const server = createSandboxServer();
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
     assert.match(await page.locator('#cemetery-import-summary').textContent(),/2 ajout\(s\) direct\(s\).*3 correspondance/);
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),true,'collection matches require an explicit choice');
+    assert.equal(await page.locator('#cemetery-import-review-title').textContent(),'3 jeux à revoir');
+    assert.equal(await page.locator('.cemetery-import-row.needs-review').count(),3);
+    assert.equal(await page.locator('.cemetery-import-other').getAttribute('open'),null,'other entries are collapsed when matches require review');
     await page.locator('.cemetery-import-row[data-kind="match"] .cemetery-import-action select:not(.cemetery-import-source)').nth(0).selectOption('transfer');
     await page.locator('.cemetery-import-row[data-kind="match"] .cemetery-import-action select:not(.cemetery-import-source)').nth(1).selectOption('skip');
     await page.locator('.cemetery-import-row[data-kind="match"] .cemetery-import-action select:not(.cemetery-import-source)').nth(2).selectOption('keep');
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),false);
+    assert.equal(await page.locator('#cemetery-import-review-title').textContent(),'Correspondances vérifiées');
+    assert.equal(await page.locator('.cemetery-import-row.needs-review').count(),0);
     await page.locator('#cemetery-import-apply').click();
     await page.locator('#cemetery-import-overlay').waitFor({state:'hidden'});
     const after=await page.evaluate(()=>({

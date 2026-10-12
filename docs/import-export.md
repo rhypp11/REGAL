@@ -10,11 +10,15 @@ Le fichier est validé avant confirmation. Une sauvegarde avec un identifiant d'
 
 L'export pour les conseils est distinct d'une sauvegarde complète et ne peut pas être restauré. Il inclut les listes et le journal avec les avis, les identifiants d'exemplaires, les liens `collectionId` et les identifiants de lots de vente `saleId`. Les relations permettent de distinguer exemplaires, parcours, replays et historique d'exemplaires supprimés. Le fichier n'inclut ni images, ni profil, ni données d'acquisition, ni jeton de partage. Le partage public existant continue d'exclure le journal.
 
+Le menu conserve « Exporter pour ChatGPT » pour transmettre le fichier à ChatGPT. Les boutons de création/copie et de désactivation du lien public ont été retirés du menu ; les données de partage existantes ne sont pas modifiées par cette évolution d'interface.
+
 ## Import additif du cimetière
 
 CSV, TSV et JSON (dont les sauvegardes v4) sont acceptés. « Gain » est le prix encaissé ; « Valeur » est une estimation. Les lots et données matérielles existants restent conservés.
 
 L'aperçu propose les correspondances par titre normalisé et alias de plateforme, puis par proximité de titre. Tous les exemplaires de la collection et du cimetière sont recherchables, même si le titre ou la plateforme diffèrent. Chaque candidat affiche son emplacement, ses informations distinctives et sa référence. Plusieurs candidats exacts ne sont jamais départagés automatiquement.
+
+Les correspondances à vérifier apparaissent en tête avec un badge « À revoir » et un encadré accentué. Le nombre de cas restant à traiter se met à jour après chaque choix ; les lignes vérifiées restent à leur place et affichent « Choix validé ». Les autres lignes sont repliées par défaut lorsqu'il y a des correspondances à traiter, et restent consultables.
 
 - **Transférer** : choisir explicitement un exemplaire actif ; son identifiant est conservé, ainsi que son historique dans le journal.
 - **Ajouter un exemplaire distinct** : créer une nouvelle entrée au cimetière, sans lien ni retrait d'un autre exemplaire.

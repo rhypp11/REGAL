@@ -9,6 +9,7 @@
   const keyOf = JTDData.importKey;
   const platformName = JTDData.importPlatform;
   let previewState = '';
+  const rowElements = new Map();
   function parseMoney(value){
     let raw = String(value ?? '').trim().replace(/[€\s\u00a0]/g,'');
     if(!raw) return null;
@@ -112,6 +113,7 @@
   function renderPreview(){
     const list = $('cemetery-import-list');
     list.replaceChildren();
+    rowElements.clear();
     const state = window.JTDGetCemeteryImportState();
     previewState = snapshot(state);
     const seenInput = new Set();
@@ -133,9 +135,16 @@
     }
     setStatus(rows.length+' ligne(s) lue(s) · '+added+' ajout(s) direct(s) · '+conflicts+' correspondance(s) à trancher · '+(alreadyThere+repeated)+' doublon(s) ignoré(s).');
     $('cemetery-import-error').textContent = '';
+    const reviewSection=document.createElement('section');reviewSection.className='cemetery-import-review';
+    const heading=document.createElement('h3');heading.id='cemetery-import-review-title';heading.setAttribute('aria-live','polite');reviewSection.append(heading);
+    const otherSection=document.createElement('details');otherSection.className='cemetery-import-other';otherSection.open=conflicts===0;
+    const otherHeading=document.createElement('summary');otherHeading.textContent='Autres lignes · '+(rows.length-conflicts)+' ('+added+' ajout(s), '+(alreadyThere+repeated)+' ignorée(s))';otherSection.append(otherHeading);
+    if(conflicts)list.append(reviewSection);
+    if(rows.length>conflicts)list.append(otherSection);
     for(const entry of rows){
       const line=document.createElement('div');line.className='cemetery-import-row';line.dataset.kind=entry.kind;
       const identity=document.createElement('div');identity.className='cemetery-import-identity';
+      if(entry.kind==='match'){const badge=document.createElement('span');badge.className='cemetery-import-review-badge';identity.append(badge);}
       const title=document.createElement('strong');title.textContent=entry.nom;
       const detail=document.createElement('span');detail.textContent=entry.plateforme+(entry.saleStatus==='sold'?' · encaissé '+entry.salePrice+' €':' · à vendre');
       identity.append(title,detail);line.append(identity);
@@ -172,22 +181,34 @@
         select.addEventListener('change',()=>{entry.choice=select.value;if(entry.choice==='transfer'&&!entry.gameId)picker.open=true;validateChoices();});
         refresh();action.append(picker);
       }
-      line.append(action);list.append(line);
+      line.append(action);rowElements.set(entry,line);(entry.kind==='match'?reviewSection:otherSection).append(line);
     }
     $('cemetery-import-apply').textContent='Ajouter au cimetière';
     validateChoices();
   }
   function validateChoices(){
-    const targets=new Set();let error='';
+    const targets=new Map();const invalid=new Map();
     for(const entry of rows){
-      if(!entry.choice){error='Choisis une action pour chaque correspondance.';break;}
+      if(!entry.choice)invalid.set(entry,'Choisis une action pour chaque correspondance.');
       if(entry.choice==='transfer'){
         const game=entry.candidates.find(g=>g.id===entry.gameId);
-        if(!game || game.location!=='collection'){error='Choisis un exemplaire de la collection pour le transférer. Un exemplaire déjà au cimetière peut être conservé en ignorant la ligne.';break;}
-        if(targets.has(game.id)){error='Un exemplaire ne peut être transféré qu’une fois. Vérifie les correspondances.';break;}
-        targets.add(game.id);
+        if(!game || game.location!=='collection')invalid.set(entry,'Choisis un exemplaire de la collection pour le transférer. Un exemplaire déjà au cimetière peut être conservé en ignorant la ligne.');
+        else if(targets.has(game.id)){
+          const message='Un exemplaire ne peut être transféré qu’une fois. Vérifie les correspondances.';
+          invalid.set(entry,message);invalid.set(targets.get(game.id),message);
+        }else targets.set(game.id,entry);
       }
     }
+    let pending=0;
+    for(const entry of rows){
+      const line=rowElements.get(entry);const needsReview=invalid.has(entry);
+      line?.classList.toggle('needs-review',needsReview);
+      const badge=line?.querySelector('.cemetery-import-review-badge');
+      if(badge)badge.textContent=needsReview?'À revoir':'Choix validé';
+      if(needsReview)pending++;
+    }
+    const heading=$('cemetery-import-review-title');if(heading)heading.textContent=pending?pending+' jeu'+(pending>1?'x':'')+' à revoir':'Correspondances vérifiées';
+    const error=invalid.values().next().value||'';
     $('cemetery-import-error').textContent=error;
     $('cemetery-import-apply').disabled=!!error||!rows.some(entry=>entry.choice!=='skip');
     return !error;

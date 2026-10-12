@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="styles.css?v=edge-cases-1">
 <link rel="stylesheet" href="cemetery.css?v=global-2">
 <link rel="stylesheet" href="home-boards-v2.css?v=css-cleanup-1">
-<link rel="stylesheet" href="cemetery-import.css?v=import-export-1">
+<link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=journal-1">
 <link rel="stylesheet" href="collection.css?v=global-2">
 <link rel="stylesheet" href="journal.css?v=journal-1">
@@ -126,17 +126,9 @@
             <span class="profile-menu-sub">Ajouter au cimetière · CSV, TSV ou sauvegarde</span>
           </label>
           <div class="profile-menu-divider"></div>
-          <button class="profile-menu-item" id="share-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.5 6.8-4"></path><path d="m8.6 13.5 6.8 4"></path></svg><span id="share-label">Partager ma collection</span></span>
-            <span class="profile-menu-sub" id="share-note">Crée un lien lecture seule à copier dans ChatGPT</span>
-          </button>
           <button class="profile-menu-item" id="chatgpt-export-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Exporter pour ChatGPT</span></span>
             <span class="profile-menu-sub">Collection, journal et avis · fichier à joindre dans ChatGPT</span>
-          </button>
-          <button class="profile-menu-item profile-menu-danger hidden" id="share-disable-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg><span>Désactiver le partage</span></span>
-            <span class="profile-menu-sub">Invalide immédiatement le lien actuel</span>
           </button>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
@@ -603,12 +595,12 @@
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
 <script src="journal-data.js?v=journal-1"></script>
-<script src="jtd-data.js?v=import-export-1"></script>
+<script src="jtd-data.js?v=import-review-2"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=import-export-1"></script>
+<script src="app.js?v=import-review-2"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
-<script src="cemetery-import.js?v=import-export-1"></script>
-<script src="journal.js?v=import-export-1"></script>
+<script src="cemetery-import.js?v=import-review-2"></script>
+<script src="journal.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=cemetery-sale-3"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){

@@ -12,6 +12,12 @@
 .cemetery-import-action input { box-sizing:border-box; min-width:0; width:100%; margin:8px 0; padding:9px 10px; border:1px solid var(--hairline); border-radius:10px; background:var(--surface); color:var(--text); font:inherit; }
 .cemetery-import-picker summary { cursor:pointer; color:var(--muted); font-size:13px; }
 .cemetery-import-status { overflow-wrap:anywhere; }
+.cemetery-import-review h3 { font-size:16px; margin:16px 0 4px; color:var(--text); }
+.cemetery-import-review .cemetery-import-row { padding:12px; margin:8px 0; border:1px solid var(--hairline); border-radius:12px; }
+.cemetery-import-row.needs-review { border-color:var(--accent); background:var(--surface); border-left:4px solid var(--accent); }
+.cemetery-import-review-badge { font-weight:700; font-size:12px; }
+.needs-review .cemetery-import-review-badge { color:var(--accent); }
+.cemetery-import-other > summary { padding:16px 0; cursor:pointer; color:var(--muted); font-weight:600; }
 .cemetery-import-error { color:var(--danger,#c43d32); min-height:1em; }
 .cemetery-import-modal .modal-actions { flex-shrink:0; }
 @media(max-width:620px) {

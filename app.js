@@ -2388,18 +2388,6 @@ function downloadChatGPTSnapshot(){
 
 document.getElementById('chatgpt-export-btn').addEventListener('click', downloadChatGPTSnapshot);
 
-document.getElementById('share-btn').addEventListener('click', () => {
-  if(window.JTDShare && typeof window.JTDShare.createOrCopy === 'function') window.JTDShare.createOrCopy();
-});
-document.getElementById('share-disable-btn').addEventListener('click', () => {
-  if(!window.JTDShare || typeof window.JTDShare.disable !== 'function') return;
-  confirmAction(
-    'Le lien actuel cessera immédiatement de fonctionner.',
-    () => window.JTDShare.disable(),
-    { title:'Désactiver le partage ?', confirmLabel:'Désactiver' }
-  );
-});
-
 document.getElementById('profile-menu-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   document.getElementById('profile-menu').classList.toggle('hidden');

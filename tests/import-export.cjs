@@ -23,7 +23,15 @@ async function importFile(page,data){
   const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
   const page=await context.newPage(),errors=[],cloud=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/firestore|firebasejs|identitytoolkit|securetoken/.test(r.url()))cloud.push(r.url());});
   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
+  assert.equal(await page.locator('#share-btn, #share-disable-btn').count(),0);
+  assert.equal(await page.locator('#chatgpt-export-btn').count(),1);
   await page.evaluate(data=>applyRestoredData(JTDData.normalizeData(data)),fixture);
+  await importFile(page,[...Array.from({length:60},(_,i)=>({id:'bulk-'+i,nom:'Entrée fictive '+i,plateforme:'PC',saleStatus:'pending'})),{id:'bulk-match',nom:'Chroniques du Vent',plateforme:'NSW',saleStatus:'pending'}]);
+  assert.match(await page.locator('#cemetery-import-list .cemetery-import-row').first().textContent(),/Chroniques du Vent/,'review rows come first even when they are last in a large file');
+  assert.equal(await page.locator('#cemetery-import-review-title').textContent(),'1 jeu à revoir');
+  assert.equal(await page.locator('.cemetery-import-other').getAttribute('open'),null);
+  await page.screenshot({path:'/tmp/jtd-import-review-'+width+'-'+theme+'.png',fullPage:true});
+  await page.locator('#cemetery-import-cancel').click();
   const original=await page.evaluate(()=>buildBackupPayload().data);
   await importFile(page,[{id:'incoming',nom:'Chroniques du vent',plateforme:'Switch',saleStatus:'pending'}]);
   const action=page.locator('.cemetery-import-action select:not(.cemetery-import-source)'),source=page.locator('.cemetery-import-source');
