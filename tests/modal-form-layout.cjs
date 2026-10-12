@@ -53,10 +53,12 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
    await rows.last().scrollIntoViewIfNeeded();
    const apply=page.locator('#cemetery-import-apply');await apply.scrollIntoViewIfNeeded();
    const applyBox=await apply.boundingBox();assert.ok(applyBox.y>=0&&applyBox.y+applyBox.height<=701,'Long import keeps action reachable');
-   assert.equal(await page.locator('.cemetery-import-modal').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Long import titles do not overflow');
+   assert.equal(await page.locator('#cemetery-import-overlay .cemetery-import-modal').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Long import titles do not overflow');
    await page.locator('#cemetery-import-cancel').click();
    assert.equal(await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST,cemetery:CEMETERY})),before,'Cancel keeps data unchanged');
    assert.deepEqual(errors,[]);await context.close();console.log('PASS modal form layout',width,theme);
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
+
