@@ -71,6 +71,12 @@
         return item;
       });
     };
+    // A repaired duplicate ID must never silently redirect a journal link.
+    const referenced = new Set((Array.isArray(data.journal) ? data.journal : []).map(r => r && r.collectionId != null ? String(r.collectionId) : null));
+    const identities = new Set();
+    for(const key of ['games','arrivals','wishlist','cemetery']) for(const item of (Array.isArray(data[key]) ? data[key] : [])){
+      if(item && item.id != null){const id=String(item.id);if(identities.has(id) && referenced.has(id)) throw new Error('Identifiant d’exemplaire ambigu dans la sauvegarde : ' + id);identities.add(id);}
+    }
     let games = list('games'); const arrivals = list('arrivals'), wishlist = list('wishlist'), cemetery = list('cemetery');
     const journal = journalData.normalizeJournal(data.journal).map(item => ({...item, image:safeURL(item.image, true) || ''}));
     games = journalData.syncGames(games, journal);
@@ -90,6 +96,7 @@
     return {games, arrivals, wishlist, cemetery, journal, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
   }
   function parseBackup(parsed, defaults){
+    if(isRecord(parsed) && parsed.purpose) throw new Error('Cet export est destiné à ChatGPT. Choisis une sauvegarde complète pour restaurer JTD.');
     let data;
     if(Array.isArray(parsed)) data = {games:parsed};
     else if(isRecord(parsed) && parsed.app === 'Jeux Tout Doux'){
@@ -190,9 +197,61 @@
       cemetery: cemetery.filter(item => item && item.nom && item.plateforme).map(cleanSaleItem)
     };
   }
-  const api = {escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+
+  function assertCloudSize(data){
+    // Shared conservative ceiling, below Firestore's document limit.
+    if(new TextEncoder().encode(JSON.stringify(data)).length > 900000)
+      throw new Error('Données trop volumineuses pour la synchronisation. Aucune modification appliquée. Réduis les images ou les avis après avoir téléchargé une sauvegarde.');
+    return data;
+  }
+  function foldImport(value){
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr').replace(/[^a-z0-9]+/g,' ').trim();
+  }
+  const platformAliases = new Map([
+    ['switch','Nintendo Switch'],['nintendo switch','Nintendo Switch'],['ns','Nintendo Switch'],['n switch','Nintendo Switch'],['nsw','Nintendo Switch'],
+    ['switch 2','Nintendo Switch 2'],['switch2','Nintendo Switch 2'],['nintendo switch 2','Nintendo Switch 2'],['ns2','Nintendo Switch 2'],
+    ['3ds','Nintendo 3DS'],['nintendo 3ds','Nintendo 3DS'],['ds','Nintendo DS'],['nintendo ds','Nintendo DS'],
+    ['wu','Nintendo Wii U'],['wii u','Nintendo Wii U'],['nintendo wii u','Nintendo Wii U'],['wii','Nintendo Wii'],['nintendo wii','Nintendo Wii'],
+    ['gc','Nintendo Gamecube'],['gamecube','Nintendo Gamecube'],['game cube','Nintendo Gamecube'],['nintendo gamecube','Nintendo Gamecube'],
+    ['gba','Nintendo Game Boy Advance'],['gb','Nintendo Game Boy'],['gbc','Nintendo Game Boy Color'],
+    ['ps5','PlayStation 5'],['playstation 5','PlayStation 5'],['ps4','PlayStation 4'],['playstation 4','PlayStation 4'],
+    ['ps3','PlayStation 3'],['playstation 3','PlayStation 3'],['ps2','PlayStation 2'],['playstation 2','PlayStation 2'],['ps1','PlayStation'],['ps','PlayStation'],
+    ['ps vita','PlayStation Vita'],['psvita','PlayStation Vita'],['vita','PlayStation Vita'],['psv','PlayStation Vita'],['playstation vita','PlayStation Vita'],['psp','PlayStation Portable'],
+    ['xbox one','Xbox One'],['xbox series x','Xbox Series X'],['pc','PC'],['steam','PC']
+  ]);
+  function importPlatform(value){const raw=String(value ?? '').trim();return platformAliases.get(foldImport(raw)) || raw;}
+  function importKey(item){return foldImport(item.nom)+'|'+foldImport(importPlatform(item.plateforme));}
+  function importCandidates(item, games, cemetery){
+    const title=foldImport(item.nom), platform=foldImport(importPlatform(item.plateforme));
+    const tokens=new Set(title.split(' ').filter(t=>t.length>2));
+    return [...games.map(game=>({...game,location:'collection'})),...cemetery.map(game=>({...game,location:game.saleStatus==='sold'?'sold':'pending'}))].map(game=>{
+      const other=foldImport(game.nom), exactTitle=title===other, samePlatform=platform===foldImport(importPlatform(game.plateforme));
+      const otherTokens=new Set(other.split(' ').filter(t=>t.length>2));
+      const overlap=[...tokens].filter(t=>otherTokens.has(t)).length;
+      const similarity=2*overlap/(tokens.size+otherTokens.size || 1);
+      const score=exactTitle?(samePlatform?100:90):(similarity>=0.6?Math.round(similarity*70)+(samePlatform?10:0):0);
+      return {...game,score,exact:exactTitle&&samePlatform};
+    }).sort((a,b)=>b.score-a.score||a.nom.localeCompare(b.nom,'fr'));
+  }
+  function createChatGPTPayload(data, exportedAt=new Date().toISOString()){
+    const normalized=normalizeData(data), shared=createPublicSharePayload(normalized);
+    for(const key of ['games','arrivals','wishlist','cemetery']) shared[key]=shared[key].map((item,i)=>({...item,id:normalized[key][i].id}));
+    shared.cemetery=shared.cemetery.map((item,i)=>normalized.cemetery[i].saleId?{...item,saleId:normalized.cemetery[i].saleId}:item);
+    shared.journal=normalized.journal.map(({id,nom,plateforme,kind,parentName,collectionId,status,completion,medium,access,finishedAt,feeling,review})=>({id,nom,plateforme,kind,parentName,collectionId,status,completion,medium,access,finishedAt,feeling,review}));
+    return {app:'Jeux Tout Doux',purpose:'Conseils dans ChatGPT',exportedAt,definitions:{
+      games:'Exemplaires physiques actuellement dans la collection.',
+      cemetery:'Exemplaires physiques à vendre (pending) ou vendus (sold).',
+      journal:'Parcours indépendants ou liés à un exemplaire par collectionId. Plusieurs parcours peuvent être des replays ; ne pas les compter comme plusieurs jeux possédés.',
+      collectionId:'Identifiant de games ou cemetery. Si absent des deux listes, exemplaire supprimé ; historique conservé. null signifie sans lien.',
+      extensions:'Les extensions ne créent aucun exemplaire et ne pilotent pas le statut du jeu de base.',
+      salePrice:'Prix encaissé par vente ; un même saleId désigne un lot dont le prix ne doit être compté qu’une fois.'
+    },data:shared};
+  }
+
+  const api = {assertCloudSize, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+
 
 

@@ -5,35 +5,10 @@
   let rows = [];
   let accountGeneration = 0;
 
-  const normalize = value => String(value ?? '')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .toLocaleLowerCase('fr').replace(/[^a-z0-9]+/g,' ').trim();
-  const keyOf = item => normalize(item.nom) + '|' + platformKey(item.plateforme);
-  const platformAliases = new Map([
-    ['switch','Nintendo Switch'],['nintendo switch','Nintendo Switch'],['ns','Nintendo Switch'],['n switch','Nintendo Switch'],['nsw','Nintendo Switch'],
-    ['switch 2','Nintendo Switch 2'],['switch2','Nintendo Switch 2'],['nintendo switch 2','Nintendo Switch 2'],['ns2','Nintendo Switch 2'],
-    ['3ds','Nintendo 3DS'],['nintendo 3ds','Nintendo 3DS'],['ds','Nintendo DS'],['nintendo ds','Nintendo DS'],
-    ['wii u','Nintendo Wii U'],['wii','Nintendo Wii'],['gamecube','Nintendo Gamecube'],['game cube','Nintendo Gamecube'],
-    ['ps5','PlayStation 5'],['playstation 5','PlayStation 5'],['ps4','PlayStation 4'],['playstation 4','PlayStation 4'],
-    ['ps3','PlayStation 3'],['playstation 3','PlayStation 3'],['ps2','PlayStation 2'],['playstation 2','PlayStation 2'],
-    ['ps vita','PlayStation Vita'],['psvita','PlayStation Vita'],['vita','PlayStation Vita'],['psv','PlayStation Vita'],['playstation vita','PlayStation Vita'],['psp','PlayStation Portable'],
-    ['xbox one','Xbox One'],['xbox series x','Xbox Series X'],['pc','PC'],['steam','PC']
-  ]);
-  const platformName = value => {
-    const raw = String(value ?? '').trim();
-    return platformAliases.get(normalize(raw)) || raw;
-  };
-  function platformKey(value){
-    const key = normalize(value);
-    if(['switch 2','switch2','nintendo switch 2','ns2'].includes(key)) return 'nintendo switch 2';
-    if(['switch','nintendo switch','ns','n switch','nsw'].includes(key)) return 'nintendo switch';
-    if(['ps5','playstation 5'].includes(key)) return 'playstation 5';
-    if(['ps4','playstation 4'].includes(key)) return 'playstation 4';
-    if(['ps3','playstation 3'].includes(key)) return 'playstation 3';
-    if(['ps2','playstation 2'].includes(key)) return 'playstation 2';
-    if(['ps vita','psvita','vita','psv','playstation vita'].includes(key)) return 'playstation vita';
-    return key;
-  }
+  const normalize = JTDData.foldImport;
+  const keyOf = JTDData.importKey;
+  const platformName = JTDData.importPlatform;
+  let previewState = '';
   function parseMoney(value){
     let raw = String(value ?? '').trim().replace(/[€\s\u00a0]/g,'');
     if(!raw) return null;
@@ -121,7 +96,7 @@
     const content = await file.text();
     if(/\.json$/i.test(file.name) || file.type.includes('json')){
       const parsed = JSON.parse(content);
-      if(parsed && parsed.app === 'Jeux Tout Doux' && (!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 3)) throw new Error('Version de sauvegarde incompatible.');
+      if(parsed && parsed.app === 'Jeux Tout Doux' && (!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 4)) throw new Error('Version de sauvegarde incompatible.');
       const entries = Array.isArray(parsed) ? parsed : parsed?.data?.cemetery || parsed?.cemetery;
       if(!Array.isArray(entries)) throw new Error('Aucune liste de cimetière trouvée dans ce fichier.');
       return entries;
@@ -129,55 +104,93 @@
     return fromCSV(content, file.name);
   }
   function setStatus(message){ $('cemetery-import-summary').textContent = message; }
+  const snapshot = state => JSON.stringify(state);
+  const candidateLabel = game => {
+    const where=game.location==='collection'?'Collection':game.location==='sold'?'Vendu':'À vendre';
+    return game.nom+' · '+game.plateforme+' · '+where+(game.collector?' · Collector':'')+(game.japanese?' · Japonais':'')+(game.date?' · '+game.date:'')+(game.source?' · '+game.source:'')+(game.prix!=null?' · achat '+game.prix+' €':'')+' · réf. '+game.id;
+  };
   function renderPreview(){
     const list = $('cemetery-import-list');
     list.replaceChildren();
     const state = window.JTDGetCemeteryImportState();
-    const cemeteryKeys = new Set(state.cemetery.map(keyOf));
-    const gameKeys = new Map(state.games.map(game => [keyOf(game), game]));
+    previewState = snapshot(state);
     const seenInput = new Set();
     let added = 0, alreadyThere = 0, conflicts = 0, repeated = 0;
     for(const entry of rows){
       const key = keyOf(entry);
-      if(seenInput.has(key)){ entry.kind='repeat'; repeated++; continue; }
+      entry.candidates=JTDData.importCandidates(entry,state.games,state.cemetery);
+      entry.gameId='';
+      if(seenInput.has(key)){ entry.kind='repeat'; entry.choice='skip'; repeated++; continue; }
       seenInput.add(key);
-      if(cemeteryKeys.has(key)){ entry.kind='existing'; alreadyThere++; continue; }
-      const match = gameKeys.get(key);
-      if(match){ entry.kind='match'; entry.gameId=match.id; entry.choice=''; conflicts++; }
-      else { entry.kind='new'; entry.choice='add'; added++; }
+      const exact=entry.candidates.filter(g=>g.exact);
+      if(exact.length===1 && exact[0].location!=='collection'){
+        entry.kind='existing'; entry.choice='skip'; entry.gameId=exact[0].id; alreadyThere++;
+      }else if(entry.candidates.some(g=>g.score>0)){
+        entry.kind='match'; entry.choice=''; conflicts++;
+        // A single exact candidate may be proposed, never applied without a decision.
+        if(exact.length===1)entry.gameId=exact[0].id;
+      }else{entry.kind='new';entry.choice='add';added++;}
     }
-    const selected = added + conflicts;
-    setStatus(rows.length + ' ligne(s) lue(s) · ' + added + ' ajout(s) direct(s) · ' + conflicts + ' correspondance(s) à trancher · ' + (alreadyThere + repeated) + ' doublon(s) ignoré(s).');
+    setStatus(rows.length+' ligne(s) lue(s) · '+added+' ajout(s) direct(s) · '+conflicts+' correspondance(s) à trancher · '+(alreadyThere+repeated)+' doublon(s) ignoré(s).');
     $('cemetery-import-error').textContent = '';
     for(const entry of rows){
-      const line = document.createElement('div');
-      line.className = 'cemetery-import-row';
-      const identity = document.createElement('div');
-      identity.className = 'cemetery-import-identity';
-      const title = document.createElement('strong'); title.textContent = entry.nom;
-      const detail = document.createElement('span'); detail.textContent = entry.plateforme + (entry.saleStatus === 'sold' ? ' · encaissé ' + entry.salePrice + ' €' : ' · à vendre');
-      identity.append(title,detail); line.append(identity);
-      const action = document.createElement('div');
-      action.className = 'cemetery-import-action';
-      if(entry.kind === 'match'){
-        action.innerHTML = '<label>Déjà dans la collection</label><select aria-label="Action pour ' + escapeHTML(entry.nom) + '"><option value="">Choisir une action…</option><option value="keep">Ajouter au cimetière et garder dans la collection</option><option value="transfer">Transférer ce jeu au cimetière</option><option value="skip">Ignorer cette ligne</option></select>';
-        const select = action.querySelector('select'); select.value = entry.choice;
-        select.addEventListener('change',() => { entry.choice=select.value; validateChoices(); });
-      } else {
-        const label = document.createElement('span');
-        label.className = 'cemetery-import-status';
-        label.textContent = entry.kind === 'new' ? 'Ajouté au cimetière' : entry.kind === 'existing' ? 'Déjà au cimetière · conservé tel quel' : 'Répétition dans le fichier · ignorée';
-        action.append(label);
+      const line=document.createElement('div');line.className='cemetery-import-row';line.dataset.kind=entry.kind;
+      const identity=document.createElement('div');identity.className='cemetery-import-identity';
+      const title=document.createElement('strong');title.textContent=entry.nom;
+      const detail=document.createElement('span');detail.textContent=entry.plateforme+(entry.saleStatus==='sold'?' · encaissé '+entry.salePrice+' €':' · à vendre');
+      identity.append(title,detail);line.append(identity);
+      const action=document.createElement('div');action.className='cemetery-import-action';
+      {
+        if(entry.kind==='repeat'){
+          const note=document.createElement('span');note.className='cemetery-import-status';note.textContent='Répétition dans le fichier · ignorée par défaut. Ajoute un exemplaire distinct uniquement s’il s’agit d’une autre copie.';action.append(note);
+        }
+        if(entry.kind==='existing'){
+          const note=document.createElement('span');note.className='cemetery-import-status';note.textContent='Déjà au cimetière · conservé tel quel';action.append(note);
+        }
+        const actionLabel=document.createElement('label');actionLabel.textContent='Action';
+        const select=document.createElement('select');select.setAttribute('aria-label','Action pour '+entry.nom);
+        for(const [value,label] of [['','Choisir une action…'],['transfer','Transférer cet exemplaire'],['keep','Ajouter un exemplaire distinct'],['skip','Ignorer cette ligne']]) select.add(new Option(label,value));
+        select.value=entry.choice==='add'?'keep':entry.choice;
+        actionLabel.append(select);action.append(actionLabel);
+        const picker=document.createElement('details');picker.className='cemetery-import-picker';
+        picker.open=entry.kind==='match' && !entry.gameId;
+        const summary=document.createElement('summary');summary.textContent='Exemplaire proposé / rechercher';picker.append(summary);
+        const search=document.createElement('input');search.type='search';search.placeholder='Titre ou plateforme';search.setAttribute('aria-label','Rechercher un exemplaire pour '+entry.nom);picker.append(search);
+        const source=document.createElement('select');source.className='cemetery-import-source';source.setAttribute('aria-label','Exemplaire pour '+entry.nom);picker.append(source);
+        const proposed=document.createElement('span');proposed.className='cemetery-import-status';action.append(proposed);
+        const refresh=()=>{
+          const query=normalize(search.value);const matches=entry.candidates.filter(g=>!query||normalize(g.nom+' '+g.plateforme+' '+platformName(g.plateforme)).includes(query));
+          source.replaceChildren(new Option('Aucun exemplaire sélectionné',''));
+          for(const game of matches)source.add(new Option((game.score>0?'Suggestion · ':'')+candidateLabel(game),game.id));
+          if(entry.gameId&&!matches.some(g=>g.id===entry.gameId)){const game=entry.candidates.find(g=>g.id===entry.gameId);if(game)source.add(new Option(candidateLabel(game),game.id));}
+          source.value=entry.gameId;
+          const game=entry.candidates.find(g=>g.id===entry.gameId);
+          proposed.textContent=game?candidateLabel(game):'';
+        };
+        search.addEventListener('input',refresh);
+        source.addEventListener('change',()=>{entry.gameId=source.value;entry.choice='';select.value='';refresh();validateChoices();});
+        select.addEventListener('change',()=>{entry.choice=select.value;if(entry.choice==='transfer'&&!entry.gameId)picker.open=true;validateChoices();});
+        refresh();action.append(picker);
       }
-      line.append(action); list.append(line);
+      line.append(action);list.append(line);
     }
-    $('cemetery-import-apply').disabled = conflicts > 0;
-    $('cemetery-import-apply').textContent = 'Ajouter au cimetière';
-    if(!selected) $('cemetery-import-apply').disabled = true;
+    $('cemetery-import-apply').textContent='Ajouter au cimetière';
+    validateChoices();
   }
   function validateChoices(){
-    const unresolved = rows.some(entry => entry.kind === 'match' && !entry.choice);
-    $('cemetery-import-apply').disabled = unresolved || !rows.some(entry => entry.kind === 'new' || entry.kind === 'match' && entry.choice !== 'skip');
+    const targets=new Set();let error='';
+    for(const entry of rows){
+      if(!entry.choice){error='Choisis une action pour chaque correspondance.';break;}
+      if(entry.choice==='transfer'){
+        const game=entry.candidates.find(g=>g.id===entry.gameId);
+        if(!game || game.location!=='collection'){error='Choisis un exemplaire de la collection pour le transférer. Un exemplaire déjà au cimetière peut être conservé en ignorant la ligne.';break;}
+        if(targets.has(game.id)){error='Un exemplaire ne peut être transféré qu’une fois. Vérifie les correspondances.';break;}
+        targets.add(game.id);
+      }
+    }
+    $('cemetery-import-error').textContent=error;
+    $('cemetery-import-apply').disabled=!!error||!rows.some(entry=>entry.choice!=='skip');
+    return !error;
   }
   function open(){window.JTDDialogs.open(overlay.id,{onDismiss:close,initialFocus:'#cemetery-import-cancel',trigger:document.getElementById('profile-menu-btn')});}
   function close(){window.JTDDialogs.close(overlay.id);rows=[];}
@@ -187,6 +200,7 @@
     accountGeneration = window.JTDAccountGeneration || 0;
     try{
       const input = await readEntries(file);
+      if(accountGeneration !== (window.JTDAccountGeneration || 0)) return;
       const normalized = window.JTDData.normalizeData({games:[],cemetery:input});
       rows = normalized.cemetery.map(entry => ({...entry, plateforme:platformName(entry.plateforme)}));
       if(!rows.length) throw new Error('Aucun jeu avec un titre et une plateforme valides.');
@@ -200,20 +214,19 @@
   $('cemetery-import-apply').addEventListener('click',() => {
     if(accountGeneration !== (window.JTDAccountGeneration || 0)){ $('cemetery-import-error').textContent='Le compte a changé. Relance l’import depuis le bon compte.'; return; }
     const state = window.JTDGetCemeteryImportState();
+    if(snapshot(state)!==previewState){renderPreview();$('cemetery-import-error').textContent='Les données ont changé. Vérifie à nouveau les correspondances avant de confirmer.';return;}
+    if(!validateChoices())return;
     const games = state.games.slice(), cemetery = state.cemetery.slice();
-    const remaining = rows.filter(entry => entry.kind === 'new' || entry.kind === 'match' && entry.choice !== 'skip');
-    const decisions = rows.filter(entry => entry.kind === 'match');
-    if(decisions.some(entry => !entry.choice)){ validateChoices(); return; }
-    const transfers = new Set(decisions.filter(entry => entry.choice === 'transfer').map(entry => entry.gameId));
+    const remaining = rows.filter(entry => entry.choice && entry.choice !== 'skip');
     const uniqueId = base => {
       let id = base || 'import-' + Math.random().toString(36).slice(2,10), n=1;
-      const used = new Set([...games,...cemetery].map(item=>item.id));
+      const used = new Set([...state.usedIds,...cemetery.map(item=>item.id)]);
       while(used.has(id)) id = (base || 'import') + '-' + n++;
       return id;
     };
     for(const entry of remaining){
-      const {kind,gameId,choice,...incoming} = entry;
-      if(entry.kind === 'match' && entry.choice === 'transfer'){
+      const {kind,gameId,choice,candidates,...incoming} = entry;
+      if(entry.choice === 'transfer'){
         const game = games.find(item=>item.id===entry.gameId);
         if(!game) continue;
         const merged = {...incoming,...game,id:game.id,nom:game.nom,plateforme:game.plateforme,saleStatus:incoming.saleStatus};
@@ -229,9 +242,10 @@
       window.JTDApplyCemeteryImport(games,cemetery);
       const added = remaining.length;
       close();
-      window.showToast?.(added + ' entrée(s) ajoutée(s) au cimetière. La collection et les autres listes ont été conservées.');
+      window.showToast?.(added + ' entrée(s) ajoutée(s) au cimetière. Les transferts choisis ont été appliqués ; les autres listes sont conservées.');
     }catch(error){
       $('cemetery-import-error').textContent=error.message || 'Enregistrement impossible. Aucune modification appliquée.';
     }
   });
 })();
+

@@ -158,7 +158,7 @@ test('a failed restore does not replace memory or request cloud sync', () => {
   const source=fs.readFileSync(require.resolve('../app.js'),'utf8');
   const fn=source.slice(source.indexOf('function applyRestoredData('),source.indexOf('function restoreBackup('));
   let replaced=false,scheduled=false;
-  const ctx={IS_PREVIEW_MODE:false,accountStorage:{atomicWrite(){throw new Error('quota');}},restoredStorageEntries:()=>[],replaceAppData:()=>{replaced=true;},window:{JTDDataChanged:()=>{scheduled=true;}}};
+  const ctx={IS_PREVIEW_MODE:false,replaceAppData:()=>{replaced=true;},window:{persistAppData(){throw new Error('quota');},JTDDataChanged:()=>{scheduled=true;}}};
   vm.createContext(ctx);vm.runInContext(fn,ctx);assert.throws(()=>ctx.applyRestoredData({games:[]}),/quota/);
   assert.equal(replaced,false);assert.equal(scheduled,false);
 });
@@ -261,3 +261,4 @@ test('retired backup metadata preserves entries without becoming public collecti
   assert.equal(Object.hasOwn(shared,'format'),false);
   assert.equal(Object.hasOwn(shared,'type'),false);
 });
+

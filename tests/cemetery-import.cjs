@@ -34,9 +34,9 @@ const server = createSandboxServer();
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
     assert.match(await page.locator('#cemetery-import-summary').textContent(),/2 ajout\(s\) direct\(s\).*3 correspondance/);
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),true,'collection matches require an explicit choice');
-    await page.locator('.cemetery-import-action select').nth(0).selectOption('transfer');
-    await page.locator('.cemetery-import-action select').nth(1).selectOption('skip');
-    await page.locator('.cemetery-import-action select').nth(2).selectOption('keep');
+    await page.locator('.cemetery-import-row[data-kind="match"] .cemetery-import-action select:not(.cemetery-import-source)').nth(0).selectOption('transfer');
+    await page.locator('.cemetery-import-row[data-kind="match"] .cemetery-import-action select:not(.cemetery-import-source)').nth(1).selectOption('skip');
+    await page.locator('.cemetery-import-row[data-kind="match"] .cemetery-import-action select:not(.cemetery-import-source)').nth(2).selectOption('keep');
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),false);
     await page.locator('#cemetery-import-apply').click();
     await page.locator('#cemetery-import-overlay').waitFor({state:'hidden'});
@@ -72,11 +72,11 @@ const server = createSandboxServer();
     const secondChooser=await secondChooserEvent;
     await secondChooser.setFiles({name:'cimetiere.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
-    assert.match(await page.locator('#cemetery-import-summary').textContent(),/0 ajout\(s\) direct\(s\).*1 correspondance/);
-    await page.locator('.cemetery-import-action select').selectOption('skip');
+    assert.match(await page.locator('#cemetery-import-summary').textContent(),/0 ajout\(s\) direct\(s\).*2 correspondance/);
+    for(const action of await page.locator('.cemetery-import-row[data-kind="match"] .cemetery-import-action select:not(.cemetery-import-source)').all()) await action.selectOption('skip');
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),true,'a repeated import cannot add duplicate rows');
     await page.locator('#cemetery-import-cancel').click();
-    const lotBackup={app:'Jeux Tout Doux',version:3,data:{cemetery:[
+    const lotBackup={app:'Jeux Tout Doux',version:4,data:{cemetery:[
       {id:'import-lot-1',nom:'Lot importé A',plateforme:'PS4',saleStatus:'sold',saleId:'sheet-lot-1',saleOrder:1,salePrice:42.5},
       {id:'import-lot-2',nom:'Lot importé B',plateforme:'PS4',saleStatus:'sold',saleId:'sheet-lot-1',saleOrder:1,salePrice:42.5}
     ]}};
@@ -91,7 +91,8 @@ const server = createSandboxServer();
     assert.equal(importedLot.length,2);assert.equal(importedLot[0].salePrice,42.5);
     assert.equal(await page.evaluate(()=>CEMETERY.length),cemeteryCount+2);
     assert.deepEqual(errors,[]);assert.deepEqual(firebase,[]);
-    console.log('PASS cemetery import: Gain/Valeur, pending rows, explicit match choice, transfer metadata, duplicate skip, board isolation, reload, v3 backup, sale lot, no Firebase');
+    console.log('PASS cemetery import: Gain/Valeur, pending rows, explicit match choice, transfer metadata, duplicate skip, board isolation, reload, v4 backup, sale lot, no Firebase');
     await context.close();
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+

@@ -8,9 +8,14 @@
 .cemetery-import-identity span,.cemetery-import-action label,.cemetery-import-status { color:var(--muted); font-size:13px; }
 .cemetery-import-action { display:flex; flex-direction:column; gap:5px; }
 .cemetery-import-action select { min-width:0; width:100%; padding:9px 10px; border:1px solid var(--hairline); border-radius:10px; background:var(--surface); color:var(--text); font:inherit; }
+.cemetery-import-action label { display:flex; flex-direction:column; gap:5px; }
+.cemetery-import-action input { box-sizing:border-box; min-width:0; width:100%; margin:8px 0; padding:9px 10px; border:1px solid var(--hairline); border-radius:10px; background:var(--surface); color:var(--text); font:inherit; }
+.cemetery-import-picker summary { cursor:pointer; color:var(--muted); font-size:13px; }
+.cemetery-import-status { overflow-wrap:anywhere; }
 .cemetery-import-error { color:var(--danger,#c43d32); min-height:1em; }
 .cemetery-import-modal .modal-actions { flex-shrink:0; }
 @media(max-width:620px) {
   .cemetery-import-modal { max-height:90vh; }
   .cemetery-import-row { grid-template-columns:1fr; gap:8px; }
 }
+

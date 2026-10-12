@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="styles.css?v=edge-cases-1">
 <link rel="stylesheet" href="cemetery.css?v=global-2">
 <link rel="stylesheet" href="home-boards-v2.css?v=css-cleanup-1">
-<link rel="stylesheet" href="cemetery-import.css?v=css-cleanup-1">
+<link rel="stylesheet" href="cemetery-import.css?v=import-export-1">
 <link rel="stylesheet" href="ui-foundations.css?v=journal-1">
 <link rel="stylesheet" href="collection.css?v=global-2">
 <link rel="stylesheet" href="journal.css?v=journal-1">
@@ -114,16 +114,16 @@
           </div>
           <div class="profile-menu-divider"></div>
           <button class="profile-menu-item" id="backup-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Sauvegarder</span></span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Sauvegarde complète</span></span>
             <span class="profile-menu-sub" id="backup-note"></span>
           </button>
           <label class="profile-menu-item" id="restore-trigger" for="restore-input">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Restaurer</span></span>
-            <span class="profile-menu-sub">Depuis une sauvegarde Jeux Tout Doux</span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Restaurer une sauvegarde</span></span>
+            <span class="profile-menu-sub">Remplacer toutes les données par celles du fichier</span>
           </label>
           <label class="profile-menu-item" id="cemetery-import-trigger" for="cemetery-import-input">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg><span>Importer des ventes</span></span>
-            <span class="profile-menu-sub">Ajouter au cimetière depuis un CSV ou une sauvegarde</span>
+            <span class="profile-menu-sub">Ajouter au cimetière · CSV, TSV ou sauvegarde</span>
           </label>
           <div class="profile-menu-divider"></div>
           <button class="profile-menu-item" id="share-btn">
@@ -132,7 +132,7 @@
           </button>
           <button class="profile-menu-item" id="chatgpt-export-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Exporter pour ChatGPT</span></span>
-            <span class="profile-menu-sub">Fichier filtré à joindre dans cette conversation</span>
+            <span class="profile-menu-sub">Collection, journal et avis · fichier à joindre dans ChatGPT</span>
           </button>
           <button class="profile-menu-item profile-menu-danger hidden" id="share-disable-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg><span>Désactiver le partage</span></span>
@@ -531,7 +531,7 @@
   <div class="modal cemetery-import-modal">
     <h2 id="cemetery-import-title">Importer au cimetière</h2>
     <p id="cemetery-import-summary" class="cemetery-note"></p>
-    <p class="cemetery-import-help">Les lignes déjà présentes au cimetière seront ignorées. « Gain » correspond au prix encaissé ; « Valeur » reste une estimation.</p>
+    <p class="cemetery-import-help">Vérifie les exemplaires avant l’ajout. « Gain » est le prix encaissé ; « Valeur » reste une estimation. Les autres listes ne sont pas remplacées.</p>
     <div id="cemetery-import-list" class="cemetery-import-list"></div>
     <p id="cemetery-import-error" class="cemetery-import-error" role="alert"></p>
     <div class="modal-actions">
@@ -603,12 +603,12 @@
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
 <script src="journal-data.js?v=journal-1"></script>
-<script src="jtd-data.js?v=journal-1"></script>
+<script src="jtd-data.js?v=import-export-1"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=journal-1"></script>
+<script src="app.js?v=import-export-1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
-<script src="cemetery-import.js?v=platform-alias-fix-1"></script>
-<script src="journal.js?v=journal-1"></script>
+<script src="cemetery-import.js?v=import-export-1"></script>
+<script src="journal.js?v=import-export-1"></script>
 <script src="lifecycle.js?v=cemetery-sale-3"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
@@ -620,3 +620,4 @@
 </script>
 </body>
 </html>
+
