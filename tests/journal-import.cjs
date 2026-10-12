@@ -15,14 +15,25 @@ async function open(page,payload=file){await page.locator('#profile-menu-btn').c
   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
   await page.evaluate(()=>applyRestoredData(JTDData.normalizeData({games:[{id:'copy',nom:'Aventure fictive',plateforme:'Nintendo Switch',status:'a_jouer'}],cemetery:[{id:'sold-copy',nom:'Aventure fictive',plateforme:'Nintendo Switch',saleStatus:'sold',salePrice:10}]})));
   const before=await page.evaluate(()=>buildBackupPayload().data);
-  await open(page);assert.equal(await page.locator('#journal-import-apply').isDisabled(),true);
+  await open(page);assert.match(await page.locator('#journal-import-apply').textContent(),/Revoir/);
+  assert.ok(await page.locator('#journal-import-list').evaluate(el=>el.clientHeight)>300,'The list has room to read several rows');
+  if(width===1440)assert.ok(await page.locator('.journal-import-modal').evaluate(el=>el.clientWidth)>=900,'Desktop import uses the available width');
+  await page.screenshot({path:'/tmp/jtd-journal-import-initial-'+width+'-'+theme+'.png'});
+  await page.locator('#journal-import-apply').click();assert.equal(await page.locator('[data-title="Aventure fictive"] select[aria-label="Action pour Aventure fictive"]').evaluate(el=>document.activeElement===el),true);
+  await page.locator('.cemetery-import-other > summary').click();
+  for(const decision of await page.getByLabel(/^Action pour /).all())await decision.selectOption('skip');
+  assert.equal(await page.locator('#journal-import-apply').textContent(),'Fermer sans importer');
+  assert.match(await page.locator('#journal-import-error').textContent(),/Tous les parcours sont ignorés/);
+  await page.locator('#journal-import-apply').click();await page.locator('#journal-import-overlay').waitFor({state:'hidden'});
+  assert.deepEqual(await page.evaluate(()=>buildBackupPayload().data),before,'Ignoring every row closes without changing any data');
+  await open(page);
   const adventure=page.locator('[data-title="Aventure fictive"]'),extension=page.locator('[data-title="Extension fictive"]'),replay=page.locator('[data-title="Replay fictif"]');
   assert.equal(await adventure.getByLabel('Exemplaire pour Aventure fictive').inputValue(),'');
   await adventure.getByLabel('Action pour Aventure fictive',{exact:true}).selectOption('link');
   assert.match(await adventure.getByLabel('Exemplaire pour Aventure fictive').textContent(),/Vendu/);
   await adventure.getByLabel('Exemplaire pour Aventure fictive').selectOption('copy');
   await extension.getByLabel('Action pour Extension fictive',{exact:true}).selectOption('add');
-  assert.equal(await page.locator('#journal-import-apply').isDisabled(),true);
+  assert.match(await page.locator('#journal-import-apply').textContent(),/Revoir/);
   await extension.getByLabel('Jeu de base').fill('Base fictive');
   await replay.getByLabel('Action pour Replay fictif',{exact:true}).selectOption('add');
   await replay.getByLabel('Support joué').selectOption('digital');await replay.getByLabel(/^Accès/).selectOption('emulation');
@@ -39,7 +50,7 @@ async function open(page,payload=file){await page.locator('#profile-menu-btn').c
   await page.evaluate(()=>JTDJournal.openForGame('copy'));await page.locator('#journal-detail-edit').click();
   assert.equal(await page.locator('#j-medium').inputValue(),'digital');assert.equal(await page.locator('#j-finishedAt').inputValue(),'2026-02');
   await page.locator('#j-identity-card .identity-edit-btn').click();await page.locator('#j-nom').fill('Renommé');await page.locator('#j-save').click();await page.locator('#journal-detail-close').click();
-  await open(page);assert.match(await page.locator('#journal-import-summary').textContent(),/0 ajout\(s\).*4 ignoré/);assert.equal(await page.locator('#journal-import-apply').isDisabled(),true);await page.locator('#journal-import-cancel').click();
+  await open(page);assert.match(await page.locator('#journal-import-summary').textContent(),/0 à importer.*4 ignoré/);assert.equal(await page.locator('#journal-import-apply').textContent(),'Fermer sans importer');await page.locator('#journal-import-apply').click();
   const extra={...file,sheets:[{name:'Fictif',year:2026,values:[header,row('Nouveau fictif','🌐')]}]};
   await open(page,extra);await page.evaluate(()=>{window.originalSet=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw Error('quota fictif');};});
   await page.locator('#journal-import-apply').click();assert.match(await page.locator('#journal-import-error').textContent(),/quota/);assert.equal(await page.evaluate(()=>JOURNAL.length),4);await page.evaluate(()=>{Storage.prototype.setItem=window.originalSet;});await page.locator('#journal-import-cancel').click();
@@ -47,6 +58,7 @@ async function open(page,payload=file){await page.locator('#profile-menu-btn').c
   assert.deepEqual(errors,[]);await context.close();console.log('PASS journal import '+width+' '+theme);
  }}finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
 
 
 

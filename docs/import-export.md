@@ -32,7 +32,7 @@ L’import accepte les CSV/TSV des onglets personnels du journal et un JSON pré
 
 Les notes par critère sont conservées en texte dans l’avis. Les dates conservent leur précision (année, mois ou jour). Les extensions demandent leur jeu de base. Le symbole 🔁 indique un replay, dont le support et l’accès restent à préciser.
 
-Les cas à vérifier apparaissent en tête. Chaque parcours peut être ajouté sans lien, lié explicitement à un exemplaire actif, à vendre ou vendu, ou ignoré. Aucun exemplaire physique n’est créé. L’aperçu annonce les changements de statut de collection ; un parcours numérique lié peut donner « Terminé ailleurs ».
+La fenêtre donne toute la hauteur à la liste sur mobile et davantage de largeur sur ordinateur. Les cas à vérifier apparaissent en tête, avec une explication pour chaque choix. Le bouton « Revoir » mène au premier cas incomplet ; « Importer » indique le nombre de parcours ajoutés. Si tout est ignoré, « Fermer sans importer » ferme l’aperçu sans écrire de données. Chaque parcours peut être ajouté sans lien, lié explicitement à un exemplaire actif, à vendre ou vendu, ou ignoré. Aucun exemplaire physique n’est créé. L’aperçu annonce les changements de statut de collection ; un parcours numérique lié peut donner « Terminé ailleurs ».
 
 Les parcours identiques et les réimports de la même ligne sont ignorés par défaut, même après correction du titre dans JTD. Les dates partielles qui recouvrent un parcours existant demandent une décision : ignorer ou ajouter un parcours distinct. Il est toujours possible de conserver un véritable replay. L’import ajoute des parcours sans remplacer le journal existant. Les choix sont revérifiés si les données changent ; un changement de compte bloque l’application.
 

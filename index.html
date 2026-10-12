@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="styles.css?v=edge-cases-1">
 <link rel="stylesheet" href="cemetery.css?v=global-2">
 <link rel="stylesheet" href="home-boards-v2.css?v=css-cleanup-1">
-<link rel="stylesheet" href="cemetery-import.css?v=journal-import-1">
+<link rel="stylesheet" href="cemetery-import.css?v=journal-import-2">
 <link rel="stylesheet" href="ui-foundations.css?v=journal-1">
 <link rel="stylesheet" href="collection.css?v=global-2">
 <link rel="stylesheet" href="journal.css?v=journal-1">
@@ -605,7 +605,8 @@
 <div class="modal-overlay hidden" id="journal-import-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-import-title">
  <div class="modal cemetery-import-modal journal-import-modal">
   <h2 id="journal-import-title">Importer le journal</h2>
-  <p class="cemetery-import-help">Uniquement les jeux terminés du journal. Les blocs En cours, backlog et sorties sont exclus. Aucun exemplaire ne sera créé dans la collection.</p>
+  <p class="cemetery-import-help">Choisis les parcours à ajouter à ton journal. Rien ne change avant l’import.</p>
+  <details class="journal-import-help"><summary>Comprendre les choix</summary><p><strong>Ajouter sans lien</strong> : ajouter le parcours au journal uniquement.<br><strong>Lier à un exemplaire</strong> : ajouter le parcours et le rattacher à un jeu physique déjà présent, y compris à vendre ou vendu.<br><strong>Ignorer</strong> : ne pas importer cette ligne.</p><p>Seuls les jeux terminés du journal sont lus. Les blocs En cours, backlog et sorties sont exclus. Aucun exemplaire physique ne sera créé.</p></details>
   <label class="journal-import-year">Année des dates sans année <input id="journal-import-year" type="number" min="1" max="9999"></label>
   <p id="journal-import-warning" class="cemetery-import-help"></p>
   <p id="journal-import-summary" class="cemetery-note" aria-live="polite"></p>
@@ -615,7 +616,7 @@
  </div>
 </div>
 <script src="journal-import-data.js?v=journal-import-1"></script>
-<script src="journal-import.js?v=journal-import-1"></script>
+<script src="journal-import.js?v=journal-import-2"></script>
 <script src="journal.js?v=journal-import-1"></script>
 <script src="lifecycle.js?v=cemetery-sale-3"></script>
 <script>
@@ -628,5 +629,6 @@
 </script>
 </body>
 </html>
+
 
 

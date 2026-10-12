@@ -27,9 +27,37 @@
 .journal-import-edit summary { cursor:pointer; font-size:13px; color:var(--muted); }
 .journal-import-impact { font-size:13px; max-height:100px; overflow:auto; }
 .journal-import-modal #journal-import-warning:empty { display:none; }
+#journal-import-overlay > .journal-import-modal { width:min(1000px,calc(100vw - 48px)); max-width:1000px; height:min(92dvh,1000px); max-height:92dvh; padding:24px; overflow:hidden; gap:0; }
+.journal-import-modal > :not(.cemetery-import-list) { flex-shrink:0; }
+.journal-import-modal .cemetery-import-list { flex:1 1 auto; padding-right:8px; scroll-padding-top:12px; }
+.journal-import-modal .cemetery-import-row { grid-template-columns:minmax(0,1fr); align-items:start; gap:12px; padding:16px; margin:12px 0; border:1px solid var(--hairline); border-radius:12px; }
+.journal-import-modal .cemetery-import-identity strong { font-size:17px; }
+.journal-import-modal .cemetery-import-action { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 20px; align-items:start; }
+.journal-import-modal .journal-import-field { margin:0; min-width:0; }
+.journal-import-guidance,.journal-import-row-error { margin:0; font-size:13px; line-height:1.5; color:var(--muted); }
+.journal-import-row-error { color:var(--danger,#c43d32); }
+.journal-import-row-error:empty { display:none; }
+.journal-import-edit,.journal-import-row-error,.journal-import-modal .cemetery-import-picker,.journal-import-modal .cemetery-import-status { grid-column:1/-1; }
+.journal-import-edit[open] { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 20px; padding-top:8px; }
+.journal-import-edit > summary,.journal-import-edit > label:last-child { grid-column:1/-1; }
+.journal-import-edit summary,.journal-import-help summary { cursor:pointer; color:var(--text); font-size:14px; }
+.journal-import-help { margin:0 0 12px; font-size:13px; line-height:1.6; }
+.journal-import-help p { margin:8px 0; }
+.journal-import-modal #journal-import-summary { margin:8px 0 12px; font-weight:600; }
+.journal-import-modal #journal-import-error { color:var(--muted); font-size:13px; line-height:1.4; min-height:0; margin:12px 0 0; }
+.journal-import-modal .modal-actions { margin-top:12px; padding-top:12px; }
+.journal-import-modal [hidden] { display:none!important; }
 @media(max-width:620px) {
   .cemetery-import-modal { max-height:90vh; }
   .cemetery-import-row { grid-template-columns:1fr; gap:8px; }
+  #journal-import-overlay { padding:0; }
+  /* The shared mobile sheet uses !important; this longer import needs the full viewport. */
+  #journal-import-overlay > .journal-import-modal { width:100%; max-width:100%; height:100dvh; max-height:100dvh!important; border-radius:0!important; padding:16px 16px max(16px,env(safe-area-inset-bottom))!important; overflow:hidden!important; }
+  #journal-import-overlay > .journal-import-modal::before { display:none; }
+  body:has(#sandbox-environment-badge) #journal-import-overlay > .journal-import-modal { padding-top:48px!important; }
+  .journal-import-modal .cemetery-import-action,.journal-import-edit[open] { grid-template-columns:minmax(0,1fr); }
+  .journal-import-modal .cemetery-import-list { padding-right:0; }
+  .journal-import-modal .cemetery-import-row { padding:12px; }
 }
 
 
