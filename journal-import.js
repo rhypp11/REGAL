@@ -12,7 +12,7 @@
  function buildRows(){
   const parsed=P.parseFile(fileText,fileName,$('journal-import-year').value);
   rows=P.classify(parsed.entries,{games:GAMES,cemetery:CEMETERY,journal:JOURNAL});previewState=JSON.stringify(data());elements.clear();
-  const list=$('journal-import-list');list.replaceChildren();$('journal-import-warning').textContent=parsed.warnings.join(' ');
+  const list=$('journal-import-list'),help=$('journal-import-help');list.replaceChildren(help);$('journal-import-warning').textContent=parsed.warnings.join(' ');
   const review=element('section','', 'cemetery-import-review');review.append(element('h3','À vérifier'));
   const other=element('details','','cemetery-import-other');other.open=!rows.some(r=>r.kind==='review');other.append(element('summary','Autres parcours · '+rows.filter(r=>r.kind!=='review').length));
   if(rows.some(r=>r.kind==='review'))list.append(review);if(rows.some(r=>r.kind!=='review'))list.append(other);

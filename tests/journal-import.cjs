@@ -17,6 +17,9 @@ async function open(page,payload=file){await page.locator('#profile-menu-btn').c
   const before=await page.evaluate(()=>buildBackupPayload().data);
   await open(page);assert.match(await page.locator('#journal-import-apply').textContent(),/Revoir/);
   assert.ok(await page.locator('#journal-import-list').evaluate(el=>el.clientHeight)>300,'The list has room to read several rows');
+  await page.locator('#journal-import-help > summary').click();
+  assert.ok(await page.locator('#journal-import-apply').evaluate(el=>el.getBoundingClientRect().bottom<=innerHeight),'Expanded help keeps the footer accessible');
+  await page.locator('#journal-import-help > summary').click();
   if(width===1440)assert.ok(await page.locator('.journal-import-modal').evaluate(el=>el.clientWidth)>=900,'Desktop import uses the available width');
   await page.screenshot({path:'/tmp/jtd-journal-import-initial-'+width+'-'+theme+'.png'});
   await page.locator('#journal-import-apply').click();assert.equal(await page.locator('[data-title="Aventure fictive"] select[aria-label="Action pour Aventure fictive"]').evaluate(el=>document.activeElement===el),true);
