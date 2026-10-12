@@ -32,7 +32,7 @@
  const fold=s=>s.normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr').trim();
  function collectionLabel(r){if(!r.collectionId)return '';if(GAMES.some(g=>g.id===r.collectionId))return 'Collection';const old=CEMETERY.find(g=>g.id===r.collectionId);return old?(old.saleStatus==='sold'?'Vendu':'À vendre'):'';}
  function linkedGame(r){return r.collectionId&&(GAMES.find(g=>g.id===r.collectionId)||CEMETERY.find(g=>g.id===r.collectionId));}
- function displayRecord(r){const g=linkedGame(r);return g?{...r,nom:g.nom,plateforme:g.plateforme,image:g.image||'',imageFit:g.imageFit||'contain',kind:'game',parentName:''}:r;}
+ function displayRecord(r){const g=linkedGame(r);return g&&r.importSource?{...r,image:r.image||g.image||'',imageFit:r.image?r.imageFit:g.imageFit||'contain'}:g?{...r,nom:g.nom,plateforme:g.plateforme,image:g.image||'',imageFit:g.imageFit||'contain',kind:'game',parentName:''}:r;}
  function metadata(r,platform=true){r=displayRecord(r);const label=collectionLabel(r),collection=label==='Collection',format=collection&&r.medium==='physical'?'collection':r.access==='emulation'?'emulation':r.medium;return (platform?'<span class="journal-platform">'+esc(r.plateforme)+'</span>':'')+(r.kind==='extension'?'<span>'+puzzle+'Extension</span>':'')+'<span class="journal-format format-'+format+'">'+(format==='collection'?bookshelf:icons[format])+esc(format==='collection'?'Collection':format==='emulation'?'Émulation':format==='physical'?'Physique':'Numérique')+'</span>'+(!collection&&['family','subscription'].includes(r.access)?'<span>'+esc(r.access==='family'?'Partage familial':'Abonnement')+'</span>':'')+(label&&format!=='collection'?'<span>'+esc(label)+'</span>':'');}
  function selectTab(tab){document.querySelector('.journal-layout').dataset.tab=tab;document.querySelectorAll('[data-journal-tab]').forEach(x=>{const active=x.dataset.journalTab===tab;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active));});}
  function sourceGames(){return [...GAMES,...CEMETERY];}
@@ -68,7 +68,7 @@
   if(digitalAccess)$('j-medium').value='digital';
   $('j-medium').disabled=digitalAccess;
   const r=read(), done=r.status==='done',linked=!!linkedGame(r);
-  ['j-kind-field','j-name-field','j-platform-field','j-art-details','j-access-fields'].forEach(id=>$(id).classList.toggle('hidden',linked));
+  ['j-kind-field','j-name-field','j-platform-field','j-art-details','j-access-fields'].forEach(id=>$(id).classList.toggle('hidden',linked&&!r.importSource));
   $('j-parent-field').classList.toggle('hidden',r.kind!=='extension');
   $('j-kind').disabled=!!r.collectionId;
   $('j-source-picker').classList.toggle('hidden',r.kind==='extension');
@@ -176,5 +176,6 @@
  document.querySelectorAll('[data-journal-tab]').forEach(b=>b.innerHTML=(b.dataset.journalTab==='playing'?ICON_STATUS_PLAYING:b.dataset.journalTab==='backlog'?icons.backlog:icon('<path d="M4 4h7a3 3 0 0 1 3 3v14a3 3 0 0 0-3-3H4Zm16 0h-4"/>'))+b.textContent);
  renderJournal();
 })();
+
 
 

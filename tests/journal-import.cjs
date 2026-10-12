@@ -36,7 +36,9 @@ async function open(page,payload=file){await page.locator('#profile-menu-btn').c
   for(const key of ['cemetery','wishlist','arrivals'])assert.deepEqual(after[key],before[key]);
   const imported=after.journal.find(r=>r.nom==='Aventure fictive');assert.equal(imported.medium,'digital');assert.equal(imported.collectionId,'copy');assert.equal(imported.finishedAt,'2026-02');assert.match(imported.review,/Un avis fictif conservé/);assert.match(imported.review,/Scénario : A/);
   assert.equal(after.journal.find(r=>r.nom==='Ancien fictif').finishedAt,'2013');assert.match(after.journal.find(r=>r.nom==='Replay fictif').review,/Replay/);
-  await page.evaluate(()=>{const data=buildBackupPayload().data;data.journal[0].nom='Renommé';applyRestoredData(JTDData.normalizeData(data));});
+  await page.evaluate(()=>JTDJournal.openForGame('copy'));await page.locator('#journal-detail-edit').click();
+  assert.equal(await page.locator('#j-medium').inputValue(),'digital');assert.equal(await page.locator('#j-finishedAt').inputValue(),'2026-02');
+  await page.locator('#j-identity-card .identity-edit-btn').click();await page.locator('#j-nom').fill('Renommé');await page.locator('#j-save').click();await page.locator('#journal-detail-close').click();
   await open(page);assert.match(await page.locator('#journal-import-summary').textContent(),/0 ajout\(s\).*4 ignoré/);assert.equal(await page.locator('#journal-import-apply').isDisabled(),true);await page.locator('#journal-import-cancel').click();
   const extra={...file,sheets:[{name:'Fictif',year:2026,values:[header,row('Nouveau fictif','🌐')]}]};
   await open(page,extra);await page.evaluate(()=>{window.originalSet=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw Error('quota fictif');};});
@@ -45,5 +47,6 @@ async function open(page,payload=file){await page.locator('#profile-menu-btn').c
   assert.deepEqual(errors,[]);await context.close();console.log('PASS journal import '+width+' '+theme);
  }}finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
 
 
