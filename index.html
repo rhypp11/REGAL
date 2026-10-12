@@ -85,8 +85,8 @@
     </button>
     <div class="topnav-nav" aria-label="Navigation principale">
       <button class="nav-tab active" data-page="home" title="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg><span class="nav-tab-label">Accueil</span></button>
-      <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
       <button class="nav-tab" data-page="journal" title="Journal"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h6a3 3 0 0 1 3 3v14a4 4 0 0 0-4-2H4V4Zm16 0h-4a3 3 0 0 0-3 3v14a4 4 0 0 1 4-2h3V4Z"/></svg><span class="nav-tab-label">Journal</span></button>
+      <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
       <button class="nav-tab" data-page="cemetery" title="Cimetière"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V10a6 6 0 0 1 12 0v11M4 21h16M9 10h6M12 7v6"/></svg><span class="nav-tab-label">Cimetière</span></button>
     </div>
     <div class="topnav-break"></div>
@@ -544,9 +544,12 @@
 
 
 <section class="page hidden" id="page-journal">
-  <header class="journal-heading"><h1>Mon journal</h1><div><label class="sr-only" for="journal-year">Année</label><select id="journal-year"></select><button class="btn btn-primary" id="journal-add">Ajouter</button></div></header>
+  <div class="journal-shell">
+  <aside class="journal-sidebar" aria-label="Année du journal"><h1>Mon journal</h1><div class="field"><label for="journal-year">Année</label><select id="journal-year"></select></div></aside>
+  <main class="journal-main"><header class="journal-heading"><button class="btn btn-primary" id="journal-add">Ajouter</button></header>
   <div class="journal-tabs" role="group" aria-label="Vue du journal"><button class="btn active" data-journal-tab="feed" aria-pressed="true">Journal</button><button class="btn" data-journal-tab="playing" aria-pressed="false">En cours</button><button class="btn" data-journal-tab="backlog" aria-pressed="false">Backlog</button></div>
   <div class="journal-layout" data-tab="feed"><div id="journal-feed"></div><aside class="journal-side"><section class="journal-panel" data-journal-panel="playing"><h2>En cours</h2><div id="journal-playing"></div></section><section class="journal-panel" data-journal-panel="backlog"><h2>Backlog</h2><div id="journal-backlog"></div></section></aside></div>
+  </main></div>
 </section>
 <div class="modal-overlay hidden" id="journal-detail-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-detail-title">
  <div class="modal journal-detail-modal">
