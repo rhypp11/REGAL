@@ -55,10 +55,14 @@
  }
  function read(){return displayRecord({...draft,...Object.fromEntries(fields.map(f=>[f,$('j-'+f).value]))});}
  function reflect(){
+  const digitalAccess=$('j-access').value!=='owned';
+  if(digitalAccess)$('j-medium').value='digital';
+  $('j-medium').disabled=digitalAccess;
   const r=read(), done=r.status==='done',linked=!!linkedGame(r);
   ['j-kind-field','j-name-field','j-platform-field','j-art-details','j-access-fields'].forEach(id=>$(id).classList.toggle('hidden',linked));
   $('j-parent-field').classList.toggle('hidden',r.kind!=='extension');
   $('j-kind').disabled=!!r.collectionId;
+  $('j-source-picker').classList.toggle('hidden',r.kind==='extension');
   $('j-source').disabled=r.kind==='extension';
   $('j-source-search').disabled=r.kind==='extension';
   $('j-finished-fields').classList.toggle('hidden',!done);
@@ -66,7 +70,7 @@
   $('j-identity-card').innerHTML=r.nom?identitySummaryHtml({...r,nom:JTDJournalData.title(r)}):'';
   $('j-identity-card').querySelector('.identity-copy')?.insertAdjacentHTML('beforeend','<div class="journal-meta">'+metadata(r,false)+'</div>');
   const edit=$('j-identity-card').querySelector('.identity-edit-btn');
-  if(edit){if(linked){edit.title='Changer l’exemplaire';edit.setAttribute('aria-label','Changer l’exemplaire');}edit.addEventListener('click',()=>{setGameEditor(true);$(linked?'j-source-search':'j-nom').focus();});}
+  if(edit){if(linked){edit.title='Changer l’exemplaire';edit.setAttribute('aria-label','Changer l’exemplaire');}edit.addEventListener('click',()=>{setGameEditor(true);if(linked)$('j-source-picker').open=true;$(linked?'j-source-search':'j-nom').focus();});}
   $('j-link-info').textContent=r.collectionId?(GAMES.some(g=>g.id===r.collectionId)?'Lié à un exemplaire de la collection.':'Exemplaire absent de la collection ; historique conservé.') : '';
   $('j-unlink').classList.toggle('hidden',!r.collectionId);
  }
@@ -84,7 +88,7 @@
   $('j-source-search').value='';$('j-source').innerHTML='';filterSources();
   $('j-platforms').innerHTML=allPlatformNames().map(p=>'<option value="'+esc(p)+'"></option>').join('');
   setGameEditor(!draft.nom);
-  $('j-art-details').open=false;
+  $('j-art-details').open=false;$('j-source-picker').open=false;
   $('j-error').textContent='';
   $('j-delete').classList.toggle('hidden',!record);$('j-replay').classList.toggle('hidden',!record||record.status!=='done');
   JTDDialogs.clearErrors($('journal-modal-overlay'));reflect();
@@ -110,7 +114,7 @@
   catch(e){$('j-error').textContent=e.message;}
  }
  function dateLabel(r){return r.finishedAt?new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(r.finishedAt+'T12:00:00Z')):'';}
- function bilan(r){return [r.status==='done'?completionNames[r.completion]:statusNames[r.status],r.status==='done'?dateLabel(r):'',r.status==='done'?feelings[r.feeling]:''].filter(Boolean);}
+ function bilan(r){return r.status==='done'?completionMark(r)+(r.finishedAt?'<span>'+icons.date+esc(dateLabel(r))+'</span>':'')+feelingMark(r):'<span>'+(r.status==='playing'?ICON_STATUS_PLAYING:icons.backlog)+esc(statusNames[r.status])+'</span>';}
  function closeDetail(){JTDDialogs.close('journal-detail-overlay');detailId=null;}
  function showRecord(r){
   r=displayRecord(r);
@@ -128,7 +132,7 @@
  function renderCollectionSummary(id){
   const entries=id?JOURNAL.filter(r=>r.collectionId===id).sort((a,b)=>(a.status==='done')-(b.status==='done')||(b.finishedAt||'').localeCompare(a.finishedAt||'')):[];
   $('f-journal-btn').classList.toggle('hidden',!id||!!entries.length);
-  $('f-journal-entries').innerHTML=entries.map(r=>'<button type="button" class="collection-journal-entry" data-journal-id="'+esc(r.id)+'"><span>'+bilan(r).map(value=>'<span>'+esc(value)+'</span>').join('')+'</span><span class="collection-journal-entry-action">'+(r.status==='done'?'Voir le bilan':'Modifier le parcours')+'</span></button>').join('');
+  $('f-journal-entries').innerHTML=entries.map(r=>'<button type="button" class="collection-journal-entry" data-journal-id="'+esc(r.id)+'"><span>'+bilan(r)+'</span><span class="collection-journal-entry-action">'+(r.status==='done'?'Voir le bilan':'Modifier le parcours')+'</span></button>').join('');
  }
  function openForGame(id){const p=JTDJournalData.collectionProgress(JOURNAL,id);if(p)showRecord(p.record);else open(null,id);}
  window.renderJournal=renderJournal;
