@@ -1,7 +1,6 @@
 /* Shared data boundary: no DOM or Firebase dependency. */
 (function(root){
   'use strict';
-  const journalData = root.JTDJournalData || require('./journal-data.js');
   const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
   const text = (value, field, nullable = true) => {
     if(value == null && nullable) return null;
@@ -71,15 +70,9 @@
         return item;
       });
     };
-    // A repaired duplicate ID must never silently redirect a journal link.
-    const referenced = new Set((Array.isArray(data.journal) ? data.journal : []).map(r => r && r.collectionId != null ? String(r.collectionId) : null));
-    const identities = new Set();
-    for(const key of ['games','arrivals','wishlist','cemetery']) for(const item of (Array.isArray(data[key]) ? data[key] : [])){
-      if(item && item.id != null){const id=String(item.id);if(identities.has(id) && referenced.has(id)) throw new Error('Identifiant d’exemplaire ambigu dans la sauvegarde : ' + id);identities.add(id);}
-    }
-    let games = list('games'); const arrivals = list('arrivals'), wishlist = list('wishlist'), cemetery = list('cemetery');
-    const journal = journalData.normalizeJournal(data.journal).map(item => ({...item, image:safeURL(item.image, true) || ''}));
-    games = journalData.syncGames(games, journal);
+    const games = list('games'), arrivals = list('arrivals'), wishlist = list('wishlist'), cemetery = list('cemetery');
+    // Opaque archive only: never validate or replay retired journal semantics.
+    const journal = Array.isArray(data.journal) ? JSON.parse(JSON.stringify(data.journal)) : [];
     if(data.platformMeta !== undefined && !isRecord(data.platformMeta)) throw new Error('Métadonnées invalides');
     const platformMeta = Object.create(null);
     for(const [name, meta] of Object.entries(data.platformMeta || {})){
@@ -237,13 +230,9 @@
     const normalized=normalizeData(data), shared=createPublicSharePayload(normalized);
     for(const key of ['games','arrivals','wishlist','cemetery']) shared[key]=shared[key].map((item,i)=>({...item,id:normalized[key][i].id}));
     shared.cemetery=shared.cemetery.map((item,i)=>normalized.cemetery[i].saleId?{...item,saleId:normalized.cemetery[i].saleId}:item);
-    shared.journal=normalized.journal.map(({id,nom,plateforme,kind,parentName,collectionId,status,completion,medium,access,finishedAt,feeling,review})=>({id,nom,plateforme,kind,parentName,collectionId,status,completion,medium,access,finishedAt,feeling,review}));
     return {app:'Jeux Tout Doux',purpose:'Conseils dans ChatGPT',exportedAt,definitions:{
       games:'Exemplaires physiques actuellement dans la collection.',
       cemetery:'Exemplaires physiques à vendre (pending) ou vendus (sold).',
-      journal:'Parcours indépendants ou liés à un exemplaire par collectionId. Plusieurs parcours peuvent être des replays ; ne pas les compter comme plusieurs jeux possédés.',
-      collectionId:'Identifiant de games ou cemetery. Si absent des deux listes, exemplaire supprimé ; historique conservé. null signifie sans lien.',
-      extensions:'Les extensions ne créent aucun exemplaire et ne pilotent pas le statut du jeu de base.',
       salePrice:'Prix encaissé par vente ; un même saleId désigne un lot dont le prix ne doit être compté qu’une fois.'
     },data:shared};
   }

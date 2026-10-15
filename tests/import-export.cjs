@@ -26,6 +26,16 @@ async function importFile(page,data){
   assert.equal(await page.locator('#share-btn, #share-disable-btn').count(),0);
   assert.equal(await page.locator('#chatgpt-export-btn').count(),1);
   await page.evaluate(data=>applyRestoredData(JTDData.normalizeData(data)),fixture);
+  assert.equal(await page.locator('[data-page="journal"], #page-journal, [id^="j-"], [id^="f-journal"]').count(),0);
+  assert.equal(await page.locator('script[src*="journal"], link[href*="journal"]').count(),0);
+  await page.evaluate(()=>{goToPage('collection');setStatus('copy-a','a_jouer');});
+  assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='copy-a').status),'a_jouer','old links cannot override a collection status');
+  await page.locator('.card').filter({hasText:'Chroniques du Vent'}).first().locator('.card-status-badge').click();
+  assert.equal(await page.locator('.card-status-menu:not(.hidden)').count(),1,'linked exemplars use the ordinary status menu');
+  await page.locator('.card-status-menu:not(.hidden) [data-status="termine"]').click();
+  assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='copy-a').status),'termine');
+  await page.evaluate(()=>goToPage('home'));
+
   await importFile(page,[...Array.from({length:60},(_,i)=>({id:'bulk-'+i,nom:'Entrée fictive '+i,plateforme:'PC',saleStatus:'pending'})),{id:'bulk-match',nom:'Chroniques du Vent',plateforme:'NSW',saleStatus:'pending'}]);
   assert.match(await page.locator('#cemetery-import-list .cemetery-import-row').first().textContent(),/Chroniques du Vent/,'review rows come first even when they are last in a large file');
   assert.equal(await page.locator('#cemetery-import-review-title').textContent(),'1 jeu à revoir');
@@ -52,14 +62,10 @@ async function importFile(page,data){
   await importFile(page,[{id:'new',nom:'Jeu inédit',plateforme:'PS5',saleStatus:'pending'}]);
   await page.evaluate(()=>{CEMETERY=[...CEMETERY,{id:'concurrent',nom:'Concurrent',plateforme:'PC',saleStatus:'pending'}];});
   await page.locator('#cemetery-import-apply').click();assert.match(await page.locator('#cemetery-import-error').textContent(),/changé/);assert.equal(await page.evaluate(()=>CEMETERY.some(g=>g.id==='new')),false);await page.locator('#cemetery-import-cancel').click();
-  // Sold exemplars can be explicitly linked in the journal, with no resurrection.
-  await page.evaluate(()=>goToPage('journal'));await page.locator('#journal-add').click();await page.locator('#j-source-picker').evaluate(el=>el.open=true);
-  await page.locator('#j-source-search').fill('Aventure');await page.locator('#j-source').selectOption('sold');await page.locator('#j-save').click();
-  assert.equal(await page.evaluate(()=>JOURNAL.at(-1).collectionId),'sold');assert.equal(await page.evaluate(()=>GAMES.some(g=>g.id==='sold')),false);
-  // Export is useful for advice, while public sharing still excludes the journal.
+  // Advice exports exclude the retired private archive.
   const downloadEvent=page.waitForEvent('download');await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
   const advice=JSON.parse(fs.readFileSync(await (await downloadEvent).path(),'utf8'));
-  assert.equal(advice.data.journal.find(r=>r.id==='history').collectionId,'copy-a');assert.equal(advice.data.journal.find(r=>r.id==='history').review,'Avis fictif');
+  assert.equal('journal' in advice.data,false);
   assert.equal(await page.evaluate(()=>Object.hasOwn(JTDData.createPublicSharePayload(buildBackupPayload().data),'journal')),false);
   // Oversized or advice files must not replace data, even when selected as restore input.
   const before=await page.evaluate(()=>JSON.stringify(buildBackupPayload().data));
@@ -70,8 +76,8 @@ async function importFile(page,data){
   // Import storage failure leaves all lists in memory intact and the preview open.
   await importFile(page,[{id:'rollback',nom:'Quota fictif',plateforme:'PS5',saleStatus:'pending'}]);
   await page.evaluate(()=>{window.savedSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw Error('quota fictif');};});await page.locator('#cemetery-import-apply').click();assert.match(await page.locator('#cemetery-import-error').textContent(),/quota/);assert.equal(await page.evaluate(()=>CEMETERY.some(g=>g.id==='rollback')),false);await page.evaluate(()=>{Storage.prototype.setItem=window.savedSetItem;});await page.locator('#cemetery-import-cancel').click();
-  await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});assert.equal(await page.evaluate(()=>GAMES[0].id),'copy-a');assert.equal(await page.evaluate(()=>JOURNAL.find(r=>r.id==='sold-history').collectionId),'sold');
+  await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});assert.equal(await page.evaluate(()=>GAMES[0].id),'copy-a');assert.equal(await page.evaluate(()=>GAMES[0].status),'termine');assert.equal(await page.evaluate(()=>LEGACY_JOURNAL.find(r=>r.id==='sold-history').collectionId),'sold');
   assert.deepEqual(errors,[]);assert.deepEqual(cloud,[]);
-  console.log('PASS import/export',width,theme,': ambiguous exemplars, manual title/platform match, sold journal links, stale preview, export links, restore rejection, rollback, persistence, no Firebase');await context.close();
+  console.log('PASS import/export',width,theme,': ambiguous exemplars, manual title/platform match, stale preview, collection exports, restore rejection, rollback, persistence, no Firebase');await context.close();
  }}finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
