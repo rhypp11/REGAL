@@ -1434,10 +1434,11 @@ function renderHomeStats(){
   if(totalEl) totalEl.textContent = total;
   const metaEl = document.getElementById('home-summary-meta');
   if(metaEl){
+    const statIcon = path => `<svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${path}"/></svg>`;
     const stats = [
-      `<div class="home-summary-stat"><strong>${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
-      collectors ? `<div class="home-summary-stat"><strong>${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
-      GAMES.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>achats renseignés</span></div>` : ''
+      `<div class="home-summary-stat">${statIcon("M7 8h10c2 0 3 2 3.5 4l1 5c.4 2-1.5 3-3 1L16 16H8l-2.5 2c-1.5 2-3.4 1-3-1l1-5C4 10 5 8 7 8Z M7 10v4 M5 12h4 M16 11h.01 M18 13h.01")}<strong>${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
+      collectors ? `<div class="home-summary-stat">${statIcon("m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z")}<strong>${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
+      GAMES.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide">${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}<strong>${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>achats renseignés</span></div>` : ''
     ].filter(Boolean);
     metaEl.innerHTML = stats.join('');
   }

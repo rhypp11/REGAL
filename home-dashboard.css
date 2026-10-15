@@ -3,7 +3,8 @@
 #page-home .home-main { width:100%; margin:0; overflow:visible; gap:20px; }
 #page-home .home-collection-summary { padding:20px 24px; border:1px solid var(--ui-border); border-radius:var(--ui-radius-xl); background:radial-gradient(ellipse at top left,color-mix(in srgb,var(--ui-accent) 9%,transparent),transparent 65%),var(--ui-surface); }
 .home-widget-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
-.home-widget-title h2 { margin:0; font-size:14px; letter-spacing:-.01em; }
+.home-widget-title h2 { display:flex; align-items:center; gap:7px; margin:0; font-size:14px; letter-spacing:-.01em; }
+.home-stat-icon { width:15px; height:15px; flex-shrink:0; color:var(--ui-accent); }
 .home-widget-title a { display:inline-flex; align-items:center; gap:8px; min-height:32px; padding:6px 10px; border:1px solid var(--ui-border); border-radius:8px; color:var(--ui-text); background:var(--ui-surface); font-size:12px; text-decoration:none; }
 .home-widget-title a::after { content:'→'; }
 .home-widget-title a:hover { background:rgba(var(--ui-rgb),.05); }
