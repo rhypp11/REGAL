@@ -15,6 +15,8 @@ const properties=['display','position','width','height','min-width','max-width',
 // Cemetery list rows are deliberately redesigned and covered by cemetery.cjs.
 const scenes=['collection','status','wishlist','arrivals','cemetery','drawer','collection-drawer','cemetery-drawer','profile','order','receive','edit','new','wishlist-edit','arrival-edit','sale','import','platforms'];
 async function snapshot(page){
+ // Fix the redesigned list's footprint so ancestor heights remain comparable.
+ await page.addStyleTag({content:'#cemetery-list { height:400px!important; overflow:hidden!important; }'});
  await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode().catch(()=>{})));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
  return page.evaluate(properties=>[...document.body.querySelectorAll('*')].filter(el=>el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden'&&!el.closest('#cemetery-list, .game-art-frame, #modal-overlay > .modal, #arrival-modal-overlay > .modal, #wishlist-modal-overlay > .modal, #cemetery-import-overlay')).map(el=>{
   const rect=el.getBoundingClientRect();
