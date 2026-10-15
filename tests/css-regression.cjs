@@ -14,7 +14,7 @@ const properties=['display','position','width','height','min-width','max-width',
 // The revised import form is covered by import-export.cjs in both themes and sizes.
 // List thumbnail sizes are intentionally corrected; workflow.cjs checks no title overlap.
 // Cemetery list rows are deliberately redesigned and covered by cemetery.cjs.
-const scenes=['collection','status','wishlist','arrivals','cemetery','drawer','collection-drawer','cemetery-drawer','profile','order','receive','edit','new','wishlist-edit','arrival-edit','sale','import','platforms'];
+const scenes=['collection','status','wishlist','arrivals','cemetery','collection-drawer','cemetery-drawer','profile','order','receive','edit','new','wishlist-edit','arrival-edit','sale','import','platforms'];
 async function snapshot(page){
  // Fix the redesigned list's footprint so ancestor heights remain comparable.
  await page.addStyleTag({content:'#cemetery-list { height:400px!important; overflow:hidden!important; }'});
@@ -29,15 +29,15 @@ async function scene(page,name){
  await page.evaluate(name=>{
   closeModal();closeArrivalModal();closeWishlistModal();closePlatformModal();closeSaleModal();closeMobileDrawers();document.getElementById('cemetery-import-overlay').classList.add('hidden');document.getElementById('profile-menu').classList.add('hidden');
   state.platform=null;state.search='';state.status=null;state.collector=false;state.japanese=false;
-  if(['wishlist','arrivals','order','receive','drawer'].includes(name)){
-   goToPage('lists');setHomeBoard(name==='arrivals'||name==='receive'?'arrivals':'wishlist');
+  if(['wishlist','arrivals','order','receive'].includes(name)){
+   goToPage('home');setHomeBoard(name==='arrivals'||name==='receive'?'arrivals':'wishlist');
   } else goToPage(name.startsWith('cemetery')?'cemetery':'collection');
   if(name==='order')moveWishlistToArrivals(WISHLIST[0].id);
   if(name==='receive')addArrivalToCollection(ARRIVALS[0].id);
   if(name==='edit')openModal(GAMES.find(game=>game.format==='Physique').id);
   if(name==='platforms')openPlatformModal();
   if(name==='profile')document.getElementById('profile-menu').classList.remove('hidden');
-  if(name==='drawer')openMobileDrawer(document.getElementById('home-sidebar'));
+
   if(name==='collection-drawer')openMobileDrawer(document.getElementById('collection-sidebar'));
   if(name==='cemetery-drawer')openMobileDrawer(document.getElementById('cemetery-sidebar'));
   if(name==='new')openModal(null);

@@ -17,7 +17,7 @@ const fixture = {games:[],arrivals:[],wishlist:[
    const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme,isMobile:width<500,hasTouch:width<500});
    const page=await context.newPage(), errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto(url);await page.locator('#app-shell').waitFor({state:'visible'});
-   await page.evaluate(data=>{replaceAppData(JTDData.normalizeData(data));goToPage('lists');setHomeBoard('wishlist');renderWishlist();renderArrivals();},fixture);
+   await page.evaluate(data=>{replaceAppData(JTDData.normalizeData(data));goToPage('home');setHomeBoard('wishlist');renderWishlist();renderArrivals();},fixture);
    const yearRow=page.locator('[data-id="wish-year"]');
    assert.equal(await page.locator('.board-workflow-action').count(),0);
    const action=async()=>{await yearRow.click();await page.locator('#w-order-btn').click();};
@@ -50,7 +50,7 @@ const fixture = {games:[],arrivals:[],wishlist:[
    await page.getByRole('button',{name:'Voir',exact:true}).click();assert.ok(await page.locator('#page-collection').isVisible());assert.equal(await page.locator('.card').count(),1);
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.deepEqual(await page.evaluate(()=>GAMES[0]),game);assert.equal(await page.evaluate(()=>ARRIVALS.length),0);
-   await page.locator('.nav-tab[data-page="lists"]').click();
+   await page.locator('.nav-tab[data-page="home"]').click();
    await page.evaluate(()=>setHomeBoard('wishlist'));
    await page.locator('[data-id="wish-exact"]').click();await page.locator('#w-order-btn').click();assert.equal(await page.locator('#a-date').inputValue(),'2099-12-05');await page.locator('#a-save-btn').click();
    await page.locator('#arrivals-rows [data-id="wish-exact"]').click();await page.locator('#a-received-btn').click();await page.locator('#save-btn').click();

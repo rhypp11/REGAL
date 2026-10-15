@@ -10,21 +10,21 @@ const server=createSandboxServer();
    const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
-   for(const view of ['home','lists','collection','cemetery']){
+   for(const view of ['home','collection','cemetery']){
     await page.locator('[data-page="'+view+'"]').click();
     assert.equal(await page.locator('.nav-tab[aria-current="page"]').getAttribute('data-page'),view);
-    const controls=view==='home'?'#home-add-game':view==='lists'?'.board-add-btn':view==='collection'?'#search-input,#sort-select,#add-btn':'#cemetery-search,#cemetery-platform';
+    const controls=view==='home'?'.board-add-btn':view==='collection'?'#search-input,#sort-select,#add-btn':'#cemetery-search,#cemetery-platform';
     for(const control of await page.locator(controls).all()){
      if(!await control.isVisible())continue;
      const box=await control.boundingBox();assert.ok(box.height>=44,'Shared action size '+view);
      assert.ok(box.x>=0&&box.x+box.width<=width+1,'Control stays in viewport '+view+' '+width+'px '+JSON.stringify(box));
     }
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'No page overflow '+view);
-    const main=view==='home'?'.home-main':view==='lists'?'.lists-main':view==='collection'?'#page-collection .main':'.cemetery-main';
+    const main=view==='home'?'.home-main':view==='collection'?'#page-collection .main':'.cemetery-main';
     const padding=await page.locator(main).evaluate(el=>parseFloat(getComputedStyle(el).paddingTop));
     assert.equal(padding,(width<=820?16:24),'Shared top spacing '+view);
     if(view==='home')assert.equal(await page.locator('#home-boards').evaluate(el=>getComputedStyle(el).paddingLeft),'0px','No duplicated page gutters');
-    if(view==='lists'&&width>820){
+    if(view==='home'&&width>820){
      assert.equal(await page.locator('.board.wishlist').isVisible(),true);
      assert.equal(await page.locator('#arrivals-board').isVisible(),true);
      const left=await page.locator('.board.wishlist').boundingBox(),right=await page.locator('#arrivals-board').boundingBox();
@@ -32,7 +32,7 @@ const server=createSandboxServer();
     }
     await page.screenshot({path:'/tmp/jtd-global-'+view+'-'+width+'-'+theme+'.png',fullPage:true});
    }
-   await page.locator('[data-page="lists"]').click();
+   await page.locator('[data-page="home"]').click();
    if(width<=820){
     await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('[data-target="arrivals"]').getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#arrivals-board').isVisible(),true);
@@ -53,15 +53,7 @@ const server=createSandboxServer();
    const platform=page.locator('#platform-list [role="button"]').nth(1);
    await platform.focus();await page.keyboard.press('Enter');
    assert.equal(await page.evaluate(()=>state.platform!==null),true,'Keyboard platform filter works');
-   if(width<=820){
-    await page.locator('[data-page="home"]').click();
-    assert.equal(await page.locator('#global-filter-toggle').isVisible(),false);
-    await page.waitForFunction(()=>document.getElementById('home-sidebar').getBoundingClientRect().x>=-1);
-    assert.ok((await page.locator('#home-sidebar').boundingBox()).x>=-1,'Mobile home sidebar opens on screen');
-    await page.setViewportSize({width:821,height:900});
-    await page.waitForTimeout(150);
-    assert.equal(await page.locator('#mobile-backdrop').evaluate(el=>el.classList.contains('visible')),false,'Drawer backdrop closes at desktop threshold');
-   }
+
    assert.deepEqual(errors,[]);
    await context.close();console.log('PASS global UI',width,theme);
   }

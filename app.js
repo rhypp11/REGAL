@@ -1443,33 +1443,6 @@ function renderHomeStats(){
   }
 
 
-  document.getElementById('home-arrivals-count').textContent = ARRIVALS.length;
-  document.getElementById('home-wishlist-count').textContent = WISHLIST.length;
-  const statuses = [...STATUS_OPTIONS, {key:'__none__', label:'Sans statut'}];
-  document.getElementById('home-statuses').innerHTML = statuses.map(status => {
-    const count = GAMES.filter(g => status.key === '__none__' ? !STATUS_OPTIONS.some(s => s.key === g.status) : g.status === status.key).length;
-    return `<a href="#collection?status=${status.key}"><strong>${count}</strong><span>${status.label}</span></a>`;
-  }).join('');
-  // Only full recorded purchase dates establish an acquisition chronology.
-  const recent = GAMES.filter(g => /^\d{4}-\d{2}-\d{2}$/.test(g.date || '')).sort((a,b) => b.date.localeCompare(a.date)).slice(0,5);
-  const recentEl = document.getElementById('home-recent');
-  recentEl.innerHTML = recent.length ? recent.map(g => `<button type="button" class="dashboard-game" data-game-id="${escapeHTML(g.id)}">${boardThumb(g)}<span class="dashboard-game-identity"><strong>${escapeHTML(g.nom)}</strong><span>${escapeHTML(g.plateforme)}</span></span><time datetime="${escapeHTML(g.date)}">${escapeHTML(g.date.split('-').reverse().join('/'))}</time></button>`).join('') : `<p class="dashboard-empty">${GAMES.length ? 'Aucune date d’achat renseignée.' : 'Ta collection est vide. Ajoute ton premier jeu.'}</p>`;
-  recentEl.querySelectorAll('[data-game-id]').forEach(button => button.addEventListener('click', () => openModal(button.dataset.gameId)));
-  const barsEl = document.getElementById('home-platform-bars');
-  if(!barsEl) return;
-  const counts = Object.create(null);
-  GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme] || 0) + 1; });
-  const rows = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-  barsEl.innerHTML = rows.map(([platform, count]) => {
-    const logo = getPlatformLogo(platform);
-    const color = getPlatformColor(platform);
-    const icon = logo
-      ? `<img class="home-plat-icon" src="${escapeHTML(safeURL(logo, true))}" alt="">`
-      : `<span class="home-plat-icon-fallback" style="background:${color};"></span>`;
-    return `<a href="#collection?platform=${encodeURIComponent(platform)}" class="home-platform-bar-row" style="--home-platform-color:${color}">
-      <div class="plat-bar-label">${icon}<span class="plat-name">${escapeHTML(platform)}</span><span class="count">${count}</span></div>
-    </a>`;
-  }).join('');
 }
 
 /* ---------- Accueil : Arrivages & Wishlist ---------- */
@@ -1908,7 +1881,7 @@ function saveArrivalModal(){
   closeArrivalModal();
   buildPlatformList();
   renderArrivals();
-  if(ordered){ setHomeBoard('arrivals'); goToPage('lists'); showToast(`« ${nom} » ajouté aux arrivages.`); }
+  if(ordered){ setHomeBoard('arrivals'); goToPage('home'); showToast(`« ${nom} » ajouté aux arrivages.`); }
 }
 
 function deleteArrival(){
@@ -2471,7 +2444,7 @@ function navigationHash(view){
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
 }
 function navigationFromHash(){
-  const match = location.hash.match(/^#(home|lists|collection|cemetery)(?:\?(.*))?$/);
+  const match = location.hash.match(/^#(home|collection|cemetery)(?:\?(.*))?$/);
   if(!match) return null;
   const params = new URLSearchParams(match[2]);
   return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1'};
@@ -2504,7 +2477,7 @@ function setHomeBoard(board){
 }
 function applyNavigation(view = {}){
   restoringNavigation = true;
-  navigationPage = ['lists','collection','cemetery'].includes(view.page) ? view.page : 'home';
+  navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
   state = {
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,
     collector:view.collector === true, japanese:view.japanese === true,
@@ -2537,7 +2510,7 @@ function goToPage(page, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
-  navigationPage = ['lists','collection','cemetery'].includes(page) ? page : 'home';
+  navigationPage = ['collection','cemetery'].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
     const active = b.dataset.page === navigationPage;
     b.classList.toggle('active', active);
@@ -2547,9 +2520,7 @@ function goToPage(page, push = true){
   document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
   if(navigationPage === 'cemetery'){ document.title = 'JTD | Cimetière'; window.renderCemetery?.(); }
-  document.getElementById('page-lists').classList.toggle('hidden', navigationPage !== 'lists');
   document.getElementById('global-filter-toggle').classList.toggle('hidden', !['collection','cemetery'].includes(navigationPage));
-  if(navigationPage === 'lists') document.title = 'JTD | À venir';
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;
@@ -2572,7 +2543,6 @@ window.addEventListener('popstate', event => {
 window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
-document.getElementById('home-add-game').addEventListener('click', () => openModal(null));
 
 document.querySelectorAll('.nav-tab').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -2601,7 +2571,7 @@ function toggleMobileDrawer(el){
 }
 document.getElementById('mobile-backdrop').addEventListener('click', closeMobileDrawers);
 
-const PAGE_SIDEBAR_IDS = { home: 'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
+const PAGE_SIDEBAR_IDS = { collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
   const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));

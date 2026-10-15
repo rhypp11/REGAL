@@ -11,40 +11,29 @@ const server=createSandboxServer();
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
    await page.evaluate(()=>{
-    GAMES=[{id:'recent',nom:'Acquisition récente',plateforme:'Switch 2',date:'2026-10-01',prix:0,image:'/logo-icon.png',status:'a_jouer'},{id:'old',nom:'Ancien achat',plateforme:'Switch 2',date:'2024-01-01'},{id:'undated',nom:'Sans date',plateforme:'PlayStation 5'}];
+    GAMES=[{id:'zero',nom:'Jeu fictif gratuit',plateforme:'Switch 2',prix:0}];
     CEMETERY=[{id:'sold',nom:'Vendu',plateforme:'PC',saleStatus:'sold',prix:500},{id:'pending',nom:'À vendre',plateforme:'PC',saleStatus:'pending'}];
     renderHomeStats();goToPage('home');
    });
-   assert.equal(await page.locator('#home-total-games').textContent(),'3');
+   assert.equal(await page.locator('#home-total-games').textContent(),'1');
    assert.match(await page.locator('#home-summary-meta').textContent(),/0 €achats renseignés/);
-   assert.equal(await page.locator('#home-recent .dashboard-game').count(),2);
-   assert.match(await page.locator('#home-recent .dashboard-game').first().textContent(),/Acquisition récente/);
-   await page.locator('#home-recent .dashboard-game').first().click();
-   assert.equal(await page.locator('#f-nom').inputValue(),'Acquisition récente');await page.locator('#cancel-btn').click();
-   await page.locator('#home-statuses a[href*="a_jouer"]').click();
-   await page.waitForFunction(()=>navigationPage==='collection'&&state.status==='a_jouer');
-   assert.equal(await page.locator('#grid .card').count(),1);
+   assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','collection','cemetery']);
+   assert.equal(await page.locator('#page-lists').count(),0);
+   const widget=await page.locator('.home-collection-summary').boundingBox();
+   assert.ok(widget.height<200,'Summary remains compact');
+   const boards=await page.locator('#home-boards').boundingBox();assert.ok(widget.y+widget.height<=boards.y,'Summary is above the lists');
+   await page.locator('.home-widget-title a').click();await page.waitForFunction(()=>navigationPage==='collection');
    await page.locator('[data-page="home"]').click();
-   await page.locator('#home-platform-bars a').filter({hasText:'Switch 2'}).click();
-   await page.waitForFunction(()=>state.platform==='Switch 2'&&state.status===null);
-   assert.equal(await page.locator('#grid .card').count(),2);
-   await page.locator('[data-page="home"]').click();
-   await page.locator('.dashboard-links a[href*="arrivals"]').click();
-   await page.waitForFunction(()=>navigationPage==='lists'&&navigationBoard==='arrivals');
-   assert.equal(await page.locator('#arrivals-board').isVisible(),true);
-   assert.equal(await page.locator('.board.wishlist').isVisible(),width>820);
    assert.equal(await page.locator('#home-boards-switcher').isVisible(),width<=820);
-   assert.deepEqual(await page.locator('.nav-tab').evaluateAll(tabs=>tabs.map(tab=>tab.dataset.page)),['home','lists','collection','cemetery']);
+   if(width<=820){await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('.board.wishlist').isVisible(),false)}
+   else {assert.equal(await page.locator('.board.wishlist').isVisible(),true);const left=await page.locator('.board.wishlist').boundingBox(),right=await page.locator('#arrivals-board').boundingBox();assert.ok(left.x+left.width<=right.x)}
+   assert.equal(await page.locator('#arrivals-board').isVisible(),true);
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
-   assert.equal(await page.evaluate(()=>navigationPage),'lists');
-   assert.equal(await page.evaluate(()=>navigationBoard),'arrivals');
-   await page.goBack();await page.waitForFunction(()=>navigationPage==='home');
-   await page.locator('#home-add-game').click();await page.locator('#cancel-btn').click();
+   assert.equal(await page.evaluate(()=>navigationPage),'home');
+   if(width<=820)assert.equal(await page.evaluate(()=>navigationBoard),'arrivals');
    await page.screenshot({path:'/tmp/jtd-home-'+width+'-'+theme+'.png',fullPage:true});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-   await page.evaluate(()=>{GAMES=[];renderHomeStats();});
-   assert.match(await page.locator('#home-recent').textContent(),/Ta collection est vide/);
-   assert.equal(await page.locator('#home-total-games').textContent(),'0');
+   await page.evaluate(()=>{GAMES=[];renderHomeStats();});assert.equal(await page.locator('#home-total-games').textContent(),'0');
    assert.deepEqual(errors,[]);await context.close();console.log('PASS home/navigation',width,theme);
   }
  }finally{await browser.close();server.close();}
