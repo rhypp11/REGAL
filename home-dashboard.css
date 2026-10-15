@@ -21,6 +21,8 @@
 #home-sidebar .home-platform-bar-row::before { content:none; }
 .lists-main { padding:24px var(--ui-page-gutter) 60px; width:100%; min-width:0; }
 #page-lists .home-boards-switcher { display:flex; margin:0 0 20px; max-width:420px; }
+#page-lists .home-boards-switch-btn { flex:1; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px; }
+#page-lists .home-boards-switch-btn svg { width:18px; height:18px; flex-shrink:0; }
 #page-lists #home-boards { display:block; }
 #page-lists #home-boards .board { display:none; }
 #page-lists #home-boards.show-wishlist .wishlist,#page-lists #home-boards.show-arrivals .arrivals { display:block; }
@@ -40,8 +42,9 @@
   #page-home .home-main { padding-top:16px; }
   .lists-main { padding:16px var(--ui-page-gutter-mobile) 36px; }
   .dashboard-statuses { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .dashboard-game { flex-wrap:wrap; }
-  .dashboard-game time { margin-left:88px; }
+  .dashboard-game { display:grid; grid-template-columns:76px minmax(0,1fr); gap:4px 12px; }
+  .dashboard-game .board-thumb { grid-row:span 2; }
+  .dashboard-game time { grid-column:2; margin-left:0; }
 }
 @media(max-width:500px) {
   .topnav-nav .nav-tab { flex-direction:column; justify-content:center; gap:2px; padding:4px 2px; line-height:1.2; }
