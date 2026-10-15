@@ -29,10 +29,7 @@ jobs:
           node --check cemetery.js
           node --check cemetery-import.js
           node --check dialogs.js
-          node --check journal.js
-          node --check journal-data.js
           node --test tests/data.test.cjs
-          node --test tests/journal-data.test.cjs
           node --test tests/import-export.test.cjs
 
       - name: Check themes on desktop and mobile in local sandbox
@@ -46,8 +43,6 @@ jobs:
       - name: Check order and receipt flows
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/workflow.cjs
 
-      - name: Check private journal, collection links and storage rollback
-        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/journal.cjs
 
       - name: Check cemetery flows
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/cemetery.cjs

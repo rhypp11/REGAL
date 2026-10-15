@@ -65,7 +65,7 @@ function loadPreviewData(){
   return previewData = JTDData.normalizeData({...PREVIEW_SEED, profileName:'Mode test'});
 }
 function savePreviewData(overrides = {}){
-  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:JOURNAL, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
+  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:LEGACY_JOURNAL, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
   localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(data));
   previewData = data;
 }
@@ -75,7 +75,7 @@ function restoredStorageEntries(data){
     [ARRIVALS_KEY, JSON.stringify(data.arrivals)],
     [WISHLIST_KEY, JSON.stringify(data.wishlist)],
     [CEMETERY_KEY, JSON.stringify(data.cemetery || [])],
-    [JOURNAL_KEY, JSON.stringify(data.journal || [])],
+    [LEGACY_JOURNAL_KEY, JSON.stringify(data.journal || [])],
     [PLATFORM_META_KEY, JSON.stringify(data.platformMeta)],
     [PLATFORM_ORDER_KEY, JSON.stringify(data.platformOrder)],
     [PROFILE_KEY, JSON.stringify({name:data.profileName, avatar:data.profileAvatar})]
@@ -86,8 +86,7 @@ function replaceAppData(data){
   ARRIVALS = data.arrivals;
   WISHLIST = data.wishlist;
   CEMETERY = data.cemetery || [];
-  JOURNAL = data.journal || [];
-  window.renderJournal?.();
+  LEGACY_JOURNAL = data.journal || [];
   window.renderCemetery?.();
   platformMeta = data.platformMeta;
   platformOrder = data.platformOrder;
@@ -370,8 +369,6 @@ function updateSortButtonUI(){
 const ICON_STATUS_TODO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3"></circle><line x1="12" y1="9" x2="12" y2="15"></line><rect x="6" y="15" width="12" height="5" rx="1.5"></rect></svg>`;
 const ICON_STATUS_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
 const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15c-1.66 0-3-1.34-3-3s1.34-3 3-3c2.5 0 4 3 6 3s3.5-3 6-3c1.66 0 3 1.34 3 3s-1.34 3-3 3c-2.5 0-4-3-6-3s-3.5 3-6 3z"></path></svg>`;
-const JOURNAL_COMPLETION_ICONS = {"finished":"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8 12 3 3 5-6\"/></svg>","hundred":"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.7l6.2-.9Z\"/></svg>","achievements":"<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 3h8v6a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 2v6m-4 2h8\"/></svg>"};
-const ICON_JOURNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h5a3 3 0 0 1 3 3v14a4 4 0 0 0-4-2H4V4Zm16 0h-5a3 3 0 0 0-3 3v14a4 4 0 0 1 4-2h3V4Z"/></svg>`;
 const ICON_STATUS_PLAYING = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 7h9c2 0 3.2 1.5 3.6 3.4l1.2 6.1c.5 2.5-2.2 3.9-3.8 2.1L15 16H9l-2.5 2.6c-1.6 1.8-4.3.4-3.8-2.1l1.2-6.1C4.3 8.5 5.5 7 7.5 7Z"/><path d="M7 10v4m-2-2h4"/><circle cx="16" cy="11" r=".6" fill="currentColor"/><circle cx="18" cy="13" r=".6" fill="currentColor"/></svg>`;
 const STATUS_OPTIONS = [
   {key:'en_cours',label:'En cours',icon:ICON_STATUS_PLAYING,color:'var(--muted)',fill:'var(--surface-raised)',bg:'var(--surface)',border:'var(--hairline)'},
@@ -385,8 +382,9 @@ let GAMES = [];
 let ARRIVALS = [];
 let WISHLIST = [];
 let CEMETERY = [];
-let JOURNAL = [];
-const JOURNAL_KEY = 'ludotheque:journal-v1';
+// Inert private archive: preserve old backups and account data without collection links.
+let LEGACY_JOURNAL = [];
+const LEGACY_JOURNAL_KEY = 'ludotheque:journal-v1';
 const CEMETERY_KEY = 'ludotheque:cemetery-v1';
 let editingId = null; // null = ajout, sinon id du jeu en édition
 let editingCollection = 'games';
@@ -505,7 +503,6 @@ function normalizeCollectionEditions(){
 }
 
 function saveGames(){
-  GAMES = JTDJournalData.syncGames(GAMES, JOURNAL);
   return writeStoredValue(STORAGE_KEY, JSON.stringify(GAMES));
 }
 
@@ -566,7 +563,7 @@ function buildBackupPayload(){
       arrivals: ARRIVALS,
       wishlist: WISHLIST,
       cemetery: CEMETERY,
-      journal: JOURNAL,
+      journal: LEGACY_JOURNAL,
       platformMeta,
       platformOrder,
       profile: { name: PROFILE_NAME, avatar: PROFILE_AVATAR }
@@ -646,11 +643,10 @@ function restoreBackup(file){
         data.games.length + ' jeu(x)',
         data.wishlist.length + ' souhait(s)',
         data.arrivals.length + ' arrivage(s)',
-        data.cemetery.length + ' entrée(s) au cimetière',
-        data.journal.length + ' parcours dans le journal'
+        data.cemetery.length + ' entrée(s) au cimetière'
       ].join(' • ');
       confirmAction(
-        'Cette restauration remplacera toutes les listes, le journal, le profil et les plateformes par le contenu du fichier : ' + summary + '. Les sections absentes d’une ancienne sauvegarde seront vidées. Tu peux annuler et télécharger une sauvegarde complète avant de continuer.',
+        'Cette restauration remplacera toutes les listes, le profil et les plateformes par le contenu du fichier : ' + summary + '. Les sections absentes d’une ancienne sauvegarde seront vidées. Tu peux annuler et télécharger une sauvegarde complète avant de continuer.',
         () => {
           if(accountGeneration !== window.JTDAccountGeneration) return;
           try{
@@ -673,7 +669,6 @@ function restoreBackup(file){
 }
 
 function setStatus(id, statusKey){
-  if(JTDJournalData.collectionProgress(JOURNAL, id)) return window.JTDJournal.openForGame(id);
   const g = GAMES.find(x => x.id === id);
   if(!g) return;
   g.status = (g.status === statusKey) ? null : statusKey;
@@ -831,7 +826,7 @@ function renderPlatformBanner(games){
   const spent = games.reduce((sum,g) => sum + (g.prix || 0), 0);
   const collectors = games.filter(g => g.collector).length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
-  const termineCount = games.filter(g => g.status === 'termine' || g.status === 'termine_ailleurs' || JTDJournalData.collectionProgress(JOURNAL,g.id)?.completion).length;
+  const termineCount = games.filter(g => g.status === 'termine' || g.status === 'termine_ailleurs').length;
 
   const stat = (value, label, extraClass='') =>
     `<span class="library-stat ${extraClass}"><strong>${value}</strong><span>${escapeHTML(label)}</span></span>`;
@@ -885,15 +880,9 @@ function renderCard(g, options = {}){
   card.dataset.dialogTrigger = (options.readOnly ? 'sale:' : 'game:') + g.id;
   card.style.setProperty('--spine', color);
 
-  const journalProgress = JTDJournalData.collectionProgress(JOURNAL, g.id);
-  const originalStatus = STATUS_OPTIONS.find(s => s.key === g.status);
-  const completionLabel = {hundred:'100 %',achievements:'Succès'}[journalProgress?.completion];
-  const finishedStatus = ['termine','termine_ailleurs'].includes(g.status);
-  const completion = finishedStatus ? journalProgress?.completion || 'finished' : null;
-  const completionColor = {finished:'var(--j-green)',hundred:'var(--j-blue)',achievements:'var(--j-gold)'}[completion];
-  const activeStatus = originalStatus ? {...originalStatus, ...(completion ? {icon:JOURNAL_COMPLETION_ICONS[completion],color:completionColor} : {}), label:journalProgress?.replay ? 'En cours' : completionLabel && finishedStatus ? completionLabel : originalStatus.label} : originalStatus;
+  const activeStatus = STATUS_OPTIONS.find(s => s.key === g.status);
   const statusIcon = activeStatus ? activeStatus.icon : '<span class="card-status-empty-dot"></span>';
-  const statusTitle = journalProgress ? (journalProgress.replay ? 'En cours · déjà terminé' : journalProgress.completion === 'achievements' ? 'Tous les succès' : activeStatus.label) + ' · Depuis le journal' : activeStatus ? activeStatus.label : 'Définir le statut';
+  const statusTitle = activeStatus ? activeStatus.label : 'Définir le statut';
   const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';
   const statusFill = activeStatus ? activeStatus.fill : 'var(--muted)';
   const statusMenu = STATUS_OPTIONS.map(s => `
@@ -903,7 +892,7 @@ function renderCard(g, options = {}){
 
   const statusBadgeHtml = `<div class="card-status-control">
       <button type="button" class="card-status-badge" style="--status-color:${statusColor};--status-fill:${statusFill};" title="${statusTitle}" aria-label="Statut : ${statusTitle}" aria-expanded="false">
-        ${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span>${journalProgress ? '<span class="card-journal-origin" title="Depuis le journal" aria-label="Depuis le journal">' + ICON_JOURNAL + '</span>' : ''}
+        ${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span>
       </button>
       <div class="card-status-menu hidden">${statusMenu}</div>
     </div>`;
@@ -955,7 +944,6 @@ function renderCard(g, options = {}){
   const menu = card.querySelector('.card-status-menu');
   badge.addEventListener('click', (e) => {
     e.stopPropagation();
-    if(JTDJournalData.collectionProgress(JOURNAL, g.id)) return window.JTDJournal.openForGame(g.id);
     const willOpen = menu.classList.contains('hidden');
     menu.classList.toggle('hidden', !willOpen);
     badge.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
@@ -1311,10 +1299,6 @@ function openModal(id, collection = 'games'){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
   editingId = id || null;
-  const showJournalAction = !!editingId && editingCollection === 'games';
-  document.getElementById('f-journal-row').classList.toggle('hidden',!showJournalAction);
-  document.getElementById('f-journal-btn').classList.toggle('hidden',!showJournalAction);
-  window.JTDJournal?.renderCollectionSummary(showJournalAction ? editingId : null);
   if(editingId && !items.some(game => game.id === editingId)) return;
   document.getElementById('f-sell-btn').classList.toggle('hidden', !editingId || editingCollection !== 'games');
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
@@ -2474,7 +2458,7 @@ function navigationHash(view){
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
 }
 function navigationFromHash(){
-  const match = location.hash.match(/^#(home|collection|cemetery|journal)(?:\?(.*))?$/);
+  const match = location.hash.match(/^#(home|collection|cemetery)(?:\?(.*))?$/);
   if(!match) return null;
   const params = new URLSearchParams(match[2]);
   return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1'};
@@ -2507,7 +2491,7 @@ function setHomeBoard(board){
 }
 function applyNavigation(view = {}){
   restoringNavigation = true;
-  navigationPage = ['collection','cemetery','journal'].includes(view.page) ? view.page : 'home';
+  navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
   state = {
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,
     collector:view.collector === true, japanese:view.japanese === true,
@@ -2540,7 +2524,7 @@ function goToPage(page, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
-  navigationPage = ['collection','cemetery','journal'].includes(page) ? page : 'home';
+  navigationPage = ['collection','cemetery'].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
     const active = b.dataset.page === navigationPage;
     b.classList.toggle('active', active);
@@ -2550,10 +2534,6 @@ function goToPage(page, push = true){
   document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
   if(navigationPage === 'cemetery'){ document.title = 'JTD | Cimetière'; window.renderCemetery?.(); }
-  document.getElementById('page-journal').classList.toggle('hidden', navigationPage !== 'journal');
-  if(navigationPage === 'journal'){ document.title = 'JTD | Journal'; window.renderJournal?.(); }
-  const filterToggle = document.getElementById('global-filter-toggle');
-  if(filterToggle) filterToggle.style.visibility = navigationPage === 'journal' ? 'hidden' : '';
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;
@@ -2648,9 +2628,7 @@ async function initApp(isCurrent = () => true){
   if(!isCurrent()) return;
   await loadWishlist();
   CEMETERY = IS_PREVIEW_MODE ? loadPreviewData().cemetery : JSON.parse(accountStorage.getItem(CEMETERY_KEY) || '[]');
-  JOURNAL = IS_PREVIEW_MODE ? loadPreviewData().journal : JTDJournalData.normalizeJournal(JSON.parse(accountStorage.getItem(JOURNAL_KEY) || '[]'));
-  GAMES = JTDJournalData.syncGames(GAMES, JOURNAL);
-  window.renderJournal?.();
+  LEGACY_JOURNAL = IS_PREVIEW_MODE ? loadPreviewData().journal : JSON.parse(accountStorage.getItem(LEGACY_JOURNAL_KEY) || '[]');
   window.renderCemetery?.();
   if(!isCurrent()) return;
   normalizeCollectionEditions();

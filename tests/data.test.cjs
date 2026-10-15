@@ -75,13 +75,13 @@ async function cloudHarness(){
     console,JSON,Date,Uint8Array,crypto:require('node:crypto').webcrypto,
     setTimeout,clearTimeout,URL,window:{JTD_PREVIEW_MODE:false,cancelPendingConfirmation(){}},state:{platform:null,search:''},JTDData:D,accountStorage:storage,
     document:{getElementById:()=>element},navigator:{clipboard:{writeText:async()=>{}}},
-    GAMES:[],ARRIVALS:[],WISHLIST:[],CEMETERY:[],JOURNAL:[],CEMETERY_KEY:'cemetery',platformMeta:{},platformOrder:[],PROFILE_NAME:'',PROFILE_AVATAR:null,SHARE_TOKEN:null,STORAGE_KEY:'games',
+    GAMES:[],ARRIVALS:[],WISHLIST:[],CEMETERY:[],LEGACY_JOURNAL:[],CEMETERY_KEY:'cemetery',platformMeta:{},platformOrder:[],PROFILE_NAME:'',PROFILE_AVATAR:null,SHARE_TOKEN:null,STORAGE_KEY:'games',
     initializeApp:()=>({}),getAuth:()=>({}),getFirestore:()=>({}),doc:(_db,collection,id)=>({collection,id}),
     getDoc:async()=>({exists:()=>false}),setDoc:async(ref,data)=>writes.push({ref,data}),deleteDoc:async()=>{},
     onAuthStateChanged:(_auth,callback)=>{ctx.authCallback=callback;},signInWithEmailAndPassword(){},createUserWithEmailAndPassword(){},signOut(){},
     initializeNavigation(){},resetNavigationSession(){},showToast(){},normalizeCollectionEditions(){},buildPlatformList(){},buildFormatToggles(){},buildStatusToggles(){},render(){},renderArrivals(){},renderWishlist(){},renderProfileAvatar(){},updateBackupNote(){},closeModal(){},closeArrivalModal(){},closeWishlistModal(){},closePlatformModal(){},closeMobileDrawers(){}
   };
-  ctx.replaceAppData = data => {for(const [key,value] of Object.entries(data)){const names={games:'GAMES',arrivals:'ARRIVALS',wishlist:'WISHLIST',cemetery:'CEMETERY',journal:'JOURNAL',profileName:'PROFILE_NAME',profileAvatar:'PROFILE_AVATAR'};ctx[names[key]||key]=value;}};
+  ctx.replaceAppData = data => {for(const [key,value] of Object.entries(data)){const names={games:'GAMES',arrivals:'ARRIVALS',wishlist:'WISHLIST',cemetery:'CEMETERY',journal:'LEGACY_JOURNAL',profileName:'PROFILE_NAME',profileAvatar:'PROFILE_AVATAR'};ctx[names[key]||key]=value;}};
   ctx.persistAppData = data => storage.atomicWrite([['games',JSON.stringify(data.games)]]);
   ctx.initApp = async () => {const games=storage.getItem('games');ctx.GAMES=games?JSON.parse(games):[];};
   vm.createContext(ctx);
@@ -91,13 +91,13 @@ async function cloudHarness(){
   return {ctx,writes,storage};
 }
 
-test('private journal follows the cloud account and cannot leak into the next account',async()=>{
+test('retired private archive follows the cloud account and cannot leak into the next account',async()=>{
  const {ctx,writes}=await cloudHarness();
  ctx.getDoc=async(ref)=>({exists:()=>ref.id==='A',data:()=>({games:[],journal:[{id:'r',nom:'Jeu de test',plateforme:'PC',status:'done',review:'Avis privé'}]})});
- await ctx.authCallback({uid:'A'});assert.equal(ctx.JOURNAL[0].review,'Avis privé');
+ await ctx.authCallback({uid:'A'});assert.equal(ctx.LEGACY_JOURNAL[0].review,'Avis privé');
  await ctx.window.JTDPrepareReload();assert.equal(writes.at(-1).data.journal[0].review,'Avis privé');
- await ctx.authCallback(null);assert.equal(ctx.JOURNAL.length,0);
- await ctx.authCallback({uid:'B'});assert.equal(ctx.JOURNAL.length,0);assert.equal(writes.at(-1).data.journal.length,0);
+ await ctx.authCallback(null);assert.equal(ctx.LEGACY_JOURNAL.length,0);
+ await ctx.authCallback({uid:'B'});assert.equal(ctx.LEGACY_JOURNAL.length,0);assert.equal(writes.at(-1).data.journal.length,0);
 });
 test('existing empty cloud collection stays authoritative despite stale scoped games', async () => {
   const {ctx,writes,storage}=await cloudHarness();storage.setAccount('A');storage.setItem('games',JSON.stringify([game()]));
@@ -165,7 +165,7 @@ test('a failed restore does not replace memory or request cloud sync', () => {
 test('renaming updates all three lists and preserves flags and purchases', () => {
   const source=fs.readFileSync(require.resolve('../app.js'),'utf8');
   const fn=source.slice(source.indexOf('function renamePlatform('),source.indexOf('/* ---------- Ordre personnalisé des plateformes ---------- */'));
-  const ctx={GAMES:[game({japanese:true,prix:20})],ARRIVALS:[game({collector:true})],WISHLIST:[game()],CEMETERY:[],JOURNAL:[],CEMETERY_KEY:'cemetery',writeStoredValue(){},window:{},platformMeta:{PC:{color:'#123456'}},platformOrder:['PC'],state:{platform:'PC'},getPlatformColor:()=> '#123456'};
+  const ctx={GAMES:[game({japanese:true,prix:20})],ARRIVALS:[game({collector:true})],WISHLIST:[game()],CEMETERY:[],LEGACY_JOURNAL:[],CEMETERY_KEY:'cemetery',writeStoredValue(){},window:{},platformMeta:{PC:{color:'#123456'}},platformOrder:['PC'],state:{platform:'PC'},getPlatformColor:()=> '#123456'};
   for(const name of ['savePlatformOrder','saveGames','saveArrivals','saveWishlist','savePlatformMeta','renderArrivals','renderWishlist'])ctx[name]=()=>{};
   vm.createContext(ctx);vm.runInContext(fn,ctx);assert.equal(ctx.renamePlatform('PC','Ordinateur'),true);
   for(const items of [ctx.GAMES,ctx.ARRIVALS,ctx.WISHLIST])assert.equal(items[0].plateforme,'Ordinateur');
@@ -207,7 +207,7 @@ test('a transfer quota failure leaves both lists and memory unchanged', () => {
   const originalSet=raw.setItem;
   raw.setItem=(key,value)=>{if(key.endsWith(':games')&&value!=='[]')throw Error('quota');originalSet(key,value);};
   let changes=0;
-  const ctx={JTDData:D,accountStorage:storage,IS_PREVIEW_MODE:false,GAMES:[],ARRIVALS:[item],WISHLIST:[],CEMETERY:[],JOURNAL:[],CEMETERY_KEY:'cemetery',STORAGE_KEY:'games',ARRIVALS_KEY:'arrivals',WISHLIST_KEY:'wishlist',window:{JTDDataChanged(){changes++;}},showToast(){},console:{error(){}}};
+  const ctx={JTDData:D,accountStorage:storage,IS_PREVIEW_MODE:false,GAMES:[],ARRIVALS:[item],WISHLIST:[],CEMETERY:[],LEGACY_JOURNAL:[],CEMETERY_KEY:'cemetery',STORAGE_KEY:'games',ARRIVALS_KEY:'arrivals',WISHLIST_KEY:'wishlist',window:{JTDDataChanged(){changes++;}},showToast(){},console:{error(){}}};
   vm.createContext(ctx);
   const app=fs.readFileSync(require.resolve('../app.js'),'utf8');
   const start=app.indexOf('function commitBoardTransfer('), end=app.indexOf('\nfunction ',start+10);

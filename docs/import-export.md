@@ -2,13 +2,13 @@
 
 ## Sauvegarde complète et restauration
 
-Le JSON v4 conserve les quatre listes, le journal (avis et liens compris), le profil et les réglages des plateformes. Les sauvegardes v1 à v3, les anciens objets de données et les anciennes listes de jeux restent acceptés. Une restauration remplace les données ; les listes absentes d'un ancien fichier sont vidées. Le lien de partage et la connexion du compte ne sont pas restaurés depuis un fichier.
+Le JSON v4 conserve les quatre listes, une archive passive des anciennes données du journal (si présentes), le profil et les réglages des plateformes. Les sauvegardes v1 à v3, les anciens objets de données et les anciennes listes de jeux restent acceptés. Une restauration remplace les données ; les listes absentes d'un ancien fichier sont vidées. Le lien de partage et la connexion du compte ne sont pas restaurés depuis un fichier.
 
-Le fichier est validé avant confirmation. Une sauvegarde avec un identifiant d'exemplaire répété et référencé par le journal est refusée pour éviter de rattacher l'historique au mauvais exemplaire. Le même plafond conservateur de 900 000 octets est vérifié avant la restauration, les écritures du journal et les imports du cimetière. Les écritures locales précèdent le remplacement des données en mémoire ; un échec laisse les données actuelles intactes. La synchronisation cloud reste asynchrone et son état reste visible.
+Le fichier est validé avant confirmation. Le même plafond conservateur de 900 000 octets est vérifié avant la restauration, les imports du cimetière. Les écritures locales précèdent le remplacement des données en mémoire ; un échec laisse les données actuelles intactes. La synchronisation cloud reste asynchrone et son état reste visible.
 
 ## Export pour ChatGPT
 
-L'export pour les conseils est distinct d'une sauvegarde complète et ne peut pas être restauré. Il inclut les listes et le journal avec les avis, les identifiants d'exemplaires, les liens `collectionId` et les identifiants de lots de vente `saleId`. Les relations permettent de distinguer exemplaires, parcours, replays et historique d'exemplaires supprimés. Le fichier n'inclut ni images, ni profil, ni données d'acquisition, ni jeton de partage. Le partage public existant continue d'exclure le journal.
+L'export pour les conseils est distinct d'une sauvegarde complète et ne peut pas être restauré. Il inclut les quatre listes, les identifiants d’exemplaires et les identifiants de lots de vente `saleId`. L’archive du journal et ses anciens liens sont exclus. Le fichier n'inclut ni images, ni profil, ni données d'acquisition, ni jeton de partage. Le partage public existant continue d'exclure le journal.
 
 Le menu conserve « Exporter pour ChatGPT » pour transmettre le fichier à ChatGPT. Les boutons de création/copie et de désactivation du lien public ont été retirés du menu ; les données de partage existantes ne sont pas modifiées par cette évolution d'interface.
 
@@ -20,17 +20,17 @@ L'aperçu propose les correspondances par titre normalisé et alias de plateform
 
 Les correspondances à vérifier apparaissent en tête avec un badge « À revoir » et un encadré accentué. Le nombre de cas restant à traiter se met à jour après chaque choix ; les lignes vérifiées restent à leur place et affichent « Choix validé ». Les autres lignes sont repliées par défaut lorsqu'il y a des correspondances à traiter, et restent consultables.
 
-- **Transférer** : choisir explicitement un exemplaire actif ; son identifiant est conservé, ainsi que son historique dans le journal.
+- **Transférer** : choisir explicitement un exemplaire actif ; son identifiant est conservé.
 - **Ajouter un exemplaire distinct** : créer une nouvelle entrée au cimetière, sans lien ni retrait d'un autre exemplaire.
 - **Ignorer** : conserver les données actuelles.
 
 Un unique exemplaire exact déjà au cimetière et une répétition dans le fichier sont ignorés par défaut. Un exemplaire ne peut être transféré deux fois dans le même import. Si les listes changent pendant l'aperçu, les décisions doivent être revérifiées. Les autres listes et le journal ne sont pas remplacés par un import de ventes.
 
-## Import futur du journal Sheets
+## Retrait du journal (issue #50, partie 1)
 
-Importer uniquement les lignes de l'historique du journal de Rom. Les blocs latéraux « En cours », le backlog et le catalogue des sorties sont exclus. Les onglets des autres personnes ne font pas partie du périmètre. Les archives personnelles pourront être traitées explicitement.
+La page, les modales, les liens avec la collection et les ressources du journal sont retirés. Aucun import du journal n’est proposé. Les statuts déjà enregistrés des jeux sont conservés et redeviennent modifiables directement ; aucune ancienne entrée ne les recalcule. Les anciens liens `collectionId` et `journalPreviousStatus` ne sont plus interprétés.
 
-L'import devra conserver les dates partielles sans inventer un jour, distinguer jeux/extensions et support/accès, préserver les replays, éviter les réimports en doublon et proposer un lien facultatif avec un exemplaire actif, à vendre ou vendu. Aucun exemplaire physique ne sera créé depuis le journal. La correspondance des symboles et le traitement des notes par critère du Sheets restent à définir pour cette étape.
+Les données historiques restent privées et passives dans le champ `journal` des sauvegardes v4 et du document cloud, ainsi que dans l’ancienne clé locale par compte. Ce maintien évite leur effacement lors de la synchronisation habituelle et permet de conserver les anciennes sauvegardes sans perte. Ce n’est pas une migration : aucun accès ni nettoyage des données de production n’est lancé. L’isolation par compte, le stockage sandbox, la validation de taille et le rollback local restent en place. Une restauration explicite conserve les données archivées du fichier ; si ce champ est absent, l’archive est vide comme les autres listes absentes.
 
 ## Vérification et livraison
 

@@ -2,13 +2,12 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('../jtd-data.js');
 const game=(id,nom='Un jeu',plateforme='NSW',other={})=>({id,nom,plateforme,...other});
 const record=(id,collectionId,other={})=>({id,nom:'Titre du parcours',plateforme:'PC',collectionId,status:'done',finishedAt:'2026-02-01',review:'Un avis',...other});
-test('ChatGPT export preserves exemplars, replays, deleted links and lot identity without private acquisition or image data',()=>{
+test('ChatGPT export preserves exemplars and lot identity but excludes the retired journal without private acquisition or image data',()=>{
   const data={games:[game('g')],cemetery:[game('c','Vendu','PS5',{saleStatus:'sold',salePrice:20,saleId:'lot'}),game('d','Vendu B','PS5',{saleStatus:'sold',salePrice:20,saleId:'lot'})],journal:[record('r','g'),record('replay','g'),record('sold','c'),record('deleted','missing'),record('free',null)],profile:{name:'Privé'},shareToken:'secret'};
   data.games[0].image='https://example.com/art.png';data.games[0].prix=100;data.games[0].source='Magasin';
   const exported=D.createChatGPTPayload(data);
-  assert.equal(exported.data.games[0].id,'g');assert.equal(exported.data.journal[0].collectionId,'g');
-  assert.equal(exported.data.journal[1].collectionId,'g');assert.equal(exported.data.journal[3].collectionId,'missing');assert.equal(exported.data.journal[4].collectionId,null);
-  assert.equal(exported.data.journal[0].review,'Un avis');assert.equal(exported.data.cemetery[0].saleId,exported.data.cemetery[1].saleId);
+  assert.equal(exported.data.games[0].id,'g');assert.equal('journal' in exported.data,false);
+  assert.equal(exported.data.cemetery[0].saleId,exported.data.cemetery[1].saleId);
   for(const field of ['image','prix','source'])assert.equal(field in exported.data.games[0],false);
   assert.equal('profile' in exported.data,false);assert.equal(JSON.stringify(exported).includes('secret'),false);
   assert.equal('journal' in D.createPublicSharePayload(data),false);
@@ -17,14 +16,19 @@ test('ChatGPT export preserves exemplars, replays, deleted links and lot identit
 test('complete v4 backup round trip preserves links, former status, lot, profile and platform settings',()=>{
   const data={games:[game('g','Physique','PS5',{status:'multi'})],cemetery:[game('sold','Vendu','PS5',{saleStatus:'sold',salePrice:30,saleId:'lot'})],journal:[record('r','g'),record('old','sold')],profile:{name:'Test'},platformOrder:['PS5'],platformMeta:{PS5:{color:'#123456'}}};
   const restored=D.parseBackup({app:'Jeux Tout Doux',version:4,data});
-  assert.equal(restored.games[0].status,'termine_ailleurs');assert.equal(restored.games[0].journalPreviousStatus,'multi');
+  assert.equal(restored.games[0].status,'multi');assert.equal('journalPreviousStatus' in restored.games[0],false);
   assert.equal(restored.journal[1].collectionId,'sold');assert.equal(restored.profileName,'Test');assert.deepEqual(restored.platformOrder,['PS5']);assert.equal(restored.cemetery[0].saleId,'lot');
   assert.deepEqual(D.normalizeData(restored),restored);
 });
-test('ambiguous backup IDs referenced by journal are refused instead of silently redirecting history',()=>{
-  assert.throws(()=>D.normalizeData({games:[game('g')],cemetery:[game('g')],journal:[record('r','g')]}),/ambigu/);
-  assert.throws(()=>D.normalizeData({games:[game('g'),game('g')],journal:[record('r','g')]}),/ambigu/);
-  assert.equal(D.normalizeData({games:[game('g'),game('g')]}).games.length,2,'legacy duplicates without journal links are still repaired');
+test('legacy journal is inert even for duplicate IDs and unknown retired record shapes',()=>{
+  const data={games:[game('g','Test','PC',{status:'termine',journalPreviousStatus:'multi'}),game('g')],journal:[record('r','g'),{future:'archive'}]};
+  const restored=D.normalizeData(data);
+  assert.equal(restored.games[0].status,'termine');
+  assert.equal(restored.games[0].journalPreviousStatus,'multi');
+  assert.notEqual(restored.games[0].id,restored.games[1].id);
+  assert.deepEqual(restored.journal,data.journal);
+  assert.deepEqual(D.normalizeData({...restored,games:restored.games.map(g=>({...g,status:'a_jouer'}))}).games.map(g=>g.status),['a_jouer','a_jouer']);
+  for(const version of [1,2,3,4])assert.equal(D.parseBackup({app:'Jeux Tout Doux',version,data}).games.length,2);
 });
 test('cloud ceiling counts UTF-8 bytes before any caller writes',()=>{
   assert.equal(D.assertCloudSize({games:[]}).games.length,0);
