@@ -2549,7 +2549,7 @@ function goToPage(page, push = true){
   if(navigationPage === 'cemetery'){ document.title = 'JTD | Cimetière'; window.renderCemetery?.(); }
   document.getElementById('page-lists').classList.toggle('hidden', navigationPage !== 'lists');
   document.getElementById('global-filter-toggle').classList.toggle('hidden', !['collection','cemetery'].includes(navigationPage));
-  if(navigationPage === 'lists') document.title = 'JTD | Wishlist et arrivages';
+  if(navigationPage === 'lists') document.title = 'JTD | À venir';
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;

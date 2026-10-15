@@ -24,15 +24,11 @@ const server=createSandboxServer();
     const padding=await page.locator(main).evaluate(el=>parseFloat(getComputedStyle(el).paddingTop));
     assert.equal(padding,(width<=820?16:24),'Shared top spacing '+view);
     if(view==='home')assert.equal(await page.locator('#home-boards').evaluate(el=>getComputedStyle(el).paddingLeft),'0px','No duplicated page gutters');
-    if(view==='home'&&width>820){
-     const geometry=await page.evaluate(()=>{
-      const main=document.querySelector('.home-main').getBoundingClientRect(),sidebar=document.querySelector('#home-sidebar').getBoundingClientRect();
-      const headers=[...document.querySelectorAll('#page-lists .board-head')].filter(el=>el.getClientRects().length).map(el=>({title:el.querySelector('h2').getBoundingClientRect().right,button:el.querySelector('button').getBoundingClientRect().left}));
-      return {mainWidth:main.width,sidebarRight:sidebar.right,mainLeft:main.left,headers};
-     });
-     assert.ok(geometry.mainWidth>=width-261,'Home main uses all remaining width');
-     assert.ok(Math.abs(geometry.sidebarRight-geometry.mainLeft)<2,'Desktop sidebar stays beside the boards');
-     for(const head of geometry.headers)assert.ok(head.title<=head.button+1,'Board title never overlaps Add');
+    if(view==='lists'&&width>820){
+     assert.equal(await page.locator('.board.wishlist').isVisible(),true);
+     assert.equal(await page.locator('#arrivals-board').isVisible(),true);
+     const left=await page.locator('.board.wishlist').boundingBox(),right=await page.locator('#arrivals-board').boundingBox();
+     assert.ok(left.x+left.width<=right.x && Math.abs(left.y-right.y)<1,'Desktop boards are side by side');
     }
     await page.screenshot({path:'/tmp/jtd-global-'+view+'-'+width+'-'+theme+'.png',fullPage:true});
    }

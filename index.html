@@ -85,8 +85,8 @@
     </button>
     <div class="topnav-nav" aria-label="Navigation principale">
       <button class="nav-tab active" data-page="home" title="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg><span class="nav-tab-label">Accueil</span></button>
+      <button class="nav-tab" data-page="lists" title="Wishlist et arrivages"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1"/></svg><span class="nav-tab-label">À venir</span></button>
       <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
-      <button class="nav-tab" data-page="lists" title="Wishlist et arrivages"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1"/></svg><span class="nav-tab-label">Listes</span></button>
       <button class="nav-tab" data-page="cemetery" title="Cimetière"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V10a6 6 0 0 1 12 0v11M4 21h16M9 10h6M12 7v6"/></svg><span class="nav-tab-label">Cimetière</span></button>
     </div>
     <div class="topnav-break"></div>
@@ -145,21 +145,20 @@
 
 <div class="page" id="page-home">
   <div class="home-app">
-  <aside class="sidebar home-sidebar" id="home-sidebar">
-    <div class="home-collection-summary">
-      <div class="home-summary-total"><strong id="home-total-games">0</strong><span>jeux</span></div>
-      <div class="home-summary-meta" id="home-summary-meta"></div>
-    </div>
-    <div class="side-section home-platform-section">
-      <div class="side-label">Plateformes</div>
-      <div class="home-platform-bars" id="home-platform-bars"></div>
-    </div>
-  </aside>
   <main class="home-main">
     <header class="dashboard-heading"><h1>Ma collection</h1><button type="button" class="dashboard-action" id="home-add-game">+ Ajouter un jeu</button></header>
-    <section class="dashboard-section"><div class="dashboard-heading"><h2>Statuts</h2><a href="#collection">Voir la collection</a></div><div id="home-statuses" class="dashboard-statuses"></div></section>
-    <section class="dashboard-section"><h2>Acquisitions récentes</h2><div id="home-recent"></div></section>
-    <section class="dashboard-section"><h2>Wishlist et arrivages</h2><div class="dashboard-links"><a href="#lists?board=arrivals"><strong id="home-arrivals-count">0</strong><span>arrivages à suivre</span></a><a href="#lists"><strong id="home-wishlist-count">0</strong><span>jeux en wishlist</span></a></div></section>
+    <section class="home-collection-summary" aria-label="Résumé de la collection">
+      <div class="home-summary-total"><strong id="home-total-games">0</strong><span>jeux</span></div>
+      <div class="home-summary-meta" id="home-summary-meta"></div>
+    </section>
+    <div class="dashboard-overview">
+      <section class="dashboard-section"><div class="dashboard-heading"><h2>Statuts</h2><a href="#collection">Voir la collection</a></div><div id="home-statuses" class="dashboard-statuses"></div></section>
+      <section class="dashboard-section home-platform-section" id="home-sidebar"><h2>Plateformes</h2><div class="home-platform-bars" id="home-platform-bars"></div></section>
+    </div>
+    <div class="dashboard-bottom">
+      <section class="dashboard-section"><h2>Acquisitions récentes</h2><div id="home-recent"></div></section>
+      <section class="dashboard-section"><h2>À venir</h2><div class="dashboard-links"><a href="#lists?board=arrivals"><span>Arrivages</span><strong id="home-arrivals-count">0</strong></a><a href="#lists"><span>Wishlist</span><strong id="home-wishlist-count">0</strong></a></div></section>
+    </div>
   </main>
   </div>
 </div>
