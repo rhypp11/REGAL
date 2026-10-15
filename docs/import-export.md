@@ -4,7 +4,7 @@
 
 Le JSON v4 conserve les quatre listes, une archive passive des anciennes données du journal (si présentes), le profil et les réglages des plateformes. Les sauvegardes v1 à v3, les anciens objets de données et les anciennes listes de jeux restent acceptés. Une restauration remplace les données ; les listes absentes d'un ancien fichier sont vidées. Le lien de partage et la connexion du compte ne sont pas restaurés depuis un fichier.
 
-Le fichier est validé avant confirmation. Le même plafond conservateur de 900 000 octets est vérifié avant la restauration, les imports du cimetière. Les écritures locales précèdent le remplacement des données en mémoire ; un échec laisse les données actuelles intactes. La synchronisation cloud reste asynchrone et son état reste visible.
+Le fichier est validé avant confirmation. Le même plafond conservateur de 900 000 octets est vérifié avant la restauration et les imports du cimetière. Les écritures locales précèdent le remplacement des données en mémoire ; un échec laisse les données actuelles intactes. La synchronisation cloud reste asynchrone et son état reste visible.
 
 ## Export pour ChatGPT
 
