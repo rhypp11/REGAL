@@ -50,15 +50,18 @@
     const lines = text.replace(/^\uFEFF/,'').split(/\r?\n/,3);
     const delimiter = fileName.toLowerCase().endsWith('.tsv') || lines[0].split('\t').length > lines[0].split(';').length
       ? '\t' : (lines[0].split(';').length > lines[0].split(',').length ? ';' : ',');
-    const matrix = parseDelimited(text, delimiter);
+    const matrix = parseDelimited(text.replace(/^\uFEFF/,''), delimiter);
     if(matrix.length < 2) throw new Error('Le fichier ne contient aucune ligne de jeu.');
     const headers = matrix[0].map(normalize);
     const find = names => headers.findIndex(header => names.includes(header));
-    const titleCol = find(['titre','titre du jeu','nom','nom jeu','jeu video','nom du jeu','game','title']);
-    const platformCol = find(['jeu','plateforme','console','support','platform']);
+    // Prefer explicit headers; historical JEU/NOM exports use JEU as platform.
+    let titleCol = find(['titre','titre du jeu','nom','nom jeu','jeu video','nom du jeu','game','title']);
+    let platformCol = find(['plateforme','console','support','platform']);
+    if(platformCol < 0 && titleCol >= 0) platformCol = find(['jeu']);
+    if(titleCol < 0 && platformCol >= 0) titleCol = find(['jeu']);
     if(titleCol < 0 || platformCol < 0) throw new Error('Colonnes de titre et de plateforme introuvables. Vérifie que le CSV contient les en-têtes du cimetière.');
     const dateCol = find(['date','date achat','date d achat']);
-    const sourceCol = find(['source','provenance','magasin']);
+    const sourceCol = find(['source','provenance','magasin','lieu achat','lieu d achat']);
     const purchaseCol = find(['prix','prix achat','prix d achat']);
     const channelCol = find(['canal','lieu','lieu de vente','type de vente','mode de vente','vente']);
     const estimateCol = find(['valeur','estimation','prix estime','prix estimatif']);
@@ -147,7 +150,10 @@
       if(entry.kind==='match'){const badge=document.createElement('span');badge.className='cemetery-import-review-badge';identity.append(badge);}
       const title=document.createElement('strong');title.textContent=entry.nom;
       const detail=document.createElement('span');detail.textContent=entry.plateforme+(entry.saleStatus==='sold'?' · encaissé '+entry.salePrice+' €':' · à vendre');
-      identity.append(title,detail);line.append(identity);
+      identity.append(title,detail);
+      const acquisition=document.createElement('span');
+      acquisition.textContent=[entry.date || 'Date d’achat non renseignée',entry.source,entry.prix!=null?'Achat '+entry.prix+' €':'',entry.estimatedPrice!=null?'Estimation '+entry.estimatedPrice+' €':'',entry.saleVenue,entry.saleId?'Lot '+entry.saleId:''].filter(Boolean).join(' · ');
+      identity.append(acquisition);line.append(identity);
       const action=document.createElement('div');action.className='cemetery-import-action';
       {
         if(entry.kind==='repeat'){
@@ -251,6 +257,10 @@
         const game = games.find(item=>item.id===entry.gameId);
         if(!game) continue;
         const merged = {...incoming,...game,id:game.id,nom:game.nom,plateforme:game.plateforme,saleStatus:incoming.saleStatus};
+        // Fill missing acquisition fields without replacing recorded collection data.
+        for(const field of ['date','source','prix','image','lien']){
+          if((game[field] == null || game[field] === '') && incoming[field] != null) merged[field] = incoming[field];
+        }
         for(const field of ['saleVenue','saleChannel','estimatedPrice','salePrice','saleId','saleOrder']){
           if(incoming[field] !== undefined) merged[field] = incoming[field];
           else delete merged[field];

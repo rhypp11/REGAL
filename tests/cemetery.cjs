@@ -14,6 +14,17 @@ const server = createSandboxServer();
       await page.goto('http://127.0.0.1:'+server.address().port);
       await page.locator('#app-shell').waitFor({state:'visible'});
       await page.locator('[data-page="collection"]').click();
+      await page.evaluate(()=>{
+        CEMETERY.push({id:'no-date-test',nom:'Sans date',plateforme:'PSV',source:'Brocante',prix:0,saleStatus:'pending'});
+        renderCemetery();
+      });
+      assert.ok(await page.locator('.sale-game').filter({hasText:'Sans date'}).evaluate(el=>{
+        const platform=el.querySelector('.card-platform').getBoundingClientRect();
+        const source=el.querySelector('.card-source').getBoundingClientRect();
+        return platform.top>=el.querySelector('.card-name').getBoundingClientRect().bottom && source.top>=platform.bottom;
+      }),'missing date never moves platform into acquisition metadata');
+      assert.match(await page.locator('.sale-game').filter({hasText:'Sans date'}).textContent(),/Brocante.*0,00/);
+      await page.evaluate(()=>{CEMETERY=CEMETERY.filter(g=>g.id!=='no-date-test');renderCemetery();});
       await page.evaluate(()=>{GAMES.find(g=>g.id==='test-fe').imageFit='cover';saveGames();});
       const original = await page.evaluate(()=>GAMES.find(g=>g.id==='test-fe'));
       await page.locator('.card').filter({hasText:'Fire Emblem'}).click();
@@ -22,6 +33,12 @@ const server = createSandboxServer();
       assert.equal(await page.locator('#cemetery-list .sale-game.card .card-banner').count(),3);
       assert.ok(await page.locator('#cemetery-list .sale-game.card').first().evaluate(el=>el.getBoundingClientRect().height)<=90,'cemetery game rows stay compact');
       assert.ok(await page.locator('#cemetery-list .sale-game.card .card-status-badge').first().evaluate(el=>parseFloat(getComputedStyle(el).paddingLeft)>=4&&el.clientWidth>=el.scrollWidth),'completion tag has breathing room and is not clipped');
+      assert.ok(await page.locator('.sale-game').filter({hasText:'Fire Emblem'}).evaluate(el=>{
+        const title=el.querySelector('.card-name').getBoundingClientRect();
+        const platform=el.querySelector('.card-platform').getBoundingClientRect();
+        const acquisition=el.querySelector('.card-acquisition').getBoundingClientRect();
+        return platform.top>=title.bottom && acquisition.top>=platform.bottom;
+      }),'platform stays below title and above acquisition');
       const colors = await page.locator('#sale-channel option').first().evaluate(el => {
         const style = getComputedStyle(el);
         return {foreground:style.color, background:style.backgroundColor};
@@ -83,8 +100,9 @@ const server = createSandboxServer();
       assert.equal(lot.length,2);assert.equal(lot[0].saleId,lot[1].saleId);
       assert.equal(lot.find(g=>g.id==='sale-pending-1').saleVenue,'Vinted','Historical metadata is preserved');
       assert.equal(await page.locator('.sale-venue').filter({hasText:'Vinted'}).count(),0);
-      assert.match(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).textContent(),/Vendu.*le lot/);
-      assert.match(await page.locator('.sale-game').filter({hasText:'Kena'}).textContent(),/Acheté/);
+      assert.equal(await page.locator('.sale-state-label, .sale-lot-label').count(),0);
+      assert.ok(await page.locator('.sale-group').filter({hasText:'Kena'}).evaluate(el=>getComputedStyle(el).boxShadow==='none'),'lots have no side stripe');
+      assert.ok(await page.locator('.sale-game').filter({hasText:'Kena'}).locator('.card-price').evaluate(el=>getComputedStyle(el).borderLeftWidth==='0px' && getComputedStyle(el).paddingLeft==='0px'),'purchase price has no inherited pipe');
       await page.screenshot({path:'/tmp/jtd-cemetery-'+width+'-'+theme+'.png',fullPage:true});
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
