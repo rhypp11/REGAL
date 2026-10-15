@@ -52,5 +52,5 @@
 }
 @media(max-width:500px) {
   .topnav-nav .nav-tab { flex-direction:column; justify-content:center; gap:2px; padding:4px 2px; line-height:1.2; }
-  .topnav-nav .nav-tab-label { font-size:11px; }
+  .topnav-nav .nav-tab-label { font-size:11px; margin-left:0; }
 }
