@@ -22,7 +22,7 @@ const fixture = {games:[],arrivals:[],wishlist:[
    assert.equal(await page.locator('.board-workflow-action').count(),0);
    const action=async()=>{await yearRow.click();await page.locator('#w-order-btn').click();};
    const layout=await yearRow.evaluate(el=>{const info=el.querySelector('.board-info').getBoundingClientRect(),title=el.querySelector('.board-name').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth,infoRight:info.right,titleRight:title.right};});
-   assert.equal(layout.overflow,false);assert.ok(layout.titleRight<=layout.infoRight+1);
+   assert.ok(await yearRow.evaluate(el=>el.querySelector('.board-thumb').getBoundingClientRect().right<=el.querySelector('.board-info').getBoundingClientRect().left),'Artwork never overlaps the title');assert.equal(layout.overflow,false);assert.ok(layout.titleRight<=layout.infoRight+1);
    await page.screenshot({path:`/tmp/jtd-workflow-${width}-${theme}-wishlist.png`,fullPage:true});
    await action();await page.locator('#arrival-modal-overlay').waitFor({state:'visible'});
    assert.equal(await page.locator('#wishlist-modal-overlay').isVisible(),false);

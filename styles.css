@@ -5271,8 +5271,8 @@ input[type="date"] {
     gap: 4px 8px !important;
   }
   #home-boards .board-thumb {
-    width: 80px !important;
-    height: 45px !important;
+    width: 80px;
+    height: 45px;
   }
   #page-collection .card {
     grid-template-columns: 80px minmax(0,1fr);
@@ -6958,8 +6958,8 @@ input[type="date"] {
   #home-boards .board-thumb {
     grid-column: 2 !important;
     grid-row: 1 !important;
-    width: 82px !important;
-    height: 46px !important;
+    width: 82px;
+    height: 46px;
   }
   #home-boards .board-info {
     grid-column: 3 !important;
