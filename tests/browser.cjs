@@ -57,6 +57,7 @@ async function restore(page, value, confirm=true){
       await page.goBack();await page.waitForFunction(()=>!document.getElementById('page-collection').classList.contains('hidden'));
       assert.equal(page.url(),collectionURL);
       await page.goForward();await page.waitForFunction(()=>!document.getElementById('page-home').classList.contains('hidden'));
+      await page.locator('.nav-tab[data-page="lists"]').click();
       if(width<500){
         await page.locator('[data-target="arrivals"]').click();
         await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
@@ -64,7 +65,7 @@ async function restore(page, value, confirm=true){
       }
       // A root visit reopens the saved view; unknown platform/sort/status are discarded.
       await page.goto(url);await page.locator('#app-shell').waitFor({state:'visible'});
-      assert.equal(await page.evaluate(()=>navigationPage),'home');
+      assert.equal(await page.evaluate(()=>navigationPage),'lists');
       await page.goto(url+'/#collection?platform=Unknown&sort=invalid&status=invalid');
       await page.locator('#app-shell').waitFor({state:'visible'});
       assert.deepEqual(await page.evaluate(()=>({platform:state.platform,sort:state.sort,status:state.status})),{platform:null,sort:'name-asc',status:null});

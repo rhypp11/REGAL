@@ -29,7 +29,7 @@ async function scene(page,name){
   closeModal();closeArrivalModal();closeWishlistModal();closePlatformModal();closeSaleModal();closeMobileDrawers();document.getElementById('cemetery-import-overlay').classList.add('hidden');document.getElementById('profile-menu').classList.add('hidden');
   state.platform=null;state.search='';state.status=null;state.collector=false;state.japanese=false;
   if(['wishlist','arrivals','order','receive','drawer'].includes(name)){
-   goToPage('home');setHomeBoard(name==='arrivals'||name==='receive'?'arrivals':'wishlist');
+   goToPage('lists');setHomeBoard(name==='arrivals'||name==='receive'?'arrivals':'wishlist');
   } else goToPage(name.startsWith('cemetery')?'cemetery':'collection');
   if(name==='order')moveWishlistToArrivals(WISHLIST[0].id);
   if(name==='receive')addArrivalToCollection(ARRIVALS[0].id);

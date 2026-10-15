@@ -15,7 +15,7 @@ const server=createSandboxServer();
    GAMES=Array.from({length:120},(_,i)=>fixture(i));WISHLIST=Array.from({length:60},(_,i)=>fixture(i+150));ARRIVALS=Array.from({length:60},(_,i)=>fixture(i+250));CEMETERY=Array.from({length:30},(_,i)=>({...fixture(i+350),saleStatus:'pending'}));
    renderWishlist();renderArrivals();
   });
-  for(const view of ['home','collection','cemetery']){
+  for(const view of ['home','lists','collection','cemetery']){
    await page.evaluate(v=>goToPage(v),view);
    await page.waitForFunction(()=>[...document.querySelectorAll('.page:not(.hidden) img')].every(i=>i.complete));
    const result=await page.evaluate(view=>{
