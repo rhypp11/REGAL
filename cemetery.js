@@ -46,15 +46,12 @@ function renderCemetery(){
     block.className = 'sale-group';
     const venue = item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : 'Canal à définir';
     const amount = saleView === 'sold' ? item.salePrice : item.estimatedPrice;
-    const lot = group.length > 1;
-    block.innerHTML = '<div class="sale-group-heading"><div class="sale-heading-main"><span class="sale-state-label">' + (saleView === 'sold' ? 'Vendu' : 'Estimation') + '</span><strong class="sale-amount">' + (amount != null ? euros(amount) : 'À définir') + '</strong>' + (lot ? '<span class="sale-lot-label">le lot · ' + group.length + ' jeux</span>' : '') + '</div><div class="sale-venue">' + escapeHTML(venue) + '</div></div>';
+    block.innerHTML = '<div class="sale-group-heading"><div class="sale-heading-main"><strong class="sale-amount">' + (amount != null ? euros(amount) : '—') + '</strong></div><div class="sale-venue">' + escapeHTML(venue) + '</div></div>';
     const cards = document.createElement('div');
     cards.className = 'sale-cards';
     for(const g of group){
       const card = renderCard(g, {readOnly:true, onOpen:() => openSaleModal(g.id)});
       card.classList.add('sale-game');
-      const purchasePrice = card.querySelector('.card-price');
-      if(purchasePrice) purchasePrice.textContent = 'Acheté ' + euros(g.prix);
       // Explicit field siblings keep date, source and price in a stable order.
       const purchase = card.querySelector('.card-purchase');
       if(purchase) purchase.replaceWith(...purchase.childNodes);

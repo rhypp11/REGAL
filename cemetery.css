@@ -149,8 +149,6 @@
   text-align:left;
 }
 .sale-heading-main { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; min-width:0; }
-.sale-state-label,.sale-lot-label { color:var(--ui-text-muted); font-size:11px; }
-.sale-lot-label { flex-basis:100%; }
 .pending-sales .sale-amount { color:var(--ui-text-muted); font-size:13px; font-weight:500; }
 .sale-amount {
   color:var(--ui-text);
@@ -170,10 +168,9 @@
   text-overflow:ellipsis;
 }
 
-/* Les lots partagent un fond discret et un repère latéral. */
+/* Un fond discret suffit à regrouper les lots. */
 .sale-group:has(.sale-game + .sale-game) {
   background:color-mix(in srgb,var(--status-multi) 4%,var(--ui-surface));
-  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--status-multi) 60%,transparent);
 }
 .sale-group:has(.sale-game + .sale-game) .sale-group-heading {
   background:color-mix(in srgb,var(--status-multi) 7%,var(--ui-surface));
@@ -252,18 +249,17 @@
   flex-wrap:wrap;
   color:var(--ui-text-muted);
   font-family:var(--ui-font-mono);
-  font-size:11px;
+  font-size:10px;
+  opacity:.65;
   line-height:1.25;
   text-align:left;
 }
-.sale-game.card .card-acquisition > * { margin:0; }
+.sale-game.card .card-acquisition > * { margin:0; padding:0; border:0; color:inherit; font:inherit; opacity:1; }
 .sale-game.card .card-acquisition > * + *::before {
-  content:'|';
+  content:'·';
   margin:0 6px;
   color:var(--ui-border);
 }
-.sale-game.card .card-purchase { margin-left:0; }
-.sale-game.card .card-price { color:var(--ui-text-muted); font-size:11px; font-weight:400; }
 .sale-game.card .card-status-badge { display:none !important; }
 .sale-game:focus-visible { outline:2px solid var(--ui-accent); outline-offset:-2px; }
 
@@ -331,9 +327,6 @@
   .sale-cards { order:1; }
   .sale-heading-main { justify-content:flex-start; }
   .sale-venue { max-width:55%; text-align:right; }
-  .sale-group:has(.sale-game + .sale-game) {
-    box-shadow:inset 3px 0 0 color-mix(in srgb,var(--status-multi) 60%,transparent);
-  }
   .sale-game.card { grid-template-columns:62px minmax(0,1fr); }
   .sale-game.card .card-banner { width:52px !important; height:34px !important; }
   .sale-game.card .card-name { font-size:13px; }
