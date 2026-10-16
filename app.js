@@ -103,7 +103,16 @@ const STORAGE_KEY = 'ludotheque:games-v2';
 const ARRIVALS_KEY = 'ludotheque:arrivals-v1';
 const WISHLIST_KEY = 'ludotheque:wishlist-v1';
 const MONTH_NAMES_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-const MONTH_COLORS = ['#4F7CD9','#7C6AD9','#A15FBF','#C4508C','#D96A6A','#DD7F35','#D9A441','#B5C93C','#6FAE79','#4FC7B5','#4FA8D9','#6B8FD9'];
+// Palette mensuelle de la référence de Rom, de janvier à décembre.
+const MONTH_COLORS = ['#45818E','#38761D','#6AA84F','#F1C232','#E69138','#B45F06','#E06666','#990000','#741B47','#351C75','#0B5394','#6D9EEB'];
+const MONTH_TEXT_COLORS = MONTH_COLORS.map(color => {
+  const rgb = color.slice(1).match(/../g).map(channel => {
+    const value = parseInt(channel,16) / 255;
+    return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+  });
+  const luminance = rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+  return 1.05 / (luminance + .05) >= 4.5 ? '#FFFFFF' : '#000000';
+});
 const PROFILE_KEY = 'ludotheque:profile-v1';
 
 
@@ -1476,7 +1485,7 @@ function calendarDayHtml(date, opts = {}){
 }
 
 function calendarGroupHtml(label, year, color, loose = false){
-  return `<div class="calendar-group-head${loose ? ' calendar-group-head-loose' : ''}"${color ? ` style="--calendar-accent:${color}"` : ''}>
+  return `<div class="calendar-group-head${loose ? ' calendar-group-head-loose' : ''}"${color ? ` style="--calendar-accent:${color};--calendar-ink:${MONTH_TEXT_COLORS[MONTH_COLORS.indexOf(color)]}"` : ''}>
     <div class="calendar-group-title">
       <strong>${escapeHTML(label)}</strong>
       ${year ? `<span>${year}</span>` : ''}

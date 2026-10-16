@@ -26,8 +26,8 @@ const server=createSandboxServer();
     const contrast=(a,b)=>{a=luminance(a);b=luminance(b);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);};
     const months=[...document.querySelectorAll('#home-boards .calendar-group-head:not(.calendar-group-head-loose)')].map(el=>{
      const css=getComputedStyle(el),title=getComputedStyle(el.querySelector('strong')),accent=css.getPropertyValue('--calendar-accent').trim();
-     const foreground=rgb(title.color),base=rgb(value('surface')),month=rgb(accent);
-     return {accent,background:css.backgroundImage,title:title.color,contrast:Math.min(...[.18,.07].map(alpha=>contrast(foreground,base.map((v,i)=>v*(1-alpha)+month[i]*alpha))))};
+     const foreground=rgb(title.color),background=rgb(css.backgroundColor),year=getComputedStyle(el.querySelector('.calendar-group-title span'));
+     return {accent,background:css.backgroundColor,title:title.color,contrast:Math.min(contrast(foreground,background),contrast(rgb(year.color),background))};
     });
     return {wishlist:value('wishlist'),arrival:value('arrival'),warm:value('warm-rgb'),salmon:value('status-salmon'),months,monthSource:MONTH_COLORS,
      statuses:['todo','multi','done','elsewhere'].map(x=>value('status-'+x)),platforms:Object.values(PLATFORM_COLORS)};
@@ -37,6 +37,7 @@ const server=createSandboxServer();
    assert.equal(palette.warm,theme==='light'?'187,98,72':'212,161,137');
    assert.equal(palette.salmon,theme==='light'?'#A14F38':'#D4A189');
    assert.equal(palette.months.length,24);assert.equal(new Set(palette.months.map(x=>x.background)).size,12);
+   assert.deepEqual(palette.monthSource,['#45818E','#38761D','#6AA84F','#F1C232','#E69138','#B45F06','#E06666','#990000','#741B47','#351C75','#0B5394','#6D9EEB']);
    assert.deepEqual(palette.months.slice(0,12).map(x=>x.accent),palette.monthSource);
    assert.deepEqual(palette.months.slice(12).map(x=>x.accent),palette.monthSource);
    assert.ok(palette.months.every(x=>x.contrast>=4.5),JSON.stringify(palette.months.filter(x=>x.contrast<4.5)));
