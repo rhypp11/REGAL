@@ -9,13 +9,13 @@
   --text: #203139;
   --muted: #64767d;
   --amber: #966526;
-  --orange: #176578;
+  --orange: #A14F38;
   --teal: #176578;
   --accent: #176578;
-  --wishlist: #176578;
-  --wishlist-rgb: 23,101,120;
-  --arrival: #276f68;
-  --arrival-rgb: 39,111,104;
+  --wishlist: #8B3D11;
+  --wishlist-rgb: 238,151,62;
+  --arrival: #0B6257;
+  --arrival-rgb: 48,171,151;
   --status-todo-fill: #E6AF38;
   --status-multi-fill: #A47AD8;
   --status-done-fill: #6DB653;
@@ -27,12 +27,12 @@
   --status-elsewhere: #325D84;
   --status-multi: #594082;
   --status-cyan: #327C7C;
-  --status-salmon: #176578;
+  --status-salmon: #A14F38;
   --ui-rgb: 32,49,57;
   --panel-rgb: 255,255,255;
   --canvas-rgb: 245,247,247;
   --accent-rgb: 23,101,120;
-  --warm-rgb: 23,101,120;
+  --warm-rgb: 187,98,72;
 }
 
 :root[data-theme="dark"] {
@@ -47,10 +47,10 @@
   --orange: #D4A189;
   --teal: #80c7d7;
   --accent: #80c7d7;
-  --wishlist: #80c7d7;
-  --wishlist-rgb: 23,101,120;
-  --arrival: #8bcfc3;
-  --arrival-rgb: 39,111,104;
+  --wishlist: #FFB876;
+  --wishlist-rgb: 238,151,62;
+  --arrival: #78DCC6;
+  --arrival-rgb: 48,171,151;
   --hairline: #2d4048;
   --danger: #EA9199;
   --status-todo: #F1D49F;
@@ -63,7 +63,7 @@
   --panel-rgb: 25,37,43;
   --canvas-rgb: 17,26,30;
   --accent-rgb: 128,199,215;
-  --warm-rgb: 128,199,215;
+  --warm-rgb: 212,161,137;
 }
 
 * {
