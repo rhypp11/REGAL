@@ -116,11 +116,9 @@
   min-height:38px;
   margin:0 0 5px;
   padding:7px 10px 7px 12px;
-  border:1px solid color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 24%,var(--ui-border));
+  border:1px solid var(--calendar-accent,var(--ui-border));
   border-radius:var(--ui-radius-sm);
-  background:linear-gradient(90deg,
-    color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 18%,transparent),
-    color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 7%,transparent));
+  background:var(--calendar-accent,var(--ui-surface));
 }
 
 #home-boards .calendar-group-head-loose {
@@ -133,7 +131,7 @@
 }
 
 #home-boards .calendar-group-title strong {
-  color:color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 58%,var(--ui-text) 42%);
+  color:var(--calendar-ink,var(--ui-text));
   font-family:var(--ui-font-sans);
   font-size:12.5px;
   font-weight:750;
@@ -145,7 +143,7 @@
 }
 
 #home-boards .calendar-group-title span {
-  color:var(--ui-text-muted);
+  color:var(--calendar-ink,var(--ui-text-muted));
   font-family:var(--ui-font-mono);
   font-size:9.5px;
   font-weight:500;
@@ -196,15 +194,17 @@
   height:46px;
   border:1px solid rgba(var(--ui-rgb),.07);
   border-radius:var(--ui-radius-sm);
-  background:color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 8%,var(--ui-surface-raised));
+  background:var(--calendar-day-bg,var(--ui-surface-raised));
 }
 
 #home-boards .calendar-day strong {
+  color:var(--calendar-day-ink,var(--ui-text));
   font-size:15px;
   font-weight:700;
 }
 
 #home-boards .calendar-day span {
+  color:var(--calendar-day-ink,var(--ui-text-muted));
   font-size:8px;
   font-weight:600;
 }
