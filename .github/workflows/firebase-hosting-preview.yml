@@ -77,13 +77,10 @@ jobs:
       - name: Check long lists and empty collection transitions
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/edge-cases.cjs
 
-      - name: Compare pages and forms with the base branch
-        run: |
-          mkdir -p "$RUNNER_TEMP/jtd-baseline"
-          for file in index.html styles.css cemetery.css cemetery-import.css ui-foundations.css home-boards-v2.css collection.css; do
-            git show '${{ github.event.pull_request.base.sha }}:'"$file" > "$RUNNER_TEMP/jtd-baseline/$file"
-          done
-          NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" JTD_BASELINE_CSS="$RUNNER_TEMP/jtd-baseline/styles.css" JTD_BASELINE_DIR="$RUNNER_TEMP/jtd-baseline" node tests/css-regression.cjs
+      # The approved identity intentionally changes colors and surfaces.
+      # Keep the old exact-CSS comparator for future no-render-change cleanups.
+      - name: Check REGAL identity on every page and dialog
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/regal-identity.cjs
 
       - name: Save theme screenshots
         if: always()
@@ -145,7 +142,7 @@ jobs:
           curl --fail --silent --show-error --retry 5 --retry-delay 3 "$PREVIEW_URL/" > /tmp/preview.html
           curl --fail --silent --show-error --retry 5 --retry-delay 3 "$PREVIEW_URL/app.js" > /tmp/app.js
           curl --fail --silent --show-error --retry 5 --retry-delay 3 "$PREVIEW_URL/firebase.js" > /tmp/firebase.js
-          grep -q '<title>JTD' /tmp/preview.html
+          grep -q '<title>REGAL' /tmp/preview.html
           grep -q "jtd-sandbox-rhypp11.web.app" /tmp/preview.html
           grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
           grep -q "const fbApp = previewMode ? null : initializeApp(firebaseConfig)" /tmp/firebase.js

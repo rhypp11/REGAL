@@ -2518,9 +2518,9 @@ function goToPage(page, push = true){
     if(active) b.setAttribute('aria-current', 'page');
     else b.removeAttribute('aria-current');
   });
-  document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
+  document.title = 'REGAL | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
-  if(navigationPage === 'cemetery'){ document.title = 'JTD | Cimetière'; window.renderCemetery?.(); }
+  if(navigationPage === 'cemetery'){ document.title = 'REGAL | Cimetière'; window.renderCemetery?.(); }
   document.getElementById('global-filter-toggle').classList.toggle('hidden', !['collection','cemetery'].includes(navigationPage));
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
