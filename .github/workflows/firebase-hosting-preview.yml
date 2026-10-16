@@ -43,6 +43,9 @@ jobs:
       - name: Check order and receipt flows
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/workflow.cjs
 
+      - name: Check collection summary and list navigation
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/home-navigation.cjs
+
 
       - name: Check cemetery flows
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/cemetery.cjs

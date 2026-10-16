@@ -1434,29 +1434,16 @@ function renderHomeStats(){
   if(totalEl) totalEl.textContent = total;
   const metaEl = document.getElementById('home-summary-meta');
   if(metaEl){
+    const statIcon = path => `<svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${path}"/></svg>`;
     const stats = [
-      `<div class="home-summary-stat"><strong>${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
-      collectors ? `<div class="home-summary-stat"><strong>${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
-      spent ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>collection</span></div>` : ''
+      `<div class="home-summary-stat"><strong>${statIcon("M7 8h10c2 0 3 2 3.5 4l1 5c.4 2-1.5 3-3 1L16 16H8l-2.5 2c-1.5 2-3.4 1-3-1l1-5C4 10 5 8 7 8Z M7 10v4 M5 12h4 M16 11h.01 M18 13h.01")}${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
+      collectors ? `<div class="home-summary-stat"><strong>${statIcon("m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z")}${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
+      GAMES.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>achats renseignés</span></div>` : ''
     ].filter(Boolean);
     metaEl.innerHTML = stats.join('');
   }
 
-  const barsEl = document.getElementById('home-platform-bars');
-  if(!barsEl) return;
-  const counts = Object.create(null);
-  GAMES.forEach(g => { counts[g.plateforme] = (counts[g.plateforme] || 0) + 1; });
-  const rows = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-  barsEl.innerHTML = rows.map(([platform, count]) => {
-    const logo = getPlatformLogo(platform);
-    const color = getPlatformColor(platform);
-    const icon = logo
-      ? `<img class="home-plat-icon" src="${escapeHTML(safeURL(logo, true))}" alt="">`
-      : `<span class="home-plat-icon-fallback" style="background:${color};"></span>`;
-    return `<div class="home-platform-bar-row" style="--home-platform-color:${color}">
-      <div class="plat-bar-label">${icon}<span class="plat-name">${escapeHTML(platform)}</span><span class="count">${count}</span></div>
-    </div>`;
-  }).join('');
+
 }
 
 /* ---------- Accueil : Arrivages & Wishlist ---------- */
@@ -1895,7 +1882,7 @@ function saveArrivalModal(){
   closeArrivalModal();
   buildPlatformList();
   renderArrivals();
-  if(ordered){ setHomeBoard('arrivals'); persistNavigation(true); showToast(`« ${nom} » ajouté aux arrivages.`); }
+  if(ordered){ setHomeBoard('arrivals'); goToPage('home'); showToast(`« ${nom} » ajouté aux arrivages.`); }
 }
 
 function deleteArrival(){
@@ -2534,6 +2521,7 @@ function goToPage(page, push = true){
   document.title = 'JTD | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
   if(navigationPage === 'cemetery'){ document.title = 'JTD | Cimetière'; window.renderCemetery?.(); }
+  document.getElementById('global-filter-toggle').classList.toggle('hidden', !['collection','cemetery'].includes(navigationPage));
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;
@@ -2556,6 +2544,7 @@ window.addEventListener('popstate', event => {
 window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
+
 document.querySelectorAll('.nav-tab').forEach(btn => {
   btn.addEventListener('click', () => {
     goToPage(btn.dataset.page);
@@ -2583,7 +2572,7 @@ function toggleMobileDrawer(el){
 }
 document.getElementById('mobile-backdrop').addEventListener('click', closeMobileDrawers);
 
-const PAGE_SIDEBAR_IDS = { home: 'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
+const PAGE_SIDEBAR_IDS = { collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
   const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));

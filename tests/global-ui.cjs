@@ -25,14 +25,10 @@ const server=createSandboxServer();
     assert.equal(padding,(width<=820?16:24),'Shared top spacing '+view);
     if(view==='home')assert.equal(await page.locator('#home-boards').evaluate(el=>getComputedStyle(el).paddingLeft),'0px','No duplicated page gutters');
     if(view==='home'&&width>820){
-     const geometry=await page.evaluate(()=>{
-      const main=document.querySelector('.home-main').getBoundingClientRect(),sidebar=document.querySelector('#home-sidebar').getBoundingClientRect();
-      const headers=[...document.querySelectorAll('.board-head')].map(el=>({title:el.querySelector('h2').getBoundingClientRect().right,button:el.querySelector('button').getBoundingClientRect().left}));
-      return {mainWidth:main.width,sidebarRight:sidebar.right,mainLeft:main.left,headers};
-     });
-     assert.ok(geometry.mainWidth>=width-261,'Home main uses all remaining width');
-     assert.ok(Math.abs(geometry.sidebarRight-geometry.mainLeft)<2,'Desktop sidebar stays beside the boards');
-     for(const head of geometry.headers)assert.ok(head.title<=head.button+1,'Board title never overlaps Add');
+     assert.equal(await page.locator('.board.wishlist').isVisible(),true);
+     assert.equal(await page.locator('#arrivals-board').isVisible(),true);
+     const left=await page.locator('.board.wishlist').boundingBox(),right=await page.locator('#arrivals-board').boundingBox();
+     assert.ok(left.x+left.width<=right.x && Math.abs(left.y-right.y)<1,'Desktop boards are side by side');
     }
     await page.screenshot({path:'/tmp/jtd-global-'+view+'-'+width+'-'+theme+'.png',fullPage:true});
    }
@@ -57,15 +53,7 @@ const server=createSandboxServer();
    const platform=page.locator('#platform-list [role="button"]').nth(1);
    await platform.focus();await page.keyboard.press('Enter');
    assert.equal(await page.evaluate(()=>state.platform!==null),true,'Keyboard platform filter works');
-   if(width<=820){
-    await page.locator('[data-page="home"]').click();
-    await page.locator('#global-filter-toggle').click();
-    await page.waitForFunction(()=>document.getElementById('home-sidebar').getBoundingClientRect().x>=-1);
-    assert.ok((await page.locator('#home-sidebar').boundingBox()).x>=-1,'Mobile home sidebar opens on screen');
-    await page.setViewportSize({width:821,height:900});
-    await page.waitForTimeout(150);
-    assert.equal(await page.locator('#mobile-backdrop').evaluate(el=>el.classList.contains('visible')),false,'Drawer backdrop closes at desktop threshold');
-   }
+
    assert.deepEqual(errors,[]);
    await context.close();console.log('PASS global UI',width,theme);
   }

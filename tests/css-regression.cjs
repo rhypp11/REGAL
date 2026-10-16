@@ -12,13 +12,14 @@ const properties=['display','position','width','height','min-width','max-width',
 // forms are covered by modal-form-layout.cjs, modal-actions and dialog-keyboard.
 // Deliberate artwork layers are covered by image-modes.cjs; surrounding layout is compared.
 // The revised import form is covered by import-export.cjs in both themes and sizes.
+// List thumbnail sizes are intentionally corrected; workflow.cjs checks no title overlap.
 // Cemetery list rows are deliberately redesigned and covered by cemetery.cjs.
-const scenes=['collection','status','wishlist','arrivals','cemetery','drawer','collection-drawer','cemetery-drawer','profile','order','receive','edit','new','wishlist-edit','arrival-edit','sale','import','platforms'];
+const scenes=['collection','status','wishlist','arrivals','cemetery','collection-drawer','cemetery-drawer','profile','order','receive','edit','new','wishlist-edit','arrival-edit','sale','import','platforms'];
 async function snapshot(page){
  // Fix the redesigned list's footprint so ancestor heights remain comparable.
  await page.addStyleTag({content:'#cemetery-list { height:400px!important; overflow:hidden!important; }'});
  await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode().catch(()=>{})));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
- return page.evaluate(properties=>[...document.body.querySelectorAll('*')].filter(el=>el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden'&&!el.closest('#cemetery-list, .game-art-frame, #modal-overlay > .modal, #arrival-modal-overlay > .modal, #wishlist-modal-overlay > .modal, #cemetery-import-overlay')).map(el=>{
+ return page.evaluate(properties=>[...document.body.querySelectorAll('*')].filter(el=>el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden'&&!el.closest('#home-boards .board-thumb, #cemetery-list, .game-art-frame, #modal-overlay > .modal, #arrival-modal-overlay > .modal, #wishlist-modal-overlay > .modal, #cemetery-import-overlay')).map(el=>{
   const rect=el.getBoundingClientRect();
   const styles=pseudo=>{const css=getComputedStyle(el,pseudo);return Object.fromEntries(properties.map(key=>[key,css.getPropertyValue(key)]));};
   return {tag:el.tagName,id:el.id,class:el.className?.baseVal??el.className,rect:[rect.x,rect.y,rect.width,rect.height],style:styles(),before:styles('::before'),after:styles('::after')};
@@ -28,7 +29,7 @@ async function scene(page,name){
  await page.evaluate(name=>{
   closeModal();closeArrivalModal();closeWishlistModal();closePlatformModal();closeSaleModal();closeMobileDrawers();document.getElementById('cemetery-import-overlay').classList.add('hidden');document.getElementById('profile-menu').classList.add('hidden');
   state.platform=null;state.search='';state.status=null;state.collector=false;state.japanese=false;
-  if(['wishlist','arrivals','order','receive','drawer'].includes(name)){
+  if(['wishlist','arrivals','order','receive'].includes(name)){
    goToPage('home');setHomeBoard(name==='arrivals'||name==='receive'?'arrivals':'wishlist');
   } else goToPage(name.startsWith('cemetery')?'cemetery':'collection');
   if(name==='order')moveWishlistToArrivals(WISHLIST[0].id);
@@ -36,7 +37,7 @@ async function scene(page,name){
   if(name==='edit')openModal(GAMES.find(game=>game.format==='Physique').id);
   if(name==='platforms')openPlatformModal();
   if(name==='profile')document.getElementById('profile-menu').classList.remove('hidden');
-  if(name==='drawer')openMobileDrawer(document.getElementById('home-sidebar'));
+
   if(name==='collection-drawer')openMobileDrawer(document.getElementById('collection-sidebar'));
   if(name==='cemetery-drawer')openMobileDrawer(document.getElementById('cemetery-sidebar'));
   if(name==='new')openModal(null);

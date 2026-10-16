@@ -57,6 +57,7 @@ async function restore(page, value, confirm=true){
       await page.goBack();await page.waitForFunction(()=>!document.getElementById('page-collection').classList.contains('hidden'));
       assert.equal(page.url(),collectionURL);
       await page.goForward();await page.waitForFunction(()=>!document.getElementById('page-home').classList.contains('hidden'));
+      await page.locator('.nav-tab[data-page="home"]').click();
       if(width<500){
         await page.locator('[data-target="arrivals"]').click();
         await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
