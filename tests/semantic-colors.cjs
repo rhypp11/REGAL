@@ -29,7 +29,11 @@ const server=createSandboxServer();
      const foreground=rgb(title.color),background=rgb(css.backgroundColor),year=getComputedStyle(el.querySelector('.calendar-group-title span'));
      return {accent,background:css.backgroundColor,title:title.color,contrast:Math.min(contrast(foreground,background),contrast(rgb(year.color),background))};
     });
-    return {wishlist:value('wishlist'),arrival:value('arrival'),warm:value('warm-rgb'),salmon:value('status-salmon'),months,monthSource:MONTH_COLORS,
+    const dates=[...document.querySelectorAll('#home-boards .calendar-day:not(.calendar-day-loose)')].map(el=>{
+     const background=getComputedStyle(el).backgroundColor;
+     return {background,contrast:Math.min(...[...el.children].map(child=>contrast(rgb(getComputedStyle(child).color),rgb(background))))};
+    });
+    return {wishlist:value('wishlist'),arrival:value('arrival'),warm:value('warm-rgb'),salmon:value('status-salmon'),months,monthSource:MONTH_COLORS,dates,dateSource:MONTH_DATE_COLORS,dateBackgrounds:MONTH_DATE_COLORS.map(color=>'rgb('+rgb(color).join(', ')+')'),
      statuses:['todo','multi','done','elsewhere'].map(x=>value('status-'+x)),platforms:Object.values(PLATFORM_COLORS)};
    });
    assert.equal(palette.wishlist,theme==='light'?'#8B3D11':'#FFB876');
@@ -41,6 +45,9 @@ const server=createSandboxServer();
    assert.deepEqual(palette.months.slice(0,12).map(x=>x.accent),palette.monthSource);
    assert.deepEqual(palette.months.slice(12).map(x=>x.accent),palette.monthSource);
    assert.ok(palette.months.every(x=>x.contrast>=4.5),JSON.stringify(palette.months.filter(x=>x.contrast<4.5)));
+   assert.deepEqual(palette.dateSource,['#A2C4C9','#93C47D','#B6D7A8','#FFD966','#F6B26B','#E69138','#EA9999','#E06666','#A64D79','#B4A7D6','#9FC5E8','#C9DAF8']);
+   assert.deepEqual(palette.dates.map(x=>x.background),[...palette.dateBackgrounds,...palette.dateBackgrounds]);
+   assert.ok(palette.dates.every(x=>x.contrast>=4.5),JSON.stringify(palette.dates.filter(x=>x.contrast<4.5)));
    assert.deepEqual(palette.statuses,theme==='light'?['#805211','#594082','#35582D','#325D84']:['#F1D49F','#CAB7F0','#B4D4A3','#A8C9EA']);
    assert.ok(new Set(palette.platforms).size>10,'Les plateformes conservent leur palette distincte');
    for(const [board,token,view] of [['wishlist','wishlist','pending'],['arrivals','arrival','sold']]){

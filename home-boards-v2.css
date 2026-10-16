@@ -194,15 +194,17 @@
   height:46px;
   border:1px solid rgba(var(--ui-rgb),.07);
   border-radius:var(--ui-radius-sm);
-  background:color-mix(in srgb,var(--calendar-accent,var(--board-accent)) 8%,var(--ui-surface-raised));
+  background:var(--calendar-day-bg,var(--ui-surface-raised));
 }
 
 #home-boards .calendar-day strong {
+  color:var(--calendar-day-ink,var(--ui-text));
   font-size:15px;
   font-weight:700;
 }
 
 #home-boards .calendar-day span {
+  color:var(--calendar-day-ink,var(--ui-text-muted));
   font-size:8px;
   font-weight:600;
 }

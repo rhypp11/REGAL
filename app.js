@@ -105,14 +105,17 @@ const WISHLIST_KEY = 'ludotheque:wishlist-v1';
 const MONTH_NAMES_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 // Palette mensuelle de la référence de Rom, de janvier à décembre.
 const MONTH_COLORS = ['#45818E','#38761D','#6AA84F','#F1C232','#E69138','#B45F06','#E06666','#990000','#741B47','#351C75','#0B5394','#6D9EEB'];
-const MONTH_TEXT_COLORS = MONTH_COLORS.map(color => {
+const MONTH_DATE_COLORS = ['#A2C4C9','#93C47D','#B6D7A8','#FFD966','#F6B26B','#E69138','#EA9999','#E06666','#A64D79','#B4A7D6','#9FC5E8','#C9DAF8'];
+function calendarTextColor(color) {
   const rgb = color.slice(1).match(/../g).map(channel => {
     const value = parseInt(channel,16) / 255;
     return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
   });
   const luminance = rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
   return 1.05 / (luminance + .05) >= 4.5 ? '#FFFFFF' : '#000000';
-});
+}
+const MONTH_TEXT_COLORS = MONTH_COLORS.map(calendarTextColor);
+const MONTH_DATE_TEXT_COLORS = MONTH_DATE_COLORS.map(calendarTextColor);
 const PROFILE_KEY = 'ludotheque:profile-v1';
 
 
@@ -1475,7 +1478,8 @@ function calendarDayHtml(date, opts = {}){
   if(exact){
     const d = new Date(Number(exact[1]), Number(exact[2]) - 1, Number(exact[3]));
     const weekday = d.toLocaleDateString('fr-FR', {weekday:'short'}).replace('.', '');
-    return `<div class="calendar-day${opts.released ? ' released' : ''}">
+    const monthIndex = d.getMonth();
+    return `<div class="calendar-day${opts.released ? ' released' : ''}" style="--calendar-day-bg:${MONTH_DATE_COLORS[monthIndex]};--calendar-day-ink:${MONTH_DATE_TEXT_COLORS[monthIndex]}">
       <strong>${Number(exact[3])}</strong><span>${weekday}</span>
     </div>`;
   }
