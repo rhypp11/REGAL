@@ -1,57 +1,57 @@
-/* Identité JTD : clair par défaut, sombre selon le système ou le choix local. */
+/* Identité REGAL : clair par défaut, sombre selon le système ou le choix local. */
 
 :root {
   color-scheme: light;
-  --ink: #F5F0E7;
-  --sidebar-bg: #EDE7DC;
-  --surface: #FCF9F3;
-  --surface-raised: #EDE5DA;
-  --text: #292723;
-  --muted: #71685F;
+  --ink: #f5f7f7;
+  --sidebar-bg: #edf2f2;
+  --surface: #ffffff;
+  --surface-raised: #dfedef;
+  --text: #203139;
+  --muted: #64767d;
   --amber: #966526;
-  --orange: #A14F38;
-  --teal: #A14F38;
-  --accent: #BB6248;
-  --wishlist: #8B3D11;
-  --wishlist-rgb: 238,151,62;
-  --arrival: #0B6257;
-  --arrival-rgb: 48,171,151;
+  --orange: #176578;
+  --teal: #176578;
+  --accent: #176578;
+  --wishlist: #176578;
+  --wishlist-rgb: 23,101,120;
+  --arrival: #276f68;
+  --arrival-rgb: 39,111,104;
   --status-todo-fill: #E6AF38;
   --status-multi-fill: #A47AD8;
   --status-done-fill: #6DB653;
   --status-elsewhere-fill: #5A9ED3;
-  --hairline: #DDD3C5;
+  --hairline: #dae3e5;
   --danger: #B63845;
   --status-todo: #805211;
   --status-done: #35582D;
   --status-elsewhere: #325D84;
   --status-multi: #594082;
   --status-cyan: #327C7C;
-  --status-salmon: #A14F38;
-  --ui-rgb: 41,39,35;
-  --panel-rgb: 252,249,243;
-  --canvas-rgb: 245,240,231;
-  --accent-rgb: 187,98,72;
-  --warm-rgb: 187,98,72;
+  --status-salmon: #176578;
+  --ui-rgb: 32,49,57;
+  --panel-rgb: 255,255,255;
+  --canvas-rgb: 245,247,247;
+  --accent-rgb: 23,101,120;
+  --warm-rgb: 23,101,120;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --ink: #171C2B;
-  --sidebar-bg: #141827;
-  --surface: #202638;
-  --surface-raised: #2B3248;
-  --text: #F0ECE7;
-  --muted: #ADAABA;
+  --ink: #111a1e;
+  --sidebar-bg: #152126;
+  --surface: #19252b;
+  --surface-raised: #233e48;
+  --text: #e5eef0;
+  --muted: #9cb0b8;
   --amber: #D9BA7C;
   --orange: #D4A189;
-  --teal: #B1A2D5;
-  --accent: #B1A2D5;
-  --wishlist: #FFB876;
-  --wishlist-rgb: 238,151,62;
-  --arrival: #78DCC6;
-  --arrival-rgb: 48,171,151;
-  --hairline: #3B4259;
+  --teal: #80c7d7;
+  --accent: #80c7d7;
+  --wishlist: #80c7d7;
+  --wishlist-rgb: 23,101,120;
+  --arrival: #8bcfc3;
+  --arrival-rgb: 39,111,104;
+  --hairline: #2d4048;
   --danger: #EA9199;
   --status-todo: #F1D49F;
   --status-done: #B4D4A3;
@@ -59,11 +59,11 @@
   --status-multi: #CAB7F0;
   --status-cyan: #92C5C1;
   --status-salmon: #D4A189;
-  --ui-rgb: 240,236,231;
-  --panel-rgb: 32,38,56;
-  --canvas-rgb: 23,28,43;
-  --accent-rgb: 177,162,213;
-  --warm-rgb: 212,161,137;
+  --ui-rgb: 229,238,240;
+  --panel-rgb: 25,37,43;
+  --canvas-rgb: 17,26,30;
+  --accent-rgb: 128,199,215;
+  --warm-rgb: 128,199,215;
 }
 
 * {

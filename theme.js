@@ -11,10 +11,9 @@
   function apply(theme) {
     const dark = theme === 'dark';
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#171C2B' : '#F5F0E7');
-    document.querySelectorAll('[data-brand-icon]').forEach(img => { img.src = dark ? 'brand-dark.svg?v=uppercase-1' : 'brand-light.svg?v=uppercase-1'; });
-    document.querySelector('link[rel="icon"]')?.setAttribute('href', dark ? 'logo-icon-dark.png?v=uppercase-1' : 'logo-icon.png?v=uppercase-1');
-    document.querySelector('link[rel="apple-touch-icon"]')?.setAttribute('href', dark ? 'logo-icon-apple-dark.png?v=uppercase-1' : 'logo-icon-apple.png?v=uppercase-1');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#195e70');
+    document.querySelector('link[rel="icon"]')?.setAttribute('href', dark ? 'logo-icon-dark.svg?v=regal-1' : 'logo-icon-light.svg?v=regal-1');
+    document.querySelector('link[rel="apple-touch-icon"]')?.setAttribute('href', dark ? 'logo-icon-apple-dark.png?v=regal-1' : 'logo-icon-apple.png?v=regal-1');
     const button = document.getElementById('theme-toggle');
     if(button) {
       const label = dark ? 'Activer le thème clair' : 'Activer le thème sombre';

@@ -1,22 +1,22 @@
 {
-  "name": "Jeux tout doux",
-  "short_name": "JTD",
+  "name": "REGAL",
+  "short_name": "REGAL",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#F5F0E7",
-  "theme_color": "#BB6248",
+  "background_color": "#f5f7f7",
+  "theme_color": "#195e70",
   "icons": [
     {
-      "src": "logo-icon-192.png?v=uppercase-1",
+      "src": "logo-icon-192.png?v=regal-1",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "logo-icon.png?v=uppercase-1",
+      "src": "logo-icon.png?v=regal-1",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
