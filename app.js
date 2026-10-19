@@ -1,4 +1,5 @@
 const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true;
+const mobileFilterToggle = document.getElementById('global-filter-toggle');
 window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
 if(IS_PREVIEW_MODE){
   document.documentElement.dataset.environment = 'sandbox';
@@ -864,6 +865,7 @@ function renderPlatformBanner(games){
       </div>
       <div class="platform-banner-stats">${statsHtml}</div>
     `;
+    if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
     return;
   }
 
@@ -881,6 +883,7 @@ function renderPlatformBanner(games){
     <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-kicker">Ma collection</span><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
     <div class="platform-banner-stats">${statsHtml}</div>
   `;
+  if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
 }
 
 function renderCard(g, options = {}){
@@ -2534,7 +2537,7 @@ function goToPage(page, push = true){
   document.title = 'REGAL | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
   if(navigationPage === 'cemetery'){ document.title = 'REGAL | Cimetière'; window.renderCemetery?.(); }
-  document.getElementById('global-filter-toggle').classList.toggle('hidden', !['collection','cemetery'].includes(navigationPage));
+  if(navigationPage === 'cemetery') document.getElementById('cemetery-view-controls').prepend(mobileFilterToggle);
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;
@@ -2567,6 +2570,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
 
 /* ---------- Navigation mobile ---------- */
 function closeMobileDrawers(){
+  mobileFilterToggle.setAttribute('aria-expanded', 'false');
   document.querySelectorAll('.sidebar.mobile-open').forEach(el => el.classList.remove('mobile-open'));
   document.getElementById('mobile-backdrop').classList.remove('visible');
   document.body.classList.remove('mobile-drawer-open');
@@ -2575,6 +2579,8 @@ function openMobileDrawer(el){
   if(!el) return;
   closeMobileDrawers();
   el.classList.add('mobile-open');
+  mobileFilterToggle.setAttribute('aria-expanded', 'true');
+  mobileFilterToggle.setAttribute('aria-controls', el.id);
   document.getElementById('mobile-backdrop').classList.add('visible');
   document.body.classList.add('mobile-drawer-open');
 }

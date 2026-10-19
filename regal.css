@@ -4,8 +4,8 @@
 .topnav .nav-tab { color:#d7e9ed; }
 .topnav .nav-tab:hover,.topnav .nav-tab.active { color:#fff; background:#ffffff20; }
 .topnav-nav .nav-tab::after { display:none; }
-.topnav .theme-toggle,.topnav .profile-menu-btn,.topnav .topnav-filter-toggle { color:#fff; border-color:#ffffff38; background:transparent; }
-.topnav .theme-toggle:hover,.topnav .profile-menu-btn:hover,.topnav .topnav-filter-toggle:hover { background:#ffffff20; border-color:#ffffff70; }
+.topnav .theme-toggle,.topnav .profile-menu-btn { color:#fff; border-color:#ffffff38; background:transparent; }
+.topnav .theme-toggle:hover,.topnav .profile-menu-btn:hover { background:#ffffff20; border-color:#ffffff70; }
 /* Les états gardent leur sens sur le fond pétrole de l’en-tête. */
 .topnav .cloud-sync-status { color:#dff1f3; border-color:#ffffff38; }
 .topnav .cloud-sync-status.ok { color:#b4d4a3; border-color:#b4d4a366; }
@@ -24,5 +24,5 @@
 @media(max-width:360px) {
   .topnav .brand-word.regal-logo { width:108px; height:36px; }
 }
-/* La grille reprend la densité de la maquette, avec toute la largeur sur mobile. */
-@media(min-width:1101px) { #page-collection .grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+/* Cartes plus compactes sur ordinateur ; largeur mobile conservée. */
+@media(min-width:1101px) { #page-collection .grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }

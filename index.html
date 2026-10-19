@@ -15,14 +15,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=semantic-colors-1">
-<link rel="stylesheet" href="cemetery.css?v=global-2">
+<link rel="stylesheet" href="styles.css?v=local-filters-1">
+<link rel="stylesheet" href="cemetery.css?v=local-filters-1">
 <link rel="stylesheet" href="home-boards-v2.css?v=original-months-2">
 <link rel="stylesheet" href="home-dashboard.css?v=regal-3">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
-<link rel="stylesheet" href="ui-foundations.css?v=regal-1">
+<link rel="stylesheet" href="ui-foundations.css?v=local-filters-1">
 <link rel="stylesheet" href="collection.css?v=global-2">
-<link rel="stylesheet" href="regal.css?v=semantic-colors-1">
+<link rel="stylesheet" href="regal.css?v=local-filters-1">
 </head>
 <body>
 
@@ -76,13 +76,7 @@
         <img class="brand-word regal-logo" src="brand-header.svg?v=regal-1" alt="REGAL" width="140" height="42">
       </h1>
     </div>
-    <button type="button" class="mobile-filter-toggle topnav-filter-toggle" id="global-filter-toggle" aria-label="Afficher le menu">
-      <svg class="menu-burger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
-        <path d="M4.5 7.5h15"></path>
-        <path d="M4.5 12h11"></path>
-        <path d="M4.5 16.5h15"></path>
-      </svg>
-    </button>
+
     <div class="topnav-nav" aria-label="Navigation principale">
       <button class="nav-tab active" data-page="home" title="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg><span class="nav-tab-label">Accueil</span></button>
       <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
@@ -455,7 +449,16 @@
     </aside>
     <main class="cemetery-main">
     <div class="cemetery-toolbar">
+      <div class="cemetery-view-controls" id="cemetery-view-controls">
+    <button type="button" class="mobile-filter-toggle page-filter-toggle" id="global-filter-toggle" aria-label="Afficher les filtres" aria-expanded="false">
+      <svg class="menu-burger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+        <path d="M4.5 7.5h15"></path>
+        <path d="M4.5 12h11"></path>
+        <path d="M4.5 16.5h15"></path>
+      </svg>
+    </button>
       <div class="cemetery-tabs" role="group" aria-label="État de vente"><button type="button" class="btn active cemetery-tab" data-sale-view="pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18l-2 13H5L3 7Z"></path><path d="M8 7a4 4 0 0 1 8 0"></path><path d="M9 12h6"></path></svg>À vendre</button><button type="button" class="btn cemetery-tab" data-sale-view="sold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.5 2.5L16 9"></path></svg>Vendus</button></div>
+      </div>
       <input type="search" id="cemetery-search" placeholder="Chercher un jeu…" aria-label="Chercher dans le cimetière">
       <select id="cemetery-platform" aria-label="Plateforme"><option value="">Toutes les plateformes</option></select>
     </div>
@@ -537,7 +540,7 @@
 </script>
 <script src="jtd-data.js?v=collection-1"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=original-months-2-collection-1"></script>
+<script src="app.js?v=local-filters-1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>

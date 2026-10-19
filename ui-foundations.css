@@ -57,6 +57,25 @@
 
 button,input,select,textarea { font-family:var(--ui-font-sans); }
 
+.page-filter-toggle { display:none; }
+@media(max-width:820px) {
+  .page-filter-toggle {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:44px;
+    height:44px;
+    min-width:44px;
+    flex:0 0 44px;
+    padding:10px;
+    border:1px solid var(--ui-border);
+    border-radius:var(--ui-radius-md);
+    background:var(--ui-surface);
+    color:var(--ui-text);
+  }
+  .page-filter-toggle svg { width:22px; height:22px; }
+}
+
 :where(button,a,input,select,textarea,[tabindex]):focus-visible {
   outline:var(--ui-focus-width) solid var(--ui-accent);
   outline-offset:var(--ui-focus-offset);
