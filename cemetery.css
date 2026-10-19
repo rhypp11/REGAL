@@ -72,6 +72,8 @@
   border-radius:var(--ui-radius-md);
   background:var(--ui-surface);
 }
+.cemetery-view-controls { display:flex; align-items:center; gap:8px; min-width:0; }
+.cemetery-view-controls .cemetery-tabs { flex:1; }
 .cemetery-tab {
   --sale-tab-accent:var(--wishlist);
   --sale-tab-rgb:var(--wishlist-rgb);
@@ -279,7 +281,8 @@
 
 @media(max-width:1100px) and (min-width:821px) {
   .cemetery-toolbar { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .cemetery-tabs { grid-column:1 / -1; min-width:0; }
+  .cemetery-view-controls { grid-column:1 / -1; }
+  .cemetery-tabs { min-width:0; }
   .sale-group { grid-template-columns:minmax(0,1fr) 144px; }
 }
 

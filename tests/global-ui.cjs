@@ -10,8 +10,29 @@ const server=createSandboxServer();
    const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
+   let headerGeometry;
    for(const view of ['home','collection','cemetery']){
     await page.locator('[data-page="'+view+'"]').click();
+    const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#theme-toggle,#profile-menu-btn')].map(node=>{
+     const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
+    }));
+    if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
+    else headerGeometry=geometry;
+    assert.equal(await page.locator('.topnav #global-filter-toggle').count(),0);
+    const filter=page.locator('#global-filter-toggle');
+    assert.equal(await filter.isVisible(),width<=820&&view!=='home');
+    if(width<=820&&view!=='home'){
+     const target=view==='collection'?'.platform-banner-title':'.cemetery-tabs';
+     const button=await filter.boundingBox(),title=await page.locator(target).boundingBox();
+     assert.ok(Math.abs(button.y+button.height/2-title.y-title.height/2)<23,'Filter is alongside page controls');
+     await filter.click();assert.equal(await filter.getAttribute('aria-expanded'),'true');
+     assert.equal(await page.locator('#'+view+'-sidebar').evaluate(el=>el.classList.contains('mobile-open')),true);
+     await page.locator('#mobile-backdrop').click({position:{x:width-1,y:400}});
+     assert.equal(await filter.getAttribute('aria-expanded'),'false');
+    }
+    if(view==='collection'&&width>=1101){
+     assert.equal(await page.locator('#grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),4,'Compact desktop grid');
+    }
     assert.equal(await page.locator('.nav-tab[aria-current="page"]').getAttribute('data-page'),view);
     const controls=view==='home'?'.board-add-btn':view==='collection'?'#search-input,#sort-select,#add-btn':'#cemetery-search,#cemetery-platform';
     for(const control of await page.locator(controls).all()){
@@ -53,6 +74,7 @@ const server=createSandboxServer();
    const platform=page.locator('#platform-list [role="button"]').nth(1);
    await platform.focus();await page.keyboard.press('Enter');
    assert.equal(await page.evaluate(()=>state.platform!==null),true,'Keyboard platform filter works');
+   assert.equal(await page.locator('#platform-banner #global-filter-toggle').count(),1,'Filter survives platform and results redraw');
 
    assert.deepEqual(errors,[]);
    await context.close();console.log('PASS global UI',width,theme);
