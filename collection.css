@@ -127,7 +127,7 @@
   #page-collection .library-stat-group { display:block; }
   #page-collection .library-stat-group + .library-stat-group { padding:0; border:0; }
   #page-collection .library-stat-group h3 { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-  #page-collection .library-stat-values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  #page-collection .library-stat-values { display:grid; align-items:stretch; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
   #page-collection .library-collection-values:has(> :nth-child(4)) { grid-template-columns:repeat(4,minmax(0,1fr)); }
   #page-collection .library-stat { flex-direction:column; align-items:flex-start; gap:3px; padding:7px; font-size:10.5px; white-space:normal; overflow-wrap:anywhere; }
   #page-collection .library-stat strong { font-size:16px; }
