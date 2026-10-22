@@ -87,7 +87,8 @@
   save.addEventListener('click',()=>{
     if(!activeGame || !native.classList.contains('guided-add-form'))return;
     const before=new Set(GAMES.map(game=>game.id));
-    queueMicrotask(()=>{
+    // A new task runs after the existing Save click handler, including its DOM updates.
+    setTimeout(()=>{
       if(!native.classList.contains('hidden'))return;
       const added=GAMES.find(game=>!before.has(game.id));
       if(!added)return;
@@ -97,7 +98,7 @@
         if(card){card.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});card.classList.add('guided-card-arrival');}
         showToast(`« ${added.nom} » a rejoint ta collection.`);
       });
-    });
+    },0);
   },true);
   window.JTDAddDemo={open};
 })();
