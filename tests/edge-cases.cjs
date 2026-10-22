@@ -32,6 +32,7 @@ const server=createSandboxServer();
   await page.locator('#results-reset-btn').click();
   assert.equal(await page.locator('#grid .card').count(),120,'Reset restores the whole collection');
   await page.evaluate(()=>{GAMES=[GAMES[0]];state.platform=null;render();openModal(GAMES[0].id);});
+  await page.locator('#f-identity-summary .identity-edit-btn').click();
   await page.locator('#delete-btn').click();await page.locator('#confirm-modal-confirm-btn').click();
   assert.match(await page.locator('.empty-state').textContent(),/Ta collection est vide/);
   assert.equal(await page.locator('#home-total-games').textContent(),'0','Deleting the last game refreshes the home count');
@@ -43,3 +44,4 @@ const server=createSandboxServer();
  }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

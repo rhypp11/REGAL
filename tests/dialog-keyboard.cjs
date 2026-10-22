@@ -49,7 +49,9 @@ async function checkTrap(page,id){
    }
    // Keyboard entry and restoring a rebuilt card after saving.
    const card=page.locator('#page-collection .card').first();await card.focus();await page.keyboard.press('Enter');
-   await checkTrap(page,'modal-overlay');await page.locator('#save-btn').click();
+   await checkTrap(page,'modal-overlay');
+   await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#save-btn').click();
    assert.equal(await page.evaluate(()=>document.activeElement.matches('#page-collection .card')),true,'Rebuilt card receives focus');
    // Required-field error is linked, focused, announced, and cleared after correction.
    await page.locator('#add-btn').click();await page.locator('#save-btn').click();
@@ -61,7 +63,9 @@ async function checkTrap(page,id){
    await page.locator('#modal-overlay').click({position:{x:1,y:1}});assert.equal(await page.locator('#f-nom').inputValue(),'Saisie fictive à conserver');await page.keyboard.press('Escape');
    // Confirmations cancel only themselves, and never execute deletion on Escape.
    const count=await page.evaluate(()=>GAMES.length);
-   await page.evaluate(()=>openModal(GAMES[0].id));await page.locator('#delete-btn').click();
+   await page.evaluate(()=>openModal(GAMES[0].id));
+   await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#delete-btn').click();
    assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-modal-cancel-btn','Confirmation starts on the safe action');
    await checkTrap(page,'confirm-modal-overlay');
    assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-modal-confirm-btn'); // checkTrap finishes at the last action
@@ -93,3 +97,4 @@ async function checkTrap(page,id){
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

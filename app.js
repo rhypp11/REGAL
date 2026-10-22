@@ -55,7 +55,25 @@ function writeStoredValue(key, value){
 }
 // A single sandbox-only snapshot keeps transfers atomic and survives refreshes.
 // It never reads account keys or contacts Firebase.
-const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1';
+// Hosted previews get a generous fictional collection; local regression fixtures stay small.
+const HAS_PREVIEW_COLLECTION_DEMO = IS_PREVIEW_MODE && location.hostname.startsWith('jtd-sandbox-rhypp11');
+function buildPreviewCollectionDemo(){
+  const titles = ['Les Jardins d’Aster','Chroniques du rivage','La Tour des saisons','Échos de cristal',
+    'L’Archipel oublié','Les Voyageurs de l’aube','Le Dernier atelier','Sous les lunes jumelles',
+    'La Route des étoiles','Mémoires de la forêt','Les Gardiens du phare','Un été à Solaria'];
+  const statuses = ['en_cours','a_jouer','termine','termine_ailleurs','multi',null];
+  return Array.from({length:72}, (_,i) => ({
+    id:'demo-collection-'+i,
+    nom:titles[i % titles.length] + ' ' + (Math.floor(i / titles.length) + 1) + ' — Démo',
+    plateforme:i < 48 ? 'Switch 2' : i < 64 ? 'PlayStation 5' : 'PlayStation 4',
+    format:'Physique', collector:i % 7 === 0, japanese:i % 11 === 0,
+    prix:i % 9 === 0 ? null : 19.99 + (i % 5) * 10,
+    date:i % 8 === 0 ? null : '2026-' + String(i % 10 + 1).padStart(2,'0') + '-15',
+    source:i % 3 === 0 ? 'Boutique démo' : 'Enseigne démo',
+    status:statuses[i % statuses.length], image:null
+  }));
+}
+const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1' + (HAS_PREVIEW_COLLECTION_DEMO ? ':collection-demo-v1' : '');
 let previewData;
 function loadPreviewData(){
   if(previewData) return previewData;
@@ -63,7 +81,9 @@ function loadPreviewData(){
     const raw = localStorage.getItem(PREVIEW_STORAGE_KEY);
     if(raw) return previewData = JTDData.normalizeData(JSON.parse(raw));
   } catch(error){ console.error('Lecture sandbox impossible', error); }
-  return previewData = JTDData.normalizeData({...PREVIEW_SEED, profileName:'Mode test'});
+  return previewData = JTDData.normalizeData({...PREVIEW_SEED,
+    games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo()] : PREVIEW_SEED.games,
+    profileName:'Mode test'});
 }
 function savePreviewData(overrides = {}){
   const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:LEGACY_JOURNAL, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
@@ -831,26 +851,102 @@ function sortGames(games){
   return arr;
 }
 
+function platformBandText(color){
+  let hex=String(color).replace('#','');
+  if(hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+  if(!/^[0-9a-f]{6}$/i.test(hex)) return 'var(--ui-text)';
+  const channels=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+  const luminance=.2126*channels[0]+.7152*channels[1]+.0722*channels[2];
+  return luminance>.179 ? '#111111' : '#ffffff';
+}
+
+// The compact context appears only once the full collection heading has left view.
+let collectionContextFrame = null;
+function requestCollectionContextUpdate(){
+  if(collectionContextFrame !== null) return;
+  collectionContextFrame = requestAnimationFrame(() => {
+    collectionContextFrame = null;
+    updateCollectionScrollContext();
+  });
+}
+function updateCollectionScrollContext(){
+  let context = document.getElementById('collection-scroll-context');
+  if(!context){
+    context = document.createElement('div');
+    context.id = 'collection-scroll-context';
+    context.className = 'collection-scroll-context hidden';
+    context.setAttribute('role','region');
+    context.setAttribute('aria-label','Collection filtrée');
+    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><span class="collection-context-icon" aria-hidden="true"></span><strong></strong><span class="collection-context-count"></span>';
+    context.querySelector('button').innerHTML = mobileFilterToggle.innerHTML;
+    context.querySelector('button').addEventListener('click', () => mobileFilterToggle.click());
+    document.getElementById('page-collection').appendChild(context);
+  }
+  if(navigationPage !== 'collection'){
+    context.classList.add('hidden');
+    return;
+  }
+  const banner = document.getElementById('platform-banner');
+  const nav = document.querySelector('.topnav').getBoundingClientRect();
+  const heading = banner.getBoundingClientRect();
+  const top = Math.max(0, nav.bottom);
+  const show = heading.bottom <= top;
+  context.classList.toggle('hidden', !show);
+  if(!show) return;
+  const main = document.querySelector('#page-collection .main').getBoundingClientRect();
+  context.style.top = top + 'px';
+  context.style.left = main.left + 'px';
+  context.style.width = main.width + 'px';
+  context.style.setProperty('--platform-accent',state.platform ? getPlatformColor(state.platform) : 'var(--ui-accent)');
+  context.style.setProperty('--platform-band-text',state.platform ? platformBandText(getPlatformColor(state.platform)) : 'var(--ui-text)');
+  context.classList.toggle('platform-filtered',!!state.platform);
+  const iconHtml=banner.querySelector('.platform-banner-logo,.platform-banner-fallback')?.outerHTML || '';
+  const icon=context.querySelector('.collection-context-icon');
+  if(icon.innerHTML!==iconHtml) icon.innerHTML=iconHtml;
+  context.querySelector('strong').textContent = state.platform || 'Tous les jeux';
+  const count = Number(banner.dataset.resultCount || 0);
+  context.querySelector('.collection-context-count').textContent = count + (count > 1 ? ' jeux' : ' jeu');
+}
+// Capture document and nested scrolling, including other views and drawers.
+document.addEventListener('scroll', requestCollectionContextUpdate, {passive:true, capture:true});
+window.addEventListener('resize', requestCollectionContextUpdate);
+
 function renderPlatformBanner(games){
   const banner = document.getElementById('platform-banner');
   if(!banner) return;
 
+  banner.dataset.resultCount = games.length;
+  requestCollectionContextUpdate();
   const total = games.length;
   const spent = games.reduce((sum,g) => sum + (g.prix || 0), 0);
   const collectors = games.filter(g => g.collector).length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
-  const termineCount = games.filter(g => g.status === 'termine' || g.status === 'termine_ailleurs').length;
-
-  const stat = (value, label, extraClass='') =>
-    `<span class="library-stat ${extraClass}"><strong>${value}</strong><span>${escapeHTML(label)}</span></span>`;
-
-  const statsHtml = [
-    stat(total, total > 1 ? 'jeux' : 'jeu'),
-    !state.platform ? stat(platformsCount, platformsCount > 1 ? 'plateformes' : 'plateforme') : '',
-    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'collection'),
-    collectors ? stat(collectors, collectors > 1 ? 'collectors' : 'collector', 'library-stat-collector') : '',
-    termineCount ? stat(termineCount, 'terminés', 'library-stat-done') : ''
-  ].filter(Boolean).join('<span class="library-stat-sep">·</span>');
+  const statIcons = {
+    games:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/></svg>',
+    platforms:ICON_STATUS_PLAYING,
+    spent:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M16 7.5a5 5 0 1 0 0 9M6 10h8M6 14h7"/></svg>',
+    collectors:FORMAT_ICON_STAR,
+    a_jouer:ICON_STATUS_TODO,
+    termine:ICON_STATUS_DONE,
+    multi:ICON_STATUS_MULTI
+  };
+  const stat = (value, label, key) =>
+    `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span class="library-stat-label"><span class="library-stat-icon" aria-hidden="true">${statIcons[key] || ''}</span>${key === 'platforms' ? `<span class="library-stat-label-wide">${escapeHTML(label)}</span><span class="library-stat-label-short">${platformsCount > 1 ? 'Supports' : 'Support'}</span>` : escapeHTML(label)}</span></span>`;
+  const collectionStats = [
+    stat(total, total > 1 ? 'Jeux' : 'Jeu', 'games'),
+    !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',
+    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'Valeur', 'spent'),
+    stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors')
+  ].join('');
+  const completionStats = [
+    stat(games.filter(g => !g.status || g.status==='a_jouer').length,'À faire','a_jouer'),
+    stat(games.filter(g => g.status==='termine' || g.status==='termine_ailleurs').length,'Terminés','termine'),
+    stat(games.filter(g => g.status==='multi').length,'Multi','multi')
+  ].join('');
+  const statsHtml = `<section class="library-stat-group" aria-labelledby="collection-stats-title">
+    <h3 id="collection-stats-title">Collection</h3><div class="library-stat-values library-collection-values">${collectionStats}</div>
+    </section><section class="library-stat-group" aria-labelledby="completion-stats-title">
+    <h3 id="completion-stats-title">Complétion</h3><div class="library-stat-values library-completion-values">${completionStats}</div></section>`;
 
   if(!state.platform){
     banner.classList.remove('hidden');
@@ -861,7 +957,7 @@ function renderPlatformBanner(games){
     banner.innerHTML = `
       <div class="platform-banner-head">
         <span class="platform-banner-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3.7 5.5l-1.2 3a2 2 0 0 1-3.2.8L15 15H9l-2.3 2.3a2 2 0 0 1-3.2-.8l-1.2-3A4 4 0 0 1 6 8Z"></path><path d="M7 12h4M9 10v4"></path><circle cx="16.5" cy="11.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="18.5" cy="13.5" r=".7" fill="currentColor" stroke="none"></circle></svg></span>
-        <div><span class="platform-banner-kicker">Ma collection</span><span class="platform-banner-title">Tous les jeux</span></div>
+        <div><span class="platform-banner-title">Tous les jeux</span></div>
       </div>
       <div class="platform-banner-stats">${statsHtml}</div>
     `;
@@ -876,11 +972,12 @@ function renderPlatformBanner(games){
   banner.style.background = '';
   banner.style.color = '';
   banner.style.setProperty('--platform-accent',color);
+  banner.style.setProperty('--platform-band-text',platformBandText(color));
   const logoHtml = logo
     ? `<img class="platform-banner-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
     : `<span class="platform-banner-fallback">${escapeHTML(initials)}</span>`;
   banner.innerHTML = `
-    <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-kicker">Ma collection</span><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
+    <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
     <div class="platform-banner-stats">${statsHtml}</div>
   `;
   if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
@@ -983,7 +1080,7 @@ function renderCard(g, options = {}){
   card.addEventListener('click', onOpen);
   card.tabIndex = 0;
   card.setAttribute('role', 'button');
-  card.setAttribute('aria-label', (options.onOpen ? 'Modifier la vente de ' : 'Modifier ') + g.nom);
+  card.setAttribute('aria-label', (options.onOpen ? 'Modifier la vente de ' : 'Ouvrir la fiche de ') + g.nom);
   card.addEventListener('keydown', event => {
     if(event.target===card && (event.key === 'Enter' || event.key === ' ')){ event.preventDefault(); onOpen(); }
   });
@@ -1222,6 +1319,7 @@ function setIdentityEditor(prefix, item, compact){
   const editBtn = summary.querySelector('.identity-edit-btn');
   if(editBtn){
     editBtn.addEventListener('click', () => {
+      if(prefix === 'f') setGameSheetViewing(false);
       summary.classList.add('hidden');
       editor.classList.remove('hidden');
       const nameInput = editor.querySelector('input[type="text"]');
@@ -1271,6 +1369,7 @@ function setContextEditor(prefix, item, type, compact){
   const btn = summary.querySelector('.context-edit-btn');
   if(btn){
     btn.addEventListener('click', () => {
+      if(prefix === 'f') setGameSheetViewing(false);
       summary.classList.add('hidden');
       editor.classList.remove('hidden');
       const first = editor.querySelector('input,select,button');
@@ -1319,6 +1418,11 @@ function commitBoardTransfer(from, to, id, draft){
     return null;
   }
 }
+function setGameSheetViewing(viewing){
+  document.getElementById('modal-overlay').classList.toggle('game-sheet-viewing', viewing);
+  document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
+}
+
 function openModal(id, collection = 'games'){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
@@ -1332,7 +1436,7 @@ function openModal(id, collection = 'games'){
 
   if(editingId){
     const g = items.find(x => x.id === editingId);
-    title.textContent = editingCollection === 'cemetery' ? 'Modifier les infos du jeu' : 'Modifier ce jeu';
+    title.textContent = editingCollection === 'cemetery' ? 'Modifier les infos du jeu' : 'Fiche du jeu';
     deleteBtn.classList.toggle('hidden', editingCollection === 'cemetery');
     document.getElementById('f-quick-hide-fields').classList.remove('hidden');
     document.getElementById('f-nom').value = g.nom || '';
@@ -1368,6 +1472,7 @@ function openModal(id, collection = 'games'){
   setIdentityEditor('f', identityItem, !!editingId);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
+  setGameSheetViewing(!!editingId && editingCollection === 'games');
   window.JTDDialogs.open('modal-overlay', {onDismiss:closeModal});
   if(!editingId) document.getElementById('f-nom').focus();
 }
@@ -1376,6 +1481,7 @@ function closeModal(){
   document.getElementById('f-sell-btn').classList.add('hidden');
   document.getElementById('save-btn').textContent = 'Enregistrer';
   window.JTDDialogs.close('modal-overlay');
+  setGameSheetViewing(false);
   document.getElementById('modal-overlay').classList.remove('cemetery-game-editor');
   editingId = null;
   editingCollection = 'games';
@@ -1854,7 +1960,7 @@ function openArrivalModal(id){
 
   if(editingArrivalId){
     const item = ARRIVALS.find(x => x.id === editingArrivalId);
-    title.textContent = 'Modifier cet arrivage';
+    title.textContent = 'Arrivage';
     deleteBtn.classList.remove('hidden');
     receivedBtn.classList.remove('hidden');
     document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
@@ -1932,6 +2038,8 @@ function addArrivalToCollection(id){
   const item = ARRIVALS.find(x => x.id === id);
   if(!item) return;
 
+  setGameSheetViewing(false);
+
   convertingArrivalId = id;
   editingId = null;
   fillIdentityFields('f', item);
@@ -1963,7 +2071,7 @@ function openWishlistModal(id){
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    title.textContent = 'Modifier cet élément';
+    title.textContent = 'Wishlist';
     deleteBtn.classList.remove('hidden');
     orderBtn.classList.remove('hidden');
     setFlexibleDate('w', item.date);
@@ -2559,6 +2667,7 @@ function goToPage(page, push = true){
   // applyNavigation owns its own final persistence.
   restoringNavigation = wasRestoring;
   closeMobileDrawers();
+  requestCollectionContextUpdate();
   if(push) persistNavigation(true);
 }
 window.addEventListener('popstate', event => {
@@ -2579,6 +2688,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
 
 /* ---------- Navigation mobile ---------- */
 function closeMobileDrawers(){
+  document.querySelector('.collection-context-filters')?.setAttribute('aria-expanded','false');
   mobileFilterToggle.setAttribute('aria-expanded', 'false');
   document.querySelectorAll('.sidebar.mobile-open').forEach(el => el.classList.remove('mobile-open'));
   document.getElementById('mobile-backdrop').classList.remove('visible');
@@ -2588,6 +2698,7 @@ function openMobileDrawer(el){
   if(!el) return;
   closeMobileDrawers();
   el.classList.add('mobile-open');
+  document.querySelector('.collection-context-filters')?.setAttribute('aria-expanded','true');
   mobileFilterToggle.setAttribute('aria-expanded', 'true');
   mobileFilterToggle.setAttribute('aria-controls', el.id);
   document.getElementById('mobile-backdrop').classList.add('visible');
@@ -2609,6 +2720,7 @@ document.getElementById('global-filter-toggle')?.addEventListener('click', () =>
 function updateTopnavHeightVar(){
   const h = document.querySelector('.topnav')?.offsetHeight || 50;
   document.documentElement.style.setProperty('--topnav-h', h + 'px');
+  requestCollectionContextUpdate();
 }
 updateTopnavHeightVar();
 const topnavEl = document.querySelector('.topnav');

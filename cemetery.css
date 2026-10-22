@@ -269,7 +269,6 @@
 #page-cemetery select option,#sale-modal-overlay select option { background-color:var(--ui-surface); color:var(--ui-text); }
 #global-filter-toggle.hidden { display:none !important; }
 .cemetery-empty { padding:48px 20px; text-align:center; color:var(--ui-text-muted); font-size:12px; }
-#sale-identity { margin-bottom:20px; }
 #sale-identity .game-identity-summary { grid-template-columns:auto minmax(0,1fr); }
 .sale-acquisition { margin:8px 0 16px; color:var(--ui-text-muted); font-size:12px; line-height:1.6; }
 .sale-lot-option { display:flex; align-items:center; gap:10px; padding:10px 0; cursor:pointer; font-size:14px; }
@@ -340,3 +339,4 @@
   .sale-game.card .card-summary { align-items:flex-start; }
   .sale-game.card .card-acquisition > * + *::before { margin:0 4px; }
 }
+

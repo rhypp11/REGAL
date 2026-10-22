@@ -18,6 +18,30 @@ const server=createSandboxServer();
      if(scene==='arrival')openArrivalModal(ARRIVALS[0].id);
      if(scene==='sale'){CEMETERY.push({...GAMES[0],id:'modal-sale',saleStatus:'pending'});openSaleModal('modal-sale');}
     },scene);
+    if(scene!=='new'){
+     const summary=page.locator('.modal-overlay:not(.hidden) .game-identity-summary').first();
+     assert.equal(await summary.evaluate(el=>getComputedStyle(el).borderTopWidth),'0px','Game identity is an open heading: '+scene);
+     if(scene!=='sale')assert.equal(await summary.evaluate(el=>getComputedStyle(el.parentElement).backgroundColor),'rgba(0, 0, 0, 0)','Identity has no enclosing panel: '+scene);
+     if([390,1440].includes(width))await page.screenshot({path:`/tmp/jtd-sheet-${scene}-${width}-${theme}.png`,fullPage:true});
+    }
+    if(scene==='collection'){
+     assert.equal(await page.locator('#modal-title').innerText(),'Fiche du jeu');
+     assert.equal(await page.locator('#cancel-btn').innerText(),'Fermer');
+     assert.equal(await page.locator('#save-btn').isVisible(),false,'Consultation does not offer to save');
+     assert.equal(await page.locator('#delete-btn').isVisible(),false,'Consultation keeps deletion out of the way');
+     const before=await page.evaluate(()=>JSON.stringify(GAMES));
+     if([320,390,1440].includes(width))await page.screenshot({path:`/tmp/jtd-sheet-view-${width}-${theme}.png`,fullPage:true});
+     await page.locator('#f-context-summary .context-edit-btn').click();
+     assert.equal(await page.locator('#save-btn').isVisible(),true,'Purchase pencil enters editing');
+     assert.equal(await page.locator('#cancel-btn').innerText(),'Annuler');
+     await page.locator('#f-source').fill('Modification à annuler');
+     await page.locator('#cancel-btn').click();
+     assert.equal(await page.evaluate(()=>JSON.stringify(GAMES)),before,'Cancel keeps the game unchanged');
+     await page.evaluate(()=>openModal(GAMES[0].id));
+     assert.equal(await page.locator('#save-btn').isVisible(),false,'Reopening returns to consultation');
+     await page.locator('#f-identity-summary .identity-edit-btn').click();
+     assert.equal(await page.locator('#save-btn').isVisible(),true,'Game pencil enters editing');
+    }
     const footer=page.locator('.modal-overlay:not(.hidden) .modal-edit-actions');
     await footer.locator('[data-modal-action="save"]').scrollIntoViewIfNeeded();
     const result=await footer.evaluate(el=>{
@@ -38,3 +62,4 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

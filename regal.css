@@ -1,5 +1,5 @@
 /* REGAL — signature commune aux pages, menus et dialogues. */
-.topnav { background:#195e70; border-color:#195e70; color:#fff; }
+.topnav { position:sticky; top:0; background:#195e70; border-color:#195e70; color:#fff; }
 .topnav .brand-word.regal-logo { display:block; width:140px; height:42px; object-fit:contain; }
 .topnav .nav-tab { color:#d7e9ed; }
 .topnav .nav-tab:hover,.topnav .nav-tab.active { color:#fff; background:#ffffff20; }
@@ -26,3 +26,4 @@
 }
 /* Cartes plus compactes sur ordinateur ; largeur mobile conservée. */
 @media(min-width:1101px) { #page-collection .grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+

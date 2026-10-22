@@ -1,0 +1,85 @@
+/* Shared sheets: game identity is the heading, context is a quiet panel. */
+.sheet-dialog > .modal {
+  border-radius:22px;
+  gap:16px;
+}
+.sheet-dialog > .modal .form-section {
+  margin:0;
+  padding:16px;
+  gap:12px;
+  border:1px solid color-mix(in srgb,var(--ui-border) 65%,transparent);
+  border-radius:16px;
+  background:color-mix(in srgb,var(--ui-surface-raised) 60%,var(--ui-surface));
+}
+.sheet-dialog .form-section > .form-section-title {
+  color:var(--ui-text-muted);
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0;
+}
+.sheet-dialog :is(.game-identity-summary,.context-summary) {
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  align-items:flex-start;
+  min-height:0;
+  gap:12px;
+}
+.sheet-dialog .identity-thumb {
+  width:96px;
+  height:54px;
+  flex-basis:96px;
+  border-radius:10px;
+}
+.sheet-dialog .identity-copy { padding-block:3px; gap:8px; }
+.sheet-dialog .identity-copy strong,
+.sheet-dialog .identity-copy strong > span:last-child,
+.sheet-dialog .context-summary-values strong {
+  white-space:normal;
+  overflow:visible;
+  overflow-wrap:anywhere;
+  text-overflow:clip;
+  line-height:1.5;
+}
+.sheet-dialog .identity-copy strong { align-items:baseline; font-size:17px; }
+.sheet-dialog .identity-copy > span { flex-wrap:wrap; line-height:1.5; }
+.sheet-dialog .context-summary-values { gap:14px 12px; }
+.sheet-dialog .context-summary-values small { color:var(--ui-text-muted); font-size:11px; line-height:1.4; }
+.sheet-dialog :is(.identity-edit-btn,.context-edit-btn) {
+  width:40px;
+  height:40px;
+  flex-basis:40px;
+  border-radius:12px;
+  color:var(--ui-text-muted);
+  background:color-mix(in srgb,var(--ui-text) 4%,transparent);
+}
+.sheet-dialog :is(.identity-edit-btn,.context-edit-btn):hover {
+  background:color-mix(in srgb,var(--ui-text) 8%,transparent);
+  color:var(--ui-text);
+}
+#modal-overlay.game-sheet-viewing :is(#save-btn,#delete-btn) { display:none; }
+#modal-overlay.game-sheet-viewing .modal-primary-actions { display:flex; justify-content:flex-end; }
+#modal-overlay.game-sheet-viewing #cancel-btn { width:auto; min-width:100px; }
+@media(max-width:640px) {
+  .sheet-dialog > .modal .form-section { padding:12px; }
+  .sheet-dialog .identity-thumb { width:64px; height:36px; flex-basis:64px; }
+  .sheet-dialog :is(.game-identity-summary,.context-summary) { gap:8px; }
+  .sheet-dialog .identity-copy strong { font-size:15px; }
+}
+
+.sheet-dialog > .modal .form-section:has(.game-identity-summary),
+.sheet-dialog > .modal .game-sheet-hero {
+  margin:0;
+  padding:4px 0 8px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+.sheet-dialog .game-identity-summary { align-items:center; }
+.sheet-dialog .identity-copy > span { font-size:12px; }
+.sheet-dialog .sale-acquisition { margin:10px 0 0; color:var(--ui-text-muted); line-height:1.5; }
+.sheet-dialog #sale-identity .sale-acquisition + .game-identity-summary { margin-top:16px; }
+@media(max-width:640px) {
+  .sheet-dialog > .modal .form-section:has(.game-identity-summary) { padding:4px 0 8px; }
+}
