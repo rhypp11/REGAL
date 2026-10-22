@@ -122,7 +122,7 @@ const server=createSandboxServer();
      assert.equal(await page.locator('#collection-sidebar').evaluate(el=>el.classList.contains('mobile-open')),true,'Compact context gives access to filters');
      await page.evaluate(()=>closeMobileDrawers());
     }
-    await page.screenshot({path:`/tmp/jtd-collection-scroll-${width}-${theme}.png`,fullPage:true});
+    await page.screenshot({path:`/tmp/jtd-collection-scroll-${width}-${theme}.png`});
     await page.evaluate(()=>{state.platform=null;render();});
     await page.waitForTimeout(50);
     assert.equal(await band.locator('strong').innerText(),'Tous les jeux','Context updates after a filter change');
