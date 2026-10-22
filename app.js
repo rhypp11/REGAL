@@ -921,8 +921,17 @@ function renderPlatformBanner(games){
   const spent = games.reduce((sum,g) => sum + (g.prix || 0), 0);
   const collectors = games.filter(g => g.collector).length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
+  const statIcons = {
+    games:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/></svg>',
+    platforms:ICON_STATUS_PLAYING,
+    spent:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M16 7.5a5 5 0 1 0 0 9M6 10h8M6 14h7"/></svg>',
+    collectors:FORMAT_ICON_STAR,
+    a_jouer:ICON_STATUS_TODO,
+    termine:ICON_STATUS_DONE,
+    multi:ICON_STATUS_MULTI
+  };
   const stat = (value, label, key) =>
-    `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span>${escapeHTML(label)}</span></span>`;
+    `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span class="library-stat-label"><span class="library-stat-icon" aria-hidden="true">${statIcons[key] || ''}</span>${escapeHTML(label)}</span></span>`;
   const collectionStats = [
     stat(total, total > 1 ? 'Jeux' : 'Jeu', 'games'),
     !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',

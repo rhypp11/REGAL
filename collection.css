@@ -57,10 +57,10 @@
 }
 #page-collection .platform-banner .page-filter-toggle { background:transparent; color:inherit; border-color:currentColor; }
 #page-collection .platform-banner-stats { display:flex; justify-content:flex-start; align-items:center; gap:16px; margin:0; }
-#page-collection .library-stat-group { display:flex; align-items:baseline; min-width:0; gap:10px; }
+#page-collection .library-stat-group { display:flex; align-items:center; min-width:0; gap:10px; }
 #page-collection .library-stat-group + .library-stat-group { padding-left:16px; border-left:1px solid var(--ui-border); }
 #page-collection .library-stat-group h3 { margin:0; font-size:11px; font-weight:500; color:var(--ui-text-muted); }
-#page-collection .library-stat-values { display:flex; align-items:baseline; gap:8px; min-width:0; }
+#page-collection .library-stat-values { display:flex; align-items:center; gap:8px; min-width:0; }
 #page-collection .library-stat {
   --stat-color:var(--ui-accent);
   display:flex;
@@ -80,15 +80,9 @@
 #page-collection .library-stat[data-stat="a_jouer"] { --stat-color:var(--status-todo); }
 #page-collection .library-stat[data-stat="termine"] { --stat-color:var(--status-done); }
 #page-collection .library-stat[data-stat="multi"] { --stat-color:var(--status-multi); }
-#page-collection .library-completion-values .library-stat > span::before {
-  content:"";
-  display:inline-block;
-  width:5px;
-  height:5px;
-  margin:0 5px 1px 0;
-  border-radius:50%;
-  background:var(--stat-color);
-}
+#page-collection .library-stat-label { display:inline-flex; align-items:center; gap:4px; min-width:0; }
+#page-collection .library-stat-icon { display:inline-flex; align-items:center; justify-content:center; flex:0 0 12px; width:12px; height:12px; color:var(--stat-color); opacity:.85; }
+#page-collection .library-stat-icon svg { width:12px; height:12px; }
 .collection-scroll-context {
   position:fixed;
   z-index:25;
