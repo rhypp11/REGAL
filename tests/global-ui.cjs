@@ -103,7 +103,7 @@ const server=createSandboxServer();
     assert.equal(await band.locator('strong').innerText(),'Tous les jeux','Context updates after a filter change');
     await page.evaluate(()=>goToPage('home'));
     assert.equal(await band.isVisible(),false,'Context stays within collection');
-    await page.evaluate(()=>{window.scrollTo(0,0);document.querySelector('#page-collection .main').scrollTop=0;goToPage('collection');});
+    await page.evaluate(()=>{goToPage('collection');window.scrollTo(0,0);document.querySelector('#page-collection .main').scrollTop=0;});
     await page.waitForTimeout(50);
     assert.equal(await band.isVisible(),false,'Full heading replaces compact context on return to top');
    }
