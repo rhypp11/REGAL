@@ -929,14 +929,23 @@ function renderCard(g, options = {}){
     ? `<img class="mini-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
     : `<span class="dot" style="--spine:${color}"></span>`}<span>${escapeHTML(g.plateforme)}</span>`;
 
-  const purchaseBits = [];
-  if(g.source) purchaseBits.push(`<span class="card-source" title="${escapeHTML(g.source)}">${escapeHTML(g.source)}</span>`);
-  if(g.prix != null) purchaseBits.push(`<span class="card-price">${euros(g.prix)}</span>`);
-  const purchaseHtml = purchaseBits.length ? `<div class="card-purchase">${purchaseBits.join('')}</div>` : '';
-  const purchaseDateHtml = g.date ? `<time class="card-purchase-date" datetime="${escapeHTML(g.date)}" title="Date d'achat">${escapeHTML(dateFR(g.date))}</time>` : '';
-  const acquisitionHtml = purchaseDateHtml || purchaseHtml
-    ? `<div class="card-acquisition">${purchaseDateHtml}${purchaseHtml}</div>`
-    : '';
+  // Only expose the acquisition value that explains the collection's active sort.
+  // Sale cards keep their own metadata and must not inherit collection sorting.
+  let acquisitionHtml = '';
+  if(options.readOnly){
+    const bits = [];
+    if(g.source) bits.push(`<span class="card-source" title="${escapeHTML(g.source)}">${escapeHTML(g.source)}</span>`);
+    if(g.prix != null) bits.push(`<span class="card-price">${euros(g.prix)}</span>`);
+    const dateHtml = g.date ? `<time class="card-purchase-date" datetime="${escapeHTML(g.date)}" title="Date d'achat">${escapeHTML(dateFR(g.date))}</time>` : '';
+    if(dateHtml || bits.length) acquisitionHtml = `<div class="card-acquisition">${dateHtml}${bits.length ? `<div class="card-purchase">${bits.join('')}</div>` : ''}</div>`;
+  } else if(state.sort.startsWith('price-')){
+    acquisitionHtml = `<div class="card-acquisition"><span class="card-sort-label">Prix d'achat</span><span class="card-price">${g.prix != null ? euros(g.prix) : 'Non renseigné'}</span></div>`;
+  } else if(state.sort.startsWith('date-')){
+    const dateHtml = g.date
+      ? `<time class="card-purchase-date" datetime="${escapeHTML(g.date)}">${escapeHTML(dateFR(g.date))}</time>`
+      : '<span class="card-purchase-date">Non renseignée</span>';
+    acquisitionHtml = `<div class="card-acquisition"><span class="card-sort-label">Date d'achat</span>${dateHtml}</div>`;
+  }
 
   card.innerHTML = `
     ${bannerHtml}
@@ -2731,4 +2740,5 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
+
 
