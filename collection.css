@@ -56,13 +56,39 @@
   color:inherit;
 }
 #page-collection .platform-banner .page-filter-toggle { background:transparent; color:inherit; border-color:currentColor; }
-#page-collection .platform-banner-stats { display:flex; justify-content:flex-start; align-items:center; gap:24px; margin:0; }
-#page-collection .library-stat-group { display:flex; align-items:baseline; min-width:0; gap:14px; }
-#page-collection .library-stat-group + .library-stat-group { padding-left:24px; border-left:1px solid var(--ui-border); }
+#page-collection .platform-banner-stats { display:flex; justify-content:flex-start; align-items:center; gap:16px; margin:0; }
+#page-collection .library-stat-group { display:flex; align-items:baseline; min-width:0; gap:10px; }
+#page-collection .library-stat-group + .library-stat-group { padding-left:16px; border-left:1px solid var(--ui-border); }
 #page-collection .library-stat-group h3 { margin:0; font-size:11px; font-weight:500; color:var(--ui-text-muted); }
-#page-collection .library-stat-values { display:flex; align-items:baseline; gap:16px; min-width:0; }
-#page-collection .library-stat { display:flex; align-items:baseline; gap:5px; min-width:0; white-space:nowrap; font-size:11px; line-height:1.4; }
+#page-collection .library-stat-values { display:flex; align-items:baseline; gap:8px; min-width:0; }
+#page-collection .library-stat {
+  --stat-color:var(--ui-accent);
+  display:flex;
+  align-items:baseline;
+  gap:5px;
+  min-width:0;
+  padding:7px 9px;
+  border:1px solid color-mix(in srgb,var(--stat-color) 14%,transparent);
+  border-radius:10px;
+  background:color-mix(in srgb,var(--stat-color) 6%,var(--ui-surface));
+  white-space:nowrap;
+  font-size:11px;
+  line-height:1.4;
+}
 #page-collection .library-stat strong { font-size:15px; font-weight:650; line-height:1.2; letter-spacing:-.025em; color:var(--ui-text); }
+#page-collection .library-stat[data-stat="collectors"] { --stat-color:var(--amber); }
+#page-collection .library-stat[data-stat="a_jouer"] { --stat-color:var(--status-todo); }
+#page-collection .library-stat[data-stat="termine"] { --stat-color:var(--status-done); }
+#page-collection .library-stat[data-stat="multi"] { --stat-color:var(--status-multi); }
+#page-collection .library-completion-values .library-stat > span::before {
+  content:"";
+  display:inline-block;
+  width:5px;
+  height:5px;
+  margin:0 5px 1px 0;
+  border-radius:50%;
+  background:var(--stat-color);
+}
 .collection-scroll-context {
   position:fixed;
   z-index:25;
@@ -71,7 +97,7 @@
   gap:12px;
   box-sizing:border-box;
   min-height:48px;
-  padding:8px 24px;
+  padding:8px 16px;
   background:var(--ui-surface-raised);
   border-bottom:1px solid var(--ui-border);
   color:var(--ui-text);
@@ -87,8 +113,11 @@
 @media(min-width:821px) {
   /* One page scrolls, including its gutters; cards no longer sit in an inner scroller. */
   #page-collection .app { height:auto; min-height:calc(100dvh - var(--topnav-h)); }
-  #page-collection .main { overflow:visible; }
+  #page-collection .main { overflow:visible; padding-left:16px; padding-right:16px; }
   #collection-sidebar { position:sticky; top:var(--topnav-h); height:calc(100dvh - var(--topnav-h)); align-self:start; }
+}
+@media(min-width:1101px) and (max-width:1279px) {
+  #page-collection .library-stat-group h3 { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 }
 @media(min-width:821px) and (max-width:1100px) {
   #page-collection .platform-banner-stats { flex-direction:column; align-items:flex-start; gap:10px; }
@@ -104,7 +133,7 @@
   #page-collection .library-stat-group h3 { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   #page-collection .library-stat-values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
   #page-collection .library-collection-values:has(> :nth-child(4)) { grid-template-columns:repeat(4,minmax(0,1fr)); }
-  #page-collection .library-stat { flex-direction:column; align-items:flex-start; gap:3px; font-size:10.5px; white-space:normal; overflow-wrap:anywhere; }
+  #page-collection .library-stat { flex-direction:column; align-items:flex-start; gap:3px; padding:7px; font-size:10.5px; white-space:normal; overflow-wrap:anywhere; }
   #page-collection .library-stat strong { font-size:16px; }
   .collection-scroll-context { padding:6px 14px; gap:10px; }
   .collection-context-filters { display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 36px; border:1px solid currentColor; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
