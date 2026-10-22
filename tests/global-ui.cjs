@@ -87,19 +87,35 @@ const server=createSandboxServer();
     const values=await page.locator('#platform-banner [data-stat]').evaluateAll(els=>Object.fromEntries(els.map(el=>[el.dataset.stat,el.querySelector('strong').textContent])));
     assert.equal(values.games,'75','Demo collection provides a real scroll');
     assert.equal(values.platforms,'3');assert.equal(values.collectors,'12');
-    assert.equal(values.en_cours,'12');assert.equal(values.a_jouer,'13');assert.equal(values.termine,'12');
-    assert.equal(values.termine_ailleurs,'13');assert.equal(values.multi,'13');assert.equal(values.none,'12');
+    assert.equal(values.a_jouer,'25','Unassigned and to-do games share the pending counter');
+    assert.equal(values.termine,'25','Completed here and elsewhere share one counter');
+    assert.equal(values.multi,'13');
+    assert.equal(values.en_cours,undefined);assert.equal(values.none,undefined);assert.equal(values.termine_ailleurs,undefined);
+    assert.equal(await page.locator('.platform-banner-kicker').count(),0,'No redundant collection subtitle');
+    if(width>1100){
+     const rows=await page.locator('#platform-banner [data-stat]').evaluateAll(els=>els.map(el=>el.getBoundingClientRect().top));
+     assert.ok(Math.max(...rows)-Math.min(...rows)<2,'All desktop counters share one row');
+    }else{
+     const rows=await page.locator('#platform-banner .library-stat-values').evaluateAll(groups=>groups.map(group=>[...group.children].map(el=>el.getBoundingClientRect().top)));
+     for(const row of rows)assert.ok(Math.max(...row)-Math.min(...row)<1,'Each mobile group occupies one row');
+    }
     await page.evaluate(()=>{state.platform='Switch 2';render();});
     await page.waitForTimeout(50);
     assert.equal(await page.locator('#platform-banner [data-stat="games"] strong').innerText(),'50','Counts follow the active platform');
-    assert.equal(await page.locator('#platform-banner [data-stat="platforms"] strong').innerText(),'1');
+    assert.equal(await page.locator('#platform-banner [data-stat="platforms"]').count(),0,'Selected platform does not need a platform count');
+    const platformColor=await page.locator('.platform-banner-head').evaluate(el=>getComputedStyle(el).backgroundColor);
+    assert.notEqual(platformColor,'rgba(0, 0, 0, 0)','Platform heading has a full color background');
+    await page.screenshot({path:`/tmp/jtd-platform-band-top-${width}-${theme}.png`});
     const band=page.locator('#collection-scroll-context');
     assert.equal(await band.isVisible(),false,'No compact context at the top');
     assert.equal(await page.locator('#platform-banner').evaluate(el=>getComputedStyle(el,'::before').content),'none','No decorative platform underline');
     await page.evaluate(()=>{window.scrollTo(0,900);document.querySelector('#page-collection .main').scrollTop=900;});
     await band.waitFor({state:'visible'});
     assert.equal(await band.locator('strong').innerText(),await page.evaluate(()=>state.platform));
-    assert.equal(await band.locator('span').innerText(),'50 jeux');
+    assert.equal(await band.locator('.collection-context-count').innerText(),'50 jeux');
+    assert.equal(await band.locator('.collection-context-icon > *').count(),1,'Compact band retains the platform icon');
+    assert.equal(await band.evaluate(el=>getComputedStyle(el).backgroundColor),platformColor,'Compact and full bands use the same platform color');
+    if(width>820)assert.ok(await page.evaluate(()=>scrollY>0 && document.querySelector('#page-collection .main').scrollTop===0),'Desktop collection uses one document scroll');
     const rect=await band.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1,'Compact context stays on screen');
     if(width<=820){
      await band.locator('button').click();

@@ -851,6 +851,15 @@ function sortGames(games){
   return arr;
 }
 
+function platformBandText(color){
+  let hex=String(color).replace('#','');
+  if(hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+  if(!/^[0-9a-f]{6}$/i.test(hex)) return 'var(--ui-text)';
+  const channels=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+  const luminance=.2126*channels[0]+.7152*channels[1]+.0722*channels[2];
+  return luminance>.179 ? '#111111' : '#ffffff';
+}
+
 // The compact context appears only once the full collection heading has left view.
 let collectionContextFrame = null;
 function requestCollectionContextUpdate(){
@@ -868,7 +877,7 @@ function updateCollectionScrollContext(){
     context.className = 'collection-scroll-context hidden';
     context.setAttribute('role','region');
     context.setAttribute('aria-label','Collection filtrée');
-    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><strong></strong><span></span>';
+    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><span class="collection-context-icon" aria-hidden="true"></span><strong></strong><span class="collection-context-count"></span>';
     context.querySelector('button').innerHTML = mobileFilterToggle.innerHTML;
     context.querySelector('button').addEventListener('click', () => mobileFilterToggle.click());
     document.getElementById('page-collection').appendChild(context);
@@ -889,12 +898,16 @@ function updateCollectionScrollContext(){
   context.style.left = main.left + 'px';
   context.style.width = main.width + 'px';
   context.style.setProperty('--platform-accent',state.platform ? getPlatformColor(state.platform) : 'var(--ui-accent)');
+  context.style.setProperty('--platform-band-text',state.platform ? platformBandText(getPlatformColor(state.platform)) : 'var(--ui-text)');
   context.classList.toggle('platform-filtered',!!state.platform);
+  const iconHtml=banner.querySelector('.platform-banner-logo,.platform-banner-fallback')?.outerHTML || '';
+  const icon=context.querySelector('.collection-context-icon');
+  if(icon.innerHTML!==iconHtml) icon.innerHTML=iconHtml;
   context.querySelector('strong').textContent = state.platform || 'Tous les jeux';
   const count = Number(banner.dataset.resultCount || 0);
-  context.querySelector('span').textContent = count + (count > 1 ? ' jeux' : ' jeu');
+  context.querySelector('.collection-context-count').textContent = count + (count > 1 ? ' jeux' : ' jeu');
 }
-// Desktop scrolls the collection main; mobile scrolls the document.
+// Capture document and nested scrolling, including other views and drawers.
 document.addEventListener('scroll', requestCollectionContextUpdate, {passive:true, capture:true});
 window.addEventListener('resize', requestCollectionContextUpdate);
 
@@ -912,14 +925,15 @@ function renderPlatformBanner(games){
     `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span>${escapeHTML(label)}</span></span>`;
   const collectionStats = [
     stat(total, total > 1 ? 'Jeux' : 'Jeu', 'games'),
-    stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms'),
-    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'Total des achats', 'spent'),
+    !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',
+    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'Valeur', 'spent'),
     stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors')
   ].join('');
   const completionStats = [
-    ['en_cours','En cours'], ['a_jouer','À faire'], ['termine','Terminés'],
-    ['termine_ailleurs','Terminés ailleurs'], ['multi','Multi'], ['none','Sans statut']
-  ].map(([key,label]) => stat(games.filter(g => key === 'none' ? !g.status : g.status === key).length,label,key)).join('');
+    stat(games.filter(g => !g.status || g.status==='a_jouer').length,'À faire','a_jouer'),
+    stat(games.filter(g => g.status==='termine' || g.status==='termine_ailleurs').length,'Terminés','termine'),
+    stat(games.filter(g => g.status==='multi').length,'Multi','multi')
+  ].join('');
   const statsHtml = `<section class="library-stat-group" aria-labelledby="collection-stats-title">
     <h3 id="collection-stats-title">Collection</h3><div class="library-stat-values library-collection-values">${collectionStats}</div>
     </section><section class="library-stat-group" aria-labelledby="completion-stats-title">
@@ -934,7 +948,7 @@ function renderPlatformBanner(games){
     banner.innerHTML = `
       <div class="platform-banner-head">
         <span class="platform-banner-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3.7 5.5l-1.2 3a2 2 0 0 1-3.2.8L15 15H9l-2.3 2.3a2 2 0 0 1-3.2-.8l-1.2-3A4 4 0 0 1 6 8Z"></path><path d="M7 12h4M9 10v4"></path><circle cx="16.5" cy="11.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="18.5" cy="13.5" r=".7" fill="currentColor" stroke="none"></circle></svg></span>
-        <div><span class="platform-banner-kicker">Ma collection</span><span class="platform-banner-title">Tous les jeux</span></div>
+        <div><span class="platform-banner-title">Tous les jeux</span></div>
       </div>
       <div class="platform-banner-stats">${statsHtml}</div>
     `;
@@ -949,11 +963,12 @@ function renderPlatformBanner(games){
   banner.style.background = '';
   banner.style.color = '';
   banner.style.setProperty('--platform-accent',color);
+  banner.style.setProperty('--platform-band-text',platformBandText(color));
   const logoHtml = logo
     ? `<img class="platform-banner-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
     : `<span class="platform-banner-fallback">${escapeHTML(initials)}</span>`;
   banner.innerHTML = `
-    <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-kicker">Ma collection</span><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
+    <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
     <div class="platform-banner-stats">${statsHtml}</div>
   `;
   if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
