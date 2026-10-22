@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="ui-foundations.css?v=local-filters-1">
 <link rel="stylesheet" href="collection.css?v=light-cards-1">
 <link rel="stylesheet" href="regal.css?v=local-filters-1">
+<link rel="stylesheet" href="game-sheet.css?v=soft-sheet-1">
 </head>
 <body>
 
@@ -376,7 +377,8 @@
     <h2 id="modal-title">Ajouter un jeu</h2>
 
 
-    <div class="form-section">
+    <div class="form-section game-sheet-section" aria-labelledby="game-sheet-identity-title">
+      <div class="form-section-title" id="game-sheet-identity-title">Le jeu</div>
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
       <div class="game-identity-editor" id="f-identity-editor">
       <div class="field">
@@ -411,8 +413,8 @@
       </div>
     </div>
 
-    <div id="f-quick-hide-fields" class="form-section">
-      <div class="form-section-title">Achat</div>
+    <div id="f-quick-hide-fields" class="form-section game-sheet-section" aria-labelledby="game-sheet-purchase-title">
+      <div class="form-section-title" id="game-sheet-purchase-title">Achat</div>
       <div class="context-summary hidden" id="f-context-summary"></div>
       <div class="context-editor" id="f-context-editor">
       <div class="field-row">
@@ -540,7 +542,7 @@
 </script>
 <script src="jtd-data.js?v=collection-1"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=light-cards-1"></script>
+<script src="app.js?v=soft-sheet-1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>

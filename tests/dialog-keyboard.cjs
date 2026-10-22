@@ -49,7 +49,9 @@ async function checkTrap(page,id){
    }
    // Keyboard entry and restoring a rebuilt card after saving.
    const card=page.locator('#page-collection .card').first();await card.focus();await page.keyboard.press('Enter');
-   await checkTrap(page,'modal-overlay');await page.locator('#save-btn').click();
+   await checkTrap(page,'modal-overlay');
+   await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#save-btn').click();
    assert.equal(await page.evaluate(()=>document.activeElement.matches('#page-collection .card')),true,'Rebuilt card receives focus');
    // Required-field error is linked, focused, announced, and cleared after correction.
    await page.locator('#add-btn').click();await page.locator('#save-btn').click();
@@ -93,3 +95,4 @@ async function checkTrap(page,id){
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

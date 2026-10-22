@@ -983,7 +983,7 @@ function renderCard(g, options = {}){
   card.addEventListener('click', onOpen);
   card.tabIndex = 0;
   card.setAttribute('role', 'button');
-  card.setAttribute('aria-label', (options.onOpen ? 'Modifier la vente de ' : 'Modifier ') + g.nom);
+  card.setAttribute('aria-label', (options.onOpen ? 'Modifier la vente de ' : 'Ouvrir la fiche de ') + g.nom);
   card.addEventListener('keydown', event => {
     if(event.target===card && (event.key === 'Enter' || event.key === ' ')){ event.preventDefault(); onOpen(); }
   });
@@ -1222,6 +1222,7 @@ function setIdentityEditor(prefix, item, compact){
   const editBtn = summary.querySelector('.identity-edit-btn');
   if(editBtn){
     editBtn.addEventListener('click', () => {
+      if(prefix === 'f') setGameSheetViewing(false);
       summary.classList.add('hidden');
       editor.classList.remove('hidden');
       const nameInput = editor.querySelector('input[type="text"]');
@@ -1271,6 +1272,7 @@ function setContextEditor(prefix, item, type, compact){
   const btn = summary.querySelector('.context-edit-btn');
   if(btn){
     btn.addEventListener('click', () => {
+      if(prefix === 'f') setGameSheetViewing(false);
       summary.classList.add('hidden');
       editor.classList.remove('hidden');
       const first = editor.querySelector('input,select,button');
@@ -1319,6 +1321,11 @@ function commitBoardTransfer(from, to, id, draft){
     return null;
   }
 }
+function setGameSheetViewing(viewing){
+  document.getElementById('modal-overlay').classList.toggle('game-sheet-viewing', viewing);
+  document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
+}
+
 function openModal(id, collection = 'games'){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
@@ -1332,7 +1339,7 @@ function openModal(id, collection = 'games'){
 
   if(editingId){
     const g = items.find(x => x.id === editingId);
-    title.textContent = editingCollection === 'cemetery' ? 'Modifier les infos du jeu' : 'Modifier ce jeu';
+    title.textContent = editingCollection === 'cemetery' ? 'Modifier les infos du jeu' : 'Fiche du jeu';
     deleteBtn.classList.toggle('hidden', editingCollection === 'cemetery');
     document.getElementById('f-quick-hide-fields').classList.remove('hidden');
     document.getElementById('f-nom').value = g.nom || '';
@@ -1368,6 +1375,7 @@ function openModal(id, collection = 'games'){
   setIdentityEditor('f', identityItem, !!editingId);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
+  setGameSheetViewing(!!editingId && editingCollection === 'games');
   window.JTDDialogs.open('modal-overlay', {onDismiss:closeModal});
   if(!editingId) document.getElementById('f-nom').focus();
 }
@@ -1376,6 +1384,7 @@ function closeModal(){
   document.getElementById('f-sell-btn').classList.add('hidden');
   document.getElementById('save-btn').textContent = 'Enregistrer';
   window.JTDDialogs.close('modal-overlay');
+  setGameSheetViewing(false);
   document.getElementById('modal-overlay').classList.remove('cemetery-game-editor');
   editingId = null;
   editingCollection = 'games';
@@ -1931,6 +1940,8 @@ function deleteArrival(){
 function addArrivalToCollection(id){
   const item = ARRIVALS.find(x => x.id === id);
   if(!item) return;
+
+  setGameSheetViewing(false);
 
   convertingArrivalId = id;
   editingId = null;
