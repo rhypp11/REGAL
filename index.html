@@ -21,9 +21,9 @@
 <link rel="stylesheet" href="home-dashboard.css?v=regal-3">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=local-filters-1">
-<link rel="stylesheet" href="collection.css?v=light-cards-1">
+<link rel="stylesheet" href="collection.css?v=collection-header-2">
 <link rel="stylesheet" href="regal.css?v=local-filters-1">
-<link rel="stylesheet" href="game-sheet.css?v=soft-sheet-1">
+<link rel="stylesheet" href="game-sheet.css?v=sheet-hero-2">
 </head>
 <body>
 
@@ -182,7 +182,7 @@
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="arrival-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="arrival-modal-title">
+<div class="modal-overlay sheet-dialog hidden" id="arrival-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="arrival-modal-title">
   <div class="modal">
     <h2 id="arrival-modal-title">Ajouter un arrivage</h2>
 
@@ -251,7 +251,7 @@
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="wishlist-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wishlist-modal-title">
+<div class="modal-overlay sheet-dialog hidden" id="wishlist-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wishlist-modal-title">
   <div class="modal">
     <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
 
@@ -372,13 +372,12 @@
 </div>
 </div>
 
-<div class="modal-overlay hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+<div class="modal-overlay sheet-dialog hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <h2 id="modal-title">Ajouter un jeu</h2>
 
 
-    <div class="form-section game-sheet-section" aria-labelledby="game-sheet-identity-title">
-      <div class="form-section-title" id="game-sheet-identity-title">Le jeu</div>
+    <div class="form-section game-sheet-section">
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
       <div class="game-identity-editor" id="f-identity-editor">
       <div class="field">
@@ -468,10 +467,10 @@
     </main>
   </div>
 </div>
-<div class="modal-overlay hidden" id="sale-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="sale-modal-title">
+<div class="modal-overlay sheet-dialog hidden" id="sale-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="sale-modal-title">
   <div class="modal">
     <h2 id="sale-modal-title">Mettre en vente</h2>
-    <div id="sale-identity"></div>
+    <div id="sale-identity" class="game-sheet-hero"></div>
     <div class="form-section"><div class="form-section-title">Vente</div>
       <div class="field"><label for="sale-channel">Canal de vente</label><select id="sale-channel"><option value="">À définir</option><option value="online">En ligne</option><option value="store">En boutique</option></select></div>
       <div class="field-row">
@@ -542,7 +541,7 @@
 </script>
 <script src="jtd-data.js?v=collection-1"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=soft-sheet-1"></script>
+<script src="app.js?v=collection-header-2"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>

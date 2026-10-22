@@ -76,8 +76,39 @@ const server=createSandboxServer();
    assert.equal(await page.evaluate(()=>state.platform!==null),true,'Keyboard platform filter works');
    assert.equal(await page.locator('#platform-banner #global-filter-toggle').count(),1,'Filter survives platform and results redraw');
 
+   if([320,390,1440].includes(width)){
+    await page.evaluate(()=>{
+     GAMES=Array.from({length:100},(_,i)=>({...GAMES[0],id:'scroll-'+i}));
+     state.platform=GAMES[0].plateforme;state.japanese=false;state.collector=false;state.status=null;render();
+     window.scrollTo(0,0);
+    });
+    await page.waitForTimeout(50);
+    const band=page.locator('#collection-scroll-context');
+    assert.equal(await band.isVisible(),false,'No compact context at the top');
+    assert.equal(await page.locator('#platform-banner').evaluate(el=>getComputedStyle(el,'::before').content),'none','No decorative platform underline');
+    await page.evaluate(()=>window.scrollTo(0,900));
+    await band.waitFor({state:'visible'});
+    assert.equal(await band.locator('strong').innerText(),await page.evaluate(()=>state.platform));
+    assert.equal(await band.locator('span').innerText(),'100 jeux');
+    const rect=await band.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1,'Compact context stays on screen');
+    if(width<=820){
+     await band.locator('button').click();
+     assert.equal(await page.locator('#collection-sidebar').evaluate(el=>el.classList.contains('mobile-open')),true,'Compact context gives access to filters');
+     await page.evaluate(()=>closeMobileDrawers());
+    }
+    await page.screenshot({path:`/tmp/jtd-collection-scroll-${width}-${theme}.png`,fullPage:true});
+    await page.evaluate(()=>{state.platform=null;render();});
+    await page.waitForTimeout(50);
+    assert.equal(await band.locator('strong').innerText(),'Tous les jeux','Context updates after a filter change');
+    await page.evaluate(()=>goToPage('home'));
+    assert.equal(await band.isVisible(),false,'Context stays within collection');
+    await page.evaluate(()=>{window.scrollTo(0,0);goToPage('collection');});
+    await page.waitForTimeout(50);
+    assert.equal(await band.isVisible(),false,'Full heading replaces compact context on return to top');
+   }
    assert.deepEqual(errors,[]);
    await context.close();console.log('PASS global UI',width,theme);
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

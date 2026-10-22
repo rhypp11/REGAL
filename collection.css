@@ -20,10 +20,60 @@
   box-shadow:none;
 }
 #page-collection .add-btn:hover { background:color-mix(in srgb,var(--ui-accent) 16%,var(--ui-surface)); }
+/* An open heading, followed by a readable summary rather than a framed card. */
 #page-collection .platform-banner {
-  border:1px solid var(--ui-border);
-  border-radius:var(--ui-radius-lg);
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  margin:0;
+  padding:0 0 8px;
+  gap:22px;
+  border:0;
+  border-radius:0;
+  background:transparent;
   box-shadow:none;
+}
+#page-collection .platform-banner::before { content:none; }
+#page-collection .platform-banner-head { justify-content:flex-start; }
+#page-collection .platform-banner-title { font-size:26px; line-height:1.2; overflow-wrap:anywhere; }
+#page-collection .platform-banner-kicker { font-size:11px; font-weight:500; letter-spacing:0; margin-bottom:4px; }
+#page-collection .platform-banner-stats {
+  display:flex;
+  justify-content:flex-start;
+  align-items:flex-start;
+  flex-wrap:wrap;
+  gap:16px 28px;
+  margin:0;
+}
+#page-collection .library-stat { display:flex; flex-direction:column; align-items:flex-start; gap:4px; font-size:11px; }
+#page-collection .library-stat strong { font-size:23px; font-weight:650; line-height:1.1; letter-spacing:-.025em; }
+#page-collection :is(.library-stat-collector,.library-stat-done) strong { color:var(--ui-text); font-size:19px; }
+.collection-scroll-context {
+  position:fixed;
+  z-index:25;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-sizing:border-box;
+  min-height:48px;
+  padding:8px 24px;
+  background:color-mix(in srgb,var(--ui-surface) 95%,transparent);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--ui-border);
+  color:var(--ui-text);
+  box-shadow:0 4px 12px rgba(0,0,0,.035);
+}
+.collection-scroll-context strong { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; }
+.collection-scroll-context > span { margin-left:auto; flex-shrink:0; color:var(--ui-text-muted); font-size:12px; }
+.collection-context-filters { display:none; }
+@media(max-width:820px) {
+  #page-collection .platform-banner { gap:20px; }
+  #page-collection .platform-banner-title { font-size:23px; }
+  #page-collection .platform-banner-stats { gap:16px 24px; }
+  #page-collection .library-stat strong { font-size:21px; }
+  #page-collection :is(.library-stat-collector,.library-stat-done) strong { font-size:18px; }
+  .collection-scroll-context { padding:6px 14px; gap:10px; }
+  .collection-context-filters { display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 36px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-surface); color:var(--ui-text); cursor:pointer; }
 }
 #page-collection .grid { gap:var(--ui-space-3); }
 #page-collection .card {

@@ -18,6 +18,12 @@ const server=createSandboxServer();
      if(scene==='arrival')openArrivalModal(ARRIVALS[0].id);
      if(scene==='sale'){CEMETERY.push({...GAMES[0],id:'modal-sale',saleStatus:'pending'});openSaleModal('modal-sale');}
     },scene);
+    if(scene!=='new'){
+     const summary=page.locator('.modal-overlay:not(.hidden) .game-identity-summary').first();
+     assert.equal(await summary.evaluate(el=>getComputedStyle(el).borderTopWidth),'0px','Game identity is an open heading: '+scene);
+     if(scene!=='sale')assert.equal(await summary.evaluate(el=>getComputedStyle(el.parentElement).backgroundColor),'rgba(0, 0, 0, 0)','Identity has no enclosing panel: '+scene);
+     if([390,1440].includes(width))await page.screenshot({path:`/tmp/jtd-sheet-${scene}-${width}-${theme}.png`,fullPage:true});
+    }
     if(scene==='collection'){
      assert.equal(await page.locator('#modal-title').innerText(),'Fiche du jeu');
      assert.equal(await page.locator('#cancel-btn').innerText(),'Fermer');

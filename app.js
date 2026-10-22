@@ -831,10 +831,55 @@ function sortGames(games){
   return arr;
 }
 
+// The compact context appears only once the full collection heading has left view.
+let collectionContextFrame = null;
+function requestCollectionContextUpdate(){
+  if(collectionContextFrame !== null) return;
+  collectionContextFrame = requestAnimationFrame(() => {
+    collectionContextFrame = null;
+    updateCollectionScrollContext();
+  });
+}
+function updateCollectionScrollContext(){
+  let context = document.getElementById('collection-scroll-context');
+  if(!context){
+    context = document.createElement('div');
+    context.id = 'collection-scroll-context';
+    context.className = 'collection-scroll-context hidden';
+    context.setAttribute('role','region');
+    context.setAttribute('aria-label','Collection filtrée');
+    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres">☰</button><strong></strong><span></span>';
+    context.querySelector('button').addEventListener('click', () => mobileFilterToggle.click());
+    document.getElementById('page-collection').appendChild(context);
+  }
+  if(navigationPage !== 'collection'){
+    context.classList.add('hidden');
+    return;
+  }
+  const banner = document.getElementById('platform-banner');
+  const nav = document.querySelector('.topnav').getBoundingClientRect();
+  const heading = banner.getBoundingClientRect();
+  const top = Math.max(0, nav.bottom);
+  const show = heading.bottom <= top;
+  context.classList.toggle('hidden', !show);
+  if(!show) return;
+  const main = document.querySelector('#page-collection .main').getBoundingClientRect();
+  context.style.top = top + 'px';
+  context.style.left = main.left + 'px';
+  context.style.width = main.width + 'px';
+  context.querySelector('strong').textContent = state.platform || 'Tous les jeux';
+  const count = Number(banner.dataset.resultCount || 0);
+  context.querySelector('span').textContent = count + (count > 1 ? ' jeux' : ' jeu');
+}
+window.addEventListener('scroll', requestCollectionContextUpdate, {passive:true});
+window.addEventListener('resize', requestCollectionContextUpdate);
+
 function renderPlatformBanner(games){
   const banner = document.getElementById('platform-banner');
   if(!banner) return;
 
+  banner.dataset.resultCount = games.length;
+  requestCollectionContextUpdate();
   const total = games.length;
   const spent = games.reduce((sum,g) => sum + (g.prix || 0), 0);
   const collectors = games.filter(g => g.collector).length;
@@ -847,10 +892,10 @@ function renderPlatformBanner(games){
   const statsHtml = [
     stat(total, total > 1 ? 'jeux' : 'jeu'),
     !state.platform ? stat(platformsCount, platformsCount > 1 ? 'plateformes' : 'plateforme') : '',
-    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'collection'),
+    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'achats renseignés'),
     collectors ? stat(collectors, collectors > 1 ? 'collectors' : 'collector', 'library-stat-collector') : '',
     termineCount ? stat(termineCount, 'terminés', 'library-stat-done') : ''
-  ].filter(Boolean).join('<span class="library-stat-sep">·</span>');
+  ].filter(Boolean).join('');
 
   if(!state.platform){
     banner.classList.remove('hidden');
@@ -1863,7 +1908,7 @@ function openArrivalModal(id){
 
   if(editingArrivalId){
     const item = ARRIVALS.find(x => x.id === editingArrivalId);
-    title.textContent = 'Modifier cet arrivage';
+    title.textContent = 'Arrivage';
     deleteBtn.classList.remove('hidden');
     receivedBtn.classList.remove('hidden');
     document.getElementById('a-date').value = /^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : '';
@@ -1974,7 +2019,7 @@ function openWishlistModal(id){
 
   if(editingWishlistId){
     const item = WISHLIST.find(x => x.id === editingWishlistId);
-    title.textContent = 'Modifier cet élément';
+    title.textContent = 'Wishlist';
     deleteBtn.classList.remove('hidden');
     orderBtn.classList.remove('hidden');
     setFlexibleDate('w', item.date);
@@ -2570,6 +2615,7 @@ function goToPage(page, push = true){
   // applyNavigation owns its own final persistence.
   restoringNavigation = wasRestoring;
   closeMobileDrawers();
+  requestCollectionContextUpdate();
   if(push) persistNavigation(true);
 }
 window.addEventListener('popstate', event => {
@@ -2620,6 +2666,7 @@ document.getElementById('global-filter-toggle')?.addEventListener('click', () =>
 function updateTopnavHeightVar(){
   const h = document.querySelector('.topnav')?.offsetHeight || 50;
   document.documentElement.style.setProperty('--topnav-h', h + 'px');
+  requestCollectionContextUpdate();
 }
 updateTopnavHeightVar();
 const topnavEl = document.querySelector('.topnav');
