@@ -78,19 +78,28 @@ const server=createSandboxServer();
 
    if([320,390,1440].includes(width)){
     await page.evaluate(()=>{
-     GAMES=Array.from({length:100},(_,i)=>({...GAMES[0],id:'scroll-'+i}));
-     state.platform=GAMES[0].plateforme;state.japanese=false;state.collector=false;state.status=null;render();
+     GAMES=[...PREVIEW_SEED.games,...buildPreviewCollectionDemo()];
+     state.platform=null;state.japanese=false;state.collector=false;state.status=null;state.search='';render();
      window.scrollTo(0,0);
      document.querySelector('#page-collection .main').scrollTop=0;
     });
     await page.waitForTimeout(50);
+    const values=await page.locator('#platform-banner [data-stat]').evaluateAll(els=>Object.fromEntries(els.map(el=>[el.dataset.stat,el.querySelector('strong').textContent])));
+    assert.equal(values.games,'75','Demo collection provides a real scroll');
+    assert.equal(values.platforms,'3');assert.equal(values.collectors,'12');
+    assert.equal(values.en_cours,'12');assert.equal(values.a_jouer,'13');assert.equal(values.termine,'12');
+    assert.equal(values.termine_ailleurs,'13');assert.equal(values.multi,'13');assert.equal(values.none,'12');
+    await page.evaluate(()=>{state.platform='Switch 2';render();});
+    await page.waitForTimeout(50);
+    assert.equal(await page.locator('#platform-banner [data-stat="games"] strong').innerText(),'50','Counts follow the active platform');
+    assert.equal(await page.locator('#platform-banner [data-stat="platforms"] strong').innerText(),'1');
     const band=page.locator('#collection-scroll-context');
     assert.equal(await band.isVisible(),false,'No compact context at the top');
     assert.equal(await page.locator('#platform-banner').evaluate(el=>getComputedStyle(el,'::before').content),'none','No decorative platform underline');
     await page.evaluate(()=>{window.scrollTo(0,900);document.querySelector('#page-collection .main').scrollTop=900;});
     await band.waitFor({state:'visible'});
     assert.equal(await band.locator('strong').innerText(),await page.evaluate(()=>state.platform));
-    assert.equal(await band.locator('span').innerText(),'100 jeux');
+    assert.equal(await band.locator('span').innerText(),'50 jeux');
     const rect=await band.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1,'Compact context stays on screen');
     if(width<=820){
      await band.locator('button').click();

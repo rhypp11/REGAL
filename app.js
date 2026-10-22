@@ -55,7 +55,25 @@ function writeStoredValue(key, value){
 }
 // A single sandbox-only snapshot keeps transfers atomic and survives refreshes.
 // It never reads account keys or contacts Firebase.
-const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1';
+// Hosted previews get a generous fictional collection; local regression fixtures stay small.
+const HAS_PREVIEW_COLLECTION_DEMO = IS_PREVIEW_MODE && location.hostname.startsWith('jtd-sandbox-rhypp11');
+function buildPreviewCollectionDemo(){
+  const titles = ['Les Jardins d’Aster','Chroniques du rivage','La Tour des saisons','Échos de cristal',
+    'L’Archipel oublié','Les Voyageurs de l’aube','Le Dernier atelier','Sous les lunes jumelles',
+    'La Route des étoiles','Mémoires de la forêt','Les Gardiens du phare','Un été à Solaria'];
+  const statuses = ['en_cours','a_jouer','termine','termine_ailleurs','multi',null];
+  return Array.from({length:72}, (_,i) => ({
+    id:'demo-collection-'+i,
+    nom:titles[i % titles.length] + ' ' + (Math.floor(i / titles.length) + 1) + ' — Démo',
+    plateforme:i < 48 ? 'Switch 2' : i < 64 ? 'PlayStation 5' : 'PlayStation 4',
+    format:'Physique', collector:i % 7 === 0, japanese:i % 11 === 0,
+    prix:i % 9 === 0 ? null : 19.99 + (i % 5) * 10,
+    date:i % 8 === 0 ? null : '2026-' + String(i % 10 + 1).padStart(2,'0') + '-15',
+    source:i % 3 === 0 ? 'Boutique démo' : 'Enseigne démo',
+    status:statuses[i % statuses.length], image:null
+  }));
+}
+const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1' + (HAS_PREVIEW_COLLECTION_DEMO ? ':collection-demo-v1' : '');
 let previewData;
 function loadPreviewData(){
   if(previewData) return previewData;
@@ -63,7 +81,9 @@ function loadPreviewData(){
     const raw = localStorage.getItem(PREVIEW_STORAGE_KEY);
     if(raw) return previewData = JTDData.normalizeData(JSON.parse(raw));
   } catch(error){ console.error('Lecture sandbox impossible', error); }
-  return previewData = JTDData.normalizeData({...PREVIEW_SEED, profileName:'Mode test'});
+  return previewData = JTDData.normalizeData({...PREVIEW_SEED,
+    games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo()] : PREVIEW_SEED.games,
+    profileName:'Mode test'});
 }
 function savePreviewData(overrides = {}){
   const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:LEGACY_JOURNAL, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
@@ -868,6 +888,8 @@ function updateCollectionScrollContext(){
   context.style.top = top + 'px';
   context.style.left = main.left + 'px';
   context.style.width = main.width + 'px';
+  context.style.setProperty('--platform-accent',state.platform ? getPlatformColor(state.platform) : 'var(--ui-accent)');
+  context.classList.toggle('platform-filtered',!!state.platform);
   context.querySelector('strong').textContent = state.platform || 'Tous les jeux';
   const count = Number(banner.dataset.resultCount || 0);
   context.querySelector('span').textContent = count + (count > 1 ? ' jeux' : ' jeu');
@@ -886,21 +908,22 @@ function renderPlatformBanner(games){
   const spent = games.reduce((sum,g) => sum + (g.prix || 0), 0);
   const collectors = games.filter(g => g.collector).length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
-  const termineCount = games.filter(g => g.status === 'termine' || g.status === 'termine_ailleurs').length;
-
-  const stat = (value, label, extraClass='') =>
-    `<span class="library-stat ${extraClass}"><strong>${value}</strong><span>${escapeHTML(label)}</span></span>`;
-
-  const mainStats = [
-    stat(total, total > 1 ? 'jeux' : 'jeu'),
-    !state.platform ? stat(platformsCount, platformsCount > 1 ? 'plateformes' : 'plateforme') : '',
-    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'achats renseignés')
-  ].filter(Boolean).join('');
-  const extraStats = [
-    collectors ? stat(collectors, collectors > 1 ? 'collectors' : 'collector', 'library-stat-collector') : '',
-    termineCount ? stat(termineCount, termineCount > 1 ? 'terminés' : 'terminé', 'library-stat-done') : ''
-  ].filter(Boolean).join('');
-  const statsHtml = `<div class="library-stats-main">${mainStats}</div>${extraStats ? `<div class="library-stats-extra">${extraStats}</div>` : ''}`;
+  const stat = (value, label, key) =>
+    `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span>${escapeHTML(label)}</span></span>`;
+  const collectionStats = [
+    stat(total, total > 1 ? 'Jeux' : 'Jeu', 'games'),
+    stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms'),
+    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'Total des achats', 'spent'),
+    stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors')
+  ].join('');
+  const completionStats = [
+    ['en_cours','En cours'], ['a_jouer','À faire'], ['termine','Terminés'],
+    ['termine_ailleurs','Terminés ailleurs'], ['multi','Multi'], ['none','Sans statut']
+  ].map(([key,label]) => stat(games.filter(g => key === 'none' ? !g.status : g.status === key).length,label,key)).join('');
+  const statsHtml = `<section class="library-stat-group" aria-labelledby="collection-stats-title">
+    <h3 id="collection-stats-title">Collection</h3><div class="library-stat-values library-collection-values">${collectionStats}</div>
+    </section><section class="library-stat-group" aria-labelledby="completion-stats-title">
+    <h3 id="completion-stats-title">Complétion</h3><div class="library-stat-values library-completion-values">${completionStats}</div></section>`;
 
   if(!state.platform){
     banner.classList.remove('hidden');
