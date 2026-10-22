@@ -45,6 +45,7 @@
   }
   function open(){input.value='';results();window.JTDDialogs.open(overlay.id,{onDismiss:dismiss,initialFocus:'#guided-add-search'});}
   function clearGuidedForm(){
+    if(!activeGame && !native.classList.contains('guided-add-form')) return;
     native.classList.remove('guided-add-form');
     document.getElementById('guided-platforms')?.remove();
     if(activeGame) save.textContent='Enregistrer';
