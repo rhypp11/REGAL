@@ -848,7 +848,8 @@ function updateCollectionScrollContext(){
     context.className = 'collection-scroll-context hidden';
     context.setAttribute('role','region');
     context.setAttribute('aria-label','Collection filtrée');
-    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres">☰</button><strong></strong><span></span>';
+    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><strong></strong><span></span>';
+    context.querySelector('button').innerHTML = mobileFilterToggle.innerHTML;
     context.querySelector('button').addEventListener('click', () => mobileFilterToggle.click());
     document.getElementById('page-collection').appendChild(context);
   }
@@ -871,7 +872,8 @@ function updateCollectionScrollContext(){
   const count = Number(banner.dataset.resultCount || 0);
   context.querySelector('span').textContent = count + (count > 1 ? ' jeux' : ' jeu');
 }
-window.addEventListener('scroll', requestCollectionContextUpdate, {passive:true});
+// Desktop scrolls the collection main; mobile scrolls the document.
+document.addEventListener('scroll', requestCollectionContextUpdate, {passive:true, capture:true});
 window.addEventListener('resize', requestCollectionContextUpdate);
 
 function renderPlatformBanner(games){
@@ -889,13 +891,16 @@ function renderPlatformBanner(games){
   const stat = (value, label, extraClass='') =>
     `<span class="library-stat ${extraClass}"><strong>${value}</strong><span>${escapeHTML(label)}</span></span>`;
 
-  const statsHtml = [
+  const mainStats = [
     stat(total, total > 1 ? 'jeux' : 'jeu'),
     !state.platform ? stat(platformsCount, platformsCount > 1 ? 'plateformes' : 'plateforme') : '',
-    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'achats renseignés'),
-    collectors ? stat(collectors, collectors > 1 ? 'collectors' : 'collector', 'library-stat-collector') : '',
-    termineCount ? stat(termineCount, 'terminés', 'library-stat-done') : ''
+    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'achats renseignés')
   ].filter(Boolean).join('');
+  const extraStats = [
+    collectors ? stat(collectors, collectors > 1 ? 'collectors' : 'collector', 'library-stat-collector') : '',
+    termineCount ? stat(termineCount, termineCount > 1 ? 'terminés' : 'terminé', 'library-stat-done') : ''
+  ].filter(Boolean).join('');
+  const statsHtml = `<div class="library-stats-main">${mainStats}</div>${extraStats ? `<div class="library-stats-extra">${extraStats}</div>` : ''}`;
 
   if(!state.platform){
     banner.classList.remove('hidden');
@@ -2636,6 +2641,7 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
 
 /* ---------- Navigation mobile ---------- */
 function closeMobileDrawers(){
+  document.querySelector('.collection-context-filters')?.setAttribute('aria-expanded','false');
   mobileFilterToggle.setAttribute('aria-expanded', 'false');
   document.querySelectorAll('.sidebar.mobile-open').forEach(el => el.classList.remove('mobile-open'));
   document.getElementById('mobile-backdrop').classList.remove('visible');
@@ -2645,6 +2651,7 @@ function openMobileDrawer(el){
   if(!el) return;
   closeMobileDrawers();
   el.classList.add('mobile-open');
+  document.querySelector('.collection-context-filters')?.setAttribute('aria-expanded','true');
   mobileFilterToggle.setAttribute('aria-expanded', 'true');
   mobileFilterToggle.setAttribute('aria-controls', el.id);
   document.getElementById('mobile-backdrop').classList.add('visible');
