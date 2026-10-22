@@ -99,7 +99,11 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.wishlist[0].lien),null);
       await page.locator('.nav-tab[data-page="collection"]').click();
       assert.equal(await page.locator('#page-collection .card-name-text').innerText(),payload.data.games[0].nom);
-      assert.equal(await page.locator('#page-collection .card-source').innerText(),payload.data.games[0].source);
+      assert.equal(await page.locator('#page-collection .card-source').count(),0);
+      await page.locator('#page-collection .card-name-text').click();
+      assert.ok((await page.locator('#f-context-summary').innerText()).includes(payload.data.games[0].source));
+      assert.equal(await page.locator('#f-context-summary b, #f-context-summary img').count(),0,'Purchase source is escaped in details');
+      await page.locator('#cancel-btn').click();
       assert.equal(await page.locator('#page-collection .card img[onerror]').count(),0);
       assert.equal(await page.locator('#page-collection .card-name-text img').count(),0);
       await page.locator('#page-collection .card-status-badge').click();
@@ -150,5 +154,6 @@ async function restore(page, value, confirm=true){
     }
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+
 
 
