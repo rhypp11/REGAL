@@ -63,7 +63,9 @@ async function checkTrap(page,id){
    await page.locator('#modal-overlay').click({position:{x:1,y:1}});assert.equal(await page.locator('#f-nom').inputValue(),'Saisie fictive à conserver');await page.keyboard.press('Escape');
    // Confirmations cancel only themselves, and never execute deletion on Escape.
    const count=await page.evaluate(()=>GAMES.length);
-   await page.evaluate(()=>openModal(GAMES[0].id));await page.locator('#delete-btn').click();
+   await page.evaluate(()=>openModal(GAMES[0].id));
+   await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#delete-btn').click();
    assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-modal-cancel-btn','Confirmation starts on the safe action');
    await checkTrap(page,'confirm-modal-overlay');
    assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-modal-confirm-btn'); // checkTrap finishes at the last action
