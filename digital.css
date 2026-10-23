@@ -1,0 +1,52 @@
+/* Collection formats: keep REGAL's open cards and horizontal artwork. */
+:root { --content-green:#366a48; --content-green-surface:#e6f0e8; --content-green-strong:#427652; --content-green-on:#fff; }
+:root[data-theme="dark"] { --content-green:#a4d5ae; --content-green-surface:#20392c; --content-green-strong:#315b40; --content-green-on:#edf8ef; }
+.collection-media-controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin:8px 0 18px; }
+.collection-media-tabs { display:flex; flex-wrap:wrap; gap:3px; }
+.collection-media-tabs button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:40px; padding:8px 12px; border:0; border-radius:7px; background:transparent; color:var(--muted); font-size:13px; cursor:pointer; }
+.collection-media-tabs button[aria-pressed="true"] { color:var(--accent); background:color-mix(in srgb,var(--accent) 9%,var(--ink)); }
+.collection-media-tabs svg,.card-media-mark svg,.card-dlc-count svg,.content-format-summary svg,.content-purchase-link svg { width:16px; height:16px; flex-shrink:0; }
+#collection-account { max-width:100%; min-width:0; min-height:40px; padding:8px 12px; border:1px solid var(--hairline); border-radius:7px; background:var(--surface); color:var(--text); font-size:12px; }
+.card-media-mark,.card-dlc-count { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
+.card-dlc-count { color:var(--content-green); }
+.card-console-account { color:var(--muted); font-size:12px; overflow-wrap:anywhere; }
+.card-digital-price { color:var(--muted); font:11px/1.45 var(--ui-font-mono); }
+#page-collection .card.dlc-card { background:var(--content-green-surface); border-radius:10px; }
+#page-collection .card.dlc-card:hover { background:color-mix(in srgb,var(--content-green-surface) 93%,var(--content-green)); }
+#page-collection .dlc-card .card-banner { position:relative; background:var(--content-green-strong); }
+.dlc-label { position:absolute; bottom:0; left:0; right:0; z-index:3; display:flex; align-items:center; justify-content:center; gap:7px; padding:7px 9px; background:var(--content-green-strong); color:var(--content-green-on); font-size:12px; font-weight:600; letter-spacing:.08em; }
+.dlc-label svg { width:16px; height:16px; }
+.dlc-placeholder { position:absolute; inset:0 0 27px; display:flex; align-items:center; justify-content:center; color:var(--content-green-on); }
+.dlc-placeholder svg { width:30px; height:30px; }
+#modal-overlay.game-sheet-viewing #f-media-section { display:none; }
+#f-digital-fields { margin-top:12px; }
+#f-parent-field { margin-top:16px; }
+.content-format-summary { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; margin-bottom:12px; }
+.content-format-summary svg { color:var(--accent); }
+.content-purchases .form-section-title { margin-top:14px; }
+.content-purchase-link { display:flex; justify-content:space-between; gap:16px; align-items:center; width:100%; padding:12px 0; background:transparent; border:0; border-bottom:1px solid var(--hairline); color:var(--text); font:inherit; text-align:left; cursor:pointer; }
+.content-purchase-link > span:first-child { display:flex; align-items:center; flex-wrap:wrap; gap:7px; min-width:0; overflow-wrap:anywhere; }
+.content-purchase-link small { flex-basis:100%; color:var(--muted); font-size:11px; }
+.content-purchase-link svg { color:var(--content-green); }
+.content-purchase-total { padding-top:12px; font-size:12px; color:var(--muted); }
+.content-parent-note { color:var(--muted); font-size:12px; }
+.digital-account-row { padding:16px 0; border-bottom:1px solid var(--hairline); }
+.digital-account-row label { display:block; }
+.digital-account-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.digital-account-actions label { font-size:12px; color:var(--muted); }
+#digital-accounts-error { color:var(--danger); font-size:12px; }
+@media(max-width:820px){
+  .collection-media-controls { margin:0 0 14px; gap:8px; }
+  .collection-media-tabs button { min-height:44px; }
+  #page-collection .card.dlc-card { margin:5px 0; border-top:0; }
+  .content-purchase-link { min-height:44px; }
+}
+@media(max-width:480px){
+  #collection-account { width:100%; }
+  .collection-media-tabs { width:100%; }
+  .collection-media-tabs button { flex:1; padding:8px; }
+  .dlc-label { font-size:11px; padding:4px; gap:4px; }
+  .dlc-label svg { width:13px; height:13px; }
+  .dlc-placeholder { inset:0 0 22px; }
+  .dlc-placeholder svg { width:20px; height:20px; }
+}
