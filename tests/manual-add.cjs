@@ -53,7 +53,7 @@ const server=createSandboxServer();
    const platformRow=page.locator('.platform-row[data-current-name="Switch 2"]');
    await platformRow.locator('.platform-edit-btn').click();
    const originalColor=await platformRow.locator('[data-role="color"]').inputValue();
-   await platformRow.locator('[data-role="color"]').fill('#43897c');
+   await platformRow.locator('[data-role="color"]').evaluate(el=>{el.value='#43897c';el.dispatchEvent(new Event('input',{bubbles:true}));});
    await platformRow.locator('.platform-save-btn').scrollIntoViewIfNeeded();
    assert.equal(await page.locator('.platform-modal').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Platform editor fits the dialog');
    await page.screenshot({path:`/tmp/jtd-platform-editor-${width}-${theme}.png`});
