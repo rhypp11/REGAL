@@ -256,3 +256,4 @@
   #page-collection .grid { gap:6px; }
   #page-collection .card + .card { border-top-color:color-mix(in srgb,var(--ui-border) 55%,transparent); border-radius:0; }
 }
+:root:not([data-theme="dark"]) #page-collection .add-btn { color:var(--ui-accent); }

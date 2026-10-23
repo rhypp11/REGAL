@@ -49,6 +49,9 @@ const fs=require('fs');
           }
           badge.remove();
         }
+        const add=document.getElementById('add-btn');
+        const addInk=luminance(getComputedStyle(add).color),addBackdrop=luminance(background(add));
+        result.push({status:'add-game',state:'normal',ratio:(Math.max(addInk,addBackdrop)+.05)/(Math.min(addInk,addBackdrop)+.05)});
         group.remove(); return result;
       });
       if(ratios.some(tag => tag.ratio < 4.5)) throw Error(JSON.stringify({theme,width,ratios}));
