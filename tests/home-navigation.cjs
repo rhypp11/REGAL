@@ -26,6 +26,7 @@ const server=createSandboxServer();
     assert.equal(await sidebar.evaluate(el=>el.classList.contains('mobile-open')),true);
     await page.waitForFunction(()=>Math.abs(document.getElementById('home-sidebar').getBoundingClientRect().left)<1);
     assert.ok((await sidebar.boundingBox()).width>250,'Open drawer has a readable width');
+    assert.ok(await sidebar.evaluate(el=>Math.abs(el.getBoundingClientRect().bottom-innerHeight)<2),'Drawer reaches the bottom of the viewport');
     await page.screenshot({path:'/tmp/jtd-home-drawer-'+width+'-'+theme+'.png'});
    }else{
     const side=await sidebar.boundingBox(),boards=await page.locator('#home-boards').boundingBox();

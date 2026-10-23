@@ -26,7 +26,7 @@
 .home-collection-summary a:focus-visible { outline:2px solid var(--ui-accent); outline-offset:3px; }
 @media(max-width:820px) {
   #page-home .home-app { display:block; min-height:0; }
-  #page-home #home-sidebar { position:fixed; top:var(--topnav-h,102px); bottom:0; height:auto; width:min(86vw,340px); padding:24px 18px; z-index:60; }
+  #page-home #home-sidebar { position:fixed; top:var(--topnav-h,102px); bottom:0; height:calc(100dvh - var(--topnav-h,102px)); width:min(86vw,340px); padding:24px 18px; z-index:60; }
   #page-home .home-main { padding-top:16px; gap:16px; }
   #page-home .home-view-controls { display:flex; align-items:center; gap:8px; min-width:0; }
   #page-home .home-boards-switcher { display:flex; flex:1; min-width:0; margin:0; }
