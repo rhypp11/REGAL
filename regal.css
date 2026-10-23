@@ -41,3 +41,10 @@
 /* Cartes plus compactes sur ordinateur ; largeur mobile conservée. */
 @media(min-width:1101px) { #page-collection .grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
 
+
+/* Les onglets restent entièrement dans leur rangée sur mobile. */
+@media(max-width:820px) {
+  .topnav .topnav-inner { grid-template-rows:56px auto; }
+  .topnav .topnav-nav { height:auto; min-height:52px; padding:4px; gap:3px; align-items:stretch; border-radius:0; }
+  .topnav .topnav-nav .nav-tab { grid-row:auto; height:44px; min-height:44px; margin:0; padding:4px; align-self:stretch; border:0; }
+}

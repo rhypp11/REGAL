@@ -1425,7 +1425,6 @@ function setGameSheetViewing(viewing){
 
 function openModal(id, collection = 'games'){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
-  document.getElementById('f-sheet-module').textContent = editingCollection === 'cemetery' ? 'Cimetière' : 'Collection';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
   editingId = id || null;
   if(editingId && !items.some(game => game.id === editingId)) return;
@@ -1570,7 +1569,7 @@ function renderHomeStats(){
     const stats = [
       `<div class="home-summary-stat"><strong>${statIcon("M7 8h10c2 0 3 2 3.5 4l1 5c.4 2-1.5 3-3 1L16 16H8l-2.5 2c-1.5 2-3.4 1-3-1l1-5C4 10 5 8 7 8Z M7 10v4 M5 12h4 M16 11h.01 M18 13h.01")}${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
       collectors ? `<div class="home-summary-stat"><strong>${statIcon("m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z")}${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
-      GAMES.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>achats renseignés</span></div>` : ''
+      GAMES.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>valeur d’achat</span></div>` : ''
     ].filter(Boolean);
     metaEl.innerHTML = stats.join('');
   }
@@ -2041,7 +2040,6 @@ function addArrivalToCollection(id){
   if(!item) return;
 
   setGameSheetViewing(false);
-  document.getElementById('f-sheet-module').textContent = 'Collection';
 
   convertingArrivalId = id;
   editingId = null;
@@ -2188,9 +2186,6 @@ function updateImagePreviewFor(inputId, previewId){
   const item = {image:document.getElementById(inputId).value.trim(), imageFit:document.getElementById(prefix+'-image-fit').value};
   const preview = document.getElementById(previewId);
   const filled = item.imageFit === 'cover';
-  document.getElementById(prefix+'-image-fit-help').textContent = filled
-    ? 'Image agrandie sans déformation ; les bords peuvent être coupés.'
-    : 'Image entière, avec un fond flouté si nécessaire.';
   preview.classList.add('game-art-frame');
   preview.classList.toggle('image-fit-cover', filled);
   preview.classList.toggle('image-fit-contain', !filled);
@@ -2658,6 +2653,8 @@ function goToPage(page, push = true){
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
   if(navigationPage === 'cemetery'){ document.title = 'REGAL | Cimetière'; window.renderCemetery?.(); }
   if(navigationPage === 'cemetery') document.getElementById('cemetery-view-controls').prepend(mobileFilterToggle);
+  if(navigationPage === 'home') document.getElementById('home-view-controls').prepend(mobileFilterToggle);
+  mobileFilterToggle.setAttribute('aria-label', navigationPage === 'collection' ? 'Afficher les filtres' : 'Afficher les statistiques');
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;
@@ -2714,7 +2711,7 @@ function toggleMobileDrawer(el){
 }
 document.getElementById('mobile-backdrop').addEventListener('click', closeMobileDrawers);
 
-const PAGE_SIDEBAR_IDS = { collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
+const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
   const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));

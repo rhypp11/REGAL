@@ -16,14 +16,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=local-filters-1">
-<link rel="stylesheet" href="cemetery.css?v=local-filters-1">
+<link rel="stylesheet" href="cemetery.css?v=sale-lot-2">
 <link rel="stylesheet" href="home-boards-v2.css?v=original-months-2">
-<link rel="stylesheet" href="home-dashboard.css?v=regal-3">
+<link rel="stylesheet" href="home-dashboard.css?v=sidebars-4">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=local-filters-1">
 <link rel="stylesheet" href="collection.css?v=counter-icons-6">
-<link rel="stylesheet" href="regal.css?v=module-nav-5">
-<link rel="stylesheet" href="game-sheet.css?v=manual-form-3">
+<link rel="stylesheet" href="regal.css?v=mobile-nav-6">
+<link rel="stylesheet" href="game-sheet.css?v=minimal-form-4">
 </head>
 <body>
 
@@ -139,11 +139,14 @@
 
 <div class="page" id="page-home">
   <div class="home-app">
-  <main class="home-main">
-    <section class="home-collection-summary" aria-label="Résumé de la collection">
+    <aside class="sidebar home-sidebar" id="home-sidebar" aria-label="Collection">
+      <section class="home-collection-summary" aria-label="Résumé de la collection">
       <div class="home-widget-title"><h2>Collection</h2><a href="#collection">Voir la collection</a></div>
       <div class="home-widget-stats"><div class="home-summary-total"><div class="home-stat-value"><svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 4v16M8 8v12M12 6v14m4-14 4 14"/></svg><strong id="home-total-games">0</strong></div><span>jeux</span></div><div class="home-summary-meta" id="home-summary-meta"></div></div>
     </section>
+    </aside>
+  <main class="home-main">
+    <div class="home-view-controls" id="home-view-controls">
     <div class="home-boards-switcher" id="home-boards-switcher" role="group" aria-label="Wishlist et arrivages">
       <button type="button" class="home-boards-switch-btn active" data-target="wishlist">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>
@@ -153,6 +156,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="7" width="14" height="10"></rect><path d="M15 10h4l3 3v4h-7z"></path><circle cx="6" cy="19" r="2"></circle><circle cx="17.5" cy="19" r="2"></circle></svg>
         Arrivages
       </button>
+    </div>
+
     </div>
 
     <div class="home-boards show-wishlist" id="home-boards">
@@ -184,7 +189,6 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="arrival-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="arrival-modal-title">
   <div class="modal">
-    <div class="sheet-module">Arrivages</div>
     <h2 id="arrival-modal-title">Ajouter un arrivage</h2>
 
     <div class="form-section">
@@ -217,7 +221,7 @@
 
       <div class="image-url-row"><div class="field"><label for="a-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="a-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="a-image-preview"><span>Aperçu</span></div>
       </div>
-      <div class="field image-fit-field"><label for="a-image-fit">Affichage de l’image</label><select id="a-image-fit" aria-describedby="a-image-fit-help"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select><p class="image-fit-help" id="a-image-fit-help">Image entière, avec un fond flouté si nécessaire.</p></div>
+      <div class="field image-fit-field"><label for="a-image-fit">Affichage de l’image</label><select id="a-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
       </div>
       </div>
 
@@ -254,7 +258,6 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="wishlist-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wishlist-modal-title">
   <div class="modal">
-    <div class="sheet-module">Wishlist</div>
     <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
 
     <div class="form-section">
@@ -287,7 +290,7 @@
 
       <div class="image-url-row"><div class="field"><label for="w-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="w-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="w-image-preview"><span>Aperçu</span></div>
       </div>
-      <div class="field image-fit-field"><label for="w-image-fit">Affichage de l’image</label><select id="w-image-fit" aria-describedby="w-image-fit-help"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select><p class="image-fit-help" id="w-image-fit-help">Image entière, avec un fond flouté si nécessaire.</p></div>
+      <div class="field image-fit-field"><label for="w-image-fit">Affichage de l’image</label><select id="w-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
       </div>
       </div>
 
@@ -376,7 +379,6 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
-    <div class="sheet-module" id="f-sheet-module">Collection</div>
     <h2 id="modal-title">Ajouter un jeu</h2>
 
 
@@ -411,7 +413,7 @@
         <div class="image-preview image-preview-compact" id="image-preview"><span>Aperçu</span></div>
       
       </div>
-      <div class="field image-fit-field"><label for="f-image-fit">Affichage de l’image</label><select id="f-image-fit" aria-describedby="f-image-fit-help"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select><p class="image-fit-help" id="f-image-fit-help">Image entière, avec un fond flouté si nécessaire.</p></div>
+      <div class="field image-fit-field"><label for="f-image-fit">Affichage de l’image</label><select id="f-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
       </div>
     </div>
 
@@ -446,10 +448,10 @@
   <div class="cemetery-layout">
     <aside class="sidebar cemetery-sidebar" id="cemetery-sidebar" aria-label="Statistiques du cimetière">
       <div class="side-label">Vue d’ensemble</div>
-      <div class="cemetery-stat"><span>Ventes encaissées</span><strong id="cemetery-stat-sales">0 €</strong></div>
-      <div class="cemetery-stat"><span>Estimation à vendre</span><strong id="cemetery-stat-estimated">0 €</strong></div>
-      <div class="cemetery-stat"><span>Jeux vendus</span><strong id="cemetery-stat-sold-count">0</strong></div>
-      <div class="cemetery-stat"><span>Jeux à vendre</span><strong id="cemetery-stat-pending-count">0</strong></div>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z M8 8h8 M8 12h3 M8 16h5"/></svg>Ventes encaissées</span><strong id="cemetery-stat-sales">0 €</strong></div>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18 M7 7h7a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h7"/></svg>Estimation à vendre</span><strong id="cemetery-stat-estimated">0 €</strong></div>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>Jeux vendus</span><strong id="cemetery-stat-sold-count">0</strong></div>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16l-2 13H6z M8 7V5a4 4 0 0 1 8 0v2"/></svg>Jeux à vendre</span><strong id="cemetery-stat-pending-count">0</strong></div>
     </aside>
     <main class="cemetery-main">
     <div class="cemetery-toolbar">
@@ -474,14 +476,16 @@
   <div class="modal">
     <h2 id="sale-modal-title">Mettre en vente</h2>
     <div id="sale-identity" class="game-sheet-hero"></div>
-    <div class="form-section"><div class="form-section-title">Vente</div>
+    <div id="sale-lot-section">
+      <label class="sale-lot-switch" for="sale-lot-toggle"><span>Faire un lot</span><input type="checkbox" role="switch" id="sale-lot-toggle" aria-controls="sale-lot-options" aria-expanded="false"><span class="sale-switch-track" aria-hidden="true"></span></label>
+      <div id="sale-lot-options" class="hidden"></div>
+    </div>
+    <div class="form-section">
       <div class="field"><label for="sale-channel">Canal de vente</label><select id="sale-channel"><option value="">À définir</option><option value="online">En ligne</option><option value="store">En boutique</option></select></div>
       <div class="field-row">
-        <div class="field"><label for="sale-estimate">Prix estimé (€)</label><input id="sale-estimate" type="text" inputmode="decimal" placeholder="Optionnel"></div>
-        <div class="field"><label for="sale-price">Prix réel de vente (€)</label><input id="sale-price" type="text" inputmode="decimal" placeholder="Vide tant que le jeu est à vendre" aria-describedby="sale-price-help"></div>
+        <div class="field"><label for="sale-estimate">Prix estimé (€)</label><input id="sale-estimate" type="text" inputmode="decimal" placeholder="—"></div>
+        <div class="field"><label for="sale-price" id="sale-price-label">Prix réel (€)</label><input id="sale-price" type="text" inputmode="decimal" placeholder="—"></div>
       </div>
-      <p id="sale-price-help" class="cemetery-note">Renseigne le prix réel puis enregistre pour passer le jeu en vendu.</p>
-      <div id="sale-lot-section"><div class="form-section-title">Vendre en lot</div><p class="cemetery-note">Coche les autres jeux de cette vente. Le prix réel sera le total du lot.</p><div id="sale-lot-options"></div></div>
       <p id="sale-error" role="alert" class="sale-error"></p>
     </div>
     <div class="modal-actions modal-edit-actions">

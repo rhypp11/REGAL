@@ -16,12 +16,19 @@ const server=createSandboxServer();
     renderHomeStats();goToPage('home');
    });
    assert.equal(await page.locator('#home-total-games').textContent(),'1');
-   assert.match(await page.locator('#home-summary-meta').textContent(),/0 €achats renseignés/);
+   assert.match(await page.locator('#home-summary-meta').textContent(),/0 €valeur d’achat/);
    assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','collection','cemetery']);
    assert.equal(await page.locator('#page-lists').count(),0);
-   const widget=await page.locator('.home-collection-summary').boundingBox();
-   assert.ok(widget.height<200,'Summary remains compact');
-   const boards=await page.locator('#home-boards').boundingBox();assert.ok(widget.y+widget.height<=boards.y,'Summary is above the lists');
+   const sidebar=page.locator('#home-sidebar');
+   if(width<=820){
+    assert.equal(await sidebar.evaluate(el=>el.getBoundingClientRect().right<=0),true,'Summary starts in a closed drawer');
+    await page.locator('#global-filter-toggle').click();
+    assert.equal(await sidebar.evaluate(el=>el.classList.contains('mobile-open')),true);
+    await page.screenshot({path:'/tmp/jtd-home-drawer-'+width+'-'+theme+'.png'});
+   }else{
+    const side=await sidebar.boundingBox(),boards=await page.locator('#home-boards').boundingBox();
+    assert.ok(side.x+side.width<=boards.x,'Summary is a separate desktop sidebar');
+   }
    await page.locator('.home-widget-title a').click();await page.waitForFunction(()=>navigationPage==='collection');
    await page.locator('[data-page="home"]').click();
    assert.equal(await page.locator('#home-boards-switcher').isVisible(),width<=820);
@@ -38,3 +45,4 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

@@ -93,7 +93,7 @@ function openSaleModal(id){
   if(!item) return;
   saleEditingId = id;
   const sold = item.saleStatus === 'sold', group = saleGroup(item);
-  saleEl('sale-modal-title').textContent = sold ? (group.length > 1 ? 'Modifier cette vente en lot' : 'Modifier cette vente') : 'Préparer la vente';
+  saleEl('sale-modal-title').textContent = sold ? (group.length > 1 ? 'Vente en lot' : 'Vente') : 'Préparer la vente';
   renderSaleIdentity(group);
   saleEl('sale-channel').value = item.saleChannel || '';
   saleEl('sale-estimate').value = item.estimatedPrice ?? '';
@@ -101,15 +101,24 @@ function openSaleModal(id){
   saleEl('sale-error').textContent = '';
   saleEl('sale-rollback').textContent = sold ? 'Annuler la vente' : 'Remettre en collection';
   saleEl('sale-lot-section').classList.toggle('hidden', sold);
+  saleEl('sale-lot-toggle').checked = false;
+  saleEl('sale-lot-toggle').setAttribute('aria-expanded','false');
+  saleEl('sale-lot-options').classList.add('hidden');
   saleEl('sale-lot-options').replaceChildren();
   for(const other of CEMETERY.filter(g => g.saleStatus === 'pending' && g.id !== id)){
     const label = document.createElement('label');
     label.className = 'sale-lot-option';
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox'; checkbox.value = other.id;
-    label.append(checkbox, document.createTextNode(other.nom + ' · ' + other.plateforme));
+    const copy = document.createElement('span');
+    const name = document.createElement('span'); name.textContent = other.nom;
+    const platform = document.createElement('small'); platform.textContent = other.plateforme;
+    copy.append(name,platform);
+    label.append(checkbox,copy);
     saleEl('sale-lot-options').appendChild(label);
   }
+  saleEl('sale-lot-section').classList.toggle('hidden', sold || !saleEl('sale-lot-options').children.length);
+  updateSaleAction();
   window.JTDDialogs.open('sale-modal-overlay', {onDismiss:closeSaleModal,initialFocus:'#sale-channel'});
   saleEl('sale-channel').focus();
 }
@@ -142,7 +151,7 @@ function saveSale(){
     const sold = item.saleStatus === 'sold' || salePrice !== null;
     const completed = item.saleStatus !== 'sold' && sold;
     if(sold && salePrice === null) throw new Error('Renseigne le prix réel de vente avant de valider.');
-    const selected = [...saleEl('sale-lot-options').querySelectorAll('input:checked')].map(input => input.value);
+    const selected = saleEl('sale-lot-toggle').checked ? [...saleEl('sale-lot-options').querySelectorAll('input:checked')].map(input => input.value) : [];
     if(!sold && selected.length) throw new Error('Renseigne le prix réel du lot avant d’enregistrer.');
     const ids = item.saleStatus === 'sold' ? saleGroup(item).map(g => g.id) : [item.id, ...(sold ? selected : [])];
     const fields = {saleStatus:sold ? 'sold' : 'pending', saleChannel:saleEl('sale-channel').value || null};
@@ -191,9 +200,24 @@ saleEl('sale-rollback').addEventListener('click', () => {
     if(commitCemetery(next)){ closeSaleModal(); setSaleView('pending'); }
   });
 });
+function updateSaleAction(){
+  const item = CEMETERY.find(g => g.id === saleEditingId);
+  const isLot = item?.saleStatus === 'sold' ? saleGroup(item).length > 1 : saleEl('sale-lot-toggle').checked;
+  saleEl('sale-price-label').textContent = isLot ? 'Prix réel du lot (€)' : 'Prix réel (€)';
+  saleEl('sale-save').textContent = item?.saleStatus !== 'sold' && saleEl('sale-price').value.trim() ? 'Valider la vente' : 'Enregistrer';
+}
+saleEl('sale-lot-toggle').addEventListener('change', () => {
+  const enabled = saleEl('sale-lot-toggle').checked;
+  saleEl('sale-lot-options').classList.toggle('hidden', !enabled);
+  saleEl('sale-lot-toggle').setAttribute('aria-expanded',String(enabled));
+  if(!enabled) saleEl('sale-lot-options').querySelectorAll('input').forEach(input => { input.checked = false; });
+  updateSaleAction();
+});
+saleEl('sale-price').addEventListener('input',updateSaleAction);
 saleEl('sale-save').addEventListener('click', saveSale);
 saleEl('sale-cancel').addEventListener('click', closeSaleModal);
 saleEl('cemetery-search').addEventListener('input', renderCemetery);
 saleEl('cemetery-platform').addEventListener('change', renderCemetery);
 document.querySelectorAll('[data-sale-view]').forEach(button => button.addEventListener('click', () => setSaleView(button.dataset.saleView)));
 renderCemetery();
+
