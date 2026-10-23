@@ -24,6 +24,8 @@ const server=createSandboxServer();
     assert.equal(await sidebar.evaluate(el=>el.getBoundingClientRect().right<=0),true,'Summary starts in a closed drawer');
     await page.locator('#global-filter-toggle').click();
     assert.equal(await sidebar.evaluate(el=>el.classList.contains('mobile-open')),true);
+    await page.waitForFunction(()=>Math.abs(document.getElementById('home-sidebar').getBoundingClientRect().left)<1);
+    assert.ok((await sidebar.boundingBox()).width>250,'Open drawer has a readable width');
     await page.screenshot({path:'/tmp/jtd-home-drawer-'+width+'-'+theme+'.png'});
    }else{
     const side=await sidebar.boundingBox(),boards=await page.locator('#home-boards').boundingBox();
