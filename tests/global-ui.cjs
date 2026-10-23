@@ -18,11 +18,15 @@ const server=createSandboxServer();
     }));
     if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
     else headerGeometry=geometry;
+    assert.equal(await page.locator('.topnav-nav').evaluate(el=>{
+     const nav=el.getBoundingClientRect();
+     return [...el.querySelectorAll('.nav-tab')].every(button=>{const r=button.getBoundingClientRect();return r.top>=nav.top&&r.bottom<=nav.bottom+1&&r.left>=nav.left&&r.right<=nav.right+1;});
+    }),true,'Every navigation tab stays inside its band');
     assert.equal(await page.locator('.topnav #global-filter-toggle').count(),0);
     const filter=page.locator('#global-filter-toggle');
-    assert.equal(await filter.isVisible(),width<=820&&view!=='home');
-    if(width<=820&&view!=='home'){
-     const target=view==='collection'?'.platform-banner-title':'.cemetery-tabs';
+    assert.equal(await filter.isVisible(),width<=820);
+    if(width<=820){
+     const target=view==='collection'?'.platform-banner-title':view==='home'?'#home-boards-switcher':'.cemetery-tabs';
      const button=await filter.boundingBox(),title=await page.locator(target).boundingBox();
      assert.ok(Math.abs(button.y+button.height/2-title.y-title.height/2)<23,'Filter is alongside page controls');
      await filter.click();assert.equal(await filter.getAttribute('aria-expanded'),'true');

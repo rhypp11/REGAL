@@ -16,14 +16,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=local-filters-1">
-<link rel="stylesheet" href="cemetery.css?v=local-filters-1">
-<link rel="stylesheet" href="home-boards-v2.css?v=original-months-2">
-<link rel="stylesheet" href="home-dashboard.css?v=regal-3">
+<link rel="stylesheet" href="cemetery.css?v=grouped-stats-3">
+<link rel="stylesheet" href="home-boards-v2.css?v=open-calendars-3">
+<link rel="stylesheet" href="home-dashboard.css?v=stats-5">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=local-filters-1">
 <link rel="stylesheet" href="collection.css?v=counter-icons-6">
-<link rel="stylesheet" href="regal.css?v=platform-band-4">
-<link rel="stylesheet" href="game-sheet.css?v=sheet-hero-2">
+<link rel="stylesheet" href="regal.css?v=mobile-nav-6">
+<link rel="stylesheet" href="game-sheet.css?v=platforms-5">
 </head>
 <body>
 
@@ -139,11 +139,14 @@
 
 <div class="page" id="page-home">
   <div class="home-app">
-  <main class="home-main">
-    <section class="home-collection-summary" aria-label="Résumé de la collection">
-      <div class="home-widget-title"><h2>Collection</h2><a href="#collection">Voir la collection</a></div>
+    <aside class="sidebar home-sidebar" id="home-sidebar" aria-label="Statistiques">
+      <section class="home-collection-summary" aria-label="Résumé de la collection">
+      <div class="home-widget-title"><h2>Statistiques</h2></div>
       <div class="home-widget-stats"><div class="home-summary-total"><div class="home-stat-value"><svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 4v16M8 8v12M12 6v14m4-14 4 14"/></svg><strong id="home-total-games">0</strong></div><span>jeux</span></div><div class="home-summary-meta" id="home-summary-meta"></div></div>
     </section>
+    </aside>
+  <main class="home-main">
+    <div class="home-view-controls" id="home-view-controls">
     <div class="home-boards-switcher" id="home-boards-switcher" role="group" aria-label="Wishlist et arrivages">
       <button type="button" class="home-boards-switch-btn active" data-target="wishlist">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>
@@ -153,6 +156,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="7" width="14" height="10"></rect><path d="M15 10h4l3 3v4h-7z"></path><circle cx="6" cy="19" r="2"></circle><circle cx="17.5" cy="19" r="2"></circle></svg>
         Arrivages
       </button>
+    </div>
+
     </div>
 
     <div class="home-boards show-wishlist" id="home-boards">
@@ -214,9 +219,9 @@
         </div>
       </div>
 
-      <div class="image-url-row"><div class="field"><label for="a-image">URL de l'image <span class="optional-label">optionnel</span></label><input type="url" id="a-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="a-image-preview"><span>Aperçu</span></div>
+      <div class="image-url-row"><div class="field"><label for="a-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="a-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="a-image-preview"><span>Aperçu</span></div>
       </div>
-      <div class="field image-fit-field"><label for="a-image-fit">Affichage de l’image</label><select id="a-image-fit" aria-describedby="a-image-fit-help"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select><p class="image-fit-help" id="a-image-fit-help">Image entière, avec un fond flouté si nécessaire.</p></div>
+      <div class="field image-fit-field"><label for="a-image-fit">Affichage de l’image</label><select id="a-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
       </div>
       </div>
 
@@ -240,7 +245,7 @@
     </div>
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
-      <button class="btn btn-ghost hidden" data-modal-action="context" id="a-received-btn" title="Confirmer la réception de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Reçu</span></button>
+      <button class="btn btn-ghost hidden" data-modal-action="context" id="a-received-btn" title="Jeu reçu : préparer son entrée dans la collection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers la collection</span></button>
       <button class="btn btn-danger hidden" data-modal-action="delete" id="a-delete-btn">Supprimer</button>
       </div>
       <div class="modal-primary-actions">
@@ -283,9 +288,9 @@
         </div>
       </div>
 
-      <div class="image-url-row"><div class="field"><label for="w-image">URL de l'image <span class="optional-label">optionnel</span></label><input type="url" id="w-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="w-image-preview"><span>Aperçu</span></div>
+      <div class="image-url-row"><div class="field"><label for="w-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="w-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="w-image-preview"><span>Aperçu</span></div>
       </div>
-      <div class="field image-fit-field"><label for="w-image-fit">Affichage de l’image</label><select id="w-image-fit" aria-describedby="w-image-fit-help"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select><p class="image-fit-help" id="w-image-fit-help">Image entière, avec un fond flouté si nécessaire.</p></div>
+      <div class="field image-fit-field"><label for="w-image-fit">Affichage de l’image</label><select id="w-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
       </div>
       </div>
 
@@ -309,7 +314,7 @@
     </div>
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
-      <button class="btn btn-ghost hidden" data-modal-action="context" id="w-order-btn" title="Confirmer la commande de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Commandé</span></button>
+      <button class="btn btn-ghost hidden" data-modal-action="context" id="w-order-btn" title="Jeu commandé : préparer son passage dans les arrivages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers les arrivages</span></button>
       <button class="btn btn-danger hidden" data-modal-action="delete" id="w-delete-btn">Supprimer</button>
       </div>
       <div class="modal-primary-actions">
@@ -328,7 +333,7 @@
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
         <div style="display:flex;gap:2px;">
           <button class="icon-link-btn" id="sort-platforms-btn" title="Changer le tri des plateformes" aria-label="Changer le tri des plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12"></path><path d="M8 12h9"></path><path d="M8 18h6"></path><path d="m4 4-2 2 2 2"></path><path d="M2 6h4"></path></svg></button>
-          <button class="icon-link-btn" id="manage-platforms-btn" title="Gérer les plateformes" aria-label="Gérer les plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button>
+          <button class="icon-link-btn" id="manage-platforms-btn" title="Plateformes" aria-label="Plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button>
         </div>
       </div>
       <div id="platform-list"></div>
@@ -404,11 +409,11 @@
         </div>
       </div>
       <div class="image-url-row">
-        <div class="field"><label for="f-image">URL de l'image <span class="optional-label">optionnel</span></label><input type="url" id="f-image" placeholder="https://…"></div>
+        <div class="field"><label for="f-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="f-image" placeholder="https://…"></div>
         <div class="image-preview image-preview-compact" id="image-preview"><span>Aperçu</span></div>
       
       </div>
-      <div class="field image-fit-field"><label for="f-image-fit">Affichage de l’image</label><select id="f-image-fit" aria-describedby="f-image-fit-help"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select><p class="image-fit-help" id="f-image-fit-help">Image entière, avec un fond flouté si nécessaire.</p></div>
+      <div class="field image-fit-field"><label for="f-image-fit">Affichage de l’image</label><select id="f-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
       </div>
     </div>
 
@@ -420,7 +425,7 @@
         <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span>€</span></div></div>
         <div class="field"><label for="f-date">Date d'achat</label><input type="date" id="f-date"></div>
       </div>
-      <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, Steam…"></div>
+      <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
       </div>
     </div>
 
@@ -442,11 +447,16 @@
 <div class="page hidden" id="page-cemetery">
   <div class="cemetery-layout">
     <aside class="sidebar cemetery-sidebar" id="cemetery-sidebar" aria-label="Statistiques du cimetière">
-      <div class="side-label">Vue d’ensemble</div>
-      <div class="cemetery-stat"><span>Ventes encaissées</span><strong id="cemetery-stat-sales">0 €</strong></div>
-      <div class="cemetery-stat"><span>Estimation à vendre</span><strong id="cemetery-stat-estimated">0 €</strong></div>
-      <div class="cemetery-stat"><span>Jeux vendus</span><strong id="cemetery-stat-sold-count">0</strong></div>
-      <div class="cemetery-stat"><span>Jeux à vendre</span><strong id="cemetery-stat-pending-count">0</strong></div>
+      <section class="cemetery-stat-group" aria-labelledby="pending-stats-title">
+        <h2 class="side-label" id="pending-stats-title">À vendre</h2>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16l-2 13H6z M8 7V5a4 4 0 0 1 8 0v2"/></svg>Jeux</span><strong id="cemetery-stat-pending-count">0</strong></div>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18 M7 7h7a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h7"/></svg>Estimation</span><strong id="cemetery-stat-estimated">0 €</strong></div>
+      </section>
+      <section class="cemetery-stat-group" aria-labelledby="sold-stats-title">
+        <h2 class="side-label" id="sold-stats-title">Vendus</h2>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>Jeux</span><strong id="cemetery-stat-sold-count">0</strong></div>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z M8 8h8 M8 12h3 M8 16h5"/></svg>Encaissé</span><strong id="cemetery-stat-sales">0 €</strong></div>
+      </section>
     </aside>
     <main class="cemetery-main">
     <div class="cemetery-toolbar">
@@ -471,14 +481,16 @@
   <div class="modal">
     <h2 id="sale-modal-title">Mettre en vente</h2>
     <div id="sale-identity" class="game-sheet-hero"></div>
-    <div class="form-section"><div class="form-section-title">Vente</div>
+    <div id="sale-lot-section">
+      <label class="sale-lot-switch" for="sale-lot-toggle"><span>Faire un lot</span><input type="checkbox" role="switch" id="sale-lot-toggle" aria-controls="sale-lot-options" aria-expanded="false"><span class="sale-switch-track" aria-hidden="true"></span></label>
+      <div id="sale-lot-options" class="hidden"></div>
+    </div>
+    <div class="form-section">
       <div class="field"><label for="sale-channel">Canal de vente</label><select id="sale-channel"><option value="">À définir</option><option value="online">En ligne</option><option value="store">En boutique</option></select></div>
       <div class="field-row">
-        <div class="field"><label for="sale-estimate">Prix estimé (€)</label><input id="sale-estimate" type="text" inputmode="decimal" placeholder="Optionnel"></div>
-        <div class="field"><label for="sale-price">Prix réel de vente (€)</label><input id="sale-price" type="text" inputmode="decimal" placeholder="Vide tant que le jeu est à vendre" aria-describedby="sale-price-help"></div>
+        <div class="field"><label for="sale-estimate">Prix estimé (€)</label><input id="sale-estimate" type="text" inputmode="decimal" placeholder="—"></div>
+        <div class="field"><label for="sale-price" id="sale-price-label">Prix réel (€)</label><input id="sale-price" type="text" inputmode="decimal" placeholder="—"></div>
       </div>
-      <p id="sale-price-help" class="cemetery-note">Renseigne le prix réel puis enregistre pour passer le jeu en vendu.</p>
-      <div id="sale-lot-section"><div class="form-section-title">Vendre en lot</div><p class="cemetery-note">Coche les autres jeux de cette vente. Le prix réel sera le total du lot.</p><div id="sale-lot-options"></div></div>
       <p id="sale-error" role="alert" class="sale-error"></p>
     </div>
     <div class="modal-actions modal-edit-actions">
@@ -492,14 +504,13 @@
     </div>
   </div>
 </div>
-<div class="modal-overlay hidden" id="platform-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="platform-modal-title">
+<div class="modal-overlay sheet-dialog hidden" id="platform-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="platform-modal-title">
   <div class="modal platform-modal">
     <div class="platform-modal-heading">
       <div>
-        <h2 id="platform-modal-title">Gérer les plateformes</h2>
-        <p>Un aperçu clair de tes plateformes. Modifie uniquement celle dont tu as besoin.</p>
+        <h2 id="platform-modal-title">Plateformes</h2>
       </div>
-      <button type="button" class="platform-new-btn" id="new-platform-toggle">+ Nouvelle plateforme</button>
+      <button type="button" class="platform-new-btn" id="new-platform-toggle">+ Ajouter</button>
     </div>
     <div class="add-platform-row hidden" id="add-platform-row">
       <input type="text" id="new-platform-name" aria-label="Nom de la nouvelle plateforme" placeholder="Nom de la nouvelle plateforme...">
@@ -508,7 +519,6 @@
     </div>
     <div class="platform-rows" id="platform-rows"></div>
     <div class="modal-actions platform-modal-actions">
-      <span class="platform-modal-note">Les plateformes vides peuvent être supprimées.</span>
       
       <button class="btn btn-primary" id="close-platform-modal-btn">Terminé</button>
     </div>

@@ -86,6 +86,12 @@ const server = createSandboxServer();
       await page.locator('#sale-rollback').click();
       assert.deepEqual(await page.evaluate(()=>GAMES.find(g=>g.id==='test-fe')),original);
       await page.locator('.sale-game').filter({hasText:'Kena'}).click();
+      assert.equal(await page.locator('#sale-lot-options').isVisible(),false,'Lot choices are collapsed initially');
+      await page.locator('#sale-lot-toggle').check();
+      await page.locator('#sale-lot-options input[value="sale-pending-2"]').check();
+      await page.locator('#sale-lot-toggle').uncheck();
+      assert.equal(await page.locator('#sale-lot-options input:checked').count(),0,'Disabling lot clears hidden choices');
+      await page.locator('#sale-lot-toggle').check();
       await page.locator('#sale-lot-options input[value="sale-pending-2"]').check();
       await page.locator('#sale-save').click();
       assert.match(await page.locator('#sale-error').textContent(),/prix réel/);
@@ -93,6 +99,8 @@ const server = createSandboxServer();
       await page.locator('#sale-save').click();
       assert.equal(await page.evaluate(()=>CEMETERY.find(g=>g.id==='sale-pending-1').saleStatus),'pending');
       await page.locator('#sale-price').fill('27,50');
+      assert.equal(await page.locator('#sale-price-label').textContent(),'Prix réel du lot (€)');
+      await page.screenshot({path:'/tmp/jtd-sale-lot-'+width+'-'+theme+'.png',fullPage:true});
       await page.locator('#sale-lot-options input[value="sale-pending-2"]').check();
       await page.locator('#sale-save').click();
       assert.equal(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).count(),1);
@@ -111,6 +119,8 @@ const server = createSandboxServer();
       assert.match(await page.locator('.sale-group-heading').first().textContent(),/27,50/);
       assert.equal(await page.locator('#cemetery-stat-sold-count').isVisible(),true);
       await page.locator('.sale-game').filter({hasText:'Kena'}).click();
+      assert.equal(await page.locator('#sale-lot-section').isVisible(),false,'Sold lots cannot pick unrelated games');
+      await page.screenshot({path:'/tmp/jtd-sale-sold-'+width+'-'+theme+'.png',fullPage:true});
       await page.locator('#sale-price').fill('30');
       await page.locator('#sale-save').click();
       assert.equal(await page.evaluate(()=>CEMETERY.filter(g=>g.salePrice===30).length),2);
@@ -141,3 +151,4 @@ const server = createSandboxServer();
     }
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+
