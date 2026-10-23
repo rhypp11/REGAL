@@ -78,6 +78,7 @@ function decorateDigitalCard(card, game, options){
     // Keep the supplied artwork, with a visible DLC label even when no image is available.
     banner.insertAdjacentHTML('beforeend','<span class="dlc-label">'+MEDIA_ICONS.dlc+'<span>DLC</span></span>');
     if(!game.image){
+      banner.classList.remove('placeholder');
       banner.querySelector('.card-fallback')?.remove();
       banner.insertAdjacentHTML('afterbegin','<span class="dlc-placeholder">'+MEDIA_ICONS.dlc+'</span>');
     }
