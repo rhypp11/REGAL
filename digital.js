@@ -44,10 +44,24 @@ function renderMediaControls(){
   }
   const account = document.getElementById('collection-account');
   account.classList.toggle('hidden',(state.media || 'physical') === 'physical');
+  document.getElementById('collection-account-field').classList.toggle('hidden',(state.media || 'physical') === 'physical');
   if(state.media === 'physical') state.accountId = null;
   account.innerHTML = '<option value="">Tous les comptes</option>'+DIGITAL_ACCOUNTS.map(a=>'<option value="'+escapeHTML(a.id)+'">'+escapeHTML(a.name)+'</option>').join('');
   if(!DIGITAL_ACCOUNTS.some(a=>a.id === state.accountId)) state.accountId = null;
   account.value = state.accountId || '';
+}
+function collectionFilterLabel(){
+  const media = state.media || 'physical';
+  const label = ({physical:'Physique',digital:'Numérique',all:'Physique et numérique'})[media];
+  return (MEDIA_ICONS[media] || '')+'<span>'+escapeHTML(label+(state.accountId ? ' · '+accountName(state.accountId) : ''))+'</span>';
+}
+function renderCollectionFilterContext(banner){
+  const heading = banner.querySelector('.platform-banner-title')?.parentElement;
+  if(!heading) return;
+  const context = document.createElement('span');
+  context.className = 'collection-filter-context';
+  context.innerHTML = collectionFilterLabel();
+  heading.appendChild(context);
 }
 function gameContents(game){
   return GAMES.filter(child => JTDData.contentParent(child,GAMES)?.id === game.id);
@@ -213,9 +227,9 @@ function initDigitalControls(){
   document.getElementById('collection-media-tabs').addEventListener('click',event=>{
     const button = event.target.closest('[data-media]');if(!button)return;
     state.media=button.dataset.media;state.accountId=null;state.collector=false;state.japanese=false;state.status=null;
-    buildPlatformList();buildFormatToggles();buildStatusToggles();render();
+    buildPlatformList();buildFormatToggles();buildStatusToggles();render();closeMobileDrawers();
   });
-  document.getElementById('collection-account').onchange=event=>{state.accountId=event.target.value || null;buildPlatformList();render();};
+  document.getElementById('collection-account').onchange=event=>{state.accountId=event.target.value || null;buildPlatformList();render();closeMobileDrawers();};
   for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
   document.getElementById('f-account').addEventListener('change',()=>setGameSheetViewing(false));
   document.getElementById('f-parent-search').oninput=()=>populateParentGames(document.getElementById('f-parent').value);

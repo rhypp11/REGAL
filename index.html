@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="regal.css?v=mobile-nav-6">
 <link rel="stylesheet" href="game-sheet.css?v=platforms-5">
 <link rel="stylesheet" href="collection.css?v=soft-search-band-2">
-<link rel="stylesheet" href="digital.css?v=console-collection-1">
+<link rel="stylesheet" href="digital.css?v=sidebar-formats-2">
 </head>
 <body>
 
@@ -330,6 +330,15 @@
 <div class="page hidden" id="page-collection">
 <div class="app">
   <aside class="sidebar" id="collection-sidebar">
+    <div class="side-section collection-media-controls">
+      <div class="side-label">Format</div>
+      <div class="collection-media-tabs" id="collection-media-tabs" role="group" aria-label="Format de collection">
+        <button type="button" data-media="all" aria-pressed="false">Tout</button>
+        <button type="button" data-media="physical" aria-pressed="true">Physique</button>
+        <button type="button" data-media="digital" aria-pressed="false">Numérique</button>
+      </div>
+      <div id="collection-account-field" class="hidden"><label class="side-label" for="collection-account">Compte</label><select id="collection-account" aria-label="Filtrer par compte console" class="hidden"></select></div>
+    </div>
     <div class="side-section side-section-platforms">
       <div class="side-label-row">
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
@@ -356,14 +365,6 @@
 
   <main class="main">
     <div class="platform-banner" id="platform-banner"></div>
-    <div class="collection-media-controls">
-      <div class="collection-media-tabs" id="collection-media-tabs" role="group" aria-label="Format de collection">
-        <button type="button" data-media="all" aria-pressed="false">Tout</button>
-        <button type="button" data-media="physical" aria-pressed="true">Physique</button>
-        <button type="button" data-media="digital" aria-pressed="false">Numérique</button>
-      </div>
-      <select id="collection-account" aria-label="Filtrer par compte console" class="hidden"></select>
-    </div>
 
     <div class="top-row">
       <div class="search-wrap">
@@ -575,8 +576,8 @@
 </div>
 <script src="jtd-data.js?v=console-collection-1"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=console-collection-1"></script>
-<script src="app.js?v=console-collection-1"></script>
+<script src="digital.js?v=sidebar-formats-2"></script>
+<script src="app.js?v=sidebar-formats-2"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>

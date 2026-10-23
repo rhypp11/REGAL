@@ -905,7 +905,7 @@ function updateCollectionScrollContext(){
     context.className = 'collection-scroll-context hidden';
     context.setAttribute('role','region');
     context.setAttribute('aria-label','Collection filtrée');
-    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><span class="collection-context-icon" aria-hidden="true"></span><strong></strong><span class="collection-context-count"></span>';
+    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><span class="collection-context-icon" aria-hidden="true"></span><span class="collection-context-labels"><strong></strong><span class="collection-context-media"></span></span><span class="collection-context-count"></span>';
     context.querySelector('button').innerHTML = mobileFilterToggle.innerHTML;
     context.querySelector('button').addEventListener('click', () => mobileFilterToggle.click());
     document.getElementById('page-collection').appendChild(context);
@@ -932,8 +932,9 @@ function updateCollectionScrollContext(){
   const icon=context.querySelector('.collection-context-icon');
   if(icon.innerHTML!==iconHtml) icon.innerHTML=iconHtml;
   context.querySelector('strong').textContent = state.platform || 'Tous les jeux';
+  context.querySelector('.collection-context-media').innerHTML = collectionFilterLabel();
   const count = Number(banner.dataset.resultCount || 0);
-  context.querySelector('.collection-context-count').textContent = count + (count > 1 ? ' jeux' : ' jeu');
+  context.querySelector('.collection-context-count').textContent = count + (state.media && state.media !== 'physical' ? ' élément'+(count > 1 ? 's' : '') : count > 1 ? ' jeux' : ' jeu');
 }
 // Capture document and nested scrolling, including other views and drawers.
 document.addEventListener('scroll', requestCollectionContextUpdate, {passive:true, capture:true});
@@ -990,6 +991,7 @@ function renderPlatformBanner(games){
       </div>
       <div class="platform-banner-stats">${statsHtml}</div>
     `;
+    renderCollectionFilterContext(banner);
     if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
     return;
   }
@@ -1009,6 +1011,7 @@ function renderPlatformBanner(games){
     <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
     <div class="platform-banner-stats">${statsHtml}</div>
   `;
+  renderCollectionFilterContext(banner);
   if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
 }
 
