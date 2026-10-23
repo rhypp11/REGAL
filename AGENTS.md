@@ -47,6 +47,7 @@ Préserver l'ordre de chargement et les interfaces partagées entre scripts. Ré
 
 - La collection propose Physique (par défaut), Numérique et Tout. Accueil, wishlist, arrivages et ventes restent réservés au physique. Le numérique concerne les achats consoles, avec compte et devise facultatifs ; aucun import Steam.
 - Les DLC numériques se rattachent explicitement à un jeu de la même plateforme. Ils sont regroupés sous le jeu numérique, mais restent visibles dans la vue numérique si le jeu associé est physique ou hors collection. Conserver les achats, comptes et prix indépendamment des regroupements visuels.
+- Filtres Physique/Numérique/Tout et compte dans le volet gauche ; rappel du format et du compte dans le bandeau et son contexte réduit. Les DLC gardent le fond normal des cartes et une étiquette verte avec puzzle sur le visuel.
 - Interface en français, sobre et lisible, cohérente en thèmes clair et sombre.
 - Images des jeux horizontales. Sur mobile, les cartes utilisent la largeur disponible ; les modales doivent défiler et leurs actions rester accessibles sans chevauchement.
 - Wishlist et arrivages restent séparés en onglets sur mobile. Vérifier aussi le menu, les tiroirs, les dates et les listes longues.
