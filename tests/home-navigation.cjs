@@ -19,6 +19,7 @@ const server=createSandboxServer();
    assert.match(await page.locator('#home-summary-meta').textContent(),/0 €valeur d’achat/);
    assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','collection','cemetery']);
    assert.equal(await page.locator('#page-lists').count(),0);
+   assert.match(await page.locator('#home-summary-meta').textContent(),/0terminés1à faire/);
    const sidebar=page.locator('#home-sidebar');
    if(width<=820){
     assert.equal(await sidebar.evaluate(el=>el.getBoundingClientRect().right<=0),true,'Summary starts in a closed drawer');
@@ -32,7 +33,10 @@ const server=createSandboxServer();
     const side=await sidebar.boundingBox(),boards=await page.locator('#home-boards').boundingBox();
     assert.ok(side.x+side.width<=boards.x,'Summary is a separate desktop sidebar');
    }
-   await page.locator('.home-widget-title a').click();await page.waitForFunction(()=>navigationPage==='collection');
+   assert.equal(await page.locator('.home-widget-title a').count(),0,'No duplicate collection shortcut');
+   assert.equal(await page.locator('.home-widget-title h2').textContent(),'Statistiques');
+   await page.keyboard.press('Escape');
+   await page.locator('[data-page="collection"]').click();await page.waitForFunction(()=>navigationPage==='collection');
    await page.locator('[data-page="home"]').click();
    assert.equal(await page.locator('#home-boards-switcher').isVisible(),width<=820);
    if(width<=820){await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('.board.wishlist').isVisible(),false)}

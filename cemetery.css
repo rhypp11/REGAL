@@ -13,7 +13,7 @@
   margin:0;
   padding:28px 18px 24px;
   border:0;
-  border-right:1px solid var(--ui-border);
+  border-right:1px solid rgba(var(--ui-rgb),.05);
   border-radius:0;
   background:var(--ui-sidebar);
 }
@@ -353,3 +353,6 @@
 #sale-error:empty { display:none; }
 #sale-modal-overlay .sale-error { margin:0; color:var(--danger); font-size:12px; }
 @media(prefers-reduced-motion:reduce) { .sale-switch-track,.sale-switch-track::after { transition:none; } }
+
+.cemetery-stat-group { display:grid; gap:10px; }
+.cemetery-stat-group + .cemetery-stat-group { margin-top:14px; }

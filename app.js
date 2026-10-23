@@ -1566,10 +1566,14 @@ function renderHomeStats(){
   const metaEl = document.getElementById('home-summary-meta');
   if(metaEl){
     const statIcon = path => `<svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${path}"/></svg>`;
+    const finished = GAMES.filter(g => ['termine','termine_ailleurs'].includes(g.status)).length;
+    const todo = GAMES.filter(g => !g.status || g.status === 'a_jouer').length;
     const stats = [
       `<div class="home-summary-stat"><strong>${statIcon("M7 8h10c2 0 3 2 3.5 4l1 5c.4 2-1.5 3-3 1L16 16H8l-2.5 2c-1.5 2-3.4 1-3-1l1-5C4 10 5 8 7 8Z M7 10v4 M5 12h4 M16 11h.01 M18 13h.01")}${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
       collectors ? `<div class="home-summary-stat"><strong>${statIcon("m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z")}${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
-      GAMES.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>valeur d’achat</span></div>` : ''
+      GAMES.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>valeur d’achat</span></div>` : '',
+      `<div class="home-summary-stat"><strong>${statIcon("m5 12 4 4L19 6")}${finished}</strong><span>terminés</span></div>`,
+      `<div class="home-summary-stat"><strong>${statIcon("M8 6h12 M8 12h12 M8 18h12 M3 6h.01 M3 12h.01 M3 18h.01")}${todo}</strong><span>à faire</span></div>`
     ].filter(Boolean);
     metaEl.innerHTML = stats.join('');
   }
@@ -2260,8 +2264,8 @@ function buildPlatformRows(){
     row.innerHTML = `
       <div class="platform-row-main">
         <div class="row-order-btns" aria-label="Ordre de la plateforme">
-          <button type="button" class="order-btn" data-dir="-1" title="Monter" aria-label="Monter ${escapeHTML(p)}"${idx === 0 ? ' disabled' : ''}>▲</button>
-          <button type="button" class="order-btn" data-dir="1" title="Descendre" aria-label="Descendre ${escapeHTML(p)}"${idx === platforms.length - 1 ? ' disabled' : ''}>▼</button>
+          <button type="button" class="order-btn" data-dir="-1" title="Monter" aria-label="Monter ${escapeHTML(p)}"${idx === 0 ? ' disabled' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
+          <button type="button" class="order-btn" data-dir="1" title="Descendre" aria-label="Descendre ${escapeHTML(p)}"${idx === platforms.length - 1 ? ' disabled' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         </div>
         <div class="swatch-preview" data-role="swatch">
           ${logo ? `<img src="${escapeHTML(safeURL(logo, true))}" alt="">` : escapeHTML(initials)}
@@ -2286,11 +2290,11 @@ function buildPlatformRows(){
           </label>
         </div>
         <label class="platform-editor-field">
-          <span>Logo <small>URL facultative</small></span>
+          <span>Image du logo</span>
           <input type="text" data-role="logo" placeholder="https://…" value="${escapeHTML(safeURL(logo, true))}">
         </label>
         <div class="platform-editor-actions">
-          ${count === 0 ? `<button type="button" class="platform-delete-btn">Supprimer</button>` : `<span class="platform-delete-hint">${count} jeu${count > 1 ? 'x' : ''} associé${count > 1 ? 's' : ''}</span>`}
+          ${count === 0 ? `<button type="button" class="platform-delete-btn">Supprimer</button>` : ''}
           <div class="platform-editor-spacer"></div>
           <button type="button" class="platform-cancel-btn">Annuler</button>
           <button type="button" class="platform-save-btn">Enregistrer</button>
@@ -2298,6 +2302,7 @@ function buildPlatformRows(){
       </div>
     `;
 
+    row.style.setProperty('--platform-editor-accent',color);
     const swatch = row.querySelector('[data-role="swatch"]');
     if(!logo) swatch.style.background = color;
 
@@ -2334,6 +2339,7 @@ function buildPlatformRows(){
     });
 
     const refreshDraftPreview = () => {
+      row.style.setProperty('--platform-editor-accent',colorInput.value);
       const url = safeURL(logoInput.value.trim(), true);
       const draftName = nameInput.value.trim() || p;
       swatch.innerHTML = '';

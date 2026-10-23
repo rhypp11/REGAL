@@ -16,14 +16,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=local-filters-1">
-<link rel="stylesheet" href="cemetery.css?v=sale-lot-2">
-<link rel="stylesheet" href="home-boards-v2.css?v=original-months-2">
-<link rel="stylesheet" href="home-dashboard.css?v=sidebars-4">
+<link rel="stylesheet" href="cemetery.css?v=grouped-stats-3">
+<link rel="stylesheet" href="home-boards-v2.css?v=open-calendars-3">
+<link rel="stylesheet" href="home-dashboard.css?v=stats-5">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=local-filters-1">
 <link rel="stylesheet" href="collection.css?v=counter-icons-6">
 <link rel="stylesheet" href="regal.css?v=mobile-nav-6">
-<link rel="stylesheet" href="game-sheet.css?v=minimal-form-4">
+<link rel="stylesheet" href="game-sheet.css?v=platforms-5">
 </head>
 <body>
 
@@ -139,9 +139,9 @@
 
 <div class="page" id="page-home">
   <div class="home-app">
-    <aside class="sidebar home-sidebar" id="home-sidebar" aria-label="Collection">
+    <aside class="sidebar home-sidebar" id="home-sidebar" aria-label="Statistiques">
       <section class="home-collection-summary" aria-label="Résumé de la collection">
-      <div class="home-widget-title"><h2>Collection</h2><a href="#collection">Voir la collection</a></div>
+      <div class="home-widget-title"><h2>Statistiques</h2></div>
       <div class="home-widget-stats"><div class="home-summary-total"><div class="home-stat-value"><svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 4v16M8 8v12M12 6v14m4-14 4 14"/></svg><strong id="home-total-games">0</strong></div><span>jeux</span></div><div class="home-summary-meta" id="home-summary-meta"></div></div>
     </section>
     </aside>
@@ -333,7 +333,7 @@
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
         <div style="display:flex;gap:2px;">
           <button class="icon-link-btn" id="sort-platforms-btn" title="Changer le tri des plateformes" aria-label="Changer le tri des plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12"></path><path d="M8 12h9"></path><path d="M8 18h6"></path><path d="m4 4-2 2 2 2"></path><path d="M2 6h4"></path></svg></button>
-          <button class="icon-link-btn" id="manage-platforms-btn" title="Gérer les plateformes" aria-label="Gérer les plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button>
+          <button class="icon-link-btn" id="manage-platforms-btn" title="Plateformes" aria-label="Plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button>
         </div>
       </div>
       <div id="platform-list"></div>
@@ -447,11 +447,16 @@
 <div class="page hidden" id="page-cemetery">
   <div class="cemetery-layout">
     <aside class="sidebar cemetery-sidebar" id="cemetery-sidebar" aria-label="Statistiques du cimetière">
-      <div class="side-label">Vue d’ensemble</div>
-      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z M8 8h8 M8 12h3 M8 16h5"/></svg>Ventes encaissées</span><strong id="cemetery-stat-sales">0 €</strong></div>
-      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18 M7 7h7a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h7"/></svg>Estimation à vendre</span><strong id="cemetery-stat-estimated">0 €</strong></div>
-      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>Jeux vendus</span><strong id="cemetery-stat-sold-count">0</strong></div>
-      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16l-2 13H6z M8 7V5a4 4 0 0 1 8 0v2"/></svg>Jeux à vendre</span><strong id="cemetery-stat-pending-count">0</strong></div>
+      <section class="cemetery-stat-group" aria-labelledby="pending-stats-title">
+        <h2 class="side-label" id="pending-stats-title">À vendre</h2>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16l-2 13H6z M8 7V5a4 4 0 0 1 8 0v2"/></svg>Jeux</span><strong id="cemetery-stat-pending-count">0</strong></div>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18 M7 7h7a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h7"/></svg>Estimation</span><strong id="cemetery-stat-estimated">0 €</strong></div>
+      </section>
+      <section class="cemetery-stat-group" aria-labelledby="sold-stats-title">
+        <h2 class="side-label" id="sold-stats-title">Vendus</h2>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>Jeux</span><strong id="cemetery-stat-sold-count">0</strong></div>
+      <div class="cemetery-stat"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z M8 8h8 M8 12h3 M8 16h5"/></svg>Encaissé</span><strong id="cemetery-stat-sales">0 €</strong></div>
+      </section>
     </aside>
     <main class="cemetery-main">
     <div class="cemetery-toolbar">
@@ -499,14 +504,13 @@
     </div>
   </div>
 </div>
-<div class="modal-overlay hidden" id="platform-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="platform-modal-title">
+<div class="modal-overlay sheet-dialog hidden" id="platform-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="platform-modal-title">
   <div class="modal platform-modal">
     <div class="platform-modal-heading">
       <div>
-        <h2 id="platform-modal-title">Gérer les plateformes</h2>
-        <p>Un aperçu clair de tes plateformes. Modifie uniquement celle dont tu as besoin.</p>
+        <h2 id="platform-modal-title">Plateformes</h2>
       </div>
-      <button type="button" class="platform-new-btn" id="new-platform-toggle">+ Nouvelle plateforme</button>
+      <button type="button" class="platform-new-btn" id="new-platform-toggle">+ Ajouter</button>
     </div>
     <div class="add-platform-row hidden" id="add-platform-row">
       <input type="text" id="new-platform-name" aria-label="Nom de la nouvelle plateforme" placeholder="Nom de la nouvelle plateforme...">
@@ -515,7 +519,6 @@
     </div>
     <div class="platform-rows" id="platform-rows"></div>
     <div class="modal-actions platform-modal-actions">
-      <span class="platform-modal-note">Les plateformes vides peuvent être supprimées.</span>
       
       <button class="btn btn-primary" id="close-platform-modal-btn">Terminé</button>
     </div>

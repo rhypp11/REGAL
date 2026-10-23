@@ -1,13 +1,10 @@
 /* Accueil : collection dans le volet, listes dans le contenu principal. */
 #page-home .home-app { display:grid; grid-template-columns:var(--ui-sidebar-width) minmax(0,1fr); width:100%; height:auto; min-height:calc(100dvh - var(--topnav-h,58px)); overflow:visible; }
-#page-home #home-sidebar { display:flex; flex-direction:column; align-self:start; position:sticky; top:var(--topnav-h,58px); height:calc(100dvh - var(--topnav-h,58px)); min-width:0; gap:18px; padding:26px 18px; border-right:1px solid var(--ui-border); background:var(--ui-sidebar); }
+#page-home #home-sidebar { display:flex; flex-direction:column; align-self:start; position:sticky; top:var(--topnav-h,58px); height:calc(100dvh - var(--topnav-h,58px)); min-width:0; gap:18px; padding:26px 18px; border-right:1px solid rgba(var(--ui-rgb),.05); background:var(--ui-sidebar); }
 #page-home .home-main { min-width:0; width:100%; margin:0; overflow:visible; gap:16px; }
 #page-home .home-collection-summary { display:flex; flex-direction:column; gap:20px; padding:0; background:transparent; }
 .home-widget-title { display:flex; flex-direction:column; gap:12px; }
 .home-widget-title h2 { margin:0; font-size:14px; letter-spacing:-.01em; }
-.home-widget-title a { display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:44px; color:var(--ui-accent); font-size:12px; text-decoration:none; }
-.home-widget-title a::after { content:'→'; }
-.home-widget-title a:hover { text-decoration:underline; }
 .home-widget-stats { display:flex; flex-direction:column; gap:10px; }
 #page-home .home-summary-total { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:18px; border:1px solid color-mix(in srgb,var(--ui-accent) 18%,var(--ui-border)); border-radius:16px; background:color-mix(in srgb,var(--ui-accent) 7%,var(--ui-surface)); }
 .home-stat-value { display:flex; align-items:center; gap:10px; }
@@ -23,7 +20,6 @@
 #page-home .home-boards-switcher { display:none; }
 #page-home #home-boards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
 #page-home #home-boards .board { display:block; }
-.home-collection-summary a:focus-visible { outline:2px solid var(--ui-accent); outline-offset:3px; }
 @media(max-width:820px) {
   #page-home .home-app { display:block; min-height:0; }
   #page-home #home-sidebar { position:fixed; top:var(--topnav-h,102px); bottom:0; height:calc(100dvh - var(--topnav-h,102px)); width:min(86vw,340px); padding:24px 18px; z-index:60; }

@@ -49,6 +49,18 @@ const server=createSandboxServer();
     await page.locator(`.nav-tab[data-page="${route}"]`).click();
     assert.equal(await page.locator('.nav-tab[aria-current="page"]').getAttribute('data-page'),route);
    }
+   await page.evaluate(()=>openPlatformModal());
+   const platformRow=page.locator('.platform-row[data-current-name="Switch 2"]');
+   await platformRow.locator('.platform-edit-btn').click();
+   const originalColor=await platformRow.locator('[data-role="color"]').inputValue();
+   await platformRow.locator('[data-role="color"]').fill('#43897c');
+   await platformRow.locator('.platform-save-btn').scrollIntoViewIfNeeded();
+   assert.equal(await page.locator('.platform-modal').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Platform editor fits the dialog');
+   await page.screenshot({path:`/tmp/jtd-platform-editor-${width}-${theme}.png`});
+   await platformRow.locator('.platform-cancel-btn').click();
+   await platformRow.locator('.platform-edit-btn').click();
+   assert.equal(await platformRow.locator('[data-role="color"]').inputValue(),originalColor,'Cancel discards the live preview');
+   await page.locator('#close-platform-modal-btn').click();
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(id=>GAMES.some(g=>g.id===id),created.id),true,'Manual add survives reload');
    assert.deepEqual(errors,[]);await context.close();console.log('PASS manual entry and module actions',width,theme);
