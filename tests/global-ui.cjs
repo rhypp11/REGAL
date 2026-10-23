@@ -108,7 +108,7 @@ const server=createSandboxServer();
     assert.equal(await page.locator('#platform-banner [data-stat="games"] strong').innerText(),'50','Counts follow the active platform');
     assert.equal(await page.locator('#platform-banner [data-stat="platforms"]').count(),0,'Selected platform does not need a platform count');
     const platformColor=await page.locator('.platform-banner-head').evaluate(el=>getComputedStyle(el).backgroundColor);
-    assert.notEqual(platformColor,'rgba(0, 0, 0, 0)','Platform heading has a full color background');
+    assert.equal(platformColor,'rgba(0, 0, 0, 0)','Platform heading remains open without a solid panel');
     await page.screenshot({path:`/tmp/jtd-platform-band-top-${width}-${theme}.png`});
     const band=page.locator('#collection-scroll-context');
     assert.equal(await band.isVisible(),false,'No compact context at the top');
@@ -118,7 +118,7 @@ const server=createSandboxServer();
     assert.equal(await band.locator('strong').innerText(),await page.evaluate(()=>state.platform));
     assert.equal(await band.locator('.collection-context-count').innerText(),'50 jeux');
     assert.equal(await band.locator('.collection-context-icon > *').count(),1,'Compact band retains the platform icon');
-    assert.equal(await band.evaluate(el=>getComputedStyle(el).backgroundColor),platformColor,'Compact and full bands use the same platform color');
+    assert.equal(await band.evaluate(el=>getComputedStyle(el).backgroundColor),await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),'Compact context blends into the canvas');
     if(width>820)assert.ok(await page.evaluate(()=>scrollY>0 && document.querySelector('#page-collection .main').scrollTop===0),'Desktop collection uses one document scroll');
     const rect=await band.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1,'Compact context stays on screen');
     if(width<=820){
