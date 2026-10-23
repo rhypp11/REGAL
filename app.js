@@ -101,12 +101,13 @@ function loadPreviewData(){
     }
   } catch(error){ console.error('Lecture sandbox impossible', error); }
   const initial = JTDData.normalizeData({...PREVIEW_SEED,
-    games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo()] : PREVIEW_SEED.games,
+    games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo(),...digitalPreviewGames()] : PREVIEW_SEED.games,
+    digitalAccounts:HAS_PREVIEW_COLLECTION_DEMO ? digitalPreviewAccounts() : [],
     profileName:'Mode test'});
   return previewData = HAS_PREVIEW_COLLECTION_DEMO ? decoratePreviewData(initial) : initial;
 }
 function savePreviewData(overrides = {}){
-  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:LEGACY_JOURNAL, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
+  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:LEGACY_JOURNAL, digitalAccounts:DIGITAL_ACCOUNTS, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
   localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(data));
   previewData = data;
 }
@@ -117,6 +118,7 @@ function restoredStorageEntries(data){
     [WISHLIST_KEY, JSON.stringify(data.wishlist)],
     [CEMETERY_KEY, JSON.stringify(data.cemetery || [])],
     [LEGACY_JOURNAL_KEY, JSON.stringify(data.journal || [])],
+    [DIGITAL_ACCOUNTS_KEY, JSON.stringify(data.digitalAccounts || [])],
     [PLATFORM_META_KEY, JSON.stringify(data.platformMeta)],
     [PLATFORM_ORDER_KEY, JSON.stringify(data.platformOrder)],
     [PROFILE_KEY, JSON.stringify({name:data.profileName, avatar:data.profileAvatar})]
@@ -128,6 +130,7 @@ function replaceAppData(data){
   WISHLIST = data.wishlist;
   CEMETERY = data.cemetery || [];
   LEGACY_JOURNAL = data.journal || [];
+  DIGITAL_ACCOUNTS = data.digitalAccounts || [];
   window.renderCemetery?.();
   platformMeta = data.platformMeta;
   platformOrder = data.platformOrder;
@@ -448,6 +451,8 @@ let convertingArrivalId = null; // id de l'arrivage en cours de bascule vers la 
 let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascule vers la wishlist
 
 let state = {
+  media: 'physical',
+  accountId: null,
   platform: null,
   collector: false,
   japanese: false,
@@ -617,6 +622,7 @@ function buildBackupPayload(){
       wishlist: WISHLIST,
       cemetery: CEMETERY,
       journal: LEGACY_JOURNAL,
+      digitalAccounts: DIGITAL_ACCOUNTS,
       platformMeta,
       platformOrder,
       profile: { name: PROFILE_NAME, avatar: PROFILE_AVATAR }
@@ -665,6 +671,7 @@ function applyRestoredData(data){
 
 // Cemetery imports write only the boards they actually change.
 window.JTDApplyCemeteryImport = (games, cemetery) => {
+  games = [...games,...GAMES.filter(game => JTDData.isDigital(game))];
   JTDData.assertCloudSize({...buildBackupPayload().data,games,cemetery,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
   if(IS_PREVIEW_MODE) savePreviewData({games, cemetery});
   else accountStorage.atomicWrite([
@@ -679,7 +686,7 @@ window.JTDApplyCemeteryImport = (games, cemetery) => {
   window.JTDDataChanged?.();
 };
 window.JTDGetCemeteryImportState = () => ({
-  games: GAMES.map(game => ({...game})),
+  games: GAMES.filter(game => !JTDData.isDigital(game)).map(game => ({...game})),
   cemetery: CEMETERY.map(game => ({...game})),
   usedIds: [...GAMES,...CEMETERY,...ARRIVALS,...WISHLIST].map(item=>item.id)
 });
@@ -730,7 +737,8 @@ function setStatus(id, statusKey){
 }
 
 function buildPlatformList(){
-  const scoped = GAMES;
+  const scoped = collectionScope();
+  if(state.platform && !scoped.some(g => g.plateforme === state.platform)) state.platform = null;
   const counts = Object.create(null);
   scoped.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
   const platforms = platformSortMode === 'custom'
@@ -842,7 +850,7 @@ function getEffectiveStatus(g){
 
 function filteredGames(){
   const q = state.search.trim().toLowerCase();
-  return GAMES.filter(g => {
+  return JTDData.collectionCards(GAMES, state.media || 'physical', state.accountId, q).filter(g => {
       if(state.platform && g.plateforme !== state.platform) return false;
       if(state.collector && !g.collector) return false;
       if(state.japanese && !g.japanese) return false;
@@ -897,7 +905,7 @@ function updateCollectionScrollContext(){
     context.className = 'collection-scroll-context hidden';
     context.setAttribute('role','region');
     context.setAttribute('aria-label','Collection filtrée');
-    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><span class="collection-context-icon" aria-hidden="true"></span><strong></strong><span class="collection-context-count"></span>';
+    context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><span class="collection-context-icon" aria-hidden="true"></span><span class="collection-context-labels"><strong></strong><span class="collection-context-media"></span></span><span class="collection-context-count"></span>';
     context.querySelector('button').innerHTML = mobileFilterToggle.innerHTML;
     context.querySelector('button').addEventListener('click', () => mobileFilterToggle.click());
     document.getElementById('page-collection').appendChild(context);
@@ -924,8 +932,9 @@ function updateCollectionScrollContext(){
   const icon=context.querySelector('.collection-context-icon');
   if(icon.innerHTML!==iconHtml) icon.innerHTML=iconHtml;
   context.querySelector('strong').textContent = state.platform || 'Tous les jeux';
+  context.querySelector('.collection-context-media').innerHTML = collectionFilterLabel();
   const count = Number(banner.dataset.resultCount || 0);
-  context.querySelector('.collection-context-count').textContent = count + (count > 1 ? ' jeux' : ' jeu');
+  context.querySelector('.collection-context-count').textContent = count + (state.media && state.media !== 'physical' ? ' élément'+(count > 1 ? 's' : '') : count > 1 ? ' jeux' : ' jeu');
 }
 // Capture document and nested scrolling, including other views and drawers.
 document.addEventListener('scroll', requestCollectionContextUpdate, {passive:true, capture:true});
@@ -938,7 +947,8 @@ function renderPlatformBanner(games){
   banner.dataset.resultCount = games.length;
   requestCollectionContextUpdate();
   const total = games.length;
-  const spent = games.reduce((sum,g) => sum + (g.prix || 0), 0);
+  const playableGames = games.filter(g => !JTDData.isDLC(g));
+  const spent = games.reduce((sum,g) => sum + ((g.currency || 'EUR') === 'EUR' ? (g.prix || 0) : 0), 0);
   const collectors = games.filter(g => g.collector).length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
   const statIcons = {
@@ -953,15 +963,15 @@ function renderPlatformBanner(games){
   const stat = (value, label, key) =>
     `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span class="library-stat-label"><span class="library-stat-icon" aria-hidden="true">${statIcons[key] || ''}</span>${key === 'platforms' ? `<span class="library-stat-label-wide">${escapeHTML(label)}</span><span class="library-stat-label-short">${platformsCount > 1 ? 'Supports' : 'Support'}</span>` : escapeHTML(label)}</span></span>`;
   const collectionStats = [
-    stat(total, total > 1 ? 'Jeux' : 'Jeu', 'games'),
+    stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
     !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',
-    stat(spent.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €', 'Valeur', 'spent'),
+    stat(collectionValueLabel(games, spent), 'Valeur', 'spent'),
     stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors')
   ].join('');
   const completionStats = [
-    stat(games.filter(g => !g.status || g.status==='a_jouer').length,'À faire','a_jouer'),
-    stat(games.filter(g => g.status==='termine' || g.status==='termine_ailleurs').length,'Terminés','termine'),
-    stat(games.filter(g => g.status==='multi').length,'Multi','multi')
+    stat(playableGames.filter(g => !g.status || g.status==='a_jouer').length,'À faire','a_jouer'),
+    stat(playableGames.filter(g => g.status==='termine' || g.status==='termine_ailleurs').length,'Terminés','termine'),
+    stat(playableGames.filter(g => g.status==='multi').length,'Multi','multi')
   ].join('');
   const statsHtml = `<section class="library-stat-group" aria-labelledby="collection-stats-title">
     <h3 id="collection-stats-title">Collection</h3><div class="library-stat-values library-collection-values">${collectionStats}</div>
@@ -981,6 +991,7 @@ function renderPlatformBanner(games){
       </div>
       <div class="platform-banner-stats">${statsHtml}</div>
     `;
+    renderCollectionFilterContext(banner);
     if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
     return;
   }
@@ -1000,6 +1011,7 @@ function renderPlatformBanner(games){
     <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
     <div class="platform-banner-stats">${statsHtml}</div>
   `;
+  renderCollectionFilterContext(banner);
   if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
 }
 
@@ -1096,6 +1108,7 @@ function renderCard(g, options = {}){
     });
   });
   }
+  decorateDigitalCard(card, g, options);
   const onOpen = options.onOpen || (() => openModal(g.id));
   card.addEventListener('click', onOpen);
   card.tabIndex = 0;
@@ -1121,7 +1134,7 @@ function renderResultsBar(count){
   }
   if(state.search.trim()) filters.push(`« ${state.search.trim()} »`);
 
-  let html = `<span class="results-count">${count} jeu${count > 1 ? 'x' : ''}</span>`;
+  let html = `<span class="results-count">${count} ${state.media && state.media !== 'physical' ? 'élément'+(count > 1 ? 's' : '') : 'jeu'+(count > 1 ? 'x' : '')}</span>`;
   if(filters.length){
     html += `<span class="results-filters">${filters.map(f => `<b>${f.japanese ? '<span class="japanese-flag" aria-hidden="true"></span> ' : ''}${escapeHTML(typeof f === 'string' ? f : f.label)}</b>`).join(' · ')}</span>`;
     html += `<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button>`;
@@ -1132,6 +1145,7 @@ function renderResultsBar(count){
 }
 
 function render(){
+  renderMediaControls();
   persistNavigation();
   const games = sortGames(filteredGames());
   renderPlatformBanner(games);
@@ -1355,7 +1369,7 @@ function contextEditIcon(){
 function contextSummaryHtml(item, type){
   if(type === 'purchase'){
     const bits = [
-      `<span><small>Prix payé</small><strong>${item.prix != null ? euros(item.prix) : '—'}</strong></span>`,
+      `<span><small>Prix payé</small><strong>${item.prix != null ? purchaseMoney(item) : '—'}</strong></span>`,
       `<span><small>Date d'achat</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
       `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
@@ -1419,6 +1433,7 @@ function readIdentityFields(prefix){
   };
 }
 function commitBoardTransfer(from, to, id, draft){
+  if(to === 'cemetery' && JTDData.isDigital(draft)){ showToast('Seuls les jeux physiques peuvent être mis en vente.'); return null; }
   const lists = {games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY};
   const keys = {games:STORAGE_KEY, arrivals:ARRIVALS_KEY, wishlist:WISHLIST_KEY, cemetery:CEMETERY_KEY};
   try {
@@ -1489,6 +1504,7 @@ function openModal(id, collection = 'games'){
   document.getElementById('f-image-fit').value = editingId && items.find(x => x.id === editingId)?.imageFit === 'cover' ? 'cover' : 'contain';
   updateImagePreview();
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
+  openDigitalFields(identityItem);
   setIdentityEditor('f', identityItem, !!editingId);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
@@ -1507,6 +1523,7 @@ function closeModal(){
   editingId = null;
   editingCollection = 'games';
   convertingArrivalId = null; // annuler = l'arrivage reste où il était
+  document.getElementById('f-content-details').replaceChildren();
 }
 
 function updateImagePreview(){
@@ -1522,6 +1539,8 @@ function saveModal(){
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
   const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit};
+  try { Object.assign(fields, readDigitalFields()); }
+  catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
   const received = convertingArrivalId
     ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, format:'Physique', type:null, status:'a_jouer'})
@@ -1530,12 +1549,15 @@ function saveModal(){
   if(editedCemetery){
     if(!window.updateCemeteryGame?.(editingId, fields)) return;
   } else if(!convertingArrivalId){
-    if(editingId) Object.assign(GAMES.find(x => x.id === editingId), fields);
-    else GAMES.push({id:crypto.randomUUID(), ...fields, format:'Physique', type:null, status:null});
-    saveGames();
+    const next = editingId
+      ? GAMES.map(game => game.id === editingId ? {...game,...fields} : game)
+      : [...GAMES,{id:crypto.randomUUID(),type:null,status:null,...fields}];
+    if(!commitCollection(next)) return;
   } else renderArrivals();
 
   setLastUsed('platform', plateforme);
+  const savedMedia = JTDData.isDigital(fields) ? 'digital' : 'physical';
+  if(editingCollection === 'games' && state.media !== 'all') state.media = savedMedia;
   closeModal();
   buildPlatformList();
   render();
@@ -1559,14 +1581,14 @@ function deleteGame(){
   if(!g) return;
   confirmAction(`Supprimer « ${g.nom} » de la ludothèque ?`, () => {
     const idx = GAMES.indexOf(g);
-    GAMES = GAMES.filter(x => x.id !== editingId);
-    saveGames();
+    if(!commitCollection(GAMES.filter(x => x.id !== editingId))) return;
     closeModal();
     buildPlatformList();
     render();
     showToast(`« ${g.nom} » supprimé`, 'Annuler', () => {
-      GAMES.splice(Math.min(idx, GAMES.length), 0, g);
-      saveGames();
+      const next = [...GAMES];
+      next.splice(Math.min(idx, next.length), 0, g);
+      if(!commitCollection(next)) return;
       buildPlatformList();
       render();
     });
@@ -1576,22 +1598,23 @@ function deleteGame(){
 /* ---------- Accueil : Stats ---------- */
 
 function renderHomeStats(){
-  const total = GAMES.length;
-  const spent = GAMES.reduce((sum,g) => sum + (g.prix || 0), 0);
-  const collectors = GAMES.filter(g => g.collector).length;
-  const platformsCount = new Set(GAMES.map(g => g.plateforme)).size;
+  const physical = GAMES.filter(g => !JTDData.isDigital(g));
+  const total = physical.length;
+  const spent = physical.reduce((sum,g) => sum + (g.prix || 0), 0);
+  const collectors = physical.filter(g => g.collector).length;
+  const platformsCount = new Set(physical.map(g => g.plateforme)).size;
 
   const totalEl = document.getElementById('home-total-games');
   if(totalEl) totalEl.textContent = total;
   const metaEl = document.getElementById('home-summary-meta');
   if(metaEl){
     const statIcon = path => `<svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${path}"/></svg>`;
-    const finished = GAMES.filter(g => ['termine','termine_ailleurs'].includes(g.status)).length;
-    const todo = GAMES.filter(g => !g.status || g.status === 'a_jouer').length;
+    const finished = physical.filter(g => ['termine','termine_ailleurs'].includes(g.status)).length;
+    const todo = physical.filter(g => !g.status || g.status === 'a_jouer').length;
     const stats = [
       `<div class="home-summary-stat"><strong>${statIcon("M7 8h10c2 0 3 2 3.5 4l1 5c.4 2-1.5 3-3 1L16 16H8l-2.5 2c-1.5 2-3.4 1-3-1l1-5C4 10 5 8 7 8Z M7 10v4 M5 12h4 M16 11h.01 M18 13h.01")}${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
       collectors ? `<div class="home-summary-stat"><strong>${statIcon("m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z")}${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
-      GAMES.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>valeur d’achat</span></div>` : '',
+      physical.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>valeur d’achat</span></div>` : '',
       `<div class="home-summary-stat"><strong>${statIcon("m5 12 4 4L19 6")}${finished}</strong><span>terminés</span></div>`,
       `<div class="home-summary-stat"><strong>${statIcon("M8 6h12 M8 12h12 M8 18h12 M3 6h.01 M3 12h.01 M3 18h.01")}${todo}</strong><span>à faire</span></div>`
     ].filter(Boolean);
@@ -2067,7 +2090,9 @@ function addArrivalToCollection(id){
 
   convertingArrivalId = id;
   editingId = null;
+  editingCollection = 'games';
   fillIdentityFields('f', item);
+  openDigitalFields(item);
 
   document.getElementById('modal-title').textContent = 'Confirmer la réception';
   document.getElementById('delete-btn').classList.add('hidden');
@@ -2576,7 +2601,7 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  state = { platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
+  state = { media:state.media || 'physical', accountId:null, platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
@@ -2597,7 +2622,8 @@ function navigationSnapshot(){
 }
 function navigationHash(view){
   const params = new URLSearchParams();
-  for(const key of ['platform','status','search']) if(view[key]) params.set(key, view[key]);
+  for(const key of ['platform','status','search','accountId']) if(view[key]) params.set(key, view[key]);
+  if(view.media && view.media !== 'physical') params.set('media',view.media);
   for(const key of ['collector','japanese']) if(view[key]) params.set(key, '1');
   if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
   if(view.board === 'arrivals') params.set('board', 'arrivals');
@@ -2639,6 +2665,8 @@ function applyNavigation(view = {}){
   restoringNavigation = true;
   navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
   state = {
+    media:['all','digital'].includes(view.media) ? view.media : 'physical',
+    accountId:DIGITAL_ACCOUNTS.some(a => a.id === view.accountId) ? view.accountId : null,
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,
     collector:view.collector === true, japanese:view.japanese === true,
     status:STATUS_OPTIONS.some(s => s.key === view.status) || view.status === '__none__' ? view.status : null,
@@ -2786,6 +2814,7 @@ async function initApp(isCurrent = () => true){
   await loadWishlist();
   CEMETERY = IS_PREVIEW_MODE ? loadPreviewData().cemetery : JSON.parse(accountStorage.getItem(CEMETERY_KEY) || '[]');
   LEGACY_JOURNAL = IS_PREVIEW_MODE ? loadPreviewData().journal : JSON.parse(accountStorage.getItem(LEGACY_JOURNAL_KEY) || '[]');
+  DIGITAL_ACCOUNTS = IS_PREVIEW_MODE ? loadPreviewData().digitalAccounts : JSON.parse(accountStorage.getItem(DIGITAL_ACCOUNTS_KEY) || '[]');
   window.renderCemetery?.();
   if(!isCurrent()) return;
   normalizeCollectionEditions();
@@ -2880,6 +2909,7 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
+
 
 
 

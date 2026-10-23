@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="regal.css?v=mobile-nav-6">
 <link rel="stylesheet" href="game-sheet.css?v=platforms-5">
 <link rel="stylesheet" href="collection.css?v=soft-search-band-2">
+<link rel="stylesheet" href="digital.css?v=sidebar-formats-2">
 </head>
 <body>
 
@@ -124,6 +125,7 @@
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Exporter pour ChatGPT</span></span>
             <span class="profile-menu-sub">Collection et listes · fichier à joindre dans ChatGPT</span>
           </button>
+          <button type="button" class="profile-menu-item" id="digital-accounts-btn"><span class="profile-menu-item-label">Comptes consoles</span></button>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path></svg><span>Se déconnecter</span></span>
@@ -328,6 +330,15 @@
 <div class="page hidden" id="page-collection">
 <div class="app">
   <aside class="sidebar" id="collection-sidebar">
+    <div class="side-section collection-media-controls">
+      <div class="side-label">Format</div>
+      <div class="collection-media-tabs" id="collection-media-tabs" role="group" aria-label="Format de collection">
+        <button type="button" data-media="all" aria-pressed="false">Tout</button>
+        <button type="button" data-media="physical" aria-pressed="true">Physique</button>
+        <button type="button" data-media="digital" aria-pressed="false">Numérique</button>
+      </div>
+      <div id="collection-account-field" class="hidden"><label class="side-label" for="collection-account">Compte</label><select id="collection-account" aria-label="Filtrer par compte console" class="hidden"></select></div>
+    </div>
     <div class="side-section side-section-platforms">
       <div class="side-label-row">
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
@@ -380,7 +391,18 @@
 <div class="modal-overlay sheet-dialog hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <h2 id="modal-title">Ajouter un jeu</h2>
-
+    <div class="form-section" id="f-media-section">
+      <div class="field-row">
+        <div class="field"><label for="f-media">Format</label><select id="f-media"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div>
+        <div class="field hidden" id="f-content-type-field"><label for="f-content-type">Type de contenu</label><select id="f-content-type"><option value="game">Jeu complet</option><option value="dlc">Contenu téléchargeable (DLC)</option></select></div>
+      </div>
+      <div id="f-digital-fields" class="hidden">
+        <div class="field-row"><div class="field"><label for="f-account">Compte</label><select id="f-account"></select></div><div class="field"><label for="f-currency">Devise</label><select id="f-currency"><option value="EUR">Euro (€)</option><option value="JPY">Yen (¥)</option><option value="USD">Dollar ($)</option><option value="GBP">Livre (£)</option></select></div></div>
+        <button type="button" class="manage-link" id="f-manage-accounts">Gérer les comptes consoles</button>
+        <div id="f-parent-field" class="hidden"><div class="field"><label for="f-parent-search">Rattacher à un jeu <span class="optional-label">optionnel</span></label><input type="search" id="f-parent-search" placeholder="Chercher dans la collection…"></div><div class="field"><label for="f-parent">Jeu associé</label><select id="f-parent"><option value="">Aucun pour le moment</option></select></div></div>
+      </div>
+    </div>
+    <div id="f-content-details"></div>
 
     <div class="form-section game-sheet-section">
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
@@ -422,7 +444,7 @@
       <div class="context-summary hidden" id="f-context-summary"></div>
       <div class="context-editor" id="f-context-editor">
       <div class="field-row">
-        <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span>€</span></div></div>
+        <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span id="f-price-currency">€</span></div></div>
         <div class="field"><label for="f-date">Date d'achat</label><input type="date" id="f-date"></div>
       </div>
       <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
@@ -549,9 +571,13 @@
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<script src="jtd-data.js?v=collection-1"></script>
+<div class="modal-overlay sheet-dialog hidden" id="digital-accounts-overlay" role="dialog" aria-modal="true" aria-labelledby="digital-accounts-title">
+  <div class="modal"><h2 id="digital-accounts-title">Comptes consoles</h2><div id="digital-account-rows"></div><button type="button" class="manage-link" id="digital-account-add">+ Ajouter un compte</button><p id="digital-accounts-error" role="alert"></p><div class="modal-actions"><button type="button" class="btn btn-ghost" id="digital-accounts-cancel">Annuler</button><button type="button" class="btn btn-primary" id="digital-accounts-save">Enregistrer</button></div></div>
+</div>
+<script src="jtd-data.js?v=console-collection-1"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=preview-art-7"></script>
+<script src="digital.js?v=sidebar-formats-2"></script>
+<script src="app.js?v=sidebar-formats-2"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>
@@ -559,11 +585,12 @@
   if(!window.JTD_PREVIEW_MODE){
     const firebaseScript = document.createElement('script');
     firebaseScript.type = 'module';
-    firebaseScript.src = 'firebase.js?v=collection-1';
+    firebaseScript.src = 'firebase.js?v=console-collection-1';
     document.body.appendChild(firebaseScript);
   }
 </script>
 </body>
 </html>
+
 
 
