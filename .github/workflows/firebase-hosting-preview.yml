@@ -85,6 +85,9 @@ jobs:
       - name: Check semantic month, category and status colors
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/semantic-colors.cjs
 
+      - name: Check manual entry and explicit module transfers
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/manual-add.cjs
+
       - name: Save theme screenshots
         if: always()
         uses: actions/upload-artifact@v4

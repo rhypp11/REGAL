@@ -1425,6 +1425,7 @@ function setGameSheetViewing(viewing){
 
 function openModal(id, collection = 'games'){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
+  document.getElementById('f-sheet-module').textContent = editingCollection === 'cemetery' ? 'Cimetière' : 'Collection';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
   editingId = id || null;
   if(editingId && !items.some(game => game.id === editingId)) return;
@@ -1473,6 +1474,7 @@ function openModal(id, collection = 'games'){
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
   setGameSheetViewing(!!editingId && editingCollection === 'games');
+  document.getElementById('save-btn').textContent = editingId ? 'Enregistrer' : 'Ajouter';
   window.JTDDialogs.open('modal-overlay', {onDismiss:closeModal});
   if(!editingId) document.getElementById('f-nom').focus();
 }
@@ -1953,7 +1955,7 @@ function openArrivalModal(id){
   const identityItem = editingArrivalId ? ARRIVALS.find(x => x.id === editingArrivalId) : null;
   if(editingArrivalId && !identityItem) return;
   fillIdentityFields('a', identityItem || {});
-  document.getElementById('a-save-btn').textContent = 'Enregistrer';
+  document.getElementById('a-save-btn').textContent = editingArrivalId ? 'Enregistrer' : 'Ajouter';
   const title = document.getElementById('arrival-modal-title');
   const deleteBtn = document.getElementById('a-delete-btn');
   const receivedBtn = document.getElementById('a-received-btn');
@@ -2039,6 +2041,7 @@ function addArrivalToCollection(id){
   if(!item) return;
 
   setGameSheetViewing(false);
+  document.getElementById('f-sheet-module').textContent = 'Collection';
 
   convertingArrivalId = id;
   editingId = null;
@@ -2064,7 +2067,7 @@ function openWishlistModal(id){
   const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
   if(editingWishlistId && !identityItem) return;
   fillIdentityFields('w', identityItem || {});
-  document.getElementById('w-save-btn').textContent = 'Enregistrer';
+  document.getElementById('w-save-btn').textContent = editingWishlistId ? 'Enregistrer' : 'Ajouter';
   const title = document.getElementById('wishlist-modal-title');
   const deleteBtn = document.getElementById('w-delete-btn');
   const orderBtn = document.getElementById('w-order-btn');
@@ -2852,5 +2855,6 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
+
 
 

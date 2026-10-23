@@ -22,8 +22,8 @@
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=local-filters-1">
 <link rel="stylesheet" href="collection.css?v=counter-icons-6">
-<link rel="stylesheet" href="regal.css?v=platform-band-4">
-<link rel="stylesheet" href="game-sheet.css?v=sheet-hero-2">
+<link rel="stylesheet" href="regal.css?v=module-nav-5">
+<link rel="stylesheet" href="game-sheet.css?v=manual-form-3">
 </head>
 <body>
 
@@ -184,6 +184,7 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="arrival-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="arrival-modal-title">
   <div class="modal">
+    <div class="sheet-module">Arrivages</div>
     <h2 id="arrival-modal-title">Ajouter un arrivage</h2>
 
     <div class="form-section">
@@ -214,7 +215,7 @@
         </div>
       </div>
 
-      <div class="image-url-row"><div class="field"><label for="a-image">URL de l'image <span class="optional-label">optionnel</span></label><input type="url" id="a-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="a-image-preview"><span>Aperçu</span></div>
+      <div class="image-url-row"><div class="field"><label for="a-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="a-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="a-image-preview"><span>Aperçu</span></div>
       </div>
       <div class="field image-fit-field"><label for="a-image-fit">Affichage de l’image</label><select id="a-image-fit" aria-describedby="a-image-fit-help"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select><p class="image-fit-help" id="a-image-fit-help">Image entière, avec un fond flouté si nécessaire.</p></div>
       </div>
@@ -240,7 +241,7 @@
     </div>
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
-      <button class="btn btn-ghost hidden" data-modal-action="context" id="a-received-btn" title="Confirmer la réception de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Reçu</span></button>
+      <button class="btn btn-ghost hidden" data-modal-action="context" id="a-received-btn" title="Jeu reçu : préparer son entrée dans la collection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers la collection</span></button>
       <button class="btn btn-danger hidden" data-modal-action="delete" id="a-delete-btn">Supprimer</button>
       </div>
       <div class="modal-primary-actions">
@@ -253,6 +254,7 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="wishlist-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wishlist-modal-title">
   <div class="modal">
+    <div class="sheet-module">Wishlist</div>
     <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
 
     <div class="form-section">
@@ -283,7 +285,7 @@
         </div>
       </div>
 
-      <div class="image-url-row"><div class="field"><label for="w-image">URL de l'image <span class="optional-label">optionnel</span></label><input type="url" id="w-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="w-image-preview"><span>Aperçu</span></div>
+      <div class="image-url-row"><div class="field"><label for="w-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="w-image" placeholder="https://…"></div><div class="image-preview image-preview-compact" id="w-image-preview"><span>Aperçu</span></div>
       </div>
       <div class="field image-fit-field"><label for="w-image-fit">Affichage de l’image</label><select id="w-image-fit" aria-describedby="w-image-fit-help"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select><p class="image-fit-help" id="w-image-fit-help">Image entière, avec un fond flouté si nécessaire.</p></div>
       </div>
@@ -309,7 +311,7 @@
     </div>
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
-      <button class="btn btn-ghost hidden" data-modal-action="context" id="w-order-btn" title="Confirmer la commande de ce jeu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Commandé</span></button>
+      <button class="btn btn-ghost hidden" data-modal-action="context" id="w-order-btn" title="Jeu commandé : préparer son passage dans les arrivages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m14 7 5 5-5 5"></path></svg><span>Vers les arrivages</span></button>
       <button class="btn btn-danger hidden" data-modal-action="delete" id="w-delete-btn">Supprimer</button>
       </div>
       <div class="modal-primary-actions">
@@ -374,6 +376,7 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
+    <div class="sheet-module" id="f-sheet-module">Collection</div>
     <h2 id="modal-title">Ajouter un jeu</h2>
 
 
@@ -404,7 +407,7 @@
         </div>
       </div>
       <div class="image-url-row">
-        <div class="field"><label for="f-image">URL de l'image <span class="optional-label">optionnel</span></label><input type="url" id="f-image" placeholder="https://…"></div>
+        <div class="field"><label for="f-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="f-image" placeholder="https://…"></div>
         <div class="image-preview image-preview-compact" id="image-preview"><span>Aperçu</span></div>
       
       </div>
@@ -420,7 +423,7 @@
         <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span>€</span></div></div>
         <div class="field"><label for="f-date">Date d'achat</label><input type="date" id="f-date"></div>
       </div>
-      <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, Steam…"></div>
+      <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
       </div>
     </div>
 
