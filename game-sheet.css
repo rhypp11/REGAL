@@ -176,3 +176,15 @@
 #platform-modal-overlay .add-platform-row input { flex:1 1 100%; min-height:44px; border-radius:10px; }
 #platform-modal-overlay .add-platform-row button { min-height:40px; border-radius:10px; }
 #platform-modal-overlay .add-platform-cancel { margin-left:auto; }
+#platform-modal-overlay :is(.platform-modal-heading,.platform-rows,.platform-modal-actions,.add-platform-row) { flex-shrink:0; }
+#platform-modal-overlay .platform-modal-actions {
+  position:static;
+  display:flex !important;
+  justify-content:flex-end;
+  width:auto;
+  margin:0 !important;
+  padding:12px 0 0 !important;
+  background:var(--ui-surface);
+  backdrop-filter:none;
+}
+#platform-modal-overlay .platform-modal-actions .btn { width:auto !important; min-width:112px !important; }

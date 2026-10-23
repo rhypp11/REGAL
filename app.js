@@ -2305,6 +2305,7 @@ function buildPlatformRows(){
     row.style.setProperty('--platform-editor-accent',color);
     const swatch = row.querySelector('[data-role="swatch"]');
     if(!logo) swatch.style.background = color;
+    swatch.style.color = platformBandText(color);
 
     row.querySelector('[data-dir="-1"]').addEventListener('click', () => {
       movePlatformOrder(row.dataset.currentName, -1);
@@ -2340,6 +2341,7 @@ function buildPlatformRows(){
 
     const refreshDraftPreview = () => {
       row.style.setProperty('--platform-editor-accent',colorInput.value);
+      swatch.style.color = platformBandText(colorInput.value);
       const url = safeURL(logoInput.value.trim(), true);
       const draftName = nameInput.value.trim() || p;
       swatch.innerHTML = '';
