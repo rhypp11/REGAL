@@ -5,10 +5,9 @@
 #page-collection .sort-select {
   min-height:var(--ui-control-height-lg);
   font-size:var(--ui-text-md);
-  border:0;
-  border-bottom:1px solid var(--ui-border);
-  border-radius:0;
-  background:transparent;
+  border:1px solid var(--ui-border);
+  border-radius:10px;
+  background:var(--ui-surface);
   color:var(--ui-text);
   box-shadow:none;
 }
@@ -37,14 +36,14 @@
 #page-collection .platform-banner::before { content:none; }
 #page-collection .platform-banner-head {
   justify-content:flex-start;
-  padding:4px 0;
-  border-radius:0;
-  background:transparent;
+  padding:14px 18px;
+  border-radius:12px;
+  background:var(--ui-surface-raised);
   color:var(--ui-text);
 }
 #page-collection .platform-banner:not(.neutral) .platform-banner-head {
-  background:transparent;
-  color:var(--ui-text);
+  background:var(--platform-accent);
+  color:var(--platform-band-text);
 }
 #page-collection .platform-banner-title { font-size:24px; line-height:1.2; overflow-wrap:anywhere; color:inherit; }
 #page-collection .platform-banner :is(.platform-banner-logo,.platform-banner-fallback) {
@@ -99,8 +98,7 @@
   border-bottom:1px solid var(--ui-border);
   color:var(--ui-text);
 }
-.collection-scroll-context.platform-filtered { background:var(--ui-canvas); color:var(--ui-text); }
-.collection-scroll-context.platform-filtered .collection-context-icon { color:var(--platform-accent); }
+.collection-scroll-context.platform-filtered { background:var(--platform-accent); color:var(--platform-band-text); border-bottom:0; }
 .collection-scroll-context strong { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; }
 .collection-context-count { margin-left:auto; flex-shrink:0; font-size:12px; }
 .collection-context-icon { display:flex; align-items:center; justify-content:center; flex:0 0 28px; width:28px; height:28px; }
@@ -125,7 +123,7 @@
 }
 @media(max-width:820px) {
   #page-collection .platform-banner { gap:16px; }
-  #page-collection .platform-banner-head { padding:4px 0; gap:10px; }
+  #page-collection .platform-banner-head { padding:12px; gap:10px; }
   #page-collection .platform-banner-title { font-size:21px; }
   #page-collection .platform-banner-stats { display:grid; grid-template-columns:minmax(0,1fr); justify-content:stretch; align-items:stretch; gap:12px; }
   #page-collection .library-stat-group { display:block; }
@@ -239,9 +237,7 @@
 }
 
 
-/* Les couleurs identifient une plateforme sans remplir tout l’en-tête. */
-#page-collection .platform-banner:not(.neutral) :is(.platform-banner-logo,.platform-banner-fallback) { color:var(--platform-accent); }
-#page-collection .platform-banner:not(.neutral) .platform-banner-fallback { background:color-mix(in srgb,var(--platform-accent) 10%,transparent); border-radius:10px; }
+/* Le bandeau garde la couleur de la plateforme ; les jeux restent sans cadre. */
 #page-collection .library-stat-values { gap:14px; }
 #page-collection .library-stat-icon { opacity:.7; }
 #collection-sidebar .toggle-chip:not(.active) { color:var(--ui-text-muted); }

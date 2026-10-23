@@ -70,8 +70,24 @@ function buildPreviewCollectionDemo(){
     prix:i % 9 === 0 ? null : 19.99 + (i % 5) * 10,
     date:i % 8 === 0 ? null : '2026-' + String(i % 10 + 1).padStart(2,'0') + '-15',
     source:i % 3 === 0 ? 'Boutique démo' : 'Enseigne démo',
-    status:statuses[i % statuses.length], image:null
+    status:statuses[i % statuses.length], image:new URL('preview-assets/'+['garden','lighthouse','mountains'][i % 3]+'.svg',location.href).href
   }));
+}
+function decoratePreviewData(data){
+  const art = ['garden','lighthouse','mountains'];
+  for(const key of ['games','arrivals','wishlist','cemetery']){
+    data[key].forEach((item,index) => {
+      if(!item.image && /^(demo-collection-|test-|sale-)/.test(item.id)){
+        item.image = new URL('preview-assets/'+art[index % art.length]+'.svg',location.href).href;
+      }
+    });
+  }
+  const icons = {'Switch 2':['switch','#C4342B'],'PlayStation 5':['playstation','#245594'],'PlayStation 4':['playstation','#2C4C7C'],'PC':['pc','#4F7CD9']};
+  for(const [name,[icon,color]] of Object.entries(icons)){
+    if(!data.platformMeta[name]) data.platformMeta[name] = {color};
+    if(!data.platformMeta[name].logo) data.platformMeta[name].logo = new URL('preview-assets/'+icon+'.svg',location.href).href;
+  }
+  return data;
 }
 const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1' + (HAS_PREVIEW_COLLECTION_DEMO ? ':collection-demo-v1' : '');
 let previewData;
@@ -79,11 +95,15 @@ function loadPreviewData(){
   if(previewData) return previewData;
   try {
     const raw = localStorage.getItem(PREVIEW_STORAGE_KEY);
-    if(raw) return previewData = JTDData.normalizeData(JSON.parse(raw));
+    if(raw){
+      const parsed = JTDData.normalizeData(JSON.parse(raw));
+      return previewData = HAS_PREVIEW_COLLECTION_DEMO ? decoratePreviewData(parsed) : parsed;
+    }
   } catch(error){ console.error('Lecture sandbox impossible', error); }
-  return previewData = JTDData.normalizeData({...PREVIEW_SEED,
+  const initial = JTDData.normalizeData({...PREVIEW_SEED,
     games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo()] : PREVIEW_SEED.games,
     profileName:'Mode test'});
+  return previewData = HAS_PREVIEW_COLLECTION_DEMO ? decoratePreviewData(initial) : initial;
 }
 function savePreviewData(overrides = {}){
   const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:LEGACY_JOURNAL, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
