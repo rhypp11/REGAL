@@ -427,7 +427,6 @@ const ICON_STATUS_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentCo
 const ICON_STATUS_MULTI = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15c-1.66 0-3-1.34-3-3s1.34-3 3-3c2.5 0 4 3 6 3s3.5-3 6-3c1.66 0 3 1.34 3 3s-1.34 3-3 3c-2.5 0-4-3-6-3s-3.5 3-6 3z"></path></svg>`;
 const ICON_STATUS_PLAYING = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 7h9c2 0 3.2 1.5 3.6 3.4l1.2 6.1c.5 2.5-2.2 3.9-3.8 2.1L15 16H9l-2.5 2.6c-1.6 1.8-4.3.4-3.8-2.1l1.2-6.1C4.3 8.5 5.5 7 7.5 7Z"/><path d="M7 10v4m-2-2h4"/><circle cx="16" cy="11" r=".6" fill="currentColor"/><circle cx="18" cy="13" r=".6" fill="currentColor"/></svg>`;
 const STATUS_OPTIONS = [
-  {key:'en_cours',label:'En cours',icon:ICON_STATUS_PLAYING,color:'var(--muted)',fill:'var(--surface-raised)',bg:'var(--surface)',border:'var(--hairline)'},
   { key: "a_jouer", label: "À faire", icon: ICON_STATUS_TODO, color: "var(--status-todo)", fill: "var(--status-todo-fill)", bg: "color-mix(in srgb,var(--status-todo-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-todo-fill) 55%,var(--surface))" },
   { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", fill: "var(--status-multi-fill)", bg: "color-mix(in srgb,var(--status-multi-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-multi-fill) 55%,var(--surface))" },
   { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", fill: "var(--status-done-fill)", bg: "color-mix(in srgb,var(--status-done-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-done-fill) 55%,var(--surface))" },
@@ -731,7 +730,7 @@ function restoreBackup(file){
 function setStatus(id, statusKey){
   const g = GAMES.find(x => x.id === id);
   if(!g) return;
-  g.status = (g.status === statusKey) ? null : statusKey;
+  g.status = (getEffectiveStatus(g) === statusKey) ? null : statusKey;
   saveGames();
   render();
 }
@@ -845,7 +844,7 @@ function buildStatusToggles(){
 }
 
 function getEffectiveStatus(g){
-  return g.status;
+  return g.status === 'en_cours' ? 'a_jouer' : g.status;
 }
 
 function filteredGames(){
@@ -947,7 +946,7 @@ function renderPlatformBanner(games){
   banner.dataset.resultCount = games.length;
   requestCollectionContextUpdate();
   const total = games.length;
-  const playableGames = games.filter(g => !JTDData.isDLC(g));
+  const playableGames = games.filter(g => !JTDData.isAddon(g));
   const spent = games.reduce((sum,g) => sum + ((g.currency || 'EUR') === 'EUR' ? (g.prix || 0) : 0), 0);
   const collectors = games.filter(g => g.collector).length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
@@ -966,10 +965,10 @@ function renderPlatformBanner(games){
     stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
     !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',
     stat(collectionValueLabel(games, spent), 'Valeur', 'spent'),
-    stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors')
+    collectors ? stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors') : ''
   ].join('');
   const completionStats = [
-    stat(playableGames.filter(g => !g.status || g.status==='a_jouer').length,'À faire','a_jouer'),
+    stat(playableGames.filter(g => !getEffectiveStatus(g) || getEffectiveStatus(g)==='a_jouer').length,'À faire','a_jouer'),
     stat(playableGames.filter(g => g.status==='termine' || g.status==='termine_ailleurs').length,'Terminés','termine'),
     stat(playableGames.filter(g => g.status==='multi').length,'Multi','multi')
   ].join('');
@@ -1024,7 +1023,7 @@ function renderCard(g, options = {}){
   card.dataset.dialogTrigger = (options.readOnly ? 'sale:' : 'game:') + g.id;
   card.style.setProperty('--spine', color);
 
-  const activeStatus = STATUS_OPTIONS.find(s => s.key === g.status);
+  const activeStatus = STATUS_OPTIONS.find(s => s.key === getEffectiveStatus(g));
   const statusIcon = activeStatus ? activeStatus.icon : '<span class="card-status-empty-dot"></span>';
   const statusTitle = activeStatus ? activeStatus.label : 'Définir le statut';
   const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';
@@ -1610,7 +1609,7 @@ function renderHomeStats(){
   if(metaEl){
     const statIcon = path => `<svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${path}"/></svg>`;
     const finished = physical.filter(g => ['termine','termine_ailleurs'].includes(g.status)).length;
-    const todo = physical.filter(g => !g.status || g.status === 'a_jouer').length;
+    const todo = physical.filter(g => !getEffectiveStatus(g) || getEffectiveStatus(g) === 'a_jouer').length;
     const stats = [
       `<div class="home-summary-stat"><strong>${statIcon("M7 8h10c2 0 3 2 3.5 4l1 5c.4 2-1.5 3-3 1L16 16H8l-2.5 2c-1.5 2-3.4 1-3-1l1-5C4 10 5 8 7 8Z M7 10v4 M5 12h4 M16 11h.01 M18 13h.01")}${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
       collectors ? `<div class="home-summary-stat"><strong>${statIcon("m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z")}${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',

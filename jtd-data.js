@@ -65,9 +65,9 @@
         if(key === 'games'){
           if(item.format === 'Collector'){ item.format = 'Physique'; item.collector = true; }
           if(!item.format) item.format = 'Physique';
-          if(item.contentType && !['game','dlc'].includes(item.contentType)) throw new Error('Type de contenu invalide');
+          if(item.contentType && !['game','dlc','upgrade'].includes(item.contentType)) throw new Error('Type de contenu invalide');
           if(item.currency && !['EUR','JPY','USD','GBP'].includes(item.currency)) throw new Error('Devise invalide');
-          if(item.contentType === 'dlc' && !isDigital(item)) throw new Error('Un DLC doit être numérique');
+          if(['dlc','upgrade'].includes(item.contentType) && !isDigital(item)) throw new Error('Un contenu additionnel doit être numérique');
           if(item.parentId === item.id) throw new Error('Un contenu ne peut pas se rattacher à lui-même');
         }
         return item;
@@ -97,7 +97,10 @@
       const ecosystem = text(account.ecosystem,'écosystème',false).trim();
       if(!id || !name || !ecosystem || accountIds.has(id)) throw new Error('Compte numérique invalide ou dupliqué');
       accountIds.add(id);
-      return {id,name,ecosystem,region:text(account.region ?? '', 'région',false).trim(),preferred:account.preferred === true};
+      const result = {id,name,ecosystem,region:text(account.region ?? '', 'région',false).trim(),preferred:account.preferred === true};
+      if(account.nickname !== undefined) result.nickname = text(account.nickname,'pseudo',false).trim();
+      if(account.avatar !== undefined) result.avatar = safeURL(text(account.avatar,'avatar du compte'),true) || null;
+      return result;
     });
     return {games, arrivals, wishlist, cemetery, journal, digitalAccounts, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
   }
@@ -118,9 +121,15 @@
   }
   function isDigital(game){ return ['Numérique','Dématérialisé','Digital'].includes(game?.format); }
   function isDLC(game){ return isDigital(game) && game.contentType === 'dlc'; }
+  function isAddon(game){ return isDigital(game) && ['dlc','upgrade'].includes(game.contentType); }
+  function canAttachContent(child, parent){
+    if(!isAddon(child) || !parent || isAddon(parent) || parent.id === child.id) return false;
+    return child.plateforme === parent.plateforme || (child.contentType === 'upgrade' &&
+      /^(?:Nintendo )?Switch(?: 1)?$/i.test(parent.plateforme) && /^(?:Nintendo )?Switch 2$/i.test(child.plateforme));
+  }
   function contentParent(game, games){
-    if(!isDLC(game) || !game.parentId) return null;
-    return games.find(parent => parent.id === game.parentId && parent.id !== game.id && !isDLC(parent) && parent.plateforme === game.plateforme) || null;
+    if(!isAddon(game) || !game.parentId) return null;
+    return games.find(parent => parent.id === game.parentId && canAttachContent(game,parent)) || null;
   }
   function collectionCards(games, mode = 'physical', accountId = null, search = ''){
     const query = search.trim().toLocaleLowerCase('fr');
@@ -130,7 +139,7 @@
       if(accountId && game.accountId !== accountId) return false;
       const parent = contentParent(game,games);
       // Keep a child discoverable by its account or its own name when its parent is filtered out.
-      if(isDLC(game) && parent && isDigital(parent) && (!accountId || parent.accountId === accountId) &&
+      if(isAddon(game) && parent && isDigital(parent) && parent.plateforme === game.plateforme && (!accountId || parent.accountId === accountId) &&
         (!query || parent.nom.toLocaleLowerCase('fr').includes(query))) return false;
       return !query || game.nom.toLocaleLowerCase('fr').includes(query);
     });
@@ -263,13 +272,13 @@
     for(const key of ['games','arrivals','wishlist','cemetery']) shared[key]=shared[key].map((item,i)=>({...item,id:normalized[key][i].id}));
     shared.cemetery=shared.cemetery.map((item,i)=>normalized.cemetery[i].saleId?{...item,saleId:normalized.cemetery[i].saleId}:item);
     return {app:'Jeux Tout Doux',purpose:'Conseils dans ChatGPT',exportedAt,definitions:{
-      games:'Jeux physiques et numériques et DLC actuellement dans la collection ; parentId rattache un DLC à un jeu.',
+      games:'Jeux physiques et numériques, DLC et mises à niveau actuellement dans la collection ; parentId rattache un contenu à son jeu de base.',
       cemetery:'Exemplaires physiques à vendre (pending) ou vendus (sold).',
       salePrice:'Prix encaissé par vente ; un même saleId désigne un lot dont le prix ne doit être compté qu’une fois.'
     },data:{...shared,games:shared.games.map((game,i)=>({...game,format:normalized.games[i].format,contentType:normalized.games[i].contentType || 'game',parentId:normalized.games[i].parentId || null}))}};
   }
 
-  const api = {isDigital,isDLC,contentParent,collectionCards,assertCloudSize, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

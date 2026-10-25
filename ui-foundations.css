@@ -56,6 +56,9 @@
 }
 
 button,input,select,textarea { font-family:var(--ui-font-sans); }
+/* Native popup menus must use the selected site theme, including on Windows. */
+select { color-scheme:inherit; }
+select option,select optgroup { color:var(--text); background-color:var(--surface); }
 
 .page-filter-toggle { display:none; }
 @media(max-width:820px) {
@@ -226,3 +229,4 @@ button,input,select,textarea { font-family:var(--ui-font-sans); }
 .image-fit-help { margin:0; font-size:11px; line-height:1.5; color:var(--muted); }
 .image-fit-field select { color-scheme:inherit; }
 .image-fit-field option { color:var(--text); background-color:var(--surface); }
+

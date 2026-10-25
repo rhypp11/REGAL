@@ -95,7 +95,7 @@ const server=createSandboxServer();
     const values=await page.locator('#platform-banner [data-stat]').evaluateAll(els=>Object.fromEntries(els.map(el=>[el.dataset.stat,el.querySelector('strong').textContent])));
     assert.equal(values.games,'75','Demo collection provides a real scroll');
     assert.equal(values.platforms,'3');assert.equal(values.collectors,'12');
-    assert.equal(values.a_jouer,'25','Unassigned and to-do games share the pending counter');
+    assert.equal(values.a_jouer,'37','The retired playing state is displayed with pending games');
     assert.equal(values.termine,'25','Completed here and elsewhere share one counter');
     assert.equal(values.multi,'13');
     assert.equal(values.en_cours,undefined);assert.equal(values.none,undefined);assert.equal(values.termine_ailleurs,undefined);
@@ -104,8 +104,8 @@ const server=createSandboxServer();
      const rows=await page.locator('#platform-banner [data-stat]').evaluateAll(els=>els.map(el=>el.getBoundingClientRect().top));
      assert.ok(Math.max(...rows)-Math.min(...rows)<2,'All desktop counters share one row');
     }else{
-     const rows=await page.locator('#platform-banner .library-stat-values').evaluateAll(groups=>groups.map(group=>[...group.children].map(el=>el.getBoundingClientRect().top)));
-     for(const row of rows)assert.ok(Math.max(...row)-Math.min(...row)<1,'Each mobile group occupies one row');
+     const overflow=await page.locator('#platform-banner .library-stat-values').evaluateAll(groups=>groups.some(group=>group.scrollWidth>group.clientWidth+1));
+     assert.equal(overflow,false,'Compact summaries reflow without overflow');
     }
     await page.evaluate(()=>{state.platform='Switch 2';render();});
     await page.waitForTimeout(50);
@@ -145,4 +145,5 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
 

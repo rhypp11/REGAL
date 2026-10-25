@@ -31,3 +31,18 @@ test('invalid content, currencies, accounts and self-links are rejected',()=>{
   for(const bad of [{...dlc,currency:'<bad>'},{...dlc,contentType:'wrong'},{...dlc,parentId:'dlc'},{...dlc,format:'Physique'}])assert.throws(()=>D.normalizeData({games:[bad]}));
   for(const accounts of ['bad',[{}],[{id:'x',name:'A',ecosystem:'Nintendo'},{id:'x',name:'B',ecosystem:'Nintendo'}]])assert.throws(()=>D.normalizeData({games:[],digitalAccounts:accounts}));
 });
+test('Switch 2 upgrades retain their target platform and link to a Switch copy',()=>{
+  const upgrade={...dlc,id:'upgrade',contentType:'upgrade',plateforme:'Switch 2',parentId:'box'};
+  assert.equal(D.contentParent(upgrade,[box])?.id,'box');
+  assert.equal(D.contentParent({...upgrade,plateforme:'PlayStation 5'},[box]),null);
+  assert.equal(D.contentParent({...upgrade,contentType:'dlc'},[box]),null);
+  assert.equal(D.normalizeData({games:[box,upgrade]}).games[1].contentType,'upgrade');
+  const digitalBase={...box,format:'Numérique'};
+  assert.deepEqual(D.collectionCards([digitalBase,upgrade],'digital').map(g=>g.id),['box','upgrade']);
+});
+test('account nicknames and avatars round-trip without allowing script URLs',()=>{
+  const account={id:'eu',name:'Nintendo',nickname:'Aster',avatar:'data:image/png;base64,AAAA',ecosystem:'Nintendo'};
+  const data=D.normalizeData({games:[],digitalAccounts:[account]});
+  assert.equal(data.digitalAccounts[0].nickname,'Aster');assert.equal(data.digitalAccounts[0].avatar,account.avatar);
+  assert.equal(D.normalizeData({games:[],digitalAccounts:[{...account,avatar:'javascript:alert(1)'}]}).digitalAccounts[0].avatar,null);
+});

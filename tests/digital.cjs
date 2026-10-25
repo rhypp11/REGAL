@@ -14,7 +14,7 @@ async function openFilters(page){
   const closed = await page.evaluate(()=>matchMedia('(max-width:820px)').matches && !document.getElementById('collection-sidebar').classList.contains('mobile-open'));
   if(closed) await page.locator('#global-filter-toggle').click();
 }
-async function chooseAccount(page,value){await openFilters(page);await page.selectOption('#collection-account',value);}
+async function chooseAccount(page,value){await openFilters(page);if(!await page.locator('#collection-account-picker').evaluate(el=>el.open))await page.locator('#collection-account-picker summary').click();await page.locator('[data-account="'+value+'"]').click();}
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const browser=await chromium.launch({headless:true,...(process.env.JTD_CHROME?{executablePath:process.env.JTD_CHROME}:{})});
@@ -31,6 +31,7 @@ async function chooseAccount(page,value){await openFilters(page);await page.sele
       assert.equal(await page.locator('#grid .card').count(),2);
       assert.equal(await page.locator('[data-dialog-trigger="game:dlc"]').count(),0);
       assert.equal(await page.locator('.dlc-label').innerText(),'DLC');
+      assert.equal(await page.locator('#status-toggles').innerText().then(t=>t.includes('En cours')),false);
       assert.equal(await page.locator('#platform-list').innerText().then(s=>s.includes('PlayStation 2')),false);
       assert.ok((await page.locator('[data-stat="spent"]').innerText()).includes('2 000'));
       await page.locator('[data-dialog-trigger="game:base"] .card-name').click();
@@ -68,13 +69,35 @@ async function chooseAccount(page,value){await openFilters(page);await page.sele
       assert.equal(await page.evaluate(()=>GAMES.filter(JTDData.isDigital).length),5);
       const backup=await page.evaluate(()=>buildBackupPayload());
       assert.equal(backup.data.digitalAccounts.length,2);assert.equal(backup.data.games.find(g=>g.nom==='Nouvelle extension').parentId,newId);
+      await page.evaluate(()=>{GAMES.push({id:'switch-base',nom:'Jeu Switch de base',plateforme:'Switch',format:'Physique',prix:40});buildPlatformList();render();});
+      await page.locator('#add-btn').click();await page.locator('#f-nom').fill('Mise à niveau Switch 2');
+      await page.selectOption('#f-content-type','upgrade');await page.locator('#f-parent-search').fill('Jeu Switch de base');await page.selectOption('#f-parent','switch-base');
+      const optionColors=await page.locator('#f-content-type option').first().evaluate(option=>{const style=getComputedStyle(option);return {foreground:style.color,background:style.backgroundColor};});
+      assert.notEqual(optionColors.foreground,optionColors.background);
+      assert.notEqual(optionColors.background,'rgba(0, 0, 0, 0)');
+      assert.equal(await page.locator('#f-plateforme').inputValue(),'Switch 2');
+      assert.equal(await page.locator('#f-parent-preview .content-related-thumb').count(),1);
+      await page.locator('#f-prix').fill('10');await page.locator('#save-btn').click();
+      const upgradeId=await page.evaluate(()=>GAMES.find(g=>g.nom==='Mise à niveau Switch 2').id);
+      assert.equal(await page.evaluate(()=>GAMES.find(g=>g.nom==='Mise à niveau Switch 2').parentId),'switch-base');
+      await page.locator('[data-dialog-trigger="game:'+upgradeId+'"] .card-name').click();
+      assert.ok((await page.locator('#f-content-details').innerText()).includes('Jeu de base'));
+      assert.equal(await page.locator('#f-content-details .content-related-thumb').count(),1);
+      await page.locator('#cancel-btn').click();
       // A storage failure cannot mutate purchases in memory.
       const rollback=await page.evaluate(()=>{const before=JSON.stringify(GAMES);const original=window.persistAppData;window.persistAppData=()=>{throw Error('quota test');};const result=commitCollection([]);window.persistAppData=original;return !result && before===JSON.stringify(GAMES);});assert.equal(rollback,true);
       // Accounts are managed as labels, never connected credentials.
       await page.locator('#profile-menu-btn').click();await page.locator('#digital-accounts-btn').click();
+      assert.equal(await page.locator('#digital-accounts-overlay .modal').evaluate(el=>el.scrollWidth>el.clientWidth+1),false);
       await page.locator('#digital-account-add').click();const row=page.locator('.digital-account-row').last();
-      await row.locator('[data-field="name"]').fill('Compte secondaire');await page.locator('#digital-accounts-save').click();
+      await row.locator('[data-field="name"]').fill('Compte secondaire');await row.locator('[data-field="nickname"]').fill('Aster');
+      const avatar=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=8;canvas.height=8;canvas.getContext('2d').fillRect(0,0,8,8);return canvas.toDataURL('image/png').split(',')[1];});
+      await row.locator('[data-field="avatar-file"]').setInputFiles({name:'avatar.png',mimeType:'image/png',buffer:Buffer.from(avatar,'base64')});
+      await page.waitForFunction(()=>document.querySelector('.digital-account-row:last-child').dataset.avatarBusy === 'false');
+      await page.locator('#digital-accounts-save').click();
       assert.equal(await page.evaluate(()=>DIGITAL_ACCOUNTS.length),3);
+      assert.equal(await page.evaluate(()=>DIGITAL_ACCOUNTS.at(-1).nickname),'Aster');
+      assert.ok(await page.evaluate(()=>DIGITAL_ACCOUNTS.at(-1).avatar.startsWith('data:image/')));
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
       assert.equal(await page.evaluate(()=>DIGITAL_ACCOUNTS.length),3);
       await page.evaluate(()=>applyNavigation({page:'collection',media:'all'}));
