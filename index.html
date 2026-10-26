@@ -20,11 +20,11 @@
 <link rel="stylesheet" href="home-boards-v2.css?v=open-calendars-3">
 <link rel="stylesheet" href="home-dashboard.css?v=stats-5">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
-<link rel="stylesheet" href="ui-foundations.css?v=collection-refine-5">
-<link rel="stylesheet" href="regal.css?v=collection-refine-5">
-<link rel="stylesheet" href="game-sheet.css?v=collection-refine-5">
-<link rel="stylesheet" href="collection.css?v=collection-refine-5">
-<link rel="stylesheet" href="digital.css?v=collection-refine-5">
+<link rel="stylesheet" href="ui-foundations.css?v=sidebar-summary-6">
+<link rel="stylesheet" href="regal.css?v=sidebar-summary-6">
+<link rel="stylesheet" href="game-sheet.css?v=sidebar-summary-6">
+<link rel="stylesheet" href="collection.css?v=sidebar-summary-6">
+<link rel="stylesheet" href="digital.css?v=sidebar-summary-6">
 </head>
 <body>
 
@@ -327,13 +327,12 @@
 <div class="app">
   <aside class="sidebar" id="collection-sidebar">
     <div class="side-section collection-media-controls">
-      <div class="side-label">Collection</div>
       <div class="collection-media-tabs" id="collection-media-tabs" role="group" aria-label="Format de collection">
         <button type="button" data-media="all" aria-pressed="false">Tout</button>
         <button type="button" data-media="physical" aria-pressed="true">Physique</button>
         <button type="button" data-media="digital" aria-pressed="false">Numérique</button>
       </div>
-      <div id="collection-account-field"><details id="collection-account-picker"><summary><span id="collection-account-summary">Tous les comptes</span></summary><p class="account-scope-note" id="collection-account-scope"></p><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div><button type="button" class="manage-link" id="collection-manage-accounts">Gérer les comptes</button></details><select id="collection-account" aria-label="Filtrer par compte console" class="hidden" aria-hidden="true" tabindex="-1"></select></div>
+
     </div>
 
     <div class="side-section side-section-platforms">
@@ -351,6 +350,9 @@
       <div class="side-label">Édition</div>
       <div class="format-toggles" id="format-toggles"></div>
     </div>
+
+      <div class="side-section" id="collection-account-field"><div class="side-label-row"><span class="side-label">Compte</span><button type="button" class="icon-link-btn" id="collection-manage-accounts" title="Gérer les comptes" aria-label="Gérer les comptes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m16 3 5 5-12 12H4v-5Z"/></svg></button></div><details id="collection-account-picker"><summary><span id="collection-account-summary">Tous les comptes</span></summary><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div></details><select id="collection-account" aria-label="Filtrer par compte console" class="hidden" aria-hidden="true" tabindex="-1"></select></div>
+    <div class="side-section" id="content-filter-section"><div class="side-label">Contenu</div><div class="content-type-options" id="content-type-options" role="group" aria-label="Type de contenu"></div></div>
 
     <div class="side-section side-section-status">
       <div class="side-label">État</div>
@@ -569,10 +571,10 @@
 <div class="modal-overlay sheet-dialog hidden" id="digital-accounts-overlay" role="dialog" aria-modal="true" aria-labelledby="digital-accounts-title">
   <div class="modal"><h2 id="digital-accounts-title">Comptes consoles</h2><div id="digital-account-rows"></div><button type="button" class="manage-link" id="digital-account-add">+ Ajouter un compte</button><p id="digital-accounts-error" role="alert"></p><div class="modal-actions"><button type="button" class="btn btn-ghost" id="digital-accounts-cancel">Annuler</button><button type="button" class="btn btn-primary" id="digital-accounts-save">Enregistrer</button></div></div>
 </div>
-<script src="jtd-data.js?v=collection-refine-5"></script>
+<script src="jtd-data.js?v=sidebar-summary-6"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=collection-refine-5"></script>
-<script src="app.js?v=collection-refine-5"></script>
+<script src="digital.js?v=sidebar-summary-6"></script>
+<script src="app.js?v=sidebar-summary-6"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>
