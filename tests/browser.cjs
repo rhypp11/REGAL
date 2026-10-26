@@ -15,7 +15,7 @@ const payload = {
 async function restore(page, value, confirm=true){
   await page.locator('#profile-menu-btn').click();
   const event = page.waitForEvent('filechooser');
-  await page.locator('#restore-trigger').click();
+  await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#restore-trigger').click();
   const chooser = await event;
   await chooser.setFiles({name:'backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(value))});
   if(confirm) await page.locator('#confirm-modal-confirm-btn').click();
@@ -141,7 +141,7 @@ async function restore(page, value, confirm=true){
       const saved=JSON.parse(fs.readFileSync(await download.path(),'utf8'));
       assert.equal(saved.data.games[0].japanese,true);assert.equal(saved.data.arrivals[0].prix,30);
       await page.locator('#profile-menu-btn').click();
-      const invalidEvent=page.waitForEvent('filechooser');await page.locator('#restore-trigger').click();
+      const invalidEvent=page.waitForEvent('filechooser');await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#restore-trigger').click();
       await (await invalidEvent).setFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"games":[],"wishlist":"invalid"}')});
       await page.waitForTimeout(100);
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.games.length),1);
@@ -154,6 +154,7 @@ async function restore(page, value, confirm=true){
     }
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+
 
 
 

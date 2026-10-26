@@ -19,7 +19,7 @@ const server = createSandboxServer();
     }));
     await page.locator('#profile-menu-btn').click();
     const chooserEvent=page.waitForEvent('filechooser');
-    await page.locator('#cemetery-import-trigger').click();
+    await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#cemetery-import-trigger').click();
     const chooser=await chooserEvent;
     const csv=[
       'JEU;NOM;Date;Source;Prix;Canal;Valeur;Gain',
@@ -86,7 +86,7 @@ const server = createSandboxServer();
     const cemeteryCount=await page.evaluate(()=>CEMETERY.length);
     await page.locator('#profile-menu-btn').click();
     const secondChooserEvent=page.waitForEvent('filechooser');
-    await page.locator('#cemetery-import-trigger').click();
+    await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#cemetery-import-trigger').click();
     const secondChooser=await secondChooserEvent;
     await secondChooser.setFiles({name:'cimetiere.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
@@ -100,7 +100,7 @@ const server = createSandboxServer();
     ]}};
     await page.locator('#profile-menu-btn').click();
     const lotChooserEvent=page.waitForEvent('filechooser');
-    await page.locator('#cemetery-import-trigger').click();
+    await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#cemetery-import-trigger').click();
     const lotChooser=await lotChooserEvent;
     await lotChooser.setFiles({name:'lot.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(lotBackup))});
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
@@ -113,4 +113,5 @@ const server = createSandboxServer();
     await context.close();
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+
 

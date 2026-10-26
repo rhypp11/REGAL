@@ -12,7 +12,7 @@ const fixture={games:[
 ]};
 async function importFile(page,data){
  await page.locator('#profile-menu-btn').click();
- const event=page.waitForEvent('filechooser');await page.locator('#cemetery-import-trigger').click();
+ const event=page.waitForEvent('filechooser');await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#cemetery-import-trigger').click();
  await (await event).setFiles({name:'ventes.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({app:'Jeux Tout Doux',version:4,data:{cemetery:data}}))});
  await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
 }
@@ -70,7 +70,7 @@ async function importFile(page,data){
   // Oversized or advice files must not replace data, even when selected as restore input.
   const before=await page.evaluate(()=>JSON.stringify(buildBackupPayload().data));
   for(const payload of [advice,{app:'Jeux Tout Doux',version:4,data:{games:[],profile:{name:'é'.repeat(450000)}}}]){
-   await page.locator('#profile-menu-btn').click();const event=page.waitForEvent('filechooser');await page.locator('#restore-trigger').click();await (await event).setFiles({name:'bad-restore.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(payload))});
+   await page.locator('#profile-menu-btn').click();const event=page.waitForEvent('filechooser');await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#restore-trigger').click();await (await event).setFiles({name:'bad-restore.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(payload))});
    await page.waitForTimeout(100);assert.equal(await page.locator('#confirm-modal-overlay').isVisible(),false);assert.equal(await page.evaluate(()=>JSON.stringify(buildBackupPayload().data)),before);
   }
   // Import storage failure leaves all lists in memory intact and the preview open.
@@ -81,3 +81,4 @@ async function importFile(page,data){
   console.log('PASS import/export',width,theme,': ambiguous exemplars, manual title/platform match, stale preview, collection exports, restore rejection, rollback, persistence, no Firebase');await context.close();
  }}finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
