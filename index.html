@@ -20,11 +20,11 @@
 <link rel="stylesheet" href="home-boards-v2.css?v=open-calendars-3">
 <link rel="stylesheet" href="home-dashboard.css?v=stats-5">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
-<link rel="stylesheet" href="ui-foundations.css?v=sidebar-summary-6">
-<link rel="stylesheet" href="regal.css?v=sidebar-summary-6">
-<link rel="stylesheet" href="game-sheet.css?v=sidebar-summary-6">
-<link rel="stylesheet" href="collection.css?v=sidebar-summary-6">
-<link rel="stylesheet" href="digital.css?v=sidebar-summary-6">
+<link rel="stylesheet" href="ui-foundations.css?v=digital-details-7">
+<link rel="stylesheet" href="regal.css?v=digital-details-7">
+<link rel="stylesheet" href="game-sheet.css?v=digital-details-7">
+<link rel="stylesheet" href="collection.css?v=digital-details-7">
+<link rel="stylesheet" href="digital.css?v=digital-details-7">
 </head>
 <body>
 
@@ -351,7 +351,7 @@
       <div class="format-toggles" id="format-toggles"></div>
     </div>
 
-      <div class="side-section" id="collection-account-field"><div class="side-label-row"><span class="side-label">Compte</span><button type="button" class="icon-link-btn" id="collection-manage-accounts" title="Gérer les comptes" aria-label="Gérer les comptes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m16 3 5 5-12 12H4v-5Z"/></svg></button></div><details id="collection-account-picker"><summary><span id="collection-account-summary">Tous les comptes</span></summary><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div></details><select id="collection-account" aria-label="Filtrer par compte console" class="hidden" aria-hidden="true" tabindex="-1"></select></div>
+      <div class="side-section" id="collection-account-field"><div class="side-label-row"><span class="side-label">Compte</span><button type="button" class="icon-link-btn" id="collection-manage-accounts" title="Gérer les comptes" aria-label="Gérer les comptes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button></div><details id="collection-account-picker"><summary><span id="collection-account-summary">Tous les comptes</span></summary><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div></details><select id="collection-account" aria-label="Filtrer par compte console" class="hidden" aria-hidden="true" tabindex="-1"></select></div>
     <div class="side-section" id="content-filter-section"><div class="side-label">Contenu</div><div class="content-type-options" id="content-type-options" role="group" aria-label="Type de contenu"></div></div>
 
     <div class="side-section side-section-status">
@@ -396,8 +396,6 @@
         <div class="field hidden" id="f-content-type-field"><label for="f-content-type">Type de contenu</label><select id="f-content-type"><option value="game">Jeu complet</option><option value="dlc">Contenu téléchargeable (DLC)</option><option value="upgrade">Mise à niveau</option></select></div>
       </div>
       <div id="f-digital-fields" class="hidden">
-        <div class="field-row"><div class="field"><label for="f-account">Compte</label><select id="f-account"></select></div><div class="field"><label for="f-currency">Devise</label><select id="f-currency"><option value="EUR">Euro (€)</option><option value="JPY">Yen (¥)</option><option value="USD">Dollar ($)</option><option value="GBP">Livre (£)</option></select></div></div><div id="f-account-identity"></div>
-        <button type="button" class="manage-link" id="f-manage-accounts">Gérer les comptes consoles</button>
         <div id="f-parent-field" class="hidden"><div class="field"><label for="f-parent-search">Rattacher à un jeu <span class="optional-label">optionnel</span></label><input type="search" id="f-parent-search" placeholder="Chercher dans la collection…"></div><div class="field"><label for="f-parent">Jeu de base</label><select id="f-parent"><option value="">Aucun pour le moment</option></select></div><div id="f-parent-preview" class="hidden"></div></div>
       </div>
     </div>
@@ -445,7 +443,11 @@
         <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span id="f-price-currency">€</span></div></div>
         <div class="field"><label for="f-date">Date d'achat</label><input type="date" id="f-date"></div>
       </div>
-      <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
+      <div class="field" id="f-source-field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
+      <div id="f-purchase-digital-fields" class="hidden">
+        <div class="field-row"><div class="field"><label for="f-account">Compte</label><select id="f-account"></select></div><div class="field"><label for="f-currency">Devise</label><select id="f-currency"><option value="EUR">Euro (€)</option><option value="JPY">Yen (¥)</option><option value="USD">Dollar ($)</option><option value="GBP">Livre (£)</option></select></div></div><div id="f-account-identity"></div>
+        <button type="button" class="manage-link" id="f-manage-accounts">Gérer les comptes consoles</button>
+      </div>
       </div>
     </div>
     <div id="f-content-details"></div>
@@ -571,10 +573,10 @@
 <div class="modal-overlay sheet-dialog hidden" id="digital-accounts-overlay" role="dialog" aria-modal="true" aria-labelledby="digital-accounts-title">
   <div class="modal"><h2 id="digital-accounts-title">Comptes consoles</h2><div id="digital-account-rows"></div><button type="button" class="manage-link" id="digital-account-add">+ Ajouter un compte</button><p id="digital-accounts-error" role="alert"></p><div class="modal-actions"><button type="button" class="btn btn-ghost" id="digital-accounts-cancel">Annuler</button><button type="button" class="btn btn-primary" id="digital-accounts-save">Enregistrer</button></div></div>
 </div>
-<script src="jtd-data.js?v=sidebar-summary-6"></script>
+<script src="jtd-data.js?v=digital-details-7"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=sidebar-summary-6"></script>
-<script src="app.js?v=sidebar-summary-6"></script>
+<script src="digital.js?v=digital-details-7"></script>
+<script src="app.js?v=digital-details-7"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>
