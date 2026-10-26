@@ -57,8 +57,8 @@ const server=createSandboxServer();
    await platformRow.locator('.platform-save-btn').scrollIntoViewIfNeeded();
    const platformSave=await platformRow.locator('.platform-save-btn').boundingBox();
    assert.ok(platformSave.y>=0&&platformSave.y+platformSave.height<=801,'Platform save is visible in the viewport');
-   assert.equal(await page.locator('.platform-modal-actions').evaluate(el=>getComputedStyle(el).position),'static','Close actions do not cover the platform editor');
-   assert.equal(await page.locator('.platform-modal').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Platform editor fits the dialog');
+   assert.equal(await page.locator('#platform-modal-overlay .platform-modal-actions').evaluate(el=>getComputedStyle(el).position),'static','Close actions do not cover the platform editor');
+   assert.equal(await page.locator('#platform-modal-overlay .platform-modal').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Platform editor fits the dialog');
    await page.screenshot({path:`/tmp/jtd-platform-editor-${width}-${theme}.png`});
    await platformRow.locator('.platform-cancel-btn').click();
    await platformRow.locator('.platform-edit-btn').click();
@@ -70,3 +70,4 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
