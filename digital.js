@@ -14,6 +14,7 @@ function digitalPreviewGames(){ return [
   {id:'test-upgrade',nom:'Fire Emblem — Mise à niveau démo',plateforme:'Switch 2',format:'Numérique',contentType:'upgrade',parentId:'test-fe',accountId:'demo-nintendo-eu',currency:'EUR',prix:9.99}
 ]; }
 const MEDIA_ICONS = {
+  all:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
   upgrade:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 17V7m-4 4 4-4 4 4"/></svg>',
   physical:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="m6 6 2 2m8 8 2 2"/></svg>',
   digital:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg>',
@@ -57,7 +58,7 @@ function renderMediaControls(){
   const controls = document.getElementById('collection-media-tabs');
   for(const button of controls.querySelectorAll('[data-media]')){
     const mode = button.dataset.media;
-    button.innerHTML = '<span>'+({all:'Tout',physical:'Physique',digital:'Numérique'})[mode]+'</span>';
+    button.innerHTML = MEDIA_ICONS[mode]+'<span>'+({all:'Tout',physical:'Physique',digital:'Numérique'})[mode]+'</span>';
     button.setAttribute('aria-pressed',String((state.media || 'physical') === mode));
   }
   const digital = state.media !== 'physical';
@@ -119,8 +120,7 @@ function decorateDigitalCard(card, game, options){
   const contents = gameContents(game);
   if(contents.length) body.insertAdjacentHTML('beforeend','<span class="card-dlc-count">'+MEDIA_ICONS.dlc+contents.length+(contents.some(g=>g.contentType === 'upgrade')?' contenu'+(contents.length>1?'s':''):' DLC')+'</span>');
   if(digital){
-    if(game.accountId) body.insertAdjacentHTML('beforeend','<span class="card-console-account">'+accountIdentityHtml(DIGITAL_ACCOUNTS.find(a=>a.id === game.accountId))+'</span>');
-    if(!state.sort.startsWith('price-') && !state.sort.startsWith('date-')) body.insertAdjacentHTML('beforeend','<span class="card-digital-price">'+purchaseMoney(game)+'</span>');
+    if(game.accountId) body.querySelector('.card-platform').insertAdjacentHTML('afterend','<span class="card-console-account">'+accountIdentityHtml(DIGITAL_ACCOUNTS.find(a=>a.id === game.accountId))+'</span>');
     const price = card.querySelector('.card-price');
     if(price) price.textContent = game.prix == null ? 'Non renseigné' : purchaseMoney(game);
     bindAvatarFallbacks(body);
@@ -181,7 +181,9 @@ function updateDigitalFields(){
   if(dlc) document.getElementById('modal-title').textContent = editingId ? (upgrade?'Mise à niveau':'Fiche du DLC') : (upgrade?'Ajouter une mise à niveau':'Ajouter un DLC');
   else if(!convertingArrivalId && editingCollection !== 'cemetery') document.getElementById('modal-title').textContent = editingId ? 'Fiche du jeu' : 'Ajouter un jeu';
   document.getElementById('f-content-type-field').classList.toggle('hidden',!digital);
-  document.getElementById('f-digital-fields').classList.toggle('hidden',!digital);
+  document.getElementById('f-digital-fields').classList.toggle('hidden',!dlc);
+  document.getElementById('f-source-field').classList.toggle('hidden',digital);
+  document.getElementById('f-purchase-digital-fields').classList.toggle('hidden',!digital);
   document.getElementById('f-parent-field').classList.toggle('hidden',!dlc);
   document.getElementById('f-price-currency').textContent = digital ? ({EUR:'€',JPY:'¥',USD:'$',GBP:'£'})[document.getElementById('f-currency').value] : '€';
   const owned = GAMES.find(g=>g.id === editingId);
@@ -232,7 +234,7 @@ function renderContentDetails(game){
   if(JTDData.isDigital(game)){
     const summary = document.createElement('div');
     summary.className = 'content-format-summary';
-    summary.innerHTML = MEDIA_ICONS[JTDData.isAddon(game)?game.contentType:'digital']+'<span>'+(JTDData.isAddon(game)?contentKind(game):'Jeu numérique')+'</span>'+(game.accountId?accountIdentityHtml(DIGITAL_ACCOUNTS.find(a=>a.id === game.accountId)):'');
+    summary.innerHTML = MEDIA_ICONS[JTDData.isAddon(game)?game.contentType:'digital']+'<span>'+(JTDData.isAddon(game)?contentKind(game):'Jeu numérique')+'</span>';
     section.appendChild(summary);
   }
   if(parent){

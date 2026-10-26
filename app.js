@@ -1371,7 +1371,7 @@ function contextSummaryHtml(item, type){
     const bits = [
       `<span><small>Prix payé</small><strong>${item.prix != null ? purchaseMoney(item) : '—'}</strong></span>`,
       `<span><small>Date d'achat</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
-      `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
+      JTDData.isDigital(item) ? `<span><small>Compte</small><strong>${escapeHTML(accountName(item.accountId))}</strong></span>` : `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
     return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>`;
   }
