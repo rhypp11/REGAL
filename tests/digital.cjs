@@ -84,6 +84,25 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       assert.ok((await page.locator('#f-content-details').innerText()).includes('Jeu de base'));
       assert.equal(await page.locator('#f-content-details .content-related-thumb').count(),1);
       await page.locator('#cancel-btn').click();
+      // Content filters reveal attached DLC, persist, and stay specific to digital views.
+      await chooseAccount(page,'');
+      await openFilters(page);await page.locator('[data-content-type="dlc"]').click();
+      assert.equal(await page.locator('[data-dialog-trigger="game:dlc"]').count(),1,'A grouped DLC becomes discoverable by content type');
+      assert.equal(await page.locator('#grid .card:not(.dlc-card)').count(),0);
+      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>state.contentType),'dlc');
+      await openFilters(page);await page.locator('[data-content-type="upgrade"]').click();
+      assert.equal(await page.locator('[data-dialog-trigger="game:'+upgradeId+'"]').count(),1);
+      await openFilters(page);await page.locator('[data-media="physical"]').click();
+      assert.equal(await page.locator('#collection-account-field').isVisible(),false);
+      assert.equal(await page.locator('#content-filter-section').isVisible(),false);
+      assert.equal(await page.evaluate(()=>state.contentType),null);
+      await openFilters(page);await page.locator('[data-media="all"]').click();
+      const money=page.locator('[data-stat="spent"] .currency-total');
+      assert.ok(await money.count()>=2,'Currencies remain independent amounts');
+      assert.doesNotMatch(await page.locator('[data-stat="spent"]').innerText(),/ \+ /);
+      assert.equal(await page.locator('[data-stat="spent"]').evaluate(el=>el.scrollWidth>el.clientWidth+1),false);
+      assert.equal(await page.locator('#collection-account-scope').count(),0);
       // A storage failure cannot mutate purchases in memory.
       const rollback=await page.evaluate(()=>{const before=JSON.stringify(GAMES);const original=window.persistAppData;window.persistAppData=()=>{throw Error('quota test');};const result=commitCollection([]);window.persistAppData=original;return !result && before===JSON.stringify(GAMES);});assert.equal(rollback,true);
       await page.evaluate(()=>{

@@ -100,13 +100,8 @@ const server=createSandboxServer();
     assert.equal(values.multi,'13');
     assert.equal(values.en_cours,undefined);assert.equal(values.none,undefined);assert.equal(values.termine_ailleurs,undefined);
     assert.equal(await page.locator('.platform-banner-kicker').count(),0,'No redundant collection subtitle');
-    if(width>1100){
-     const rows=await page.locator('#platform-banner [data-stat]').evaluateAll(els=>els.map(el=>el.getBoundingClientRect().top));
-     assert.ok(Math.max(...rows)-Math.min(...rows)<2,'All desktop counters share one row');
-    }else{
-     const overflow=await page.locator('#platform-banner .library-stat-values').evaluateAll(groups=>groups.some(group=>group.scrollWidth>group.clientWidth+1));
-     assert.equal(overflow,false,'Compact summaries reflow without overflow');
-    }
+    const overflow=await page.locator('#platform-banner .library-stat-values').evaluateAll(groups=>groups.some(group=>group.scrollWidth>group.clientWidth+1));
+    assert.equal(overflow,false,'Summaries reflow without overflow');
     await page.evaluate(()=>{state.platform='Switch 2';render();});
     await page.waitForTimeout(50);
     assert.equal(await page.locator('#platform-banner [data-stat="games"] strong').innerText(),'50','Counts follow the active platform');

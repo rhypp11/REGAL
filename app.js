@@ -451,6 +451,7 @@ let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascul
 
 let state = {
   media: 'physical',
+  contentType: null,
   accountId: null,
   platform: null,
   collector: false,
@@ -849,7 +850,7 @@ function getEffectiveStatus(g){
 
 function filteredGames(){
   const q = state.search.trim().toLowerCase();
-  return JTDData.collectionCards(GAMES, state.media || 'physical', state.accountId, q).filter(g => {
+  return collectionCardsForFilters(q).filter(g => {
       if(state.platform && g.plateforme !== state.platform) return false;
       if(state.collector && !g.collector) return false;
       if(state.japanese && !g.japanese) return false;
@@ -964,7 +965,6 @@ function renderPlatformBanner(games){
   const collectionStats = [
     stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
     !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',
-    stat(collectionValueLabel(games, spent), 'Valeur', 'spent'),
     collectors ? stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors') : ''
   ].join('');
   const completionStats = [
@@ -975,7 +975,7 @@ function renderPlatformBanner(games){
   const statsHtml = `<section class="library-stat-group" aria-labelledby="collection-stats-title">
     <h3 id="collection-stats-title">Collection</h3><div class="library-stat-values library-collection-values">${collectionStats}</div>
     </section><section class="library-stat-group" aria-labelledby="completion-stats-title">
-    <h3 id="completion-stats-title">Complétion</h3><div class="library-stat-values library-completion-values">${completionStats}</div></section>`;
+    <h3 id="completion-stats-title">Complétion</h3><div class="library-stat-values library-completion-values">${completionStats}</div></section><section class="library-stat-group library-value-group" aria-label="Valeur des achats">${stat(collectionValueLabel(games, spent), 'Valeur', 'spent')}</section>`;
 
   if(!state.platform){
     banner.classList.remove('hidden');
@@ -1125,6 +1125,7 @@ function renderResultsBar(count){
 
   const filters = [];
   if(state.platform) filters.push(state.platform);
+  if(state.contentType) filters.push(({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[state.contentType]);
   if(state.collector) filters.push('⭐ Collector');
   if(state.japanese) filters.push({label:'Japonais', japanese:true});
   if(state.status){
@@ -2316,7 +2317,6 @@ function buildPlatformRows(){
         </div>
         <div class="platform-row-info">
           <strong class="platform-row-name">${escapeHTML(p)}</strong>
-          <span class="row-count">${count} jeu${count > 1 ? 'x' : ''}</span>
         </div>
         <button type="button" class="platform-edit-btn" aria-label="Modifier ${escapeHTML(p)}" title="Modifier">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
@@ -2600,7 +2600,7 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  state = { media:state.media || 'physical', accountId:null, platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
+  state = { media:state.media || 'physical', accountId:null, contentType:null, platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
@@ -2621,7 +2621,7 @@ function navigationSnapshot(){
 }
 function navigationHash(view){
   const params = new URLSearchParams();
-  for(const key of ['platform','status','search','accountId']) if(view[key]) params.set(key, view[key]);
+  for(const key of ['platform','status','search','accountId','contentType']) if(view[key]) params.set(key, view[key]);
   if(view.media && view.media !== 'physical') params.set('media',view.media);
   for(const key of ['collector','japanese']) if(view[key]) params.set(key, '1');
   if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
@@ -2665,6 +2665,7 @@ function applyNavigation(view = {}){
   navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
   state = {
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
+    contentType:['all','digital'].includes(view.media) && ['game','dlc','upgrade'].includes(view.contentType) ? view.contentType : null,
     accountId:DIGITAL_ACCOUNTS.some(a => a.id === view.accountId) ? view.accountId : null,
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,
     collector:view.collector === true, japanese:view.japanese === true,

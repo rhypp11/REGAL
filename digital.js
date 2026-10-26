@@ -20,7 +20,11 @@ const MEDIA_ICONS = {
   dlc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h3a3 3 0 1 1 6 0h4v6a3 3 0 1 0 0 6v6h-6a3 3 0 1 0-6 0H3v-6a3 3 0 1 0 0-6V3h5Z"/></svg>'
 };
 function collectionScope(){
-  return JTDData.collectionCards(GAMES,state.media || 'physical',state.media === 'physical' ? null : state.accountId);
+  return collectionCardsForFilters();
+}
+function collectionCardsForFilters(search = ''){
+  const source = state.contentType ? GAMES.filter(g=>(g.contentType || 'game') === state.contentType) : GAMES;
+  return JTDData.collectionCards(source,state.media || 'physical',state.media === 'physical' ? null : state.accountId,search);
 }
 function accountName(id){ const account = DIGITAL_ACCOUNTS.find(a => a.id === id); return account?.nickname || account?.name || 'Compte non renseigné'; }
 function accountIdentityHtml(account, showName = true){
@@ -37,28 +41,31 @@ function purchaseMoney(game){
   return new Intl.NumberFormat('fr-FR',{style:'currency',currency:game.currency || 'EUR',maximumFractionDigits:(game.currency === 'JPY' ? 0 : 2)}).format(game.prix);
 }
 function collectionValueLabel(games, euroTotal){
-  if((state.media || 'physical') === 'physical') return euroTotal.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €';
+  if((state.media || 'physical') === 'physical') return '<span class="currency-total">'+euroTotal.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €</span>';
   const purchases = new Map(games.map(game=>[game.id,game]));
   for(const game of games) for(const dlc of gameContents(game)){
     if((!state.accountId || dlc.accountId === state.accountId) && (!state.platform || dlc.plateforme === state.platform) && JTDData.isDigital(game)) purchases.set(dlc.id,dlc);
   }
   const sums = new Map();
   for(const game of purchases.values()) if(game.prix != null) sums.set(game.currency || 'EUR',(sums.get(game.currency || 'EUR') || 0) + game.prix);
-  return [...sums].map(([currency,prix])=>purchaseMoney({prix,currency})).join(' + ') || '—';
+  return [...sums].map(([currency,prix])=>'<span class="currency-total">'+escapeHTML(purchaseMoney({prix,currency}))+'</span>').join('') || '—';
 }
 function accountEcosystemLabel(ecosystem){
   return ({Nintendo:'Compte Nintendo · Switch / Switch 2','Nintendo Network':'Nintendo Network · Wii U / Nintendo 3DS',PlayStation:'PlayStation · PS4 / PS5',Xbox:'Xbox'})[ecosystem] || ecosystem;
-}
-function accountPlatforms(account){
-  return [...new Set(GAMES.filter(g=>JTDData.isDigital(g) && g.accountId === account.id).map(g=>g.plateforme))];
 }
 function renderMediaControls(){
   const controls = document.getElementById('collection-media-tabs');
   for(const button of controls.querySelectorAll('[data-media]')){
     const mode = button.dataset.media;
-    button.innerHTML = (MEDIA_ICONS[mode] || '') + '<span>'+({all:'Tout',physical:'Physique',digital:'Numérique'})[mode]+'</span>';
+    button.innerHTML = '<span>'+({all:'Tout',physical:'Physique',digital:'Numérique'})[mode]+'</span>';
     button.setAttribute('aria-pressed',String((state.media || 'physical') === mode));
   }
+  const digital = state.media !== 'physical';
+  document.getElementById('collection-account-field').classList.toggle('hidden',!digital);
+  document.getElementById('content-filter-section').classList.toggle('hidden',!digital);
+  document.getElementById('collector-filter-section').classList.toggle('hidden',state.media === 'digital');
+  if(!digital) state.contentType = null;
+  document.getElementById('content-type-options').innerHTML = [['','Tout'],['game','Jeux'],['dlc','DLC'],['upgrade','Mises à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+((state.contentType || '') === value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
   const account = document.getElementById('collection-account');
   account.classList.add('hidden');
   if(state.media === 'physical') state.accountId = null;
@@ -68,15 +75,14 @@ function renderMediaControls(){
   const current = DIGITAL_ACCOUNTS.find(a=>a.id === state.accountId);
   document.getElementById('collection-account-summary').innerHTML = current ? accountIdentityHtml(current) : '<span class="account-all-icon">'+MEDIA_ICONS.digital+'</span><span>Tous les comptes</span>';
   const list = document.getElementById('collection-account-options');
-  list.innerHTML = '<button type="button" class="console-account-option" data-account="" aria-pressed="'+(!state.accountId)+'">Tous les comptes</button>'+DIGITAL_ACCOUNTS.map(a=>'<button type="button" class="console-account-option" data-account="'+escapeHTML(a.id)+'" aria-pressed="'+(a.id === state.accountId)+'">'+accountIdentityHtml(a)+'<small>'+escapeHTML([accountEcosystemLabel(a.ecosystem),a.region].filter(Boolean).join(' · '))+'</small></button>').join('');
-  document.getElementById('collection-account-scope').textContent = current ? (accountPlatforms(current).join(' · ') || accountEcosystemLabel(current.ecosystem)) : 'Un compte commun à plusieurs consoles. Les plateformes ci-dessous suivent ta sélection.';
+  list.innerHTML = '<button type="button" class="console-account-option" data-account="" aria-pressed="'+(!state.accountId)+'">Tous les comptes</button>'+DIGITAL_ACCOUNTS.map(a=>'<button type="button" class="console-account-option" data-account="'+escapeHTML(a.id)+'" aria-pressed="'+(a.id === state.accountId)+'">'+accountIdentityHtml(a)+'</button>').join('');
   bindAvatarFallbacks(list);
   bindAvatarFallbacks(document.getElementById('collection-account-summary'));
 }
 function collectionFilterLabel(){
   const media = state.media || 'physical';
   const label = ({physical:'Physique',digital:'Numérique',all:'Physique et numérique'})[media];
-  return (MEDIA_ICONS[media] || '')+'<span>'+escapeHTML(label+(state.accountId ? ' · '+accountName(state.accountId) : ''))+'</span>';
+  return (MEDIA_ICONS[media] || '')+'<span>'+escapeHTML(label+(state.accountId ? ' · '+accountName(state.accountId) : '')+(state.contentType ? ' · '+({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[state.contentType] : ''))+'</span>';
 }
 function renderCollectionFilterContext(banner){
   const heading = banner.querySelector('.platform-banner-title')?.parentElement;
@@ -258,7 +264,7 @@ function renderContentDetails(game){
 function editDigitalAccountRow(account = {id:crypto.randomUUID(),name:'',ecosystem:'Nintendo',region:'',preferred:false}){
   const row = document.createElement('div');row.className='digital-account-row';row.dataset.accountId=account.id;
   row.dataset.avatar = safeURL(account.avatar,true);
-  row.innerHTML = '<div class="digital-account-heading"><span class="digital-account-avatar-preview">'+accountIdentityHtml(account,false)+'</span><label class="avatar-file-label">Changer l’avatar<input type="file" data-field="avatar-file" accept="image/*"></label><button type="button" class="manage-link" data-remove-avatar>Retirer</button></div><div class="field-row"><div class="field"><label>Pseudo<input data-field="nickname" maxlength="80" value="'+escapeHTML(account.nickname || '')+'" placeholder="Ton pseudo console"></label></div><div class="field"><label>Repère du compte<input data-field="name" maxlength="80" value="'+escapeHTML(account.name)+'" placeholder="Compte japonais"></label></div></div><div class="field-row"><div class="field"><label>Écosystème<select data-field="ecosystem">'+['Nintendo','Nintendo Network','PlayStation','Xbox','Autre'].map(e=>'<option value="'+e+'"'+(e === account.ecosystem?' selected':'')+'>'+accountEcosystemLabel(e)+'</option>').join('')+'</select></label></div><div class="field"><label>Région <span class="optional-label">optionnel</span><input data-field="region" maxlength="80" value="'+escapeHTML(account.region)+'" placeholder="Japon"></label></div></div><div class="digital-account-actions"><label><input type="checkbox" data-field="preferred"'+(account.preferred?' checked':'')+'> Compte par défaut</label><button type="button" class="manage-link digital-account-delete">Supprimer</button></div>';
+  row.innerHTML = '<div class="digital-account-heading"><span class="digital-account-avatar-preview">'+accountIdentityHtml(account,false)+'</span><label class="avatar-file-label">Changer l’avatar<input type="file" data-field="avatar-file" accept="image/*"></label><button type="button" class="manage-link" data-remove-avatar>Retirer</button></div><div class="field-row"><div class="field"><label>Pseudo<input data-field="nickname" maxlength="80" value="'+escapeHTML(account.nickname || '')+'" placeholder="Ton pseudo console"></label></div><div class="field"><label>Repère du compte<input data-field="name" maxlength="80" value="'+escapeHTML(account.name)+'" placeholder="Compte japonais"></label></div></div><div class="field-row"><div class="field"><label>Réseau<select data-field="ecosystem">'+['Nintendo','Nintendo Network','PlayStation','Xbox','Autre'].map(e=>'<option value="'+e+'"'+(e === account.ecosystem?' selected':'')+'>'+accountEcosystemLabel(e)+'</option>').join('')+'</select></label></div><div class="field"><label>Région <span class="optional-label">optionnel</span><input data-field="region" maxlength="80" value="'+escapeHTML(account.region)+'" placeholder="Japon"></label></div></div><div class="digital-account-actions"><label><input type="checkbox" data-field="preferred"'+(account.preferred?' checked':'')+'> Compte par défaut</label><button type="button" class="manage-link digital-account-delete">Supprimer</button></div>';
   let avatarBusy = false;
   const refreshAvatar = ()=>{
     row.querySelector('.digital-account-avatar-preview').innerHTML = accountIdentityHtml({name:row.querySelector('[data-field="name"]').value,nickname:row.querySelector('[data-field="nickname"]').value,avatar:row.dataset.avatar},false);
@@ -294,9 +300,13 @@ window.closeDigitalAccounts = closeDigitalAccounts;
 function initDigitalControls(){
   document.getElementById('collection-media-tabs').addEventListener('click',event=>{
     const button = event.target.closest('[data-media]');if(!button)return;
-    state.media=button.dataset.media;state.accountId=null;state.collector=false;state.japanese=false;state.status=null;
+    state.media=button.dataset.media;state.accountId=null;state.contentType=null;state.collector=false;state.japanese=false;state.status=null;
     buildPlatformList();buildFormatToggles();buildStatusToggles();render();closeMobileDrawers();
   });
+  document.getElementById('content-type-options').onclick=event=>{
+    const button=event.target.closest('[data-content-type]');if(!button)return;
+    state.contentType=button.dataset.contentType || null;buildPlatformList();render();closeMobileDrawers();
+  };
   document.getElementById('collection-account').onchange=event=>{
     state.accountId=event.target.value || null;
     if(state.accountId && state.media === 'physical') state.media='digital';
