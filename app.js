@@ -736,6 +736,22 @@ function setStatus(id, statusKey){
   render();
 }
 
+// A long desktop sidebar follows the document, then pins when its last filter is visible.
+function updateCollectionSidebarPosition(){
+  const sidebar=document.getElementById('collection-sidebar');
+  if(!sidebar || matchMedia('(max-width:820px)').matches)return;
+  const navHeight=document.querySelector('.topnav').getBoundingClientRect().height;
+  const top=Math.min(navHeight,innerHeight-sidebar.getBoundingClientRect().height-12);
+  sidebar.style.setProperty('--collection-sidebar-top',top+'px');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const observer=new ResizeObserver(updateCollectionSidebarPosition);
+  observer.observe(document.getElementById('collection-sidebar'));
+  observer.observe(document.querySelector('.topnav'));
+  window.addEventListener('resize',updateCollectionSidebarPosition,{passive:true});
+  updateCollectionSidebarPosition();
+});
+
 function buildPlatformList(){
   const scoped = collectionScope();
   if(state.platform && !scoped.some(g => g.plateforme === state.platform)) state.platform = null;
@@ -2949,6 +2965,7 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
+
 
 
 

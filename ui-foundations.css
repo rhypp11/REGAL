@@ -4,7 +4,7 @@
  */
 
 :root {
-  --ui-font-sans:'DM Sans','Segoe UI','Roboto',sans-serif;
+  --ui-font-sans:'DM Sans',system-ui,'Segoe UI','Roboto',sans-serif;
   --ui-font-mono:'JetBrains Mono',monospace;
   --ui-text-xs:10.5px;
   --ui-text-sm:12px;
@@ -229,4 +229,5 @@ select option,select optgroup { color:var(--text); background-color:var(--surfac
 .image-fit-help { margin:0; font-size:11px; line-height:1.5; color:var(--muted); }
 .image-fit-field select { color-scheme:inherit; }
 .image-fit-field option { color:var(--text); background-color:var(--surface); }
+
 

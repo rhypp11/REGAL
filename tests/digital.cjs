@@ -25,7 +25,7 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       await page.evaluate(data=>{applyRestoredData(JTDData.normalizeData(data));applyNavigation({page:'collection'});},fixture);
       assert.equal(await page.locator('#grid .card').count(),2);
       assert.equal(await page.locator('#home-total-games').innerText(),'3');
-      await openFilters(page);await page.locator('[data-media="digital"]').click();
+      await openFilters(page);await page.locator('#collection-media-tabs [data-media="digital"]').click();
       assert.equal(await page.locator('#collection-sidebar [data-media="digital"]').count(),1);
       assert.equal(await page.locator('.collection-filter-context').innerText(),'Numérique');
       assert.equal(await page.locator('#grid .card').count(),2);
@@ -38,7 +38,7 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       assert.ok((await page.locator('[data-stat="spent"]').innerText()).includes('2 000'));
       assert.equal(await page.locator('#grid .card-price, #grid .card-digital-price').count(),0,'Digital prices follow the same default visibility as physical');
       assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-identity .card-console-account').count(),1);
-      assert.equal(await page.locator('#collection-media-tabs svg').count(),3);
+      assert.equal(await page.locator('#collection-media-tabs svg').count(),2);
       assert.equal(await page.locator('#collection-manage-accounts svg').innerHTML(),await page.locator('#manage-platforms-btn svg').innerHTML());
       await page.locator('#sort-select').selectOption('price-asc');
       assert.ok(await page.locator('#grid .card-price').count()>0);
@@ -114,11 +114,17 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       assert.equal(await page.evaluate(()=>state.contentType),null,'No selection restores all content');
       await page.locator('[data-content-type="upgrade"]').click();
       assert.equal(await page.locator('[data-dialog-trigger="game:'+upgradeId+'"]').count(),1);
-      await openFilters(page);await page.locator('[data-media="physical"]').click();
+      await openFilters(page);await page.locator('#collection-media-tabs [data-media="physical"]').click();
       assert.equal(await page.locator('#collection-account-field').isVisible(),false);
       assert.equal(await page.locator('#content-filter-section').isVisible(),false);
       assert.equal(await page.evaluate(()=>state.contentType),null);
-      await openFilters(page);await page.locator('[data-media="all"]').click();
+      await openFilters(page);await page.locator('#collection-media-tabs [data-media="physical"]').click();
+      assert.equal(await page.evaluate(()=>state.media),'all');
+      assert.equal(await page.locator('#collection-media-tabs [aria-pressed="true"]').count(),0,'No format selected means both');
+      assert.equal(await page.locator('#collection-media-tabs [data-media="all"]').count(),0,'No redundant All button');
+      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>state.media),'all','Unfiltered format survives reload');
+      await page.locator('.collection-stat-details > summary').click();
       const money=page.locator('[data-stat="spent"] .currency-total');
       assert.ok(await money.count()>=2,'Currencies remain independent amounts');
       assert.doesNotMatch(await page.locator('[data-stat="spent"]').innerText(),/ \+ /);
@@ -208,3 +214,4 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
     }
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
+

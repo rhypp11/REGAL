@@ -103,6 +103,10 @@ const server=createSandboxServer();
     await page.locator('.collection-stat-details > summary').click();
     const overflow=await page.locator('#platform-banner .library-stat-values').evaluateAll(groups=>groups.some(group=>group.scrollWidth>group.clientWidth+1));
     assert.equal(overflow,false,'Summaries reflow without overflow');
+    if(width>820){
+     const boxes=await page.locator('.library-stat-group').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,b:r.bottom};}));
+     assert.ok(boxes[1].x>boxes[0].x && boxes[2].x>boxes[0].x && boxes[2].y>=boxes[1].b-1,'Collection left, completion and value stacked right');
+    }
     await page.evaluate(()=>{state.platform='Switch 2';render();});
     await page.waitForTimeout(50);
     assert.equal(await page.locator('#platform-banner [data-stat="games"] strong').innerText(),'50','Counts follow the active platform');
@@ -136,10 +140,18 @@ const server=createSandboxServer();
     await page.waitForTimeout(50);
     assert.equal(await band.isVisible(),false,'Full heading replaces compact context on return to top');
    }
+   if(width>820){
+    await page.evaluate(()=>{goToPage('collection');window.scrollTo(0,document.documentElement.scrollHeight);});
+    await page.waitForTimeout(50);
+    assert.equal(await page.locator('#collection-sidebar').evaluate(el=>getComputedStyle(el).overflowY),'visible','Desktop sidebar shares document scrolling');
+    const reset=await page.locator('#reset-btn').boundingBox();
+    assert.ok(reset.y+reset.height<=901,'Last filter is reachable by scrolling the page');
+   }
    assert.deepEqual(errors,[]);
    await context.close();console.log('PASS global UI',width,theme);
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
 
 

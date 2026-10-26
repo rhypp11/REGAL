@@ -344,7 +344,7 @@ window.closeDigitalAccounts = closeDigitalAccounts;
 function initDigitalControls(){
   document.getElementById('collection-media-tabs').addEventListener('click',event=>{
     const button = event.target.closest('[data-media]');if(!button)return;
-    state.media=button.dataset.media;state.accountId=null;state.contentType=null;state.collector=false;state.japanese=false;state.status=null;
+    state.media=state.media === button.dataset.media ? 'all' : button.dataset.media;state.accountId=null;state.contentType=null;state.collector=false;state.japanese=false;state.status=null;
     buildPlatformList();buildFormatToggles();buildStatusToggles();render();closeMobileDrawers();
   });
   document.getElementById('content-type-options').onclick=event=>{
@@ -382,3 +382,4 @@ function initDigitalControls(){
   document.getElementById('digital-accounts-save').onclick=closeDigitalAccounts;
 }
 document.addEventListener('DOMContentLoaded',initDigitalControls);
+
