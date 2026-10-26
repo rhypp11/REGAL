@@ -174,6 +174,22 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       await page.locator('#collection-scroll-context').waitFor({state:'visible'});
       assert.equal(await page.locator('.collection-context-media').innerText(),'Numérique · Nintendo principal');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      await page.evaluate(()=>window.scrollTo(0,0));
+      const count=await page.locator('#grid .card').count();
+      for(const view of ['gallery','list','cards']){
+        await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
+        assert.equal(await page.locator('#grid .card').count(),count,'Switching display retains filtered purchases');
+        assert.equal(await page.locator('#grid').getAttribute('data-view'),view);
+        const nameBox=await page.locator('#grid .card-name').first().boundingBox();
+        assert.ok(nameBox.height>=14,'Every display retains a visible game title');
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+        await page.locator('#grid .card').first().click();
+        await page.locator('#modal-overlay').waitFor({state:'visible'});
+        await page.keyboard.press('Escape');
+      }
+      await page.locator('#collection-view-switch [data-view="list"]').click();
+      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.locator('#grid').getAttribute('data-view'),'list','Display choice survives reload');
       assert.deepEqual(errors,[]);await context.close();console.log(`PASS digital ${width}px ${theme}: purchases, DLC, accounts, reload, isolation and rollback`);
     }
   }finally{await browser.close();server.close();}

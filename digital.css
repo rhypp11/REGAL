@@ -45,7 +45,7 @@
 .console-account-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .card-console-account .console-avatar { width:15px; height:15px; flex-basis:15px; font-size:8px; background:transparent; }
 .card-console-account .console-account-identity { gap:4px; }
-#page-collection .digital-game .card-status-control { display:flex; justify-content:flex-start; flex-basis:100%; text-align:left; }
+
 #collection-account-picker summary { display:flex; align-items:center; gap:7px; list-style:none; cursor:pointer; color:var(--muted); font-size:12px; min-height:44px; padding:0 10px; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
 #collection-account-picker summary::-webkit-details-marker { display:none; }
 #collection-account-picker summary::after { content:'⌄'; margin-left:auto; }

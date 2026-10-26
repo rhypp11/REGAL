@@ -32,3 +32,18 @@
   #page-home #home-boards .board { display:none; }
   #page-home #home-boards.show-wishlist .wishlist,#page-home #home-boards.show-arrivals .arrivals { display:block; }
 }
+
+
+/* Synthèse de complétion, sans ajouter de saisie ou d’historique. */
+.home-completion { display:flex; flex-wrap:wrap; align-items:center; gap:14px; padding:10px 0; }
+.home-completion-ring { width:104px; height:104px; border-radius:50%; padding:8px; flex-shrink:0; }
+.home-completion-ring > span { width:100%; height:100%; border-radius:50%; background:var(--ui-sidebar); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
+.home-completion-ring strong { font-size:22px; font-variant-numeric:tabular-nums; }
+.home-completion-ring small { font-size:10px; color:var(--ui-text-muted); }
+.home-completion-legend { display:flex; flex-direction:column; gap:8px; color:var(--ui-text-muted); font-size:11px; }
+.home-completion-legend > span { display:flex; align-items:center; gap:6px; }
+.completion-dot { width:6px; height:6px; border-radius:50%; background:var(--ui-border); }
+.completion-dot.done { background:var(--status-done); }.completion-dot.multi { background:var(--status-multi); }
+#page-home .home-summary-total { background:transparent; border:0; border-radius:0; padding:0; }
+#page-home .home-summary-stat { background:transparent; border:0; border-radius:0; padding:10px 0; }
+#page-home .home-summary-meta { gap:0 14px; border-top:1px solid var(--ui-border); }

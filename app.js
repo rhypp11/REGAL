@@ -988,7 +988,7 @@ function renderPlatformBanner(games){
         <span class="platform-banner-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3.7 5.5l-1.2 3a2 2 0 0 1-3.2.8L15 15H9l-2.3 2.3a2 2 0 0 1-3.2-.8l-1.2-3A4 4 0 0 1 6 8Z"></path><path d="M7 12h4M9 10v4"></path><circle cx="16.5" cy="11.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="18.5" cy="13.5" r=".7" fill="currentColor" stroke="none"></circle></svg></span>
         <div><span class="platform-banner-title">Tous les jeux</span></div>
       </div>
-      <div class="platform-banner-stats">${statsHtml}</div>
+      <div class="platform-banner-stats" data-count="${5 + (!state.platform ? 1 : 0) + (collectors ? 1 : 0)}">${statsHtml}</div>
     `;
     renderCollectionFilterContext(banner);
     if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
@@ -1008,7 +1008,7 @@ function renderPlatformBanner(games){
     : `<span class="platform-banner-fallback">${escapeHTML(initials)}</span>`;
   banner.innerHTML = `
     <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
-    <div class="platform-banner-stats">${statsHtml}</div>
+    <div class="platform-banner-stats" data-count="${5 + (!state.platform ? 1 : 0) + (collectors ? 1 : 0)}">${statsHtml}</div>
   `;
   renderCollectionFilterContext(banner);
   if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
@@ -1108,6 +1108,16 @@ function renderCard(g, options = {}){
   });
   }
   decorateDigitalCard(card, g, options);
+  if(!options.readOnly){
+    const identity = card.querySelector('.card-identity');
+    const platformLine = document.createElement('div');platformLine.className='card-platform-line';
+    identity.querySelectorAll('.card-platform,.card-console-account').forEach(el=>platformLine.appendChild(el));
+    identity.prepend(platformLine);
+    const footer = document.createElement('div');footer.className='card-state-row';
+    identity.querySelector('.card-status-control') && footer.appendChild(identity.querySelector('.card-status-control'));
+    card.querySelectorAll('.card-media-mark,.card-dlc-count').forEach(el=>footer.appendChild(el));
+    if(footer.childNodes.length) identity.appendChild(footer);
+  }
   const onOpen = options.onOpen || (() => openModal(g.id));
   card.addEventListener('click', onOpen);
   card.tabIndex = 0;
@@ -1144,7 +1154,20 @@ function renderResultsBar(count){
   if(resetBtn) resetBtn.addEventListener('click', () => document.getElementById('reset-btn').click());
 }
 
+let collectionView = 'cards';
+try { const saved=localStorage.getItem('regal:collection-view');if(['cards','gallery','list'].includes(saved)) collectionView=saved; } catch(error) {}
+document.getElementById('collection-view-switch').addEventListener('click',event=>{
+  const button=event.target.closest('[data-view]');if(!button)return;
+  collectionView=button.dataset.view;
+  try { localStorage.setItem('regal:collection-view',collectionView); } catch(error) {}
+  render();
+});
+function syncCollectionView(){
+  document.querySelectorAll('#collection-view-switch [data-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.view===collectionView)));
+}
+
 function render(){
+  syncCollectionView();
   renderMediaControls();
   persistNavigation();
   const games = sortGames(filteredGames());
@@ -1153,6 +1176,7 @@ function render(){
 
   const grid = document.getElementById('grid');
   grid.innerHTML = "";
+  grid.dataset.view = collectionView;
 
   renderHomeStats();
   if(games.length === 0){
@@ -1604,6 +1628,16 @@ function renderHomeStats(){
   const collectors = physical.filter(g => g.collector).length;
   const platformsCount = new Set(physical.map(g => g.plateforme)).size;
 
+  const finishedCount=physical.filter(g=>['termine','termine_ailleurs'].includes(g.status)).length;
+  const multiCount=physical.filter(g=>g.status==='multi').length;
+  const ring=document.getElementById('home-completion-ring');
+  if(ring){
+    const done=total ? finishedCount/total*100 : 0;
+    const multi=total ? multiCount/total*100 : 0;
+    ring.style.background=total ? `conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+multi}%,var(--ui-border) ${done+multi}% 100%)` : 'var(--ui-border)';
+    ring.setAttribute('aria-label',`${finishedCount} jeux terminés sur ${total}, ${multiCount} multijoueurs`);
+    ring.querySelector('strong').textContent=Math.round(done)+' %';
+  }
   const totalEl = document.getElementById('home-total-games');
   if(totalEl) totalEl.textContent = total;
   const metaEl = document.getElementById('home-summary-meta');
@@ -2277,6 +2311,7 @@ document.getElementById('w-image').addEventListener('input', () => updateImagePr
 /* ---------- Modal gestion des plateformes ---------- */
 
 function openPlatformModal(){
+  closeMobileDrawers();
   buildPlatformRows();
   window.JTDDialogs.open('platform-modal-overlay', {onDismiss:closePlatformModal,initialFocus:'#new-platform-toggle'});
 }

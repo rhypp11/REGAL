@@ -60,6 +60,7 @@ const server=createSandboxServer();
       await page.locator('#cancel-btn').click();
       assert.equal(await page.locator('[data-collection-format]').count(),0,'Physical collection has no format selector');
       assert.equal(await page.locator('#f-type, #f-format, #type-filter-section').count(),0);
+      await page.evaluate(()=>window.scrollTo(0,0));
       const bannerGap=await page.evaluate(()=>{
         const banner=document.getElementById('platform-banner').getBoundingClientRect();
         const nav=document.querySelector('.topnav').getBoundingClientRect();
