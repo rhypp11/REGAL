@@ -20,11 +20,11 @@
 <link rel="stylesheet" href="home-boards-v2.css?v=open-calendars-3">
 <link rel="stylesheet" href="home-dashboard.css?v=stats-5">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
-<link rel="stylesheet" href="ui-foundations.css?v=visual-review-4">
-<link rel="stylesheet" href="regal.css?v=visual-review-4">
-<link rel="stylesheet" href="game-sheet.css?v=visual-review-4">
-<link rel="stylesheet" href="collection.css?v=visual-review-4">
-<link rel="stylesheet" href="digital.css?v=visual-review-4">
+<link rel="stylesheet" href="ui-foundations.css?v=collection-refine-5">
+<link rel="stylesheet" href="regal.css?v=collection-refine-5">
+<link rel="stylesheet" href="game-sheet.css?v=collection-refine-5">
+<link rel="stylesheet" href="collection.css?v=collection-refine-5">
+<link rel="stylesheet" href="digital.css?v=collection-refine-5">
 </head>
 <body>
 
@@ -108,26 +108,20 @@
             <input type="text" class="profile-menu-name-input" id="profile-name-input" placeholder="Ton pseudo" maxlength="24">
           </div>
           <div class="profile-menu-divider"></div>
+          <details class="profile-maintenance"><summary>Sauvegarde et restauration</summary>
           <button class="profile-menu-item" id="backup-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Sauvegarde complète</span></span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg><span>Sauvegarde complète</span></span>
             <span class="profile-menu-sub" id="backup-note"></span>
           </button>
-          <details class="profile-maintenance"><summary>Restauration et anciens imports</summary>
           <label class="profile-menu-item" id="restore-trigger" for="restore-input">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Restaurer une sauvegarde</span></span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg><span>Restaurer une sauvegarde</span></span>
             <span class="profile-menu-sub">Remplacer toutes les données par celles du fichier</span>
           </label>
-          <label class="profile-menu-item" id="cemetery-import-trigger" for="cemetery-import-input">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg><span>Importer des ventes</span></span>
-            <span class="profile-menu-sub">Ajouter au cimetière · CSV, TSV ou sauvegarde</span>
-          </label>
-          <div class="profile-menu-divider"></div>
           </details>
           <button class="profile-menu-item" id="chatgpt-export-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Exporter pour ChatGPT</span></span>
-            <span class="profile-menu-sub">Collection et listes · fichier à joindre dans ChatGPT</span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Exporter en JSON</span></span>
+            <span class="profile-menu-sub">Collection et listes pour ChatGPT · sans restauration</span>
           </button>
-          <button type="button" class="profile-menu-item" id="digital-accounts-btn"><span class="profile-menu-item-label">Comptes consoles</span></button>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path></svg><span>Se déconnecter</span></span>
@@ -332,6 +326,16 @@
 <div class="page hidden" id="page-collection">
 <div class="app">
   <aside class="sidebar" id="collection-sidebar">
+    <div class="side-section collection-media-controls">
+      <div class="side-label">Collection</div>
+      <div class="collection-media-tabs" id="collection-media-tabs" role="group" aria-label="Format de collection">
+        <button type="button" data-media="all" aria-pressed="false">Tout</button>
+        <button type="button" data-media="physical" aria-pressed="true">Physique</button>
+        <button type="button" data-media="digital" aria-pressed="false">Numérique</button>
+      </div>
+      <div id="collection-account-field"><details id="collection-account-picker"><summary><span id="collection-account-summary">Tous les comptes</span></summary><p class="account-scope-note" id="collection-account-scope"></p><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div><button type="button" class="manage-link" id="collection-manage-accounts">Gérer les comptes</button></details><select id="collection-account" aria-label="Filtrer par compte console" class="hidden" aria-hidden="true" tabindex="-1"></select></div>
+    </div>
+
     <div class="side-section side-section-platforms">
       <div class="side-label-row">
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
@@ -343,15 +347,6 @@
       <div id="platform-list"></div>
     </div>
 
-    <div class="side-section collection-media-controls">
-      <div class="side-label">Collection</div>
-      <div class="collection-media-tabs" id="collection-media-tabs" role="group" aria-label="Format de collection">
-        <button type="button" data-media="all" aria-pressed="false">Tout</button>
-        <button type="button" data-media="physical" aria-pressed="true">Physique</button>
-        <button type="button" data-media="digital" aria-pressed="false">Numérique</button>
-      </div>
-      <div id="collection-account-field"><details id="collection-account-picker"><summary><span id="collection-account-summary">Tous les comptes</span></summary><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div><button type="button" class="manage-link" id="collection-manage-accounts">Gérer les comptes</button></details><select id="collection-account" aria-label="Filtrer par compte console" class="hidden" aria-hidden="true" tabindex="-1"></select></div>
-    </div>
     <div class="side-section" id="collector-filter-section">
       <div class="side-label">Édition</div>
       <div class="format-toggles" id="format-toggles"></div>
@@ -574,10 +569,10 @@
 <div class="modal-overlay sheet-dialog hidden" id="digital-accounts-overlay" role="dialog" aria-modal="true" aria-labelledby="digital-accounts-title">
   <div class="modal"><h2 id="digital-accounts-title">Comptes consoles</h2><div id="digital-account-rows"></div><button type="button" class="manage-link" id="digital-account-add">+ Ajouter un compte</button><p id="digital-accounts-error" role="alert"></p><div class="modal-actions"><button type="button" class="btn btn-ghost" id="digital-accounts-cancel">Annuler</button><button type="button" class="btn btn-primary" id="digital-accounts-save">Enregistrer</button></div></div>
 </div>
-<script src="jtd-data.js?v=visual-review-4"></script>
+<script src="jtd-data.js?v=collection-refine-5"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=visual-review-4"></script>
-<script src="app.js?v=visual-review-4"></script>
+<script src="digital.js?v=collection-refine-5"></script>
+<script src="app.js?v=collection-refine-5"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>
