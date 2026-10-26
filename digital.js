@@ -46,6 +46,12 @@ function collectionValueLabel(games, euroTotal){
   for(const game of purchases.values()) if(game.prix != null) sums.set(game.currency || 'EUR',(sums.get(game.currency || 'EUR') || 0) + game.prix);
   return [...sums].map(([currency,prix])=>purchaseMoney({prix,currency})).join(' + ') || '—';
 }
+function accountEcosystemLabel(ecosystem){
+  return ({Nintendo:'Compte Nintendo · Switch / Switch 2','Nintendo Network':'Nintendo Network · Wii U / Nintendo 3DS',PlayStation:'PlayStation · PS4 / PS5',Xbox:'Xbox'})[ecosystem] || ecosystem;
+}
+function accountPlatforms(account){
+  return [...new Set(GAMES.filter(g=>JTDData.isDigital(g) && g.accountId === account.id).map(g=>g.plateforme))];
+}
 function renderMediaControls(){
   const controls = document.getElementById('collection-media-tabs');
   for(const button of controls.querySelectorAll('[data-media]')){
@@ -62,7 +68,8 @@ function renderMediaControls(){
   const current = DIGITAL_ACCOUNTS.find(a=>a.id === state.accountId);
   document.getElementById('collection-account-summary').innerHTML = current ? accountIdentityHtml(current) : '<span class="account-all-icon">'+MEDIA_ICONS.digital+'</span><span>Tous les comptes</span>';
   const list = document.getElementById('collection-account-options');
-  list.innerHTML = '<button type="button" class="console-account-option" data-account="" aria-pressed="'+(!state.accountId)+'">Tous les comptes</button>'+DIGITAL_ACCOUNTS.map(a=>'<button type="button" class="console-account-option" data-account="'+escapeHTML(a.id)+'" aria-pressed="'+(a.id === state.accountId)+'">'+accountIdentityHtml(a)+'<small>'+escapeHTML([a.ecosystem,a.region].filter(Boolean).join(' · '))+'</small></button>').join('');
+  list.innerHTML = '<button type="button" class="console-account-option" data-account="" aria-pressed="'+(!state.accountId)+'">Tous les comptes</button>'+DIGITAL_ACCOUNTS.map(a=>'<button type="button" class="console-account-option" data-account="'+escapeHTML(a.id)+'" aria-pressed="'+(a.id === state.accountId)+'">'+accountIdentityHtml(a)+'<small>'+escapeHTML([accountEcosystemLabel(a.ecosystem),a.region].filter(Boolean).join(' · '))+'</small></button>').join('');
+  document.getElementById('collection-account-scope').textContent = current ? (accountPlatforms(current).join(' · ') || accountEcosystemLabel(current.ecosystem)) : 'Un compte commun à plusieurs consoles. Les plateformes ci-dessous suivent ta sélection.';
   bindAvatarFallbacks(list);
   bindAvatarFallbacks(document.getElementById('collection-account-summary'));
 }
@@ -123,7 +130,8 @@ function commitCollection(games, digitalAccounts = DIGITAL_ACCOUNTS){
   }catch(error){ console.error('Achat non enregistré',error); showToast('Enregistrement impossible. '+error.message); return false; }
 }
 function ecosystemFor(platform){
-  if(/switch|nintendo|wii|3ds/i.test(platform)) return 'Nintendo';
+  if(/wii\s*u|3ds|2ds/i.test(platform)) return 'Nintendo Network';
+  if(/switch|nintendo|wii/i.test(platform)) return 'Nintendo';
   if(/playstation|ps[1-5]|vita|psp/i.test(platform)) return 'PlayStation';
   if(/xbox/i.test(platform)) return 'Xbox';
   return 'Autre';
@@ -250,7 +258,7 @@ function renderContentDetails(game){
 function editDigitalAccountRow(account = {id:crypto.randomUUID(),name:'',ecosystem:'Nintendo',region:'',preferred:false}){
   const row = document.createElement('div');row.className='digital-account-row';row.dataset.accountId=account.id;
   row.dataset.avatar = safeURL(account.avatar,true);
-  row.innerHTML = '<div class="digital-account-heading"><span class="digital-account-avatar-preview">'+accountIdentityHtml(account,false)+'</span><label class="avatar-file-label">Changer l’avatar<input type="file" data-field="avatar-file" accept="image/*"></label><button type="button" class="manage-link" data-remove-avatar>Retirer</button></div><div class="field-row"><div class="field"><label>Pseudo<input data-field="nickname" maxlength="80" value="'+escapeHTML(account.nickname || '')+'" placeholder="Ton pseudo console"></label></div><div class="field"><label>Repère du compte<input data-field="name" maxlength="80" value="'+escapeHTML(account.name)+'" placeholder="Compte japonais"></label></div></div><div class="field-row"><div class="field"><label>Écosystème<select data-field="ecosystem">'+['Nintendo','PlayStation','Xbox','Autre'].map(e=>'<option'+(e === account.ecosystem?' selected':'')+'>'+e+'</option>').join('')+'</select></label></div><div class="field"><label>Région <span class="optional-label">optionnel</span><input data-field="region" maxlength="80" value="'+escapeHTML(account.region)+'" placeholder="Japon"></label></div></div><div class="digital-account-actions"><label><input type="checkbox" data-field="preferred"'+(account.preferred?' checked':'')+'> Compte par défaut</label><button type="button" class="manage-link digital-account-delete">Supprimer</button></div>';
+  row.innerHTML = '<div class="digital-account-heading"><span class="digital-account-avatar-preview">'+accountIdentityHtml(account,false)+'</span><label class="avatar-file-label">Changer l’avatar<input type="file" data-field="avatar-file" accept="image/*"></label><button type="button" class="manage-link" data-remove-avatar>Retirer</button></div><div class="field-row"><div class="field"><label>Pseudo<input data-field="nickname" maxlength="80" value="'+escapeHTML(account.nickname || '')+'" placeholder="Ton pseudo console"></label></div><div class="field"><label>Repère du compte<input data-field="name" maxlength="80" value="'+escapeHTML(account.name)+'" placeholder="Compte japonais"></label></div></div><div class="field-row"><div class="field"><label>Écosystème<select data-field="ecosystem">'+['Nintendo','Nintendo Network','PlayStation','Xbox','Autre'].map(e=>'<option value="'+e+'"'+(e === account.ecosystem?' selected':'')+'>'+accountEcosystemLabel(e)+'</option>').join('')+'</select></label></div><div class="field"><label>Région <span class="optional-label">optionnel</span><input data-field="region" maxlength="80" value="'+escapeHTML(account.region)+'" placeholder="Japon"></label></div></div><div class="digital-account-actions"><label><input type="checkbox" data-field="preferred"'+(account.preferred?' checked':'')+'> Compte par défaut</label><button type="button" class="manage-link digital-account-delete">Supprimer</button></div>';
   let avatarBusy = false;
   const refreshAvatar = ()=>{
     row.querySelector('.digital-account-avatar-preview').innerHTML = accountIdentityHtml({name:row.querySelector('[data-field="name"]').value,nickname:row.querySelector('[data-field="nickname"]').value,avatar:row.dataset.avatar},false);
@@ -313,7 +321,6 @@ function initDigitalControls(){
     renderParentPreview();
   };
   document.getElementById('f-plateforme').addEventListener('change',()=>populateDigitalAccounts('',true));
-  document.getElementById('digital-accounts-btn').onclick=openDigitalAccounts;
   document.getElementById('f-manage-accounts').onclick=openDigitalAccounts;
   document.getElementById('digital-account-add').onclick=()=>editDigitalAccountRow();
   document.getElementById('digital-accounts-cancel').onclick=closeDigitalAccounts;

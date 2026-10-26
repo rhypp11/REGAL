@@ -11,9 +11,7 @@ const fixture={games:[
  {id:'sold-history',nom:'Aventure passée',plateforme:'PS5',collectionId:'sold',status:'done',finishedAt:'2025-01-02',review:'Histoire conservée'}
 ]};
 async function importFile(page,data){
- await page.locator('#profile-menu-btn').click();
- const event=page.waitForEvent('filechooser');await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#cemetery-import-trigger').click();
- await (await event).setFiles({name:'ventes.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({app:'Jeux Tout Doux',version:4,data:{cemetery:data}}))});
+ await page.locator('#cemetery-import-input').setInputFiles({name:'ventes.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({app:'Jeux Tout Doux',version:4,data:{cemetery:data}}))});
  await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
 }
 (async()=>{

@@ -83,3 +83,5 @@
   .dlc-placeholder { inset:0 0 22px; }
   .dlc-placeholder svg { width:20px; height:20px; }
 }
+
+.account-scope-note { margin:8px 0; font-size:11px; line-height:1.5; color:var(--muted); overflow-wrap:anywhere; }

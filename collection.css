@@ -141,17 +141,17 @@
 #page-collection .grid { gap:24px 18px; }
 #page-collection .card {
   padding:12px;
-  border:1px solid var(--ui-border);
+  border:1px solid color-mix(in srgb,var(--ui-border) 55%,transparent);
   border-radius:12px;
-  background:var(--ui-surface);
+  background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
   box-shadow:none;
   overflow:visible;
   transition:border-color var(--ui-transition-fast),background var(--ui-transition-fast);
 }
 #page-collection .card:hover {
   transform:none;
-  border-color:color-mix(in srgb,var(--ui-accent) 40%,var(--ui-border));
-  background:var(--ui-surface);
+  border-color:color-mix(in srgb,var(--ui-accent) 24%,var(--ui-border));
+  background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
   box-shadow:none;
 }
 #page-collection .card-banner {

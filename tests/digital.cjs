@@ -86,8 +86,21 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       await page.locator('#cancel-btn').click();
       // A storage failure cannot mutate purchases in memory.
       const rollback=await page.evaluate(()=>{const before=JSON.stringify(GAMES);const original=window.persistAppData;window.persistAppData=()=>{throw Error('quota test');};const result=commitCollection([]);window.persistAppData=original;return !result && before===JSON.stringify(GAMES);});assert.equal(rollback,true);
+      await page.evaluate(()=>{
+        GAMES.push({id:'shared-switch',nom:'Autre console',plateforme:'Nintendo Switch',format:'Numérique',accountId:'eu'});
+        GAMES.push({id:'shared-ps4',nom:'Autre réseau',plateforme:'PlayStation 4',format:'Numérique',accountId:'jp'});
+        state.platform='PlayStation 4';state.accountId='jp';buildPlatformList();render();
+      });
+      await chooseAccount(page,'eu');
+      assert.equal(await page.evaluate(()=>state.platform),null);
+      assert.match(await page.locator('#platform-list').innerText(),/Nintendo Switch/);
+      assert.match(await page.locator('#platform-list').innerText(),/Switch 2/);
+      assert.doesNotMatch(await page.locator('#platform-list').innerText(),/PlayStation 4/);
+      assert.equal(await page.evaluate(()=>ecosystemFor('Nintendo 3DS')),'Nintendo Network');
+      assert.equal(await page.evaluate(()=>ecosystemFor('Wii U')),'Nintendo Network');
+      assert.equal(await page.locator('#cemetery-import-trigger, #digital-accounts-btn').count(),0);
       // Accounts are managed as labels, never connected credentials.
-      await page.locator('#profile-menu-btn').click();await page.locator('#digital-accounts-btn').click();
+      await openFilters(page);await page.locator('#collection-account-picker').evaluate(el=>el.open=true);await page.locator('#collection-manage-accounts').click();
       assert.equal(await page.locator('#digital-accounts-overlay .modal').evaluate(el=>el.scrollWidth>el.clientWidth+1),false);
       await page.locator('#digital-account-add').click();const row=page.locator('.digital-account-row').last();
       await row.locator('[data-field="name"]').fill('Compte secondaire');await row.locator('[data-field="nickname"]').fill('Aster');

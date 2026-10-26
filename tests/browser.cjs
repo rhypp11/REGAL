@@ -136,7 +136,7 @@ async function restore(page, value, confirm=true){
       assert.equal(Object.hasOwn(shared.data.games[0],'prix'),false);
       assert.equal(Object.hasOwn(shared.data.games[0],'source'),false);
       const downloadEvent=page.waitForEvent('download');
-      await page.locator('#profile-menu-btn').click();await page.locator('#backup-btn').click();
+      await page.locator('#profile-menu-btn').click();await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#backup-btn').click();
       const download=await downloadEvent;
       const saved=JSON.parse(fs.readFileSync(await download.path(),'utf8'));
       assert.equal(saved.data.games[0].japanese,true);assert.equal(saved.data.arrivals[0].prix,30);

@@ -17,10 +17,6 @@ const server = createSandboxServer();
       games:GAMES.map(item=>({...item})), arrivals:ARRIVALS.map(item=>({...item})),
       wishlist:WISHLIST.map(item=>({...item})), cemetery:CEMETERY.map(item=>({...item}))
     }));
-    await page.locator('#profile-menu-btn').click();
-    const chooserEvent=page.waitForEvent('filechooser');
-    await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#cemetery-import-trigger').click();
-    const chooser=await chooserEvent;
     const csv=[
       'JEU;NOM;Date;Source;Prix;Canal;Valeur;Gain',
       'PS5;Vente importée;2026-09-01;Fnac;30;🛜;18,50;14,25',
@@ -30,7 +26,7 @@ const server = createSandboxServer();
       'PS4;Encore à vendre;2026-08-15;Micromania;12;🏪;10;',
       'PS5;Kena: Bridge of Spirits — Test;;;;;;'
     ].join('\n');
-    await chooser.setFiles({name:'cimetiere.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
+    await page.locator('#cemetery-import-input').setInputFiles({name:'cimetiere.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
     assert.match(await page.locator('#cemetery-import-summary').textContent(),/2 ajout\(s\) direct\(s\).*3 correspondance/);
     assert.equal(await page.locator('#cemetery-import-apply').isDisabled(),true,'collection matches require an explicit choice');
@@ -84,11 +80,7 @@ const server = createSandboxServer();
     assert.equal(cartridge.estimatedPrice,7);assert.equal(cartridge.saleStatus,'pending');
     await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
     const cemeteryCount=await page.evaluate(()=>CEMETERY.length);
-    await page.locator('#profile-menu-btn').click();
-    const secondChooserEvent=page.waitForEvent('filechooser');
-    await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#cemetery-import-trigger').click();
-    const secondChooser=await secondChooserEvent;
-    await secondChooser.setFiles({name:'cimetiere.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
+    await page.locator('#cemetery-import-input').setInputFiles({name:'cimetiere.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
     assert.match(await page.locator('#cemetery-import-summary').textContent(),/0 ajout\(s\) direct\(s\).*2 correspondance/);
     for(const action of await page.locator('.cemetery-import-row[data-kind="match"] .cemetery-import-action select:not(.cemetery-import-source)').all()) await action.selectOption('skip');
@@ -98,11 +90,7 @@ const server = createSandboxServer();
       {id:'import-lot-1',nom:'Lot importé A',plateforme:'PS4',saleStatus:'sold',saleId:'sheet-lot-1',saleOrder:1,salePrice:42.5},
       {id:'import-lot-2',nom:'Lot importé B',plateforme:'PS4',saleStatus:'sold',saleId:'sheet-lot-1',saleOrder:1,salePrice:42.5}
     ]}};
-    await page.locator('#profile-menu-btn').click();
-    const lotChooserEvent=page.waitForEvent('filechooser');
-    await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#cemetery-import-trigger').click();
-    const lotChooser=await lotChooserEvent;
-    await lotChooser.setFiles({name:'lot.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(lotBackup))});
+    await page.locator('#cemetery-import-input').setInputFiles({name:'lot.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(lotBackup))});
     await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
     await page.locator('#cemetery-import-apply').click();
     const importedLot=await page.evaluate(()=>CEMETERY.filter(item=>item.saleId==='sheet-lot-1'));
