@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="regal.css?v=surfaces-11">
 <link rel="stylesheet" href="game-sheet.css?v=surfaces-11">
 <link rel="stylesheet" href="collection.css?v=surfaces-11">
-<link rel="stylesheet" href="digital.css?v=surfaces-11">
+<link rel="stylesheet" href="digital.css?v=dlc-link-13">
 <link rel="stylesheet" href="deku-import.css?v=1">
 </head>
 <body>
@@ -145,7 +145,7 @@
       <div class="home-widget-title"><h2>Statistiques</h2></div>
       <div class="home-widget-stats">
         <section class="home-stat-section" aria-labelledby="home-collection-heading"><h3 id="home-collection-heading">Collection</h3><div class="home-summary-total"><strong id="home-total-games">0</strong><span>Jeux</span></div><div id="home-summary-meta" class="home-summary-meta"></div></section>
-        <section class="home-stat-section" aria-labelledby="home-status-heading"><h3 id="home-status-heading">Statuts</h3><div class="home-completion"><div id="home-completion-ring" class="home-completion-ring" role="img"><span><strong>0 %</strong><small>Terminés</small></span></div><div class="home-completion-legend" id="home-status-legend"></div></div></section>
+        <section class="home-stat-section" aria-labelledby="home-status-heading"><h3 id="home-status-heading">Statuts des jeux et DLC</h3><div class="home-completion"><div id="home-completion-ring" class="home-completion-ring" role="img"><span><strong>0 %</strong><small>Terminés</small></span></div><div class="home-completion-legend" id="home-status-legend"></div></div></section>
       </div>
     </section>
     </aside>
@@ -403,9 +403,7 @@
         <div class="field"><label for="f-media">Format</label><select id="f-media"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div>
         <div class="field hidden" id="f-content-type-field"><label for="f-content-type">Type de contenu</label><select id="f-content-type"><option value="game">Jeu complet</option><option value="dlc">Contenu téléchargeable (DLC)</option><option value="upgrade">Mise à niveau</option></select></div>
       </div>
-      <div id="f-digital-fields" class="hidden">
-        <div id="f-parent-field" class="hidden"><div class="field"><label for="f-parent-search">Rattacher à un jeu <span class="optional-label">optionnel</span></label><input type="search" id="f-parent-search" placeholder="Chercher dans la collection…"></div><div class="field"><label for="f-parent">Jeu de base</label><select id="f-parent"><option value="">Aucun pour le moment</option></select></div><div id="f-parent-preview" class="hidden"></div></div>
-      </div>
+
     </div>
 
     <div class="form-section game-sheet-section">
@@ -442,6 +440,11 @@
       <div class="field image-fit-field"><label for="f-image-fit">Affichage de l’image</label><select id="f-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
       </div>
     </div>
+
+      <div id="f-digital-fields" class="form-section hidden">
+        <div class="field hidden" id="f-content-status-field"><label for="f-content-status">Statut du DLC</label><select id="f-content-status"></select></div>
+        <div id="f-parent-field" class="hidden"><h3 class="form-section-title">Jeu de base</h3><input type="hidden" id="f-parent"><div id="f-parent-preview" class="hidden"></div><button type="button" class="manage-link hidden" id="f-parent-clear">Retirer le rattachement</button><div class="field"><label for="f-parent-search">Rechercher le jeu de base</label><input type="search" id="f-parent-search" placeholder="Titre du jeu…" aria-controls="f-parent-results" autocomplete="off"></div><div id="f-parent-results" class="parent-search-results" aria-label="Résultats de recherche du jeu de base"></div><p id="f-parent-search-status" class="content-parent-note" role="status"></p></div>
+      </div>
 
     <div id="f-quick-hide-fields" class="form-section game-sheet-section" aria-labelledby="game-sheet-purchase-title">
       <div class="form-section-title" id="game-sheet-purchase-title">Achat</div>
@@ -589,10 +592,10 @@
 <div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
 <div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>
 </div></div>
-<script src="jtd-data.js?v=deku-12"></script>
+<script src="jtd-data.js?v=dlc-link-13"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=deku-12"></script>
-<script src="app.js?v=surfaces-11"></script>
+<script src="digital.js?v=dlc-link-13"></script>
+<script src="app.js?v=dlc-link-13"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>

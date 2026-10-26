@@ -67,6 +67,9 @@ jobs:
       - name: Check console purchases, DLC grouping and accounts
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/digital.cjs
 
+      - name: Check DLC statuses and illustrated parent search
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/dlc-links.cjs
+
       - name: Check Deku Deals review and additive imports
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/deku-import.cjs
 

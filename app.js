@@ -730,7 +730,7 @@ function restoreBackup(file){
 
 function setStatus(id, statusKey){
   const g = GAMES.find(x => x.id === id);
-  if(!g) return;
+  if(!g || !isPlayablePurchase(g)) return;
   g.status = (getEffectiveStatus(g) === statusKey) ? null : statusKey;
   saveGames();
   render();
@@ -964,7 +964,7 @@ function renderPlatformBanner(games){
   banner.dataset.resultCount = games.length;
   requestCollectionContextUpdate();
   const total = games.length;
-  const playableGames = games.filter(g => !JTDData.isAddon(g));
+  const playableGames = collectionPlayablePurchases(games);
   const spent = games.reduce((sum,g) => sum + ((g.currency || 'EUR') === 'EUR' ? (g.prix || 0) : 0), 0);
   const collectors = games.filter(g => g.collector).length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
@@ -996,7 +996,7 @@ function renderPlatformBanner(games){
   const statsHtml = `<section class="library-stat-group" aria-labelledby="collection-stats-title">
     <h3 id="collection-stats-title">Collection</h3><div class="library-stat-values library-collection-values">${collectionStats}</div>
     </section><section class="library-stat-group" aria-labelledby="completion-stats-title">
-    <h3 id="completion-stats-title">Complétion</h3><div class="library-stat-values library-completion-values">${completionStats}</div></section><section class="library-stat-group library-value-group" aria-label="Valeur des achats">${stat(collectionValueLabel(games, spent), 'Valeur', 'spent')}</section>`;
+    <h3 id="completion-stats-title">${playableGames.some(JTDData.isDLC) ? 'Complétion des jeux et DLC' : 'Complétion'}</h3><div class="library-stat-values library-completion-values">${completionStats}</div></section><section class="library-stat-group library-value-group" aria-label="Valeur des achats">${stat(collectionValueLabel(games, spent), 'Valeur', 'spent')}</section>`;
 
   const detailsHtml=`<details class="collection-stat-details" ${collectionStatsOpen ? 'open' : ''}><summary><strong>${total} ${total > 1 ? 'Éléments' : 'Élément'}</strong><span>Détails<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="platform-banner-stats">${statsHtml}</div></details>`;
   if(!state.platform){
@@ -1660,9 +1660,10 @@ function renderHomeStats(){
   const physical=games.filter(g=>!JTDData.isDigital(g));
   const digital=games.filter(g=>JTDData.isDigital(g));
   const total=games.length;
-  const finished=games.filter(g=>['termine','termine_ailleurs'].includes(g.status)).length;
-  const multi=games.filter(g=>g.status==='multi').length;
-  const todo=total-finished-multi;
+  const playable=GAMES.filter(isPlayablePurchase);
+  const finished=playable.filter(g=>['termine','termine_ailleurs'].includes(g.status)).length;
+  const multi=playable.filter(g=>g.status==='multi').length;
+  const todo=playable.length-finished-multi;
   const totalEl=document.getElementById('home-total-games');if(totalEl) totalEl.textContent=total;
   const icon=(content)=>`<span class="stats-icon" aria-hidden="true">${content}</span>`;
   const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
@@ -1670,9 +1671,9 @@ function renderHomeStats(){
   const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
   if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<div class="home-value-stat"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></div>`;
   const ring=document.getElementById('home-completion-ring');
-  if(ring){const done=total ? finished/total*100 : 0, shared=total ? multi/total*100 : 0;
-    ring.style.background=total ? `conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)` : 'var(--ui-border)';
-    ring.setAttribute('aria-label',`${finished} jeux terminés, ${multi} multijoueurs et ${todo} à faire sur ${total}`);
+  if(ring){const done=playable.length ? finished/playable.length*100 : 0, shared=playable.length ? multi/playable.length*100 : 0;
+    ring.style.background=playable.length ? `conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)` : 'var(--ui-border)';
+    ring.setAttribute('aria-label',`${finished} jeux et DLC terminés, ${multi} multijoueurs et ${todo} à faire sur ${playable.length}`);
     ring.querySelector('strong').textContent=Math.round(done)+' %';
   }
   const legend=document.getElementById('home-status-legend');
@@ -2721,7 +2722,7 @@ function applyNavigation(view = {}){
   navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
   state = {
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
-    contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType).length ? selectedContentTypes(view.contentType).join(',') : null,
+    contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
     accountId:DIGITAL_ACCOUNTS.some(a => a.id === view.accountId) ? view.accountId : null,
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,
     collector:view.collector === true, japanese:view.japanese === true,

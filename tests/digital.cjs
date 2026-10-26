@@ -68,7 +68,7 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       const newId=await page.evaluate(()=>GAMES.find(g=>g.nom==='Nouvel achat japonais').id);
       await page.locator('#add-btn').click();await page.locator('#f-nom').fill('Nouvelle extension');
       await page.selectOption('#f-content-type','dlc');await page.locator('#f-parent-search').fill('Nouvel achat japonais');
-      await page.selectOption('#f-parent',newId);await page.selectOption('#f-currency','JPY');await page.locator('#f-prix').fill('1000');await page.locator('#save-btn').click();
+      await page.locator('[data-parent-id="'+newId+'"]').click();await page.selectOption('#f-currency','JPY');await page.locator('#f-prix').fill('1000');await page.locator('#save-btn').click();
       assert.equal(await page.evaluate(()=>JTDData.collectionCards(GAMES,'digital').some(g=>g.nom==='Nouvelle extension')),false);
       // The child remains discoverable when the selected account excludes its parent.
       await page.evaluate(()=>{const child=GAMES.find(g=>g.nom==='Nouvelle extension');child.accountId='eu';saveGames();render();});
@@ -86,7 +86,7 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       assert.equal(backup.data.digitalAccounts.length,2);assert.equal(backup.data.games.find(g=>g.nom==='Nouvelle extension').parentId,newId);
       await page.evaluate(()=>{GAMES.push({id:'switch-base',nom:'Jeu Switch de base',plateforme:'Switch',format:'Physique',prix:40});buildPlatformList();render();});
       await page.locator('#add-btn').click();await page.locator('#f-nom').fill('Mise à niveau Switch 2');
-      await page.selectOption('#f-content-type','upgrade');await page.locator('#f-parent-search').fill('Jeu Switch de base');await page.selectOption('#f-parent','switch-base');
+      await page.selectOption('#f-content-type','upgrade');await page.locator('#f-parent-search').fill('Jeu Switch de base');await page.locator('[data-parent-id="switch-base"]').click();
       const optionColors=await page.locator('#f-content-type option').first().evaluate(option=>{const style=getComputedStyle(option);return {foreground:style.color,background:style.backgroundColor};});
       assert.notEqual(optionColors.foreground,optionColors.background);
       assert.notEqual(optionColors.background,'rgba(0, 0, 0, 0)');
