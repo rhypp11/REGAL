@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="game-sheet.css?v=surfaces-11">
 <link rel="stylesheet" href="collection.css?v=surfaces-11">
 <link rel="stylesheet" href="digital.css?v=surfaces-11">
+<link rel="stylesheet" href="deku-import.css?v=1">
 </head>
 <body>
 
@@ -118,6 +119,7 @@
             <span class="profile-menu-sub">Remplacer toutes les données par celles du fichier</span>
           </label>
           </details>
+          <label class="profile-menu-item" for="deku-import-input" id="deku-import-trigger"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg><span>Importer Deku Deals</span></span></label>
           <button class="profile-menu-item" id="chatgpt-export-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Exporter en JSON</span></span>
             <span class="profile-menu-sub">Collection et listes pour ChatGPT · sans restauration</span>
@@ -128,6 +130,7 @@
           </button>
         </div>
       </div>
+      <input type="file" id="deku-import-input" accept="application/json,.json" hidden>
       <input type="file" id="restore-input" accept="application/json,.json" style="display:none;">
       <input type="file" id="cemetery-import-input" accept="application/json,.json,.csv,.tsv,text/csv,text/tab-separated-values" style="display:none;">
       <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
@@ -578,10 +581,20 @@
 <div class="modal-overlay sheet-dialog hidden" id="digital-accounts-overlay" role="dialog" aria-modal="true" aria-labelledby="digital-accounts-title">
   <div class="modal platform-modal"><div class="platform-modal-heading"><h2 id="digital-accounts-title">Comptes consoles</h2><button type="button" class="platform-new-btn" id="digital-account-add">+ Ajouter</button></div><div id="digital-account-rows" class="platform-rows"></div><p id="digital-accounts-error" role="alert"></p><div class="modal-actions platform-modal-actions"><button type="button" class="btn btn-primary" id="digital-accounts-save">Terminé</button></div></div>
 </div>
-<script src="jtd-data.js?v=surfaces-11"></script>
+<div class="modal-overlay sheet-dialog hidden" id="deku-import-overlay" role="dialog" aria-modal="true" aria-labelledby="deku-import-title"><div class="modal deku-import-modal">
+<h2 id="deku-import-title">Importer Deku Deals</h2>
+<p class="deku-import-intro">Ajout uniquement. Les achats déjà présents ne seront pas modifiés. Vérifie les comptes et les types proposés ; les DLC pourront être rattachés plus tard.</p>
+<div class="deku-import-toolbar"><label>Achats à importer<select id="deku-import-format"><option value="digital">Numérique</option><option value="physical">Physique</option><option value="all">Physique et numérique</option></select></label><label>Compte pour tous les achats numériques<select id="deku-import-account"></select></label></div>
+<p id="deku-import-summary" role="status"></p><p id="deku-import-ignored"></p>
+<div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
+<div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>
+</div></div>
+<script src="jtd-data.js?v=deku-12"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=surfaces-11"></script>
+<script src="digital.js?v=deku-12"></script>
 <script src="app.js?v=surfaces-11"></script>
+<script src="deku-data.js?v=1"></script>
+<script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>
@@ -595,6 +608,7 @@
 </script>
 </body>
 </html>
+
 
 
 

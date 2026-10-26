@@ -234,6 +234,8 @@ function renderContentDetails(game){
   const children = gameContents(game);
   const section = document.createElement('section');
   section.className = 'form-section content-purchases';
+  if(game.dekuNote){const note=document.createElement('p');note.className='content-parent-note';note.textContent='Note Deku Deals : '+game.dekuNote;section.appendChild(note);}
+  if(game.dekuAddedAt){const added=document.createElement('p');added.className='content-parent-note';added.textContent='Ajouté dans Deku Deals : '+game.dekuAddedAt.slice(0,10)+' (date d’achat non renseignée par cet export).';section.appendChild(added);}
   if(JTDData.isDigital(game)){
     const summary = document.createElement('div');
     summary.className = 'content-format-summary';
@@ -382,4 +384,5 @@ function initDigitalControls(){
   document.getElementById('digital-accounts-save').onclick=closeDigitalAccounts;
 }
 document.addEventListener('DOMContentLoaded',initDigitalControls);
+
 

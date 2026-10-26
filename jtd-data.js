@@ -39,7 +39,7 @@
         }
         used.add(id);
         const item = {id, nom, plateforme};
-        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId','journalPreviousStatus','contentType','parentId','accountId','currency']){
+        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId','journalPreviousStatus','contentType','parentId','accountId','currency','dekuNote','dekuAddedAt']){
           if(value[field] !== undefined) item[field] = text(value[field], field);
         }
         for(const field of ['collector','japanese']){
@@ -282,6 +282,7 @@
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+
 
 
 
