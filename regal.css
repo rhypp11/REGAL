@@ -36,9 +36,6 @@
 .topnav :focus-visible { outline-color:#63d0df; }
 .login-brand .eyebrow,.auth-loading .eyebrow { display:block; width:210px; height:68px; color:transparent; background:url('brand-light.svg') center/contain no-repeat; }
 [data-theme="dark"] :is(.login-brand,.auth-loading) .eyebrow { background-image:url('brand-dark.svg'); }
-#page-collection .add-btn { background:var(--accent); color:var(--ink); }
-:root:not([data-theme="dark"]) #page-collection .add-btn { color:#fff; }
-#page-collection .add-btn:hover { background:color-mix(in srgb,var(--accent) 88%,var(--text)); }
 @media(max-width:820px) {
   .topnav .brand-word.regal-logo { width:122px; height:38px; }
 }

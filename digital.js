@@ -264,9 +264,10 @@ function renderContentDetails(game){
   bindAvatarFallbacks(container);
 }
 function editDigitalAccountRow(account = {id:crypto.randomUUID(),name:'',ecosystem:'Nintendo',region:'',preferred:false}){
-  const row = document.createElement('div');row.className='digital-account-row';row.dataset.accountId=account.id;
+  const row = document.createElement('div');row.className='digital-account-row platform-row';row.dataset.accountId=account.id;
   row.dataset.avatar = safeURL(account.avatar,true);
-  row.innerHTML = '<div class="digital-account-heading"><span class="digital-account-avatar-preview">'+accountIdentityHtml(account,false)+'</span><label class="avatar-file-label">Changer l’avatar<input type="file" data-field="avatar-file" accept="image/*"></label><button type="button" class="manage-link" data-remove-avatar>Retirer</button></div><div class="field-row"><div class="field"><label>Pseudo<input data-field="nickname" maxlength="80" value="'+escapeHTML(account.nickname || '')+'" placeholder="Ton pseudo console"></label></div><div class="field"><label>Repère du compte<input data-field="name" maxlength="80" value="'+escapeHTML(account.name)+'" placeholder="Compte japonais"></label></div></div><div class="field-row"><div class="field"><label>Réseau<select data-field="ecosystem">'+['Nintendo','Nintendo Network','PlayStation','Xbox','Autre'].map(e=>'<option value="'+e+'"'+(e === account.ecosystem?' selected':'')+'>'+accountEcosystemLabel(e)+'</option>').join('')+'</select></label></div><div class="field"><label>Région <span class="optional-label">optionnel</span><input data-field="region" maxlength="80" value="'+escapeHTML(account.region)+'" placeholder="Japon"></label></div></div><div class="digital-account-actions"><label><input type="checkbox" data-field="preferred"'+(account.preferred?' checked':'')+'> Compte par défaut</label><button type="button" class="manage-link digital-account-delete">Supprimer</button></div>';
+  const isNew = !DIGITAL_ACCOUNTS.some(a=>a.id === account.id);row.dataset.new=String(isNew);
+  row.innerHTML = '<div class="platform-row-main"><span class="digital-account-list-avatar">'+accountIdentityHtml(account,false)+'</span><div class="platform-row-info"><strong class="platform-row-name">'+escapeHTML(account.nickname || account.name || 'Nouveau compte')+'</strong></div><button type="button" class="platform-edit-btn digital-account-edit" aria-label="Modifier '+escapeHTML(account.nickname || account.name || 'le compte')+'" aria-expanded="false">'+contextEditIcon()+'</button></div><div class="platform-row-editor hidden"><div class="digital-account-heading"><span class="digital-account-avatar-preview">'+accountIdentityHtml(account,false)+'</span><label class="avatar-file-label">Changer l’avatar<input type="file" data-field="avatar-file" accept="image/*"></label><button type="button" class="manage-link" data-remove-avatar>Retirer</button></div><div class="field-row"><div class="field"><label>Pseudo<input data-field="nickname" maxlength="80" value="'+escapeHTML(account.nickname || '')+'" placeholder="Ton pseudo console"></label></div><div class="field"><label>Repère du compte<input data-field="name" maxlength="80" value="'+escapeHTML(account.name)+'" placeholder="Compte japonais"></label></div></div><div class="field-row"><div class="field"><label>Réseau<select data-field="ecosystem">'+['Nintendo','Nintendo Network','PlayStation','Xbox','Autre'].map(e=>'<option value="'+e+'"'+(e === account.ecosystem?' selected':'')+'>'+accountEcosystemLabel(e)+'</option>').join('')+'</select></label></div><div class="field"><label>Région <span class="optional-label">optionnel</span><input data-field="region" maxlength="80" value="'+escapeHTML(account.region)+'" placeholder="Japon"></label></div></div><div class="digital-account-actions"><label><input type="checkbox" data-field="preferred"'+(account.preferred?' checked':'')+'> Compte par défaut</label><button type="button" class="manage-link digital-account-delete">Supprimer</button></div><p class="digital-account-row-error" role="alert"></p><div class="platform-editor-actions"><div class="platform-editor-spacer"></div><button type="button" class="platform-cancel-btn digital-account-cancel">Annuler</button><button type="button" class="platform-save-btn digital-account-save">Enregistrer</button></div></div>';
   let avatarBusy = false;
   const refreshAvatar = ()=>{
     row.querySelector('.digital-account-avatar-preview').innerHTML = accountIdentityHtml({name:row.querySelector('[data-field="name"]').value,nickname:row.querySelector('[data-field="nickname"]').value,avatar:row.dataset.avatar},false);
@@ -282,19 +283,57 @@ function editDigitalAccountRow(account = {id:crypto.randomUUID(),name:'',ecosyst
   row.querySelector('[data-remove-avatar]').onclick=()=>{if(!avatarBusy){row.dataset.avatar='';refreshAvatar();}};
   row.querySelector('[data-field="nickname"]').oninput=refreshAvatar;
   bindAvatarFallbacks(row);
+  const error = message=>{row.querySelector('.digital-account-row-error').textContent=message;};
+  const editor = row.querySelector('.platform-row-editor');
+  const edit = row.querySelector('.digital-account-edit');
+  const showEditor = ()=>{
+    document.querySelectorAll('.digital-account-row.editing').forEach(other=>{
+      if(other !== row){
+        other.classList.remove('editing');other.querySelector('.platform-row-editor').classList.add('hidden');other.querySelector('.digital-account-edit').setAttribute('aria-expanded','false');
+      }
+    });
+    row.classList.add('editing');editor.classList.remove('hidden');edit.setAttribute('aria-expanded','true');
+    row.querySelector('[data-field="nickname"]').focus();
+  };
+  edit.onclick=showEditor;
+  row.querySelector('.digital-account-cancel').onclick=()=>{
+    if(avatarBusy)return;
+    if(isNew){row.remove();document.getElementById('digital-account-add').focus();return;}
+    for(const field of ['name','nickname','ecosystem','region']) row.querySelector('[data-field="'+field+'"]').value=account[field] || '';
+    row.querySelector('[data-field="preferred"]').checked=!!account.preferred;row.dataset.avatar=account.avatar || '';refreshAvatar();error('');
+    row.classList.remove('editing');editor.classList.add('hidden');edit.setAttribute('aria-expanded','false');edit.focus();
+  };
+  row.querySelector('.digital-account-save').onclick=()=>{
+    if(avatarBusy){error('L’avatar est en cours de préparation.');return;}
+    const next={id:account.id,name:row.querySelector('[data-field="name"]').value.trim() || row.querySelector('[data-field="nickname"]').value.trim(),nickname:row.querySelector('[data-field="nickname"]').value.trim(),avatar:row.dataset.avatar || null,ecosystem:row.querySelector('[data-field="ecosystem"]').value,region:row.querySelector('[data-field="region"]').value.trim(),preferred:row.querySelector('[data-field="preferred"]').checked};
+    if(!next.name){error('Renseigne un pseudo ou un repère pour ce compte.');row.querySelector('[data-field="nickname"]').focus();return;}
+    if(next.preferred && DIGITAL_ACCOUNTS.some(a=>a.id !== next.id && a.ecosystem === next.ecosystem && a.preferred)){error('Un compte par défaut existe déjà pour ce réseau.');return;}
+    const accounts=isNew ? [...DIGITAL_ACCOUNTS,next] : DIGITAL_ACCOUNTS.map(a=>a.id === next.id ? next : a);
+    if(!commitCollection(GAMES,accounts))return;
+    refreshDigitalAccountList();refreshAccountControls();
+    document.querySelector('.digital-account-row[data-account-id="'+CSS.escape(next.id)+'"] .digital-account-edit')?.focus();
+  };
   row.querySelector('.digital-account-delete').onclick=()=>{
-    if([...GAMES,...CEMETERY].some(g=>g.accountId === account.id)){
-      document.getElementById('digital-accounts-error').textContent='Ce compte possède des achats. Réaffecte-les avant de le supprimer.';return;
-    }
-    row.remove();
+    if(avatarBusy)return;
+    if([...GAMES,...CEMETERY].some(g=>g.accountId === account.id)){error('Ce compte possède des achats. Réaffecte-les avant de le supprimer.');return;}
+    if(!isNew && !commitCollection(GAMES,DIGITAL_ACCOUNTS.filter(a=>a.id !== account.id)))return;
+    row.remove();refreshAccountControls();document.getElementById('digital-account-add').focus();
   };
   document.getElementById('digital-account-rows').appendChild(row);
+  if(isNew) showEditor();
+}
+function refreshDigitalAccountList(){
+  document.getElementById('digital-account-rows').replaceChildren();
+  DIGITAL_ACCOUNTS.forEach(editDigitalAccountRow);
+}
+function refreshAccountControls(){
+  const selected=document.getElementById('f-account').value;
+  populateDigitalAccounts(selected);buildPlatformList();render();
 }
 function openDigitalAccounts(){
-  document.getElementById('digital-account-rows').replaceChildren();
+  closeMobileDrawers();
+  refreshDigitalAccountList();
   document.getElementById('digital-accounts-error').textContent='';
-  DIGITAL_ACCOUNTS.forEach(editDigitalAccountRow);
-  if(!DIGITAL_ACCOUNTS.length) editDigitalAccountRow();
   window.JTDDialogs.open('digital-accounts-overlay',{onDismiss:closeDigitalAccounts});
 }
 function closeDigitalAccounts(){window.JTDDialogs.close('digital-accounts-overlay');}
@@ -334,20 +373,7 @@ function initDigitalControls(){
   };
   document.getElementById('f-plateforme').addEventListener('change',()=>populateDigitalAccounts('',true));
   document.getElementById('f-manage-accounts').onclick=openDigitalAccounts;
-  document.getElementById('digital-account-add').onclick=()=>editDigitalAccountRow();
-  document.getElementById('digital-accounts-cancel').onclick=closeDigitalAccounts;
-  document.getElementById('digital-accounts-save').onclick=()=>{
-    if(document.querySelector('[data-avatar-busy="true"]')){document.getElementById('digital-accounts-error').textContent='L’avatar est en cours de préparation.';return;}
-    const accounts=[...document.querySelectorAll('.digital-account-row')].map(row=>({id:row.dataset.accountId,name:row.querySelector('[data-field="name"]').value.trim() || row.querySelector('[data-field="nickname"]').value.trim(),nickname:row.querySelector('[data-field="nickname"]').value.trim(),avatar:row.dataset.avatar || null,ecosystem:row.querySelector('[data-field="ecosystem"]').value,region:row.querySelector('[data-field="region"]').value.trim(),preferred:row.querySelector('[data-field="preferred"]').checked}));
-    const defaults=new Set();
-    for(const a of accounts){
-      if(!a.name){document.getElementById('digital-accounts-error').textContent='Donne un nom à chaque compte.';return;}
-      if(a.preferred && defaults.has(a.ecosystem)){document.getElementById('digital-accounts-error').textContent='Choisis un seul compte par défaut par écosystème.';return;}
-      if(a.preferred) defaults.add(a.ecosystem);
-    }
-    const selected=document.getElementById('f-account').value;
-    if(!commitCollection(GAMES,accounts))return;
-    closeDigitalAccounts();populateDigitalAccounts(selected,true);buildPlatformList();render();
-  };
+  document.getElementById('digital-account-add').onclick=()=>{const draft=document.querySelector('.digital-account-row[data-new="true"]');if(draft)draft.querySelector('.digital-account-edit').click();else editDigitalAccountRow();};
+  document.getElementById('digital-accounts-save').onclick=closeDigitalAccounts;
 }
 document.addEventListener('DOMContentLoaded',initDigitalControls);

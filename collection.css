@@ -20,17 +20,17 @@
   box-shadow:none;
 }
 #page-collection .add-btn:hover { background:color-mix(in srgb,var(--ui-accent) 16%,var(--ui-surface)); }
-/* An open heading, followed by a readable summary rather than a framed card. */
+/* Bandeau de plateforme et synthèse secondaire, dans un panneau discret. */
 #page-collection .platform-banner {
   display:flex;
   flex-direction:column;
   align-items:stretch;
   margin:0;
   padding:0 0 8px;
-  gap:14px;
-  border:1px solid var(--ui-border);
+  gap:12px;
+  border:1px solid color-mix(in srgb,var(--ui-border) 65%,transparent);
   border-radius:14px;
-  background:var(--ui-surface);
+  background:color-mix(in srgb,var(--ui-surface) 55%,var(--ui-canvas));
   box-shadow:none;
 }
 #page-collection .platform-banner::before { content:none; }
@@ -72,7 +72,7 @@
 #page-collection .library-stat[data-stat="termine"] { --stat-color:var(--status-done); }
 #page-collection .library-stat[data-stat="multi"] { --stat-color:var(--status-multi); }
 #page-collection .library-stat-label { display:inline-flex; align-items:center; gap:4px; min-width:0; }
-#page-collection .library-stat-icon { display:inline-flex; align-items:center; justify-content:center; flex:0 0 12px; width:12px; height:12px; color:var(--stat-color); opacity:.85; }
+#page-collection .library-stat-icon { display:inline-flex; align-items:center; justify-content:center; flex:0 0 12px; width:12px; height:12px; color:var(--ui-text-muted); opacity:.7; }
 #page-collection .library-stat-icon svg { width:12px; height:12px; }
 #page-collection .library-stat-label-short { display:none; }
 .collection-scroll-context {
@@ -219,7 +219,7 @@
 }
 
 
-/* Le bandeau garde la couleur de la plateforme ; les jeux restent sans cadre. */
+/* Le bandeau garde la couleur de la plateforme ; les cartes restent discrètes. */
 #page-collection .library-stat-icon { opacity:.7; }
 #collection-sidebar .toggle-chip:not(.active) { color:var(--ui-text-muted); }
 #collection-sidebar .toggle-chip.active { box-shadow:none; background:color-mix(in srgb,var(--ui-accent) 6%,transparent); }

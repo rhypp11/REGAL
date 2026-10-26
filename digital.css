@@ -3,7 +3,7 @@
 :root[data-theme="dark"] { --content-green:#a4d5ae; --content-green-strong:#315b40; --content-green-on:#edf8ef; }
 .collection-media-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px; padding:4px; border:1px solid var(--hairline); border-radius:10px; background:var(--surface-raised); }
 .collection-media-tabs button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-width:0; min-height:52px; padding:7px 2px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--muted); font-size:11px; cursor:pointer; }
-.collection-media-tabs button[aria-pressed="true"] { color:var(--accent); background:var(--surface); border-color:var(--hairline); box-shadow:0 1px 2px #00000008; }
+.collection-media-tabs button[aria-pressed="true"] { color:var(--text); background:var(--surface); border-color:var(--hairline); box-shadow:none; }
 .collection-media-tabs svg,.card-media-mark svg,.card-dlc-count svg,.content-format-summary svg,.content-purchase-link svg { width:16px; height:16px; flex-shrink:0; }
 #collection-account-field { margin-top:0; }
 #collection-account { width:100%; max-width:100%; min-width:0; min-height:40px; padding:8px 10px; border:1px solid var(--hairline); border-radius:7px; background:var(--surface); color:var(--text); font-size:12px; }
@@ -62,7 +62,7 @@
 .avatar-file-label input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; }
 .content-purchase-total { padding-top:12px; font-size:12px; color:var(--muted); }
 .content-parent-note { color:var(--muted); font-size:12px; }
-.digital-account-row { padding:16px 0; border-bottom:1px solid var(--hairline); }
+
 .digital-account-row label { display:block; }
 .digital-account-row .field label { display:flex; flex-direction:column; align-items:stretch; gap:6px; }
 .digital-account-row .field input,.digital-account-row .field select { width:100%; min-width:0; }
@@ -88,3 +88,22 @@
 .content-type-options button { display:flex; justify-content:flex-start; align-items:center; gap:7px; width:100%; min-height:38px; padding:7px 5px; text-align:left; font:inherit; font-size:12px; cursor:pointer; }
 .content-type-options svg { width:15px; height:15px; }
 .content-type-options [aria-pressed="true"] { color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,transparent); }
+
+.digital-account-list-avatar .console-avatar { width:36px; height:36px; flex-basis:36px; }
+.digital-account-row .platform-row-info { flex:1; }
+.digital-account-row .platform-row-editor { padding:4px 12px 14px; }
+.digital-account-row-error { margin:8px 0; color:var(--danger); font-size:12px; }
+.digital-account-row-error:empty { display:none; }
+.digital-account-row .digital-account-delete { color:var(--danger); }
+.digital-account-row .digital-account-heading { gap:10px; margin-bottom:12px; }
+.digital-account-row .digital-account-avatar-preview .console-avatar { width:32px; height:32px; flex-basis:32px; }
+.digital-account-row .digital-account-actions input { vertical-align:middle; }
+#digital-account-rows:empty::after { content:'Aucun compte'; display:block; padding:22px 10px; color:var(--muted); font-size:13px; }
+
+#digital-accounts-overlay .platform-modal-heading h2 { flex:1; min-width:0; white-space:normal; overflow-wrap:anywhere; }
+#digital-accounts-overlay .platform-modal-heading { min-width:0; gap:10px; }
+.digital-account-row .field :is(input,select) { min-height:44px; }
+
+.digital-account-row .field label .optional-label { font-size:10px; line-height:1; }
+.digital-account-row .platform-row-name { overflow-wrap:anywhere; }
+.digital-account-row .platform-row-info { min-width:0; }
