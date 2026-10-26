@@ -45,7 +45,7 @@ Préserver l'ordre de chargement et les interfaces partagées entre scripts. Ré
 
 ## Choix produit à préserver
 
-- La collection propose Physique (par défaut), Numérique et Tout. Accueil, wishlist, arrivages et ventes restent réservés au physique. Le numérique concerne les achats consoles, avec compte et devise facultatifs ; aucun import Steam.
+- La collection propose Physique (par défaut), Numérique et Tout. Wishlist, arrivages et ventes restent réservés au physique. Les statistiques de l’accueil couvrent les jeux physiques et numériques, avec les contenus additionnels comptés séparément. Le numérique concerne les achats consoles, avec compte et devise facultatifs ; aucun import Steam.
 - Les DLC numériques se rattachent explicitement à un jeu de la même plateforme ; une mise à niveau Switch 2 peut aussi se rattacher à son jeu Switch. Les contenus sont regroupés sous le jeu numérique de la même plateforme, mais restent visibles si le jeu associé est physique, sur un autre support ou hors collection. Conserver les achats, comptes et prix indépendamment des regroupements visuels.
 - Les formats sont des onglets compacts dans le volet ; les comptes se choisissent dans une liste repliable avec pseudo et avatar facultatif. Le bandeau rappelle la sélection. Les contenus gardent le fond normal des cartes et une étiquette DLC ou Mise à niveau. Les anciennes valeurs en_cours restent préservées mais sont affichées avec À faire ; ce choix n’est plus proposé.
 - Interface en français, sobre et lisible, cohérente en thèmes clair et sombre.

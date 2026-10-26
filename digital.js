@@ -20,11 +20,14 @@ const MEDIA_ICONS = {
   digital:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg>',
   dlc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h3a3 3 0 1 1 6 0h4v6a3 3 0 1 0 0 6v6h-6a3 3 0 1 0-6 0H3v-6a3 3 0 1 0 0-6V3h5Z"/></svg>'
 };
+function selectedContentTypes(value=state.contentType){ return [...new Set(String(value || '').split(',').filter(type=>['game','dlc','upgrade'].includes(type)))]; }
+function contentFilterLabel(){ return selectedContentTypes().map(type=>({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[type]).join(', '); }
 function collectionScope(){
   return collectionCardsForFilters();
 }
 function collectionCardsForFilters(search = ''){
-  const source = state.contentType ? GAMES.filter(g=>(g.contentType || 'game') === state.contentType) : GAMES;
+  const types=selectedContentTypes();
+  const source = types.length ? GAMES.filter(g=>types.includes(g.contentType || 'game')) : GAMES;
   return JTDData.collectionCards(source,state.media || 'physical',state.media === 'physical' ? null : state.accountId,search);
 }
 function accountName(id){ const account = DIGITAL_ACCOUNTS.find(a => a.id === id); return account?.nickname || account?.name || 'Compte non renseigné'; }
@@ -66,7 +69,7 @@ function renderMediaControls(){
   document.getElementById('content-filter-section').classList.toggle('hidden',!digital);
   document.getElementById('collector-filter-section').classList.toggle('hidden',state.media === 'digital');
   if(!digital) state.contentType = null;
-  document.getElementById('content-type-options').innerHTML = [['','Tout'],['game','Jeux'],['dlc','DLC'],['upgrade','Mises à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+((state.contentType || '') === value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
+  document.getElementById('content-type-options').innerHTML = [['game','Jeux'],['dlc','DLC'],['upgrade','Mises à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+selectedContentTypes().includes(value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
   const account = document.getElementById('collection-account');
   account.classList.add('hidden');
   if(state.media === 'physical') state.accountId = null;
@@ -83,7 +86,7 @@ function renderMediaControls(){
 function collectionFilterLabel(){
   const media = state.media || 'physical';
   const label = ({physical:'Physique',digital:'Numérique',all:'Physique et numérique'})[media];
-  return (MEDIA_ICONS[media] || '')+'<span>'+escapeHTML(label+(state.accountId ? ' · '+accountName(state.accountId) : '')+(state.contentType ? ' · '+({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[state.contentType] : ''))+'</span>';
+  return (MEDIA_ICONS[media] || '')+'<span>'+escapeHTML(label+(state.accountId ? ' · '+accountName(state.accountId) : '')+(state.contentType ? ' · '+contentFilterLabel() : ''))+'</span>';
 }
 function renderCollectionFilterContext(banner){
   const heading = banner.querySelector('.platform-banner-title')?.parentElement;
@@ -346,7 +349,9 @@ function initDigitalControls(){
   });
   document.getElementById('content-type-options').onclick=event=>{
     const button=event.target.closest('[data-content-type]');if(!button)return;
-    state.contentType=button.dataset.contentType || null;buildPlatformList();render();closeMobileDrawers();
+    const types=new Set(selectedContentTypes());
+    const type=button.dataset.contentType;types.has(type) ? types.delete(type) : types.add(type);
+    state.contentType=[...types].join(',') || null;buildPlatformList();render();
   };
   document.getElementById('collection-account').onchange=event=>{
     state.accountId=event.target.value || null;
@@ -356,7 +361,7 @@ function initDigitalControls(){
   };
   document.getElementById('collection-account-options').onclick=event=>{
     const button=event.target.closest('[data-account]');if(!button)return;
-    const select=document.getElementById('collection-account');select.value=button.dataset.account;select.dispatchEvent(new Event('change'));
+    const select=document.getElementById('collection-account');select.value=state.accountId === button.dataset.account ? '' : button.dataset.account;select.dispatchEvent(new Event('change'));
   };
   document.getElementById('collection-manage-accounts').onclick=openDigitalAccounts;
   for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});

@@ -24,7 +24,7 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
       await page.evaluate(data=>{applyRestoredData(JTDData.normalizeData(data));applyNavigation({page:'collection'});},fixture);
       assert.equal(await page.locator('#grid .card').count(),2);
-      assert.equal(await page.locator('#home-total-games').innerText(),'2');
+      assert.equal(await page.locator('#home-total-games').innerText(),'3');
       await openFilters(page);await page.locator('[data-media="digital"]').click();
       assert.equal(await page.locator('#collection-sidebar [data-media="digital"]').count(),1);
       assert.equal(await page.locator('.collection-filter-context').innerText(),'Numérique');
@@ -33,6 +33,8 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       assert.equal(await page.locator('.dlc-label').innerText(),'DLC');
       assert.equal(await page.locator('#status-toggles').innerText().then(t=>t.includes('En cours')),false);
       assert.equal(await page.locator('#platform-list').innerText().then(s=>s.includes('PlayStation 2')),false);
+      assert.equal(await page.locator('.collection-stat-details').getAttribute('open'),null,'Statistics start collapsed');
+      await page.locator('.collection-stat-details > summary').click();
       assert.ok((await page.locator('[data-stat="spent"]').innerText()).includes('2 000'));
       assert.equal(await page.locator('#grid .card-price, #grid .card-digital-price').count(),0,'Digital prices follow the same default visibility as physical');
       assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-identity .card-console-account').count(),1);
@@ -105,6 +107,12 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
       assert.equal(await page.evaluate(()=>state.contentType),'dlc');
       await openFilters(page);await page.locator('[data-content-type="upgrade"]').click();
+      assert.equal(await page.evaluate(()=>state.contentType),'dlc,upgrade','Types combine as a union');
+      await page.locator('[data-content-type="dlc"]').click();
+      assert.equal(await page.evaluate(()=>state.contentType),'upgrade');
+      await page.locator('[data-content-type="upgrade"]').click();
+      assert.equal(await page.evaluate(()=>state.contentType),null,'No selection restores all content');
+      await page.locator('[data-content-type="upgrade"]').click();
       assert.equal(await page.locator('[data-dialog-trigger="game:'+upgradeId+'"]').count(),1);
       await openFilters(page);await page.locator('[data-media="physical"]').click();
       assert.equal(await page.locator('#collection-account-field').isVisible(),false);
@@ -180,6 +188,12 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
         await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
         assert.equal(await page.locator('#grid .card').count(),count,'Switching display retains filtered purchases');
         assert.equal(await page.locator('#grid').getAttribute('data-view'),view);
+        if(view==='list'){
+          const gridBox=await page.locator('#grid').boundingBox();
+          const cardBox=await page.locator('#grid .card').first().boundingBox();
+          assert.ok(cardBox.width>=gridBox.width-2,'Detailed rows use the full list width');
+          assert.equal(await page.locator('#grid .card-list-details').first().isVisible(),true,'List exposes acquisition details independently of sort');
+        }
         const nameBox=await page.locator('#grid .card-name').first().boundingBox();
         assert.ok(nameBox.height>=14,'Every display retains a visible game title');
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

@@ -100,6 +100,7 @@ const server=createSandboxServer();
     assert.equal(values.multi,'13');
     assert.equal(values.en_cours,undefined);assert.equal(values.none,undefined);assert.equal(values.termine_ailleurs,undefined);
     assert.equal(await page.locator('.platform-banner-kicker').count(),0,'No redundant collection subtitle');
+    await page.locator('.collection-stat-details > summary').click();
     const overflow=await page.locator('#platform-banner .library-stat-values').evaluateAll(groups=>groups.some(group=>group.scrollWidth>group.clientWidth+1));
     assert.equal(overflow,false,'Summaries reflow without overflow');
     await page.evaluate(()=>{state.platform='Switch 2';render();});

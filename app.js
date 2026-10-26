@@ -940,6 +940,7 @@ function updateCollectionScrollContext(){
 document.addEventListener('scroll', requestCollectionContextUpdate, {passive:true, capture:true});
 window.addEventListener('resize', requestCollectionContextUpdate);
 
+let collectionStatsOpen=false;
 function renderPlatformBanner(games){
   const banner = document.getElementById('platform-banner');
   if(!banner) return;
@@ -956,6 +957,7 @@ function renderPlatformBanner(games){
     platforms:ICON_STATUS_PLAYING,
     spent:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M16 7.5a5 5 0 1 0 0 9M6 10h8M6 14h7"/></svg>',
     collectors:FORMAT_ICON_STAR,
+    physical:MEDIA_ICONS.physical, digital:MEDIA_ICONS.digital, japanese:FORMAT_ICON_STAR,
     a_jouer:ICON_STATUS_TODO,
     termine:ICON_STATUS_DONE,
     multi:ICON_STATUS_MULTI
@@ -965,7 +967,10 @@ function renderPlatformBanner(games){
   const collectionStats = [
     stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
     !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',
-    collectors ? stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors') : ''
+    stat(games.filter(g=>!JTDData.isDigital(g)).length,'Physique','physical'),
+    stat(games.filter(g=>JTDData.isDigital(g)).length,'Numérique','digital'),
+    collectors ? stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors') : '',
+    games.some(g=>g.japanese) ? stat(games.filter(g=>g.japanese).length,'Éditions japonaises','japanese') : ''
   ].join('');
   const completionStats = [
     stat(playableGames.filter(g => !getEffectiveStatus(g) || getEffectiveStatus(g)==='a_jouer').length,'À faire','a_jouer'),
@@ -977,6 +982,7 @@ function renderPlatformBanner(games){
     </section><section class="library-stat-group" aria-labelledby="completion-stats-title">
     <h3 id="completion-stats-title">Complétion</h3><div class="library-stat-values library-completion-values">${completionStats}</div></section><section class="library-stat-group library-value-group" aria-label="Valeur des achats">${stat(collectionValueLabel(games, spent), 'Valeur', 'spent')}</section>`;
 
+  const detailsHtml=`<details class="collection-stat-details" ${collectionStatsOpen ? 'open' : ''}><summary><strong>${total} ${total > 1 ? 'Éléments' : 'Élément'}</strong><span>Détails<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="platform-banner-stats">${statsHtml}</div></details>`;
   if(!state.platform){
     banner.classList.remove('hidden');
     banner.classList.add('neutral');
@@ -988,8 +994,10 @@ function renderPlatformBanner(games){
         <span class="platform-banner-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3.7 5.5l-1.2 3a2 2 0 0 1-3.2.8L15 15H9l-2.3 2.3a2 2 0 0 1-3.2-.8l-1.2-3A4 4 0 0 1 6 8Z"></path><path d="M7 12h4M9 10v4"></path><circle cx="16.5" cy="11.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="18.5" cy="13.5" r=".7" fill="currentColor" stroke="none"></circle></svg></span>
         <div><span class="platform-banner-title">Tous les jeux</span></div>
       </div>
-      <div class="platform-banner-stats" data-count="${5 + (!state.platform ? 1 : 0) + (collectors ? 1 : 0)}">${statsHtml}</div>
+      ${detailsHtml}
     `;
+    banner.querySelector('details > summary').addEventListener('click',()=>{collectionStatsOpen=!banner.querySelector('details').open;});
+  banner.querySelector('details').addEventListener('toggle',event=>{if(event.target.isConnected) collectionStatsOpen=event.target.open;});
     renderCollectionFilterContext(banner);
     if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
     return;
@@ -1008,8 +1016,10 @@ function renderPlatformBanner(games){
     : `<span class="platform-banner-fallback">${escapeHTML(initials)}</span>`;
   banner.innerHTML = `
     <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
-    <div class="platform-banner-stats" data-count="${5 + (!state.platform ? 1 : 0) + (collectors ? 1 : 0)}">${statsHtml}</div>
+    ${detailsHtml}
   `;
+  banner.querySelector('details > summary').addEventListener('click',()=>{collectionStatsOpen=!banner.querySelector('details').open;});
+  banner.querySelector('details').addEventListener('toggle',event=>{if(event.target.isConnected) collectionStatsOpen=event.target.open;});
   renderCollectionFilterContext(banner);
   if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
 }
@@ -1107,6 +1117,13 @@ function renderCard(g, options = {}){
     });
   });
   }
+  if(!options.readOnly){
+    const detail=(label,value)=>`<div><dt>${label}</dt><dd>${value}</dd></div>`;
+    const digital=JTDData.isDigital(g);
+    const details=document.createElement('dl');details.className='card-list-details';
+    details.innerHTML=detail('Support',digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+detail(digital ? 'Compte' : 'Enseigne',digital ? escapeHTML(accountName(g.accountId)) : escapeHTML(g.source || '—'));
+    card.querySelector('.card-body').appendChild(details);
+  }
   decorateDigitalCard(card, g, options);
   if(!options.readOnly){
     const identity = card.querySelector('.card-identity');
@@ -1135,7 +1152,7 @@ function renderResultsBar(count){
 
   const filters = [];
   if(state.platform) filters.push(state.platform);
-  if(state.contentType) filters.push(({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[state.contentType]);
+  if(state.contentType) filters.push(contentFilterLabel());
   if(state.collector) filters.push('⭐ Collector');
   if(state.japanese) filters.push({label:'Japonais', japanese:true});
   if(state.status){
@@ -1622,40 +1639,27 @@ function deleteGame(){
 /* ---------- Accueil : Stats ---------- */
 
 function renderHomeStats(){
-  const physical = GAMES.filter(g => !JTDData.isDigital(g));
-  const total = physical.length;
-  const spent = physical.reduce((sum,g) => sum + (g.prix || 0), 0);
-  const collectors = physical.filter(g => g.collector).length;
-  const platformsCount = new Set(physical.map(g => g.plateforme)).size;
-
-  const finishedCount=physical.filter(g=>['termine','termine_ailleurs'].includes(g.status)).length;
-  const multiCount=physical.filter(g=>g.status==='multi').length;
+  const games=GAMES.filter(g=>!JTDData.isAddon(g));
+  const physical=games.filter(g=>!JTDData.isDigital(g));
+  const digital=games.filter(g=>JTDData.isDigital(g));
+  const total=games.length;
+  const finished=games.filter(g=>['termine','termine_ailleurs'].includes(g.status)).length;
+  const multi=games.filter(g=>g.status==='multi').length;
+  const todo=total-finished-multi;
+  const totalEl=document.getElementById('home-total-games');if(totalEl) totalEl.textContent=total;
+  const icon=(content)=>`<span class="stats-icon" aria-hidden="true">${content}</span>`;
+  const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
+  const meta=document.getElementById('home-summary-meta');
+  const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
+  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18Z"/></svg>')+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<div class="home-value-stat"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></div>`;
   const ring=document.getElementById('home-completion-ring');
-  if(ring){
-    const done=total ? finishedCount/total*100 : 0;
-    const multi=total ? multiCount/total*100 : 0;
-    ring.style.background=total ? `conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+multi}%,var(--ui-border) ${done+multi}% 100%)` : 'var(--ui-border)';
-    ring.setAttribute('aria-label',`${finishedCount} jeux terminés sur ${total}, ${multiCount} multijoueurs`);
+  if(ring){const done=total ? finished/total*100 : 0, shared=total ? multi/total*100 : 0;
+    ring.style.background=total ? `conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)` : 'var(--ui-border)';
+    ring.setAttribute('aria-label',`${finished} jeux terminés, ${multi} multijoueurs et ${todo} à faire sur ${total}`);
     ring.querySelector('strong').textContent=Math.round(done)+' %';
   }
-  const totalEl = document.getElementById('home-total-games');
-  if(totalEl) totalEl.textContent = total;
-  const metaEl = document.getElementById('home-summary-meta');
-  if(metaEl){
-    const statIcon = path => `<svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${path}"/></svg>`;
-    const finished = physical.filter(g => ['termine','termine_ailleurs'].includes(g.status)).length;
-    const todo = physical.filter(g => !getEffectiveStatus(g) || getEffectiveStatus(g) === 'a_jouer').length;
-    const stats = [
-      `<div class="home-summary-stat"><strong>${statIcon("M7 8h10c2 0 3 2 3.5 4l1 5c.4 2-1.5 3-3 1L16 16H8l-2.5 2c-1.5 2-3.4 1-3-1l1-5C4 10 5 8 7 8Z M7 10v4 M5 12h4 M16 11h.01 M18 13h.01")}${platformsCount}</strong><span>plateforme${platformsCount > 1 ? 's' : ''}</span></div>`,
-      collectors ? `<div class="home-summary-stat"><strong>${statIcon("m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z")}${collectors}</strong><span>collector${collectors > 1 ? 's' : ''}</span></div>` : '',
-      physical.some(g => g.prix != null) ? `<div class="home-summary-stat home-summary-stat-wide"><strong>${statIcon("M20 4H4v16h16V4Z M8 8h8 M8 12h3 M8 16h5")}${spent.toLocaleString('fr-FR',{maximumFractionDigits:0})} €</strong><span>valeur d’achat</span></div>` : '',
-      `<div class="home-summary-stat"><strong>${statIcon("m5 12 4 4L19 6")}${finished}</strong><span>terminés</span></div>`,
-      `<div class="home-summary-stat"><strong>${statIcon("M8 6h12 M8 12h12 M8 18h12 M3 6h.01 M3 12h.01 M3 18h.01")}${todo}</strong><span>à faire</span></div>`
-    ].filter(Boolean);
-    metaEl.innerHTML = stats.join('');
-  }
-
-
+  const legend=document.getElementById('home-status-legend');
+  if(legend) legend.innerHTML=`<span><i class="completion-dot done"></i>Terminés<strong>${finished}</strong></span><span><i class="completion-dot multi"></i>Multi<strong>${multi}</strong></span><span><i class="completion-dot todo"></i>À faire<strong>${todo}</strong></span>`;
 }
 
 /* ---------- Accueil : Arrivages & Wishlist ---------- */
@@ -2700,7 +2704,7 @@ function applyNavigation(view = {}){
   navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
   state = {
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
-    contentType:['all','digital'].includes(view.media) && ['game','dlc','upgrade'].includes(view.contentType) ? view.contentType : null,
+    contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType).length ? selectedContentTypes(view.contentType).join(',') : null,
     accountId:DIGITAL_ACCOUNTS.some(a => a.id === view.accountId) ? view.accountId : null,
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,
     collector:view.collector === true, japanese:view.japanese === true,
