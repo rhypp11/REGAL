@@ -21,8 +21,6 @@
 .dlc-placeholder { position:absolute; inset:0 0 27px; display:flex; align-items:center; justify-content:center; color:var(--content-green-on); }
 .dlc-placeholder svg { width:30px; height:30px; }
 #modal-overlay.game-sheet-viewing #f-media-section { display:none; }
-#f-digital-fields { margin-top:12px; }
-#f-parent-field { margin-top:16px; }
 .content-format-summary { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; margin-bottom:12px; }
 .content-format-summary svg { color:var(--accent); }
 .content-purchases .form-section-title { margin-top:14px; }
@@ -83,14 +81,13 @@
   .dlc-placeholder svg { width:20px; height:20px; }
 }
 
-
 .content-type-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
 .content-type-options button { display:flex; justify-content:flex-start; align-items:center; gap:7px; width:100%; min-height:38px; padding:7px 5px; text-align:left; font:inherit; font-size:12px; cursor:pointer; }
 .content-type-options svg { width:15px; height:15px; }
 .content-type-options [aria-pressed="true"] { color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,transparent); }
 
 .digital-account-list-avatar .console-avatar { width:36px; height:36px; flex-basis:36px; }
-.digital-account-row .platform-row-info { flex:1; }
+.digital-account-row .platform-row-info { flex:1; min-width:0; }
 .digital-account-row .platform-row-editor { padding:4px 12px 14px; }
 .digital-account-row-error { margin:8px 0; color:var(--danger); font-size:12px; }
 .digital-account-row-error:empty { display:none; }
@@ -106,8 +103,6 @@
 
 .digital-account-row .field label .optional-label { font-size:10px; line-height:1; }
 .digital-account-row .platform-row-name { overflow-wrap:anywhere; }
-.digital-account-row .platform-row-info { min-width:0; }
-
 
 /* Le rattachement se fait directement dans les résultats, sans second sélecteur. */
 .parent-search-results { display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; margin-top:8px; }
@@ -127,7 +122,6 @@
 
 #modal-overlay.game-sheet-viewing #f-digital-fields { display:none; }
 #modal-overlay:not(.game-sheet-viewing) #f-content-details { display:none; }
-#f-digital-fields .form-section-title { font-size:13px; margin:0 0 12px; }
 #modal-overlay #f-parent-field { margin-top:0; }
 #modal-overlay .modal #f-digital-fields { margin:0; padding:12px 0; }
 

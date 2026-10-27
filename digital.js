@@ -20,16 +20,32 @@ const MEDIA_ICONS = {
   digital:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg>',
   dlc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h3a3 3 0 1 1 6 0h4v6a3 3 0 1 0 0 6v6h-6a3 3 0 1 0-6 0H3v-6a3 3 0 1 0 0-6V3h5Z"/></svg>'
 };
-function selectedContentTypes(value=state.contentType){ return [...new Set(String(value || '').split(',').filter(type=>['game','dlc','upgrade'].includes(type)))]; }
-function contentFilterLabel(){ return selectedContentTypes().map(type=>({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[type]).join(', '); }
-function isPlayablePurchase(game){ return !(JTDData.isDigital(game) && game.contentType==='upgrade'); }
-function matchesCollectionStatus(game){return !state.status || (isPlayablePurchase(game) && (state.status==='__none__' ? !getEffectiveStatus(game) : getEffectiveStatus(game)===state.status));}
+function selectedContentTypes(value = state.contentType){
+  return [...new Set(String(value || '').split(',').filter(type => ['game','dlc','upgrade'].includes(type)))];
+}
+function contentFilterLabel(){
+  return selectedContentTypes().map(type => ({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[type]).join(', ');
+}
+function isPlayablePurchase(game){
+  return !(JTDData.isDigital(game) && game.contentType === 'upgrade');
+}
+function matchesCollectionStatus(game){
+  if(!state.status) return true;
+  const status = getEffectiveStatus(game);
+  return isPlayablePurchase(game) && (state.status === '__none__' ? !status : status === state.status);
+}
 function collectionPlayablePurchases(cards){
-  const result=new Map();const types=selectedContentTypes();
+  const result = new Map();
+  const types = selectedContentTypes();
   for(const game of cards){
-    if(isPlayablePurchase(game))result.set(game.id,game);
-    if(state.media==='physical')continue;
-    for(const child of gameContents(game))if(isPlayablePurchase(child) && (!state.accountId || child.accountId===state.accountId) && (!state.platform || child.plateforme===state.platform) && (!types.length || types.includes(child.contentType)) && matchesCollectionStatus(child))result.set(child.id,child);
+    if(isPlayablePurchase(game)) result.set(game.id,game);
+    if(state.media === 'physical') continue;
+    for(const child of gameContents(game)){
+      const matchesScope = (!state.accountId || child.accountId === state.accountId)
+        && (!state.platform || child.plateforme === state.platform)
+        && (!types.length || types.includes(child.contentType));
+      if(isPlayablePurchase(child) && matchesScope && matchesCollectionStatus(child)) result.set(child.id,child);
+    }
   }
   return [...result.values()];
 }

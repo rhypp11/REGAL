@@ -1,9 +1,9 @@
-# AGENTS.md — Jeux tout doux
+# AGENTS.md — REGAL
 
 ## Projet et communication
 
-- Dépôt principal : `rhypp11/jeuxtoutdoux`, branche principale : `main`.
-- Jeux tout doux est un site personnel de gestion de collection, wishlist, arrivages et cimetière (à vendre / vendus).
+- Dépôt principal : `rhypp11/REGAL`, branche principale : `main`.
+- REGAL est un site personnel de gestion de collection, wishlist, arrivages et cimetière (à vendre / vendus).
 - Répondre à Rom en français, simplement. Expliquer le résultat, les vérifications et les limites réelles.
 - Lire le code actuel et les changements récents avant de modifier. Le dépôt fait foi pour l'implémentation ; ne pas supposer disposer de l'historique des conversations.
 - Une demande d'audit seule n'autorise pas les modifications. Une demande de correction ou d'implémentation autorise le travail sur une branche et la création d'une PR.
@@ -73,5 +73,3 @@ Ces repères décrivent les choix actuels ; une nouvelle instruction explicite d
 - `tests/css-regression.cjs` compare avec le CSS de base via `JTD_BASELINE_CSS` : pertinent pour un nettoyage censé préserver le rendu.
 - Adapter les tests au risque : pas de nouveau test pour une simple modification documentaire ; ajouter une régression utile pour un bug de données ou de comportement.
 - Lire le workflow pour les commandes et versions exactes. Ne pas prétendre avoir exécuté un test indisponible ; préciser les vérifications effectuées et celles prises en charge par la CI.
-
-
