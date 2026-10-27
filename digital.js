@@ -185,6 +185,11 @@ function populateParentGames(selected){
   bindAvatarFallbacks(results);
   renderParentPreview();
 }
+function updateParentAttachment(){
+  const enabled=document.getElementById('f-parent-enabled').checked;
+  document.getElementById('f-parent-editor').classList.toggle('hidden',!enabled);
+  document.getElementById('f-parent-enabled').setAttribute('aria-expanded',String(enabled));
+}
 function relatedGameHtml(game){
   return '<span class="content-related-thumb'+gameImageClass(game)+'">'+(game.image?gameImageHtml(game):'<span>'+escapeHTML(game.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span><span class="content-related-copy"><strong>'+escapeHTML(game.nom)+'</strong><small>'+escapeHTML(game.plateforme+' · '+(JTDData.isAddon(game)?contentKind(game):JTDData.isDigital(game)?'Numérique':'Physique'))+'</small></span>';
 }
@@ -223,6 +228,8 @@ function openDigitalFields(game){
   document.getElementById('f-content-status').innerHTML='<option value="">Non défini</option>'+STATUS_OPTIONS.map(s=>'<option value="'+s.key+'">'+s.label+'</option>').join('');
   document.getElementById('f-content-status').value=game ? getEffectiveStatus(game) || '' : '';
   document.getElementById('f-parent-search').value = '';
+  document.getElementById('f-parent-enabled').checked=!!game?.parentId;
+  updateParentAttachment();
   populateDigitalAccounts(game?.accountId || '',!game);
   populateParentGames(game?.parentId || '');
   renderContentDetails(game);
@@ -237,7 +244,7 @@ function readDigitalFields(){
   }
   const kind = document.getElementById('f-content-type').value;
   const dlc = ['dlc','upgrade'].includes(kind);
-  const parentId = dlc ? document.getElementById('f-parent').value || null : null;
+  const parentId = dlc && document.getElementById('f-parent-enabled').checked ? document.getElementById('f-parent').value || null : null;
   const parent = GAMES.find(g=>g.id === parentId);
   if(parentId && !JTDData.canAttachContent({id:editingId,format:'Numérique',contentType:kind,plateforme:document.getElementById('f-plateforme').value},parent)){
     throw {field:'f-parent-search',message:'Choisis un jeu sur la même plateforme, ou un jeu Switch pour sa mise à niveau Switch 2.'};
@@ -394,6 +401,11 @@ function initDigitalControls(){
   document.getElementById('collection-manage-accounts').onclick=openDigitalAccounts;
   for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
   document.getElementById('f-account').addEventListener('change',()=>{setGameSheetViewing(false);renderFormAccountIdentity();});
+  document.getElementById('f-parent-enabled').onchange=()=>{
+    setGameSheetViewing(false);
+    updateParentAttachment();
+    if(document.getElementById('f-parent-enabled').checked)document.getElementById('f-parent-search').focus();
+  };
   document.getElementById('f-parent-search').oninput=()=>populateParentGames();
   document.getElementById('f-parent-clear').onclick=()=>{setGameSheetViewing(false);document.getElementById('f-parent').value='';populateParentGames();document.getElementById('f-parent-search').focus();};
   document.getElementById('f-parent').onchange=event=>{
@@ -407,7 +419,6 @@ function initDigitalControls(){
     renderParentPreview();
   };
   document.getElementById('f-plateforme').addEventListener('change',()=>{populateDigitalAccounts('',true);renderParentPreview();});
-  document.getElementById('f-manage-accounts').onclick=openDigitalAccounts;
   document.getElementById('digital-account-add').onclick=()=>{const draft=document.querySelector('.digital-account-row[data-new="true"]');if(draft)draft.querySelector('.digital-account-edit').click();else editDigitalAccountRow();};
   document.getElementById('digital-accounts-save').onclick=closeDigitalAccounts;
 }

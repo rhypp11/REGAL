@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="regal.css?v=surfaces-11">
 <link rel="stylesheet" href="game-sheet.css?v=surfaces-11">
 <link rel="stylesheet" href="collection.css?v=surfaces-11">
-<link rel="stylesheet" href="digital.css?v=dlc-link-13">
+<link rel="stylesheet" href="digital.css?v=content-toggle-14">
 <link rel="stylesheet" href="deku-import.css?v=1">
 </head>
 <body>
@@ -443,7 +443,7 @@
 
       <div id="f-digital-fields" class="form-section hidden">
         <div class="field hidden" id="f-content-status-field"><label for="f-content-status">Statut du DLC</label><select id="f-content-status"></select></div>
-        <div id="f-parent-field" class="hidden"><h3 class="form-section-title">Jeu de base</h3><input type="hidden" id="f-parent"><div id="f-parent-preview" class="hidden"></div><button type="button" class="manage-link hidden" id="f-parent-clear">Retirer le rattachement</button><div class="field"><label for="f-parent-search">Rechercher le jeu de base</label><input type="search" id="f-parent-search" placeholder="Titre du jeu…" aria-controls="f-parent-results" autocomplete="off"></div><div id="f-parent-results" class="parent-search-results" aria-label="Résultats de recherche du jeu de base"></div><p id="f-parent-search-status" class="content-parent-note" role="status"></p></div>
+        <div id="f-parent-field" class="hidden"><label class="content-link-toggle" for="f-parent-enabled"><span>Rattacher à un jeu de base</span><input type="checkbox" role="switch" id="f-parent-enabled" aria-controls="f-parent-editor" aria-expanded="false"><span class="content-link-switch" aria-hidden="true"></span></label><input type="hidden" id="f-parent"><div id="f-parent-editor" class="hidden"><div id="f-parent-preview" class="hidden"></div><button type="button" class="manage-link hidden" id="f-parent-clear">Choisir un autre jeu</button><div class="field"><label for="f-parent-search">Rechercher le jeu de base</label><input type="search" id="f-parent-search" placeholder="Titre du jeu…" aria-controls="f-parent-results" autocomplete="off"></div><div id="f-parent-results" class="parent-search-results" aria-label="Résultats de recherche du jeu de base"></div><p id="f-parent-search-status" class="content-parent-note" role="status"></p></div></div>
       </div>
 
     <div id="f-quick-hide-fields" class="form-section game-sheet-section" aria-labelledby="game-sheet-purchase-title">
@@ -457,7 +457,7 @@
       <div class="field" id="f-source-field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
       <div id="f-purchase-digital-fields" class="hidden">
         <div class="field-row"><div class="field"><label for="f-account">Compte</label><select id="f-account"></select></div><div class="field"><label for="f-currency">Devise</label><select id="f-currency"><option value="EUR">Euro (€)</option><option value="JPY">Yen (¥)</option><option value="USD">Dollar ($)</option><option value="GBP">Livre (£)</option></select></div></div><div id="f-account-identity"></div>
-        <button type="button" class="manage-link" id="f-manage-accounts">Gérer les comptes consoles</button>
+        
       </div>
       </div>
     </div>
@@ -592,10 +592,10 @@
 <div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
 <div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>
 </div></div>
-<script src="jtd-data.js?v=dlc-link-13"></script>
+<script src="jtd-data.js?v=content-toggle-14"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=dlc-link-13"></script>
-<script src="app.js?v=dlc-link-13"></script>
+<script src="digital.js?v=content-toggle-14"></script>
+<script src="app.js?v=content-toggle-14"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>

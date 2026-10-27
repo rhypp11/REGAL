@@ -130,3 +130,14 @@
 #f-digital-fields .form-section-title { font-size:13px; margin:0 0 12px; }
 #modal-overlay #f-parent-field { margin-top:0; }
 #modal-overlay .modal #f-digital-fields { margin:0; padding:12px 0; }
+
+/* Le rattachement est facultatif ; la recherche reste repliée sans lien. */
+.content-link-toggle { display:flex; align-items:center; gap:12px; min-height:44px; position:relative; cursor:pointer; color:var(--text); font-size:13px; font-weight:600; }
+.content-link-toggle > span:first-child { flex:1; }
+#modal-overlay .content-link-toggle input { position:absolute; right:0; width:40px; height:24px; margin:0; opacity:0; cursor:pointer; }
+.content-link-switch { width:40px; height:24px; flex:0 0 40px; border-radius:20px; background:var(--muted); transition:background .15s; pointer-events:none; }
+.content-link-switch::after { content:''; display:block; width:18px; height:18px; margin:3px; background:var(--surface); border-radius:50%; transition:transform .15s; }
+.content-link-toggle input:checked + .content-link-switch { background:var(--accent); }
+.content-link-toggle input:checked + .content-link-switch::after { transform:translateX(16px); }
+.content-link-toggle input:focus-visible + .content-link-switch { outline:2px solid var(--accent); outline-offset:3px; }
+#f-parent-editor { padding-top:12px; }
