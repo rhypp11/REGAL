@@ -75,13 +75,13 @@ async function cloudHarness(){
     console,JSON,Date,Uint8Array,crypto:require('node:crypto').webcrypto,
     setTimeout,clearTimeout,URL,window:{JTD_PREVIEW_MODE:false,cancelPendingConfirmation(){}},state:{platform:null,search:''},JTDData:D,accountStorage:storage,
     document:{getElementById:()=>element},navigator:{clipboard:{writeText:async()=>{}}},
-    GAMES:[],ARRIVALS:[],WISHLIST:[],CEMETERY:[],LEGACY_JOURNAL:[],CEMETERY_KEY:'cemetery',platformMeta:{},platformOrder:[],PROFILE_NAME:'',PROFILE_AVATAR:null,SHARE_TOKEN:null,STORAGE_KEY:'games',
+    GAMES:[],ARRIVALS:[],WISHLIST:[],CEMETERY:[],LEGACY_JOURNAL:[],DIGITAL_ACCOUNTS:[],CEMETERY_KEY:'cemetery',platformMeta:{},platformOrder:[],PROFILE_NAME:'',PROFILE_AVATAR:null,SHARE_TOKEN:null,STORAGE_KEY:'games',
     initializeApp:()=>({}),getAuth:()=>({}),getFirestore:()=>({}),doc:(_db,collection,id)=>({collection,id}),
     getDoc:async()=>({exists:()=>false}),setDoc:async(ref,data)=>writes.push({ref,data}),deleteDoc:async()=>{},
     onAuthStateChanged:(_auth,callback)=>{ctx.authCallback=callback;},signInWithEmailAndPassword(){},createUserWithEmailAndPassword(){},signOut(){},
     initializeNavigation(){},resetNavigationSession(){},showToast(){},normalizeCollectionEditions(){},buildPlatformList(){},buildFormatToggles(){},buildStatusToggles(){},render(){},renderArrivals(){},renderWishlist(){},renderProfileAvatar(){},updateBackupNote(){},closeModal(){},closeArrivalModal(){},closeWishlistModal(){},closePlatformModal(){},closeMobileDrawers(){}
   };
-  ctx.replaceAppData = data => {for(const [key,value] of Object.entries(data)){const names={games:'GAMES',arrivals:'ARRIVALS',wishlist:'WISHLIST',cemetery:'CEMETERY',journal:'LEGACY_JOURNAL',profileName:'PROFILE_NAME',profileAvatar:'PROFILE_AVATAR'};ctx[names[key]||key]=value;}};
+  ctx.replaceAppData = data => {for(const [key,value] of Object.entries(data)){const names={games:'GAMES',arrivals:'ARRIVALS',wishlist:'WISHLIST',cemetery:'CEMETERY',journal:'LEGACY_JOURNAL',digitalAccounts:'DIGITAL_ACCOUNTS',profileName:'PROFILE_NAME',profileAvatar:'PROFILE_AVATAR'};ctx[names[key]||key]=value;}};
   ctx.persistAppData = data => storage.atomicWrite([['games',JSON.stringify(data.games)]]);
   ctx.initApp = async () => {const games=storage.getItem('games');ctx.GAMES=games?JSON.parse(games):[];};
   vm.createContext(ctx);
@@ -90,6 +90,20 @@ async function cloudHarness(){
   await vm.runInContext('(async()=>{'+source+'\nwindow.testCloud={scheduleCloudSync,doCloudSync,sessions};})()',ctx);
   return {ctx,writes,storage};
 }
+
+test('digital console accounts follow cloud sessions and are included in outgoing saves',async()=>{
+  const {ctx,writes}=await cloudHarness();
+  ctx.getDoc=async ref=>({exists:()=>true,data:()=>({games:[game({format:'Numérique',contentType:'game',accountId:'console-'+ref.id,currency:'JPY',prix:1000})],digitalAccounts:[{id:'console-'+ref.id,name:'Console '+ref.id,ecosystem:'Nintendo',region:'Japon'}]})});
+  await ctx.authCallback({uid:'A'});
+  assert.equal(ctx.DIGITAL_ACCOUNTS[0].id,'console-A');
+  assert.equal(await ctx.window.JTDPrepareReload(),true);
+  assert.equal(writes.at(-1).data.digitalAccounts[0].id,'console-A');
+  await ctx.authCallback({uid:'B'});
+  assert.equal(ctx.DIGITAL_ACCOUNTS[0].id,'console-B');
+  assert.equal(ctx.GAMES[0].accountId,'console-B');
+  await ctx.authCallback(null);
+  assert.equal(ctx.DIGITAL_ACCOUNTS.length,0);
+});
 
 test('retired private archive follows the cloud account and cannot leak into the next account',async()=>{
  const {ctx,writes}=await cloudHarness();
@@ -261,4 +275,5 @@ test('retired backup metadata preserves entries without becoming public collecti
   assert.equal(Object.hasOwn(shared,'format'),false);
   assert.equal(Object.hasOwn(shared,'type'),false);
 });
+
 

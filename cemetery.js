@@ -169,7 +169,7 @@ function setSaleView(view){
 }
 saleEl('f-sell-btn').addEventListener('click', () => {
   const item = GAMES.find(g => g.id === editingId);
-  if(!item) return;
+  if(!item || JTDData.isDigital(item)) return;
   const moved = commitBoardTransfer('games', 'cemetery', item.id, {...item, saleStatus:'pending'});
   if(!moved) return;
   closeModal(); buildPlatformList(); render(); renderCemetery();
@@ -220,4 +220,5 @@ saleEl('cemetery-search').addEventListener('input', renderCemetery);
 saleEl('cemetery-platform').addEventListener('change', renderCemetery);
 document.querySelectorAll('[data-sale-view]').forEach(button => button.addEventListener('click', () => setSaleView(button.dataset.saleView)));
 renderCemetery();
+
 

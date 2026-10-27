@@ -15,15 +15,17 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=local-filters-1">
+<link rel="stylesheet" href="styles.css?v=surfaces-11">
 <link rel="stylesheet" href="cemetery.css?v=grouped-stats-3">
 <link rel="stylesheet" href="home-boards-v2.css?v=open-calendars-3">
-<link rel="stylesheet" href="home-dashboard.css?v=stats-5">
+<link rel="stylesheet" href="home-dashboard.css?v=surfaces-11">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
-<link rel="stylesheet" href="ui-foundations.css?v=local-filters-1">
-<link rel="stylesheet" href="regal.css?v=mobile-nav-6">
-<link rel="stylesheet" href="game-sheet.css?v=platforms-5">
-<link rel="stylesheet" href="collection.css?v=soft-search-band-2">
+<link rel="stylesheet" href="ui-foundations.css?v=surfaces-11">
+<link rel="stylesheet" href="regal.css?v=surfaces-11">
+<link rel="stylesheet" href="game-sheet.css?v=surfaces-11">
+<link rel="stylesheet" href="collection.css?v=cleanup-15">
+<link rel="stylesheet" href="digital.css?v=cleanup-15">
+<link rel="stylesheet" href="deku-import.css?v=1">
 </head>
 <body>
 
@@ -107,22 +109,20 @@
             <input type="text" class="profile-menu-name-input" id="profile-name-input" placeholder="Ton pseudo" maxlength="24">
           </div>
           <div class="profile-menu-divider"></div>
+          <details class="profile-maintenance"><summary>Sauvegarde et restauration</summary>
           <button class="profile-menu-item" id="backup-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Sauvegarde complète</span></span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg><span>Sauvegarde complète</span></span>
             <span class="profile-menu-sub" id="backup-note"></span>
           </button>
           <label class="profile-menu-item" id="restore-trigger" for="restore-input">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"></path><path d="m7 14 5-5 5 5"></path><path d="M5 3h14"></path></svg><span>Restaurer une sauvegarde</span></span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg><span>Restaurer une sauvegarde</span></span>
             <span class="profile-menu-sub">Remplacer toutes les données par celles du fichier</span>
           </label>
-          <label class="profile-menu-item" id="cemetery-import-trigger" for="cemetery-import-input">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg><span>Importer des ventes</span></span>
-            <span class="profile-menu-sub">Ajouter au cimetière · CSV, TSV ou sauvegarde</span>
-          </label>
-          <div class="profile-menu-divider"></div>
+          </details>
+          <label class="profile-menu-item" for="deku-import-input" id="deku-import-trigger"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg><span>Importer Deku Deals</span></span></label>
           <button class="profile-menu-item" id="chatgpt-export-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Exporter pour ChatGPT</span></span>
-            <span class="profile-menu-sub">Collection et listes · fichier à joindre dans ChatGPT</span>
+            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Exporter en JSON</span></span>
+            <span class="profile-menu-sub">Collection et listes pour ChatGPT · sans restauration</span>
           </button>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
@@ -130,6 +130,7 @@
           </button>
         </div>
       </div>
+      <input type="file" id="deku-import-input" accept="application/json,.json" hidden>
       <input type="file" id="restore-input" accept="application/json,.json" style="display:none;">
       <input type="file" id="cemetery-import-input" accept="application/json,.json,.csv,.tsv,text/csv,text/tab-separated-values" style="display:none;">
       <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
@@ -142,7 +143,10 @@
     <aside class="sidebar home-sidebar" id="home-sidebar" aria-label="Statistiques">
       <section class="home-collection-summary" aria-label="Résumé de la collection">
       <div class="home-widget-title"><h2>Statistiques</h2></div>
-      <div class="home-widget-stats"><div class="home-summary-total"><div class="home-stat-value"><svg class="home-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 4v16M8 8v12M12 6v14m4-14 4 14"/></svg><strong id="home-total-games">0</strong></div><span>jeux</span></div><div class="home-summary-meta" id="home-summary-meta"></div></div>
+      <div class="home-widget-stats">
+        <section class="home-stat-section" aria-labelledby="home-collection-heading"><h3 id="home-collection-heading">Collection</h3><div class="home-summary-total"><strong id="home-total-games">0</strong><span>Jeux</span></div><div id="home-summary-meta" class="home-summary-meta"></div></section>
+        <section class="home-stat-section" aria-labelledby="home-status-heading"><h3 id="home-status-heading">Statuts des jeux et DLC</h3><div class="home-completion"><div id="home-completion-ring" class="home-completion-ring" role="img"><span><strong>0 %</strong><small>Terminés</small></span></div><div class="home-completion-legend" id="home-status-legend"></div></div></section>
+      </div>
     </section>
     </aside>
   <main class="home-main">
@@ -328,6 +332,14 @@
 <div class="page hidden" id="page-collection">
 <div class="app">
   <aside class="sidebar" id="collection-sidebar">
+    <div class="side-section collection-media-controls">
+      <div class="collection-media-tabs" id="collection-media-tabs" role="group" aria-label="Format de collection">
+        <button type="button" data-media="physical" aria-pressed="true">Physique</button>
+        <button type="button" data-media="digital" aria-pressed="false">Numérique</button>
+      </div>
+
+    </div>
+
     <div class="side-section side-section-platforms">
       <div class="side-label-row">
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
@@ -343,6 +355,9 @@
       <div class="side-label">Édition</div>
       <div class="format-toggles" id="format-toggles"></div>
     </div>
+
+      <div class="side-section" id="collection-account-field"><div class="side-label-row"><span class="side-label">Compte</span><button type="button" class="icon-link-btn" id="collection-manage-accounts" title="Gérer les comptes" aria-label="Gérer les comptes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button></div><details id="collection-account-picker"><summary><span id="collection-account-summary">Tous les comptes</span></summary><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div></details><select id="collection-account" aria-label="Filtrer par compte console" class="hidden" aria-hidden="true" tabindex="-1"></select></div>
+    <div class="side-section" id="content-filter-section"><div class="side-label">Contenu</div><div class="content-type-options" id="content-type-options" role="group" aria-label="Type de contenu"></div></div>
 
     <div class="side-section side-section-status">
       <div class="side-label">État</div>
@@ -371,7 +386,10 @@
       <button class="add-btn add-btn-inline" id="add-btn">+ Ajouter un jeu</button>
     </div>
 
-    <div class="results-bar" id="results-bar"></div>
+    <div class="collection-display-row"><div class="results-bar" id="results-bar"></div><div id="collection-view-switch" class="collection-view-switch" role="group" aria-label="Affichage de la collection">
+<button type="button" data-view="cards" aria-pressed="true" title="Cartes" aria-label="Cartes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg></button>
+<button type="button" data-view="gallery" aria-pressed="false" title="Galerie" aria-label="Galerie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg></button>
+<button type="button" data-view="list" aria-pressed="false" title="Liste" aria-label="Liste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M3 5h2M3 12h2M3 19h2"/></svg></button></div></div>
     <div class="grid" id="grid"></div>
   </main>
 </div>
@@ -380,7 +398,13 @@
 <div class="modal-overlay sheet-dialog hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <h2 id="modal-title">Ajouter un jeu</h2>
+    <div class="form-section" id="f-media-section">
+      <div class="field-row">
+        <div class="field"><label for="f-media">Format</label><select id="f-media"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div>
+        <div class="field hidden" id="f-content-type-field"><label for="f-content-type">Type de contenu</label><select id="f-content-type"><option value="game">Jeu complet</option><option value="dlc">Contenu téléchargeable (DLC)</option><option value="upgrade">Mise à niveau</option></select></div>
+      </div>
 
+    </div>
 
     <div class="form-section game-sheet-section">
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
@@ -411,28 +435,53 @@
       <div class="image-url-row">
         <div class="field"><label for="f-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="f-image" placeholder="https://…"></div>
         <div class="image-preview image-preview-compact" id="image-preview"><span>Aperçu</span></div>
-      
+
       </div>
       <div class="field image-fit-field"><label for="f-image-fit">Affichage de l’image</label><select id="f-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select></div>
       </div>
     </div>
+
+      <div id="f-digital-fields" class="form-section hidden">
+        <div class="field hidden" id="f-content-status-field"><label for="f-content-status">Statut du DLC</label><select id="f-content-status"></select></div>
+        <div id="f-parent-field" class="hidden">
+          <label class="content-link-toggle" for="f-parent-enabled">
+            <span>Rattacher à un jeu de base</span>
+            <input type="checkbox" role="switch" id="f-parent-enabled" aria-controls="f-parent-editor" aria-expanded="false">
+            <span class="content-link-switch" aria-hidden="true"></span>
+          </label>
+          <input type="hidden" id="f-parent">
+          <div id="f-parent-editor" class="hidden">
+            <div id="f-parent-preview" class="hidden"></div>
+            <button type="button" class="manage-link hidden" id="f-parent-clear">Choisir un autre jeu</button>
+            <div class="field">
+              <label for="f-parent-search">Rechercher le jeu de base</label>
+              <input type="search" id="f-parent-search" placeholder="Titre du jeu…" aria-controls="f-parent-results" autocomplete="off">
+            </div>
+            <div id="f-parent-results" class="parent-search-results" aria-label="Résultats de recherche du jeu de base"></div>
+            <p id="f-parent-search-status" class="content-parent-note" role="status"></p>
+          </div>
+        </div>
+      </div>
 
     <div id="f-quick-hide-fields" class="form-section game-sheet-section" aria-labelledby="game-sheet-purchase-title">
       <div class="form-section-title" id="game-sheet-purchase-title">Achat</div>
       <div class="context-summary hidden" id="f-context-summary"></div>
       <div class="context-editor" id="f-context-editor">
       <div class="field-row">
-        <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span>€</span></div></div>
+        <div class="field"><label for="f-prix">Prix</label><div class="input-with-suffix"><input type="text" id="f-prix" inputmode="decimal" placeholder="39,99"><span id="f-price-currency">€</span></div></div>
         <div class="field"><label for="f-date">Date d'achat</label><input type="date" id="f-date"></div>
       </div>
-      <div class="field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
+      <div class="field" id="f-source-field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
+      <div id="f-purchase-digital-fields" class="hidden">
+        <div class="field-row"><div class="field"><label for="f-account">Compte</label><select id="f-account"></select></div><div class="field"><label for="f-currency">Devise</label><select id="f-currency"><option value="EUR">Euro (€)</option><option value="JPY">Yen (¥)</option><option value="USD">Dollar ($)</option><option value="GBP">Livre (£)</option></select></div></div><div id="f-account-identity"></div>
+
+      </div>
       </div>
     </div>
-
-
+    <div id="f-content-details"></div>
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
-      
+
       <button type="button" class="btn btn-ghost hidden" data-modal-action="context" id="f-sell-btn">Mettre en vente</button>
       <button class="btn btn-danger hidden" data-modal-action="delete" id="delete-btn">Supprimer</button>
       </div>
@@ -519,7 +568,7 @@
     </div>
     <div class="platform-rows" id="platform-rows"></div>
     <div class="modal-actions platform-modal-actions">
-      
+
       <button class="btn btn-primary" id="close-platform-modal-btn">Terminé</button>
     </div>
   </div>
@@ -549,9 +598,23 @@
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<script src="jtd-data.js?v=collection-1"></script>
+<div class="modal-overlay sheet-dialog hidden" id="digital-accounts-overlay" role="dialog" aria-modal="true" aria-labelledby="digital-accounts-title">
+  <div class="modal platform-modal"><div class="platform-modal-heading"><h2 id="digital-accounts-title">Comptes consoles</h2><button type="button" class="platform-new-btn" id="digital-account-add">+ Ajouter</button></div><div id="digital-account-rows" class="platform-rows"></div><p id="digital-accounts-error" role="alert"></p><div class="modal-actions platform-modal-actions"><button type="button" class="btn btn-primary" id="digital-accounts-save">Terminé</button></div></div>
+</div>
+<div class="modal-overlay sheet-dialog hidden" id="deku-import-overlay" role="dialog" aria-modal="true" aria-labelledby="deku-import-title"><div class="modal deku-import-modal">
+<h2 id="deku-import-title">Importer Deku Deals</h2>
+<p class="deku-import-intro">Ajout uniquement. Les achats déjà présents ne seront pas modifiés. Vérifie les comptes et les types proposés ; les DLC pourront être rattachés plus tard.</p>
+<div class="deku-import-toolbar"><label>Achats à importer<select id="deku-import-format"><option value="digital">Numérique</option><option value="physical">Physique</option><option value="all">Physique et numérique</option></select></label><label>Compte pour tous les achats numériques<select id="deku-import-account"></select></label></div>
+<p id="deku-import-summary" role="status"></p><p id="deku-import-ignored"></p>
+<div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
+<div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>
+</div></div>
+<script src="jtd-data.js?v=content-toggle-14"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="app.js?v=preview-art-7"></script>
+<script src="digital.js?v=cleanup-15"></script>
+<script src="app.js?v=content-toggle-14"></script>
+<script src="deku-data.js?v=1"></script>
+<script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
 <script src="lifecycle.js?v=collection-1"></script>
@@ -559,11 +622,9 @@
   if(!window.JTD_PREVIEW_MODE){
     const firebaseScript = document.createElement('script');
     firebaseScript.type = 'module';
-    firebaseScript.src = 'firebase.js?v=collection-1';
+    firebaseScript.src = 'firebase.js?v=console-collection-1';
     document.body.appendChild(firebaseScript);
   }
 </script>
 </body>
 </html>
-
-

@@ -16,10 +16,11 @@ const server=createSandboxServer();
     renderHomeStats();goToPage('home');
    });
    assert.equal(await page.locator('#home-total-games').textContent(),'1');
-   assert.match(await page.locator('#home-summary-meta').textContent(),/0 €valeur d’achat/);
+   assert.match(await page.locator('#home-summary-meta').textContent(),/Valeur d’achat0,00/);
    assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','collection','cemetery']);
    assert.equal(await page.locator('#page-lists').count(),0);
-   assert.match(await page.locator('#home-summary-meta').textContent(),/0terminés1à faire/);
+   assert.match(await page.locator('#home-status-legend').textContent(),/Terminés0Multi0À faire1/);
+   assert.doesNotMatch(await page.locator('#home-summary-meta').textContent(),/Terminés|À faire/);
    const sidebar=page.locator('#home-sidebar');
    if(width<=820){
     assert.equal(await sidebar.evaluate(el=>el.getBoundingClientRect().right<=0),true,'Summary starts in a closed drawer');
@@ -52,4 +53,5 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
 

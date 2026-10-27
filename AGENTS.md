@@ -1,9 +1,9 @@
-# AGENTS.md — Jeux tout doux
+# AGENTS.md — REGAL
 
 ## Projet et communication
 
-- Dépôt principal : `rhypp11/jeuxtoutdoux`, branche principale : `main`.
-- Jeux tout doux est un site personnel de gestion de collection, wishlist, arrivages et cimetière (à vendre / vendus).
+- Dépôt principal : `rhypp11/REGAL`, branche principale : `main`.
+- REGAL est un site personnel de gestion de collection, wishlist, arrivages et cimetière (à vendre / vendus).
 - Répondre à Rom en français, simplement. Expliquer le résultat, les vérifications et les limites réelles.
 - Lire le code actuel et les changements récents avant de modifier. Le dépôt fait foi pour l'implémentation ; ne pas supposer disposer de l'historique des conversations.
 - Une demande d'audit seule n'autorise pas les modifications. Une demande de correction ou d'implémentation autorise le travail sur une branche et la création d'une PR.
@@ -45,7 +45,9 @@ Préserver l'ordre de chargement et les interfaces partagées entre scripts. Ré
 
 ## Choix produit à préserver
 
-- La collection concerne les jeux physiques uniquement ; ne pas ajouter de mode numérique ni de filtres DLC/type.
+- La collection propose Physique (par défaut) et Numérique ; recliquer le format actif désélectionne les deux et affiche Tout, sans bouton dédié. Wishlist, arrivages et ventes restent réservés au physique. Les statistiques de l’accueil couvrent les jeux physiques et numériques, avec les contenus additionnels comptés séparément. Le numérique concerne les achats consoles, avec compte et devise facultatifs ; aucun import Steam.
+- Les DLC numériques se rattachent explicitement à un jeu de la même plateforme ; une mise à niveau Switch 2 peut aussi se rattacher à son jeu Switch. Les contenus sont regroupés sous le jeu numérique de la même plateforme, mais restent visibles si le jeu associé est physique, sur un autre support ou hors collection. Conserver les achats, comptes et prix indépendamment des regroupements visuels.
+- Les formats sont des onglets compacts dans le volet ; les comptes se choisissent dans une liste repliable avec pseudo et avatar facultatif. Le bandeau rappelle la sélection. Les contenus gardent le fond normal des cartes et une étiquette DLC ou Mise à niveau. Les anciennes valeurs en_cours restent préservées mais sont affichées avec À faire ; ce choix n’est plus proposé.
 - Interface en français, sobre et lisible, cohérente en thèmes clair et sombre.
 - Images des jeux horizontales. Sur mobile, les cartes utilisent la largeur disponible ; les modales doivent défiler et leurs actions rester accessibles sans chevauchement.
 - Wishlist et arrivages restent séparés en onglets sur mobile. Vérifier aussi le menu, les tiroirs, les dates et les listes longues.

@@ -23,6 +23,10 @@ jobs:
         run: |
           node --check jtd-data.js
           node --check app.js
+          node --check digital.js
+          node --check deku-data.js
+          node --check deku-import.js
+          node --test tests/deku-data.test.cjs
           node --check firebase.js
           node --check theme.js
           node --check lifecycle.js
@@ -30,6 +34,7 @@ jobs:
           node --check cemetery-import.js
           node --check dialogs.js
           node --test tests/data.test.cjs
+          node --test tests/digital-data.test.cjs
           node --test tests/import-export.test.cjs
 
       - name: Check themes on desktop and mobile in local sandbox
@@ -58,6 +63,15 @@ jobs:
 
       - name: Check collection cards on mobile
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/collection-layout.cjs
+
+      - name: Check console purchases, DLC grouping and accounts
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/digital.cjs
+
+      - name: Check DLC statuses and illustrated parent search
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/dlc-links.cjs
+
+      - name: Check Deku Deals review and additive imports
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/deku-import.cjs
 
       - name: Check editing modal actions on mobile and desktop
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/modal-actions.cjs
@@ -165,4 +179,6 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.url }}
         run: echo "Sandbox preview (7 days) — $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+
+
 
