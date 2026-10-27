@@ -46,3 +46,10 @@ test('account nicknames and avatars round-trip without allowing script URLs',()=
   assert.equal(data.digitalAccounts[0].nickname,'Aster');assert.equal(data.digitalAccounts[0].avatar,account.avatar);
   assert.equal(D.normalizeData({games:[],digitalAccounts:[{...account,avatar:'javascript:alert(1)'}]}).digitalAccounts[0].avatar,null);
 });
+
+test('explicit content filters can show a base game and its DLC independently',()=>{
+  assert.deepEqual(D.collectionCards([base,dlc],'digital',null,'',false).map(g=>g.id),['base','dlc']);
+  assert.deepEqual(D.collectionCards([base,dlc],'digital',null,'Extension',false).map(g=>g.id),['dlc']);
+  assert.deepEqual(D.collectionCards([base,dlc],'digital',null,'Jeu numérique',false).map(g=>g.id),['base']);
+  assert.deepEqual(D.collectionCards([base,dlc],'physical',null,'',false),[]);
+});

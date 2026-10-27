@@ -1,0 +1,82 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
+const server=createSandboxServer();
+const fixture={games:[
+  {id:'base',nom:'Jardin des étoiles',plateforme:'Switch 2',format:'Numérique',accountId:'jp',status:'termine',prix:30},
+  {id:'dlc',nom:'Extension du jardin',plateforme:'Switch 2',format:'Numérique',contentType:'dlc',parentId:'base',accountId:'jp',status:'termine',prix:10},
+  {id:'other',nom:'Autre jeu',plateforme:'Switch 2',format:'Numérique',accountId:'eu',status:'a_jouer',prix:20},
+  {id:'upgrade',nom:'Mise à niveau du jardin',plateforme:'Switch 2',format:'Numérique',contentType:'upgrade',parentId:'base',accountId:'jp',prix:5}
+],digitalAccounts:[{id:'jp',name:'Japon',nickname:'Jardin JP',ecosystem:'Nintendo'},{id:'eu',name:'Europe',ecosystem:'Nintendo'}]};
+async function drawer(page){if(await page.evaluate(()=>matchMedia('(max-width:820px)').matches&&!document.getElementById('collection-sidebar').classList.contains('mobile-open')))await page.locator('#global-filter-toggle').click();}
+async function types(page,...values){await page.evaluate(values=>{state.contentType=values.join(',')||null;buildPlatformList();render();},values);}
+async function cards(page){return page.locator('#grid .card').evaluateAll(cards=>cards.map(card=>card.dataset.dialogTrigger));}
+async function stat(page,key){return Number(await page.locator('[data-stat="'+key+'"] strong').innerText());}
+(async()=>{
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const browser=await chromium.launch({headless:true,executablePath:process.env.JTD_CHROME});
+  try{
+    for(const width of [320,390,1440])for(const theme of ['light','dark']){
+      const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
+      const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+      await page.goto('http://127.0.0.1:'+server.address().port);
+      await page.locator('#app-shell').waitFor({state:'visible'});
+      await page.evaluate(data=>{applyRestoredData(JTDData.normalizeData(data));applyNavigation({page:'collection',media:'digital',platform:'Switch 2',accountId:'jp',contentType:'game,dlc'});},fixture);
+      assert.deepEqual((await cards(page)).sort(),['game:base','game:dlc']);
+      await page.locator('.collection-stat-details > summary').click();
+      assert.equal(await stat(page,'games'),2);
+      assert.equal(await stat(page,'termine'),2);
+      assert.equal(await stat(page,'digital'),2);
+      assert.match(await page.locator('[data-stat="spent"]').innerText(),/40/);
+      assert.match(await page.locator('#results-bar .results-count').innerText(),/^2 /);
+      assert.match(await page.locator('#platform-list .active .plat-count').innerText(),/^2$/);
+      await types(page,'game');
+      assert.deepEqual(await cards(page),['game:base']);
+      assert.equal(await stat(page,'games'),1);assert.equal(await stat(page,'termine'),1);
+      assert.match(await page.locator('[data-stat="spent"]').innerText(),/30/);
+      await types(page,'dlc');
+      assert.deepEqual(await cards(page),['game:dlc']);
+      assert.equal(await stat(page,'games'),1);assert.equal(await stat(page,'termine'),1);
+      assert.match(await page.locator('[data-stat="spent"]').innerText(),/10/);
+      for(const view of ['cards','gallery','list']){
+        await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
+        await page.locator('[data-dialog-trigger="game:dlc"]').click();
+        assert.match(await page.locator('#modal-title').innerText(),/DLC/);
+        await page.locator('#cancel-btn').click();
+      }
+      await types(page);
+      assert.deepEqual(await cards(page),['game:base']);
+      assert.equal(await stat(page,'games'),3,'Grouped purchases still count separately');
+      assert.equal(await stat(page,'termine'),2,'Upgrades do not affect completion');
+      assert.match(await page.locator('[data-stat="spent"]').innerText(),/45/);
+      await page.evaluate(()=>{state.status='termine';buildPlatformList();render();});
+      assert.equal(await stat(page,'games'),2);assert.equal(await stat(page,'termine'),2);
+      assert.match(await page.locator('[data-stat="spent"]').innerText(),/40/);
+      await page.evaluate(()=>{state.status=null;state.search='Extension';render();});
+      assert.deepEqual(await cards(page),['game:dlc']);assert.equal(await stat(page,'games'),1);
+      await page.evaluate(()=>{state.search='Jardin des étoiles';render();});
+      assert.deepEqual(await cards(page),['game:base']);assert.equal(await stat(page,'games'),3);
+      await types(page,'game','dlc');
+      assert.deepEqual(await cards(page),['game:base']);assert.equal(await stat(page,'games'),1,'Search excludes nonmatching explicit rows');
+      await page.evaluate(()=>{state.search='';render();});
+      await drawer(page);
+      assert.equal(await page.locator('#collection-account-options button').count(),3);
+      assert.equal(await page.locator('#collection-account-picker, #collection-account').count(),0);
+      assert.equal(await page.locator('[data-account=""] .account-all-icon svg circle').count(),1);
+      assert.equal(await page.locator('[data-account="jp"]').getAttribute('aria-pressed'),'true');
+      assert.match(await page.locator('[data-account="jp"] .plat-count').innerText(),/^2$/);
+      await page.screenshot({path:'/tmp/jtd-account-filters-'+width+'-'+theme+'.png'});
+      await page.locator('[data-account="eu"]').click();
+      assert.deepEqual(await cards(page),['game:other']);
+      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>state.accountId),'eu');
+      await drawer(page);await page.locator('[data-account="eu"]').click();
+      assert.equal(await page.evaluate(()=>state.accountId),null,'Reclick clears account filter');
+      await drawer(page);await page.locator('[data-account="jp"]').press('Enter');
+      assert.deepEqual((await cards(page)).sort(),['game:base','game:dlc']);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      assert.deepEqual(errors,[]);
+      await context.close();console.log('PASS collection filters',width,theme);
+    }
+  }finally{await browser.close();server.close();}
+})().catch(error=>{console.error(error);server.close();process.exitCode=1;});
