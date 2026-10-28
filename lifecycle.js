@@ -21,13 +21,20 @@
   };
 
   const exportButton = document.getElementById('chatgpt-export-btn');
-  if(!exportButton || document.getElementById('share-btn')) return;
+  if(!exportButton || document.getElementById('share-btn') || document.getElementById('share-preview-btn')) return;
 
+  const preview = window.JTD_PREVIEW_MODE === true;
   const shareButton = document.createElement('button');
   shareButton.type = 'button';
   shareButton.className = 'profile-menu-item';
-  shareButton.id = 'share-btn';
+  shareButton.id = preview ? 'share-preview-btn' : 'share-btn';
   shareButton.innerHTML = '<span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.5 6.8-4"></path><path d="m8.6 13.5 6.8 4"></path></svg><span id="share-label">Partager ma collection</span></span><span class="profile-menu-sub" id="share-note">Lien vivant en lecture seule · se met à jour automatiquement</span>';
+
+  if(preview){
+    exportButton.before(shareButton);
+    shareButton.addEventListener('click', () => showToast('Le partage vivant est désactivé dans la sandbox : aucune donnée réelle n’est publiée.'));
+    return;
+  }
 
   const disableButton = document.createElement('button');
   disableButton.type = 'button';
@@ -42,9 +49,7 @@
       window.JTDShare.createOrCopy();
       return;
     }
-    showToast(window.JTD_PREVIEW_MODE
-      ? 'Le partage vivant est désactivé dans la sandbox : aucune donnée réelle n’est publiée.'
-      : 'Le partage est encore en cours d’initialisation.');
+    showToast('Le partage est encore en cours d’initialisation.');
   });
 
   disableButton.addEventListener('click', () => {
