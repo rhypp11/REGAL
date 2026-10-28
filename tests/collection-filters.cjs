@@ -26,7 +26,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.evaluate(()=>{window.shareCalls=0;window.JTDShare={createOrCopy(){window.shareCalls++;}};});
       await page.locator('#profile-menu-btn').click();await page.locator('#share-preview-btn').click();
       assert.equal(await page.evaluate(()=>window.shareCalls),0,'Sandbox sharing never publishes');
-      await page.locator('#profile-menu-btn').click();
+      if(await page.locator('#profile-menu').isVisible())await page.locator('#profile-menu-btn').click();
       await page.evaluate(data=>{applyRestoredData(JTDData.normalizeData(data));applyNavigation({page:'collection',media:'digital',platform:'Switch 2',accountId:'jp',contentType:'game,dlc'});},fixture);
       assert.deepEqual((await cards(page)).sort(),['game:base','game:dlc']);
       await page.locator('.collection-stat-details > summary').click();
