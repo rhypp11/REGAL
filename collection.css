@@ -7,7 +7,7 @@
   font-size:var(--ui-text-md);
   border:1px solid var(--ui-border);
   border-radius:10px;
-  background:var(--ui-surface);
+  background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas)));
   color:var(--ui-text);
   box-shadow:none;
 }
@@ -58,7 +58,7 @@
 }
 #page-collection .platform-banner .page-filter-toggle { background:transparent; color:inherit; border-color:currentColor; }
 #page-collection .platform-banner-stats { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); grid-template-rows:auto auto; align-items:stretch; gap:12px; margin:0; padding:4px 16px 16px; }
-#page-collection .library-stat-group { min-width:0; padding:14px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-surface); }
+#page-collection .library-stat-group { min-width:0; padding:14px; border:1px solid var(--ui-border); border-radius:10px; background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas))); }
 #page-collection .library-stat-group h3 { margin:0 0 12px; font-size:12px; font-weight:650; color:var(--ui-text); }
 #page-collection .library-stat-values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px 8px; }
 #page-collection .library-stat { display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0; color:var(--ui-text-muted); font-size:11px; line-height:1.5; }
@@ -126,51 +126,18 @@
   .collection-context-filters { display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 36px; border:1px solid currentColor; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
 }
 #page-collection .grid { gap:24px 18px; }
-/* Les cartes contrastent avec le canevas et emportent leur palette de lecture. */
-#page-collection .card {
-  --ui-surface:#252a2d;
-  --ui-surface-raised:#343b40;
-  --ui-text:#f2f4f4;
-  --ui-rgb:242,244,244;
-  --ui-text-muted:#b9c2c7;
-  --ui-border:#465158;
-  --ui-accent:#8bd0dc;
-  --status-todo:#F1D49F;
-  --status-multi:#CAB7F0;
-  --status-done:#B4D4A3;
-  --status-elsewhere:#A8C9EA;
-  --content-green:#b6d9c0;
-  --amber:#f0cb8e;
-  --surface:var(--ui-surface);
-  --surface-raised:var(--ui-surface-raised);
-  --text:var(--ui-text);
-  --muted:var(--ui-text-muted);
-  --hairline:var(--ui-border);
-  --accent:var(--ui-accent);
-  color:var(--ui-text);
-  color-scheme:dark;
+/* Seul le numérique se distingue ; les achats physiques gardent leur surface. */
+#page-collection .card.digital-game { --collection-card-surface:#e5eaec; }
+:root:not([data-theme="dark"]) #page-collection .card.digital-game {
+  --muted:#596b73;
+  --ui-text-muted:var(--muted);
 }
-[data-theme="dark"] #page-collection .card {
-  --ui-surface:#f7f8f8;
-  --ui-surface-raised:#e9edef;
-  --ui-text:#20272a;
-  --ui-rgb:32,39,42;
-  --ui-text-muted:#59656b;
-  --ui-border:#cdd4d7;
-  --ui-accent:#226879;
-  --status-todo:#805211;
-  --status-multi:#594082;
-  --status-done:#35582D;
-  --status-elsewhere:#325D84;
-  --content-green:#366a48;
-  --amber:#805211;
-  color-scheme:light;
-}
+[data-theme="dark"] #page-collection .card.digital-game { --collection-card-surface:#363e42; }
 #page-collection .card {
   padding:12px;
   border:1px solid color-mix(in srgb,var(--ui-border) 55%,transparent);
   border-radius:12px;
-  background:var(--ui-surface);
+  background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas)));
   box-shadow:none;
   overflow:visible;
   transition:border-color var(--ui-transition-fast),background var(--ui-transition-fast);
@@ -178,7 +145,7 @@
 #page-collection .card:hover {
   transform:none;
   border-color:color-mix(in srgb,var(--ui-accent) 24%,var(--ui-border));
-  background:var(--ui-surface);
+  background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas)));
   box-shadow:none;
 }
 #page-collection .card-banner {
@@ -273,7 +240,7 @@
 @media(min-width:821px) {
   #collection-sidebar { background:var(--ui-sidebar); padding:18px 14px; border-right:1px solid var(--ui-border); }
 }
-#collection-sidebar .side-section { padding:14px 10px; margin:0 0 12px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-surface); }
+#collection-sidebar .side-section { padding:14px 10px; margin:0 0 12px; border:1px solid var(--ui-border); border-radius:10px; background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas))); }
 #collection-sidebar .collection-media-controls { padding:4px; }
 #collection-sidebar .side-label { font-size:12px; font-weight:650; color:var(--ui-text); text-transform:none; letter-spacing:0; }
 #collection-sidebar .side-label-row { margin-bottom:10px; }
@@ -299,7 +266,7 @@
 .collection-display-row .results-bar { margin:0; min-width:0; flex:1; }
 .collection-view-switch { display:flex; gap:2px; flex-shrink:0; }
 .collection-view-switch button { display:grid; place-items:center; width:36px; height:36px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--ui-text-muted); cursor:pointer; }
-.collection-view-switch button[aria-pressed="true"] { border-color:var(--ui-border); background:var(--ui-surface); color:var(--ui-text); }
+.collection-view-switch button[aria-pressed="true"] { border-color:var(--ui-border); background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas))); color:var(--ui-text); }
 .collection-view-switch svg { width:16px; height:16px; }
 #page-collection #grid[data-view="list"] { display:flex; flex-direction:column; gap:6px; }
 #page-collection #grid[data-view="list"] .card { display:flex; flex-direction:row; align-items:flex-start; width:100%; max-width:none; margin:0; gap:16px; padding:14px; }

@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
 const server=createSandboxServer();
 const fixture={games:[
+  {id:'box',nom:'Exemplaire physique',plateforme:'Switch 2',format:'Physique',status:'termine',prix:40},
   {id:'base',nom:'Jardin des étoiles',plateforme:'Switch 2',format:'Numérique',accountId:'jp',status:'termine',prix:30},
   {id:'dlc',nom:'Extension du jardin',plateforme:'Switch 2',format:'Numérique',contentType:'dlc',parentId:'base',accountId:'jp',status:'termine',prix:10},
   {id:'other',nom:'Autre jeu',plateforme:'Switch 2',format:'Numérique',accountId:'eu',status:'a_jouer',prix:20},
@@ -60,6 +61,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.deepEqual(await cards(page),['game:base']);assert.equal(await stat(page,'games'),1,'Search excludes nonmatching explicit rows');
       await page.evaluate(()=>{state.search='';render();});
 
+      await page.evaluate(()=>{state.media='all';state.accountId=null;buildPlatformList();render();});
       await types(page,'game','dlc','upgrade');
       for(const view of ['cards','gallery','list']){
         await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
@@ -74,16 +76,17 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
             const fg=luminance(getComputedStyle(el).color);return (Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05);
           });
           const dlc=document.querySelector('[data-dialog-trigger="game:dlc"] .dlc-label'),upgrade=document.querySelector('.upgrade-card .dlc-label');
-          return {background:rgb(background),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
+          return {background:rgb(background),physical:rgb(getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).backgroundColor),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
         });
         assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
-        assert.ok(theme==='dark'?appearance.background.every(value=>value>230):appearance.background.every(value=>value<60));
+        assert.ok(theme==='dark'?appearance.physical.every(value=>value<40):appearance.physical.every(value=>value>240),'Physical cards retain the base surface');
+        assert.ok(theme==='dark'?appearance.background.every((value,i)=>value>appearance.physical[i]+15 && value<90):appearance.background.every((value,i)=>value<appearance.physical[i]-10 && value>220),'Digital cards use a restrained tint instead of inverse white/black');
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');
         await page.screenshot({path:'/tmp/jtd-card-surface-'+view+'-'+width+'-'+theme+'.png'});
       }
-      await page.evaluate(()=>openModal('base'));
+      await page.evaluate(()=>{state.media='digital';state.accountId='jp';buildPlatformList();render();openModal('base');});
       await page.locator('#f-context-summary .context-edit-btn').click();
       assert.equal(await page.locator('#f-account').isVisible(),true);
       assert.equal(await page.locator('#modal-overlay #f-account-identity, #modal-overlay #f-manage-accounts').count(),0,'Editor contains only the account choice');
