@@ -1,12 +1,11 @@
 /* Collection formats: keep REGAL's open cards and horizontal artwork. */
-:root { --content-green:#366a48; --content-green-strong:#427652; --content-green-on:#fff; }
-:root[data-theme="dark"] { --content-green:#a4d5ae; --content-green-strong:#315b40; --content-green-on:#edf8ef; }
+:root { --content-green:#366a48; }
+:root[data-theme="dark"] { --content-green:#a4d5ae; }
 .collection-media-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:3px; padding:4px; border:1px solid var(--hairline); border-radius:10px; background:var(--surface-raised); }
 .collection-media-tabs button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-width:0; min-height:52px; padding:7px 2px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--muted); font-size:11px; cursor:pointer; }
 .collection-media-tabs button[aria-pressed="true"] { color:var(--text); background:var(--surface); border-color:var(--hairline); box-shadow:none; }
 .collection-media-tabs svg,.card-media-mark svg,.card-dlc-count svg,.content-format-summary svg,.content-purchase-link svg { width:16px; height:16px; flex-shrink:0; }
 #collection-account-field { margin-top:0; }
-#collection-account { width:100%; max-width:100%; min-width:0; min-height:40px; padding:8px 10px; border:1px solid var(--hairline); border-radius:7px; background:var(--surface); color:var(--text); font-size:12px; }
 .collection-filter-context { display:flex; align-items:center; gap:6px; margin-top:5px; font-size:12px; font-weight:400; opacity:.85; overflow-wrap:anywhere; }
 .collection-filter-context svg,.collection-context-media svg { width:14px; height:14px; flex-shrink:0; }
 .collection-context-labels { display:flex; flex:1; flex-direction:column; gap:2px; min-width:0; }
@@ -15,10 +14,13 @@
 .card-media-mark,.card-dlc-count { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
 .card-dlc-count { color:var(--content-green); }
 .card-console-account { display:inline-flex; min-width:0; max-width:100%; color:var(--muted); font-size:10.5px; }
-#page-collection .dlc-card .card-banner { position:relative; background:var(--content-green-strong); }
-.dlc-label { position:absolute; bottom:0; left:0; right:0; z-index:3; display:flex; align-items:center; justify-content:center; gap:7px; padding:7px 9px; background:var(--content-green-strong); color:var(--content-green-on); font-size:12px; font-weight:600; letter-spacing:.08em; }
-.dlc-label svg { width:16px; height:16px; }
-.dlc-placeholder { position:absolute; inset:0 0 27px; display:flex; align-items:center; justify-content:center; color:var(--content-green-on); }
+#page-collection .dlc-card { --content-band:#386343; --content-band-text:#fff; }
+#page-collection .upgrade-card { --content-band:#275e8b; }
+#page-collection .dlc-card .card-banner { position:relative; background:var(--content-band); }
+.dlc-label { position:absolute; bottom:0; left:0; right:0; z-index:3; display:flex; align-items:center; justify-content:center; gap:5px; min-height:20px; box-sizing:border-box; padding:3px 6px; background:var(--content-band); color:var(--content-band-text); font-size:11px; line-height:14px; font-weight:600; letter-spacing:.02em; }
+.dlc-label svg { width:12px; height:12px; flex-shrink:0; }
+.dlc-label > span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.dlc-placeholder { position:absolute; inset:0 0 20px; display:flex; align-items:center; justify-content:center; color:var(--content-band-text); }
 .dlc-placeholder svg { width:30px; height:30px; }
 #modal-overlay.game-sheet-viewing #f-media-section { display:none; }
 .content-format-summary { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; margin-bottom:12px; }
@@ -44,16 +46,14 @@
 .card-console-account .console-avatar { width:15px; height:15px; flex-basis:15px; font-size:8px; background:transparent; }
 .card-console-account .console-account-identity { gap:4px; }
 
-#collection-account-picker summary { display:flex; align-items:center; gap:7px; list-style:none; cursor:pointer; color:var(--muted); font-size:12px; min-height:44px; padding:0 10px; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
-#collection-account-picker summary::-webkit-details-marker { display:none; }
-#collection-account-picker summary::after { content:'⌄'; margin-left:auto; }
-#collection-account-summary { display:flex; align-items:center; gap:7px; min-width:0; }
-.account-all-icon svg { width:17px; height:17px; }
-.console-account-option { display:flex; flex-direction:column; align-items:flex-start; gap:4px; width:100%; min-height:44px; padding:9px 6px; border:0; border-radius:7px; text-align:left; color:var(--text); background:transparent; cursor:pointer; font:inherit; }
-.console-account-option[aria-pressed="true"] { background:color-mix(in srgb,var(--accent) 8%,transparent); }
+.account-all-icon { display:inline-flex; align-items:center; justify-content:center; width:18px; flex:0 0 18px; }
+.account-all-icon svg { width:18px; height:18px; }
+.console-account-option { width:100%; min-width:0; background:transparent; text-align:left; --spine:var(--accent); }
+.console-account-option .console-account-identity { flex:1; }
+.console-account-option .console-avatar { width:18px; height:18px; flex-basis:18px; font-size:8px; }
+.console-account-option .console-account-name { font-size:inherit; }
+#collection-account-options { display:flex; flex-direction:column; gap:2px; }
 #collection-manage-accounts { margin:0; }
-#f-account-identity { display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; margin-bottom:10px; }
-#f-account-identity small { color:var(--muted); font-size:11px; }
 .digital-account-heading { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
 .digital-account-avatar-preview .console-avatar { width:42px; height:42px; flex-basis:42px; font-size:14px; }
 .avatar-file-label { display:inline-flex; position:relative; align-items:center; min-height:36px; color:var(--accent); font-size:12px; cursor:pointer; overflow:hidden; }
@@ -75,9 +75,6 @@
   .content-purchase-link > .content-related-identity { grid-template-columns:64px minmax(0,1fr); gap:7px; }
   .content-related-thumb { width:64px; height:36px; }
   .content-related-price { white-space:normal; max-width:70px; text-align:right; }
-  .dlc-label { font-size:11px; padding:4px; gap:4px; }
-  .dlc-label svg { width:13px; height:13px; }
-  .dlc-placeholder { inset:0 0 22px; }
   .dlc-placeholder svg { width:20px; height:20px; }
 }
 

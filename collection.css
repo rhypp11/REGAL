@@ -126,10 +126,13 @@
   .collection-context-filters { display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 36px; border:1px solid currentColor; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
 }
 #page-collection .grid { gap:24px 18px; }
+/* Physique : silhouette de boîte ; numérique : coins plus arrondis. */
+#page-collection .card.digital-game { --collection-card-radius:20px; border-left-width:1px; }
 #page-collection .card {
   padding:12px;
   border:1px solid color-mix(in srgb,var(--ui-border) 55%,transparent);
-  border-radius:12px;
+  border-left-width:6px;
+  border-radius:var(--collection-card-radius,4px);
   background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
   box-shadow:none;
   overflow:visible;
@@ -147,6 +150,7 @@
   background:var(--ui-surface-raised);
 }
 #page-collection .card-banner::after { content:none; }
+#page-collection .card-banner .card-fallback { color:var(--ui-text-muted); }
 #page-collection .card-body { padding:12px 2px 2px; gap:var(--ui-space-2); }
 #page-collection .card-name {
   align-items:flex-start;

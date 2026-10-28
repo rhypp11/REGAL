@@ -23,8 +23,8 @@
 <link rel="stylesheet" href="ui-foundations.css?v=surfaces-11">
 <link rel="stylesheet" href="regal.css?v=surfaces-11">
 <link rel="stylesheet" href="game-sheet.css?v=surfaces-11">
-<link rel="stylesheet" href="collection.css?v=cleanup-15">
-<link rel="stylesheet" href="digital.css?v=cleanup-15">
+<link rel="stylesheet" href="collection.css?v=consolidation-20">
+<link rel="stylesheet" href="digital.css?v=consolidation-20">
 <link rel="stylesheet" href="deku-import.css?v=1">
 </head>
 <body>
@@ -356,7 +356,7 @@
       <div class="format-toggles" id="format-toggles"></div>
     </div>
 
-      <div class="side-section" id="collection-account-field"><div class="side-label-row"><span class="side-label">Compte</span><button type="button" class="icon-link-btn" id="collection-manage-accounts" title="Gérer les comptes" aria-label="Gérer les comptes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button></div><details id="collection-account-picker"><summary><span id="collection-account-summary">Tous les comptes</span></summary><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div></details><select id="collection-account" aria-label="Filtrer par compte console" class="hidden" aria-hidden="true" tabindex="-1"></select></div>
+      <div class="side-section" id="collection-account-field"><div class="side-label-row"><span class="side-label">Compte</span><button type="button" class="icon-link-btn" id="collection-manage-accounts" title="Gérer les comptes" aria-label="Gérer les comptes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button></div><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div></div>
     <div class="side-section" id="content-filter-section"><div class="side-label">Contenu</div><div class="content-type-options" id="content-type-options" role="group" aria-label="Type de contenu"></div></div>
 
     <div class="side-section side-section-status">
@@ -473,7 +473,7 @@
       </div>
       <div class="field" id="f-source-field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
       <div id="f-purchase-digital-fields" class="hidden">
-        <div class="field-row"><div class="field"><label for="f-account">Compte</label><select id="f-account"></select></div><div class="field"><label for="f-currency">Devise</label><select id="f-currency"><option value="EUR">Euro (€)</option><option value="JPY">Yen (¥)</option><option value="USD">Dollar ($)</option><option value="GBP">Livre (£)</option></select></div></div><div id="f-account-identity"></div>
+        <div class="field-row"><div class="field"><label for="f-account">Compte</label><select id="f-account"></select></div><div class="field"><label for="f-currency">Devise</label><select id="f-currency"><option value="EUR">Euro (€)</option><option value="JPY">Yen (¥)</option><option value="USD">Dollar ($)</option><option value="GBP">Livre (£)</option></select></div></div>
 
       </div>
       </div>
@@ -609,15 +609,15 @@
 <div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
 <div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>
 </div></div>
-<script src="jtd-data.js?v=content-toggle-14"></script>
+<script src="jtd-data.js?v=consolidation-20"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=cleanup-15"></script>
-<script src="app.js?v=content-toggle-14"></script>
+<script src="digital.js?v=consolidation-20"></script>
+<script src="app.js?v=consolidation-20"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
-<script src="lifecycle.js?v=collection-1"></script>
+<script src="lifecycle.js?v=consolidation-20"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
     const firebaseScript = document.createElement('script');
