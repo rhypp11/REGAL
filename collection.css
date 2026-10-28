@@ -127,12 +127,12 @@
 }
 #page-collection .grid { gap:24px 18px; }
 /* Seul le numérique se distingue ; les achats physiques gardent leur surface. */
-#page-collection .card.digital-game { --collection-card-surface:#e5eaec; }
+#page-collection .card.digital-game { --collection-card-surface:#ececed; }
 :root:not([data-theme="dark"]) #page-collection .card.digital-game {
   --muted:#596b73;
   --ui-text-muted:var(--muted);
 }
-[data-theme="dark"] #page-collection .card.digital-game { --collection-card-surface:#363e42; }
+[data-theme="dark"] #page-collection .card.digital-game { --collection-card-surface:#303234; }
 #page-collection .card {
   padding:12px;
   border:1px solid color-mix(in srgb,var(--ui-border) 55%,transparent);
