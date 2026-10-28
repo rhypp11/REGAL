@@ -20,7 +20,7 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly([
           'version', 'publishedAt', 'games', 'wishlist', 'arrivals', 'cemetery'
         ])
-        && request.resource.data.version == 2
+        && request.resource.data.version in [2, 3]
         && request.resource.data.publishedAt is int
         && request.resource.data.games is list
         && request.resource.data.wishlist is list
