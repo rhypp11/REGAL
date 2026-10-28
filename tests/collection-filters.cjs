@@ -64,7 +64,9 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       for(const view of ['cards','gallery','list']){
         await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
         const appearance=await page.evaluate(()=>{
-          const rgb=value=>value.match(/[\\d.]+/g).slice(0,3).map(Number);
+          const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+          const ctx=canvas.getContext('2d');
+          const rgb=value=>{ctx.clearRect(0,0,1,1);ctx.fillStyle=value;ctx.fillRect(0,0,1,1);return [...ctx.getImageData(0,0,1,1).data].slice(0,3);};
           const luminance=value=>rgb(value).map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
           const card=document.querySelector('[data-dialog-trigger="game:base"]'),background=getComputedStyle(card).backgroundColor;
           const bg=luminance(background);
