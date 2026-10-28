@@ -240,7 +240,7 @@
 @media(min-width:821px) {
   #collection-sidebar { background:var(--ui-sidebar); padding:18px 14px; border-right:1px solid var(--ui-border); }
 }
-#collection-sidebar .side-section { padding:14px 10px; margin:0 0 12px; border:1px solid var(--ui-border); border-radius:10px; background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas))); }
+#collection-sidebar .side-section { padding:14px 10px; margin:0 0 12px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-surface); }
 #collection-sidebar .collection-media-controls { padding:4px; }
 #collection-sidebar .side-label { font-size:12px; font-weight:650; color:var(--ui-text); text-transform:none; letter-spacing:0; }
 #collection-sidebar .side-label-row { margin-bottom:10px; }
