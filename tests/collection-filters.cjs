@@ -59,7 +59,38 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await types(page,'game','dlc');
       assert.deepEqual(await cards(page),['game:base']);assert.equal(await stat(page,'games'),1,'Search excludes nonmatching explicit rows');
       await page.evaluate(()=>{state.search='';render();});
+
+      await types(page,'game','dlc','upgrade');
+      for(const view of ['cards','gallery','list']){
+        await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
+        const appearance=await page.evaluate(()=>{
+          const rgb=value=>value.match(/[\\d.]+/g).slice(0,3).map(Number);
+          const luminance=value=>rgb(value).map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((sum,x,i)=>sum+x*[.2126,.7152,.0722][i],0);
+          const card=document.querySelector('[data-dialog-trigger="game:base"]'),background=getComputedStyle(card).backgroundColor;
+          const bg=luminance(background);
+          const contrasts=[...card.querySelectorAll('.card-name,.card-platform,.card-status-badge,.card-list-details dd')].filter(el=>el.getClientRects().length).map(el=>{
+            const fg=luminance(getComputedStyle(el).color);return (Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05);
+          });
+          const dlc=document.querySelector('[data-dialog-trigger="game:dlc"] .dlc-label'),upgrade=document.querySelector('.upgrade-card .dlc-label');
+          return {background:rgb(background),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
+        });
+        assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
+        assert.ok(theme==='dark'?appearance.background.every(value=>value>230):appearance.background.every(value=>value<60));
+        assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
+        assert.ok(appearance.dlc[1]>appearance.dlc[0]);
+        assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');
+        await page.screenshot({path:'/tmp/jtd-card-surface-'+view+'-'+width+'-'+theme+'.png'});
+      }
+      await page.evaluate(()=>openModal('base'));
+      await page.locator('#f-context-summary .context-edit-btn').click();
+      assert.equal(await page.locator('#f-account').isVisible(),true);
+      assert.equal(await page.locator('#modal-overlay #f-account-identity, #modal-overlay #f-manage-accounts').count(),0,'Editor contains only the account choice');
+      assert.equal(await page.locator('#modal-overlay').getByRole('button',{name:/Gérer les comptes/}).count(),0);
+      await page.screenshot({path:'/tmp/jtd-purchase-account-'+width+'-'+theme+'.png'});
+      await page.locator('#cancel-btn').click();
+      await types(page,'game','dlc');
       await drawer(page);
+      await page.waitForFunction(()=>!matchMedia('(max-width:820px)').matches || Math.abs(document.getElementById('collection-sidebar').getBoundingClientRect().left)<1);
       assert.equal(await page.locator('#collection-account-options button').count(),3);
       assert.equal(await page.locator('#collection-account-picker, #collection-account').count(),0);
       assert.equal(await page.locator('[data-account=""] .account-all-icon svg circle').count(),1);

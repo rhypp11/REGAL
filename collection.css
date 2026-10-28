@@ -126,11 +126,49 @@
   .collection-context-filters { display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 36px; border:1px solid currentColor; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
 }
 #page-collection .grid { gap:24px 18px; }
+/* Les cartes contrastent avec le canevas et emportent leur palette de lecture. */
+#page-collection .card {
+  --ui-surface:#252a2d;
+  --ui-surface-raised:#343b40;
+  --ui-text:#f2f4f4;
+  --ui-text-muted:#b9c2c7;
+  --ui-border:#465158;
+  --ui-accent:#8bd0dc;
+  --status-todo:#F1D49F;
+  --status-multi:#CAB7F0;
+  --status-done:#B4D4A3;
+  --status-elsewhere:#A8C9EA;
+  --content-green:#b6d9c0;
+  --amber:#f0cb8e;
+  --surface:var(--ui-surface);
+  --surface-raised:var(--ui-surface-raised);
+  --text:var(--ui-text);
+  --muted:var(--ui-text-muted);
+  --hairline:var(--ui-border);
+  --accent:var(--ui-accent);
+  color:var(--ui-text);
+  color-scheme:dark;
+}
+[data-theme="dark"] #page-collection .card {
+  --ui-surface:#f7f8f8;
+  --ui-surface-raised:#e9edef;
+  --ui-text:#20272a;
+  --ui-text-muted:#59656b;
+  --ui-border:#cdd4d7;
+  --ui-accent:#226879;
+  --status-todo:#805211;
+  --status-multi:#594082;
+  --status-done:#35582D;
+  --status-elsewhere:#325D84;
+  --content-green:#366a48;
+  --amber:#805211;
+  color-scheme:light;
+}
 #page-collection .card {
   padding:12px;
   border:1px solid color-mix(in srgb,var(--ui-border) 55%,transparent);
   border-radius:12px;
-  background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
+  background:var(--ui-surface);
   box-shadow:none;
   overflow:visible;
   transition:border-color var(--ui-transition-fast),background var(--ui-transition-fast);
@@ -138,7 +176,7 @@
 #page-collection .card:hover {
   transform:none;
   border-color:color-mix(in srgb,var(--ui-accent) 24%,var(--ui-border));
-  background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
+  background:var(--ui-surface);
   box-shadow:none;
 }
 #page-collection .card-banner {

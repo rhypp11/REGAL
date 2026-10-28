@@ -136,12 +136,13 @@ function decorateDigitalCard(card, game, options){
   const digital = JTDData.isDigital(game), dlc = JTDData.isAddon(game);
   card.classList.toggle('digital-game',digital);
   card.classList.toggle('dlc-card',dlc);
+  card.classList.toggle('upgrade-card',digital && game.contentType === 'upgrade');
   card.dataset.media = digital ? 'digital' : 'physical';
   if(dlc){
     if(game.contentType==='upgrade')card.querySelector('.card-status-control')?.remove();
     const banner = card.querySelector('.card-banner');
     // Keep the supplied artwork, with a visible DLC label even when no image is available.
-    banner.insertAdjacentHTML('beforeend','<span class="dlc-label">'+contentIcon(game)+'<span>'+contentKind(game)+'</span></span>');
+    banner.insertAdjacentHTML('beforeend','<span class="dlc-label" title="'+escapeHTML(contentKind(game))+'">'+contentIcon(game)+'<span>'+contentKind(game)+'</span></span>');
     if(!game.image){
       banner.classList.remove('placeholder');
       banner.querySelector('.card-fallback')?.remove();
@@ -183,13 +184,6 @@ function populateDigitalAccounts(selected, chooseDefault = false){
   const select = document.getElementById('f-account');
   select.innerHTML = '<option value="">Non renseigné</option>'+accounts.map(a=>'<option value="'+escapeHTML(a.id)+'">'+escapeHTML((a.nickname || a.name)+(a.region?' · '+a.region:''))+'</option>').join('');
   select.value = selected && accounts.some(a=>a.id === selected) ? selected : chooseDefault ? (accounts.find(a=>a.preferred)?.id || accounts[0]?.id || '') : '';
-  renderFormAccountIdentity();
-}
-function renderFormAccountIdentity(){
-  const account = DIGITAL_ACCOUNTS.find(a=>a.id === document.getElementById('f-account').value);
-  const container = document.getElementById('f-account-identity');
-  container.innerHTML = account ? accountIdentityHtml(account)+'<small>'+escapeHTML([account.ecosystem,account.region].filter(Boolean).join(' · '))+'</small>' : '';
-  bindAvatarFallbacks(container);
 }
 function populateParentGames(selected){
   const value=document.getElementById('f-parent');
@@ -419,7 +413,7 @@ function initDigitalControls(){
   };
   document.getElementById('collection-manage-accounts').onclick=openDigitalAccounts;
   for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
-  document.getElementById('f-account').addEventListener('change',()=>{setGameSheetViewing(false);renderFormAccountIdentity();});
+  document.getElementById('f-account').addEventListener('change',()=>setGameSheetViewing(false));
   document.getElementById('f-parent-enabled').onchange=()=>{
     setGameSheetViewing(false);
     updateParentAttachment();
