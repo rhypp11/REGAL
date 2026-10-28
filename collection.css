@@ -131,6 +131,7 @@
   --ui-surface:#252a2d;
   --ui-surface-raised:#343b40;
   --ui-text:#f2f4f4;
+  --ui-rgb:242,244,244;
   --ui-text-muted:#b9c2c7;
   --ui-border:#465158;
   --ui-accent:#8bd0dc;
@@ -153,6 +154,7 @@
   --ui-surface:#f7f8f8;
   --ui-surface-raised:#e9edef;
   --ui-text:#20272a;
+  --ui-rgb:32,39,42;
   --ui-text-muted:#59656b;
   --ui-border:#cdd4d7;
   --ui-accent:#226879;
@@ -185,6 +187,7 @@
   background:var(--ui-surface-raised);
 }
 #page-collection .card-banner::after { content:none; }
+#page-collection .card-banner .card-fallback { color:var(--ui-text-muted); }
 #page-collection .card-body { padding:12px 2px 2px; gap:var(--ui-space-2); }
 #page-collection .card-name {
   align-items:flex-start;
