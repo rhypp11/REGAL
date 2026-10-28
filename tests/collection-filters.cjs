@@ -76,11 +76,14 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
             const fg=luminance(getComputedStyle(el).color);return (Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05);
           });
           const dlc=document.querySelector('[data-dialog-trigger="game:dlc"] .dlc-label'),upgrade=document.querySelector('.upgrade-card .dlc-label');
-          return {background:rgb(background),physical:rgb(getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).backgroundColor),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
+          return {radius:getComputedStyle(card).borderTopLeftRadius,physicalRadius:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderTopLeftRadius,borderStyle:getComputedStyle(card).borderTopStyle,background:rgb(background),physical:rgb(getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).backgroundColor),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
         });
         assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
         assert.ok(theme==='dark'?appearance.physical.every(value=>value<40):appearance.physical.every(value=>value>240),'Physical cards retain the base surface');
-        assert.ok(theme==='dark'?appearance.background.every((value,i)=>value>appearance.physical[i]+15 && value<90):appearance.background.every((value,i)=>value<appearance.physical[i]-10 && value>220),'Digital cards use a restrained tint instead of inverse white/black');
+        assert.deepEqual(appearance.background,appearance.physical,'Both formats share the same surface');
+        assert.equal(appearance.radius,'20px','Digital cards have round corners in every view');
+        assert.equal(appearance.physicalRadius,'4px','Physical cards keep box-like corners');
+        assert.equal(appearance.borderStyle,'solid','No dashed decoration');
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');

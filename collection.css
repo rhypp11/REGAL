@@ -126,18 +126,13 @@
   .collection-context-filters { display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 36px; border:1px solid currentColor; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
 }
 #page-collection .grid { gap:24px 18px; }
-/* Seul le numérique se distingue ; les achats physiques gardent leur surface. */
-#page-collection .card.digital-game { --collection-card-surface:#ececed; }
-:root:not([data-theme="dark"]) #page-collection .card.digital-game {
-  --muted:#596b73;
-  --ui-text-muted:var(--muted);
-}
-[data-theme="dark"] #page-collection .card.digital-game { --collection-card-surface:#303234; }
+/* Physique : silhouette de boîte ; numérique : coins plus arrondis. */
+#page-collection .card.digital-game { --collection-card-radius:20px; }
 #page-collection .card {
   padding:12px;
   border:1px solid color-mix(in srgb,var(--ui-border) 55%,transparent);
-  border-radius:12px;
-  background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas)));
+  border-radius:var(--collection-card-radius,4px);
+  background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
   box-shadow:none;
   overflow:visible;
   transition:border-color var(--ui-transition-fast),background var(--ui-transition-fast);
@@ -145,7 +140,7 @@
 #page-collection .card:hover {
   transform:none;
   border-color:color-mix(in srgb,var(--ui-accent) 24%,var(--ui-border));
-  background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas)));
+  background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
   box-shadow:none;
 }
 #page-collection .card-banner {
