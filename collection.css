@@ -7,7 +7,7 @@
   font-size:var(--ui-text-md);
   border:1px solid var(--ui-border);
   border-radius:10px;
-  background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas)));
+  background:var(--ui-surface);
   color:var(--ui-text);
   box-shadow:none;
 }
@@ -58,7 +58,7 @@
 }
 #page-collection .platform-banner .page-filter-toggle { background:transparent; color:inherit; border-color:currentColor; }
 #page-collection .platform-banner-stats { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); grid-template-rows:auto auto; align-items:stretch; gap:12px; margin:0; padding:4px 16px 16px; }
-#page-collection .library-stat-group { min-width:0; padding:14px; border:1px solid var(--ui-border); border-radius:10px; background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas))); }
+#page-collection .library-stat-group { min-width:0; padding:14px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-surface); }
 #page-collection .library-stat-group h3 { margin:0 0 12px; font-size:12px; font-weight:650; color:var(--ui-text); }
 #page-collection .library-stat-values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px 8px; }
 #page-collection .library-stat { display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0; color:var(--ui-text-muted); font-size:11px; line-height:1.5; }
@@ -266,7 +266,7 @@
 .collection-display-row .results-bar { margin:0; min-width:0; flex:1; }
 .collection-view-switch { display:flex; gap:2px; flex-shrink:0; }
 .collection-view-switch button { display:grid; place-items:center; width:36px; height:36px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--ui-text-muted); cursor:pointer; }
-.collection-view-switch button[aria-pressed="true"] { border-color:var(--ui-border); background:var(--collection-card-surface,color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas))); color:var(--ui-text); }
+.collection-view-switch button[aria-pressed="true"] { border-color:var(--ui-border); background:var(--ui-surface); color:var(--ui-text); }
 .collection-view-switch svg { width:16px; height:16px; }
 #page-collection #grid[data-view="list"] { display:flex; flex-direction:column; gap:6px; }
 #page-collection #grid[data-view="list"] .card { display:flex; flex-direction:row; align-items:flex-start; width:100%; max-width:none; margin:0; gap:16px; padding:14px; }
