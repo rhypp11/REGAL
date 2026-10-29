@@ -2,11 +2,11 @@
 .profile-maintenance { border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); margin:6px 0; }
 .profile-maintenance summary { padding:12px; color:var(--muted); font-size:12px; cursor:pointer; }
 .profile-maintenance .profile-menu-sub { font-size:11px; }
-.topnav .profile-menu { width:min(330px,calc(100vw - 24px)); padding:10px; border:1px solid var(--hairline); border-radius:14px; box-shadow:0 16px 40px #0003; }
-.profile-menu .profile-menu-item { min-height:44px; padding:11px 10px; border-radius:8px; }
+.topnav .profile-menu { width:min(330px,calc(100vw - 24px)); padding:10px; border:1px solid var(--hairline); border-radius:22px; background:var(--ui-material-fill); -webkit-backdrop-filter:blur(18px) saturate(115%); backdrop-filter:blur(18px) saturate(115%); box-shadow:var(--ui-edge-highlight),var(--ui-floating-shadow); }
+.profile-menu .profile-menu-item { min-height:44px; padding:11px 10px; border-radius:12px; }
 .profile-menu .profile-menu-item:hover { background:var(--surface-raised); }
 .profile-menu .profile-menu-sub { line-height:1.45; }
-.topnav { position:sticky; top:0; background:#195e70; border-color:#195e70; color:#fff; }
+.topnav { position:sticky; top:0; background:#195e70; background-image:linear-gradient(#ffffff08,#00000005); border-color:#195e70; color:#fff; box-shadow:inset 0 1px 0 #ffffff12,0 1px 12px #0000000c; }
 .topnav .brand-word.regal-logo { display:block; width:140px; height:42px; object-fit:contain; }
 .topnav .nav-tab { color:#d7e9ed; }
 .topnav .nav-tab:hover,.topnav .nav-tab.active { color:#fff; background:#ffffff20; }
@@ -14,10 +14,11 @@
 .topnav .topnav-nav {
   gap:3px;
   padding:4px;
-  border-radius:14px;
-  background:#0b344535;
+  border-radius:22px;
+  background:#0b344525;
+  box-shadow:inset 0 1px 2px #0000000c;
 }
-.topnav .topnav-nav .nav-tab { border-radius:10px; color:#d7e9ed; }
+.topnav .topnav-nav .nav-tab { border-radius:18px; color:#d7e9ed; }
 .topnav .topnav-nav .nav-tab:hover { background:#ffffff12; }
 .topnav .topnav-nav .nav-tab.active {
   color:#fff;
@@ -53,3 +54,7 @@
   .topnav .topnav-nav .nav-tab { grid-row:auto; height:44px; min-height:44px; margin:0; padding:4px; align-self:stretch; border:0; }
 }
 
+
+@media(prefers-reduced-transparency:reduce) {
+  .topnav .profile-menu { background:var(--ui-surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+}

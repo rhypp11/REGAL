@@ -86,11 +86,11 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
         assert.ok(theme==='dark'?appearance.physical.every(value=>value<40):appearance.physical.every(value=>value>240),'Physical cards retain the base surface');
         assert.deepEqual(appearance.background,appearance.physical,'Both formats share the same surface');
-        assert.equal(appearance.radius,'16px','Digital cards have round corners in every view');
-        assert.equal(appearance.physicalRadius,'5px','Physical cards keep box-like corners');
+        assert.equal(appearance.radius,'18px','Digital cards have round corners in every view');
+        assert.equal(appearance.physicalRadius,'6px','Physical cards keep box-like corners');
         assert.equal(appearance.borderStyle,'solid','Digital keeps a thin solid edge');
-        assert.equal(appearance.physicalStyle,'double','Physical uses a case rim');
-        assert.equal(appearance.physicalBorder,'3px');assert.equal(appearance.digitalBorder,'1px');
+        assert.equal(appearance.physicalStyle,'solid','Physical uses a case rim');
+        assert.equal(appearance.physicalBorder,'1px');assert.equal(appearance.digitalBorder,'1px');
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');

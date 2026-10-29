@@ -22,9 +22,9 @@
   --ui-space-8:32px;
   --ui-radius-xs:4px;
   --ui-radius-sm:7px;
-  --ui-radius-md:5px;
-  --ui-radius-lg:7px;
-  --ui-radius-xl:10px;
+  --ui-radius-md:12px;
+  --ui-radius-lg:18px;
+  --ui-radius-xl:22px;
   --ui-radius-pill:999px;
   --ui-sidebar-width:260px;
   --ui-page-gutter:28px;
@@ -53,8 +53,17 @@
   --ui-text:var(--text);
   --ui-text-muted:var(--muted);
   --ui-accent:var(--accent);
+  --ui-panel-shadow:0 3px 16px #1c263008;
+  --ui-floating-shadow:0 18px 56px #17212c22;
+  --ui-edge-highlight:inset 0 1px 0 #ffffffa0;
+  --ui-material-fill:color-mix(in srgb,var(--surface) 94%,transparent);
 }
 
+:root[data-theme="dark"] {
+  --ui-panel-shadow:0 4px 18px #00000020;
+  --ui-floating-shadow:0 20px 64px #00000070;
+  --ui-edge-highlight:inset 0 1px 0 #ffffff0c;
+}
 button,input,select,textarea { font-family:var(--ui-font-sans); }
 /* Native popup menus must use the selected site theme, including on Windows. */
 select { color-scheme:inherit; }
@@ -231,3 +240,22 @@ select option,select optgroup { color:var(--text); background-color:var(--surfac
 .image-fit-field option { color:var(--text); background-color:var(--surface); }
 
 
+
+/* Une surface stable pour le contenu, une matière légère pour les commandes flottantes. */
+:is(.ui-panel,.home-stat-section) { box-shadow:var(--ui-edge-highlight),var(--ui-panel-shadow); }
+:is(.profile-menu,.card-status-menu,.icon-select-menu) {
+  background:var(--ui-material-fill);
+  -webkit-backdrop-filter:blur(18px) saturate(115%);
+  backdrop-filter:blur(18px) saturate(115%);
+  box-shadow:var(--ui-edge-highlight),var(--ui-floating-shadow);
+}
+@media(prefers-reduced-transparency:reduce) {
+  :is(.profile-menu,.card-status-menu,.icon-select-menu) {
+    background:var(--ui-surface);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+@media(forced-colors:active) {
+  :is(.card,.ui-panel,.profile-menu,.modal) { box-shadow:none; border-color:CanvasText; }
+}
