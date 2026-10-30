@@ -138,6 +138,30 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await drawer(page);await page.locator('[data-account="jp"]').press('Enter');
       assert.deepEqual((await cards(page)).sort(),['game:base','game:dlc']);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+
+      // Reproduce the hosted demo collector conversion with its floating-point price.
+      await page.evaluate(()=>{
+        applyRestoredData(JTDData.normalizeData({games:[{id:'conversion',nom:'Chroniques du rivage 5 — Démo',plateforme:'Switch 2',format:'Physique',collector:true,japanese:true,prix:19.99+40,status:'termine',date:'2026-10-15',source:'Boutique démo'}]}));
+        openModal('conversion');
+      });
+      await page.locator('#f-identity-summary .identity-edit-btn').click();
+      await page.locator('#f-media').selectOption('digital');
+      await page.locator('#save-btn').click();
+      assert.equal(await page.locator('#modal-overlay').isVisible(),false,'Changing only format must save and close');
+      let converted=await page.evaluate(()=>GAMES.find(g=>g.id==='conversion'));
+      assert.equal(converted.format,'Numérique');assert.equal(converted.prix,59.99);
+      assert.equal(converted.collector,false);assert.equal(converted.japanese,false);
+      assert.equal(converted.status,'termine');assert.equal(converted.date,'2026-10-15');
+      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='conversion').format),'Numérique');
+      await page.evaluate(()=>{openModal('conversion');setGameSheetViewing(false);document.getElementById('f-prix').value='12,345';});
+      await page.locator('#save-btn').click();
+      assert.equal(await page.locator('#f-context-editor').isVisible(),true,'Purchase validation reveals its folded editor');
+      assert.equal(await page.locator('#f-prix').getAttribute('aria-invalid'),'true');
+      assert.equal(await page.locator('#f-prix-error').isVisible(),true);
+      await page.locator('#f-prix').fill('12,34');await page.locator('#save-btn').click();
+      assert.equal(await page.locator('#modal-overlay').isVisible(),false);
+      assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='conversion').prix),12.34);
       assert.deepEqual(errors,[]);
       await context.close();console.log('PASS collection filters',width,theme);
     }

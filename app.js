@@ -67,7 +67,7 @@ function buildPreviewCollectionDemo(){
     nom:titles[i % titles.length] + ' ' + (Math.floor(i / titles.length) + 1) + ' — Démo',
     plateforme:i < 48 ? 'Switch 2' : i < 64 ? 'PlayStation 5' : 'PlayStation 4',
     format:'Physique', collector:i % 7 === 0, japanese:i % 11 === 0,
-    prix:i % 9 === 0 ? null : 19.99 + (i % 5) * 10,
+    prix:i % 9 === 0 ? null : (1999 + (i % 5) * 1000) / 100,
     date:i % 8 === 0 ? null : '2026-' + String(i % 10 + 1).padStart(2,'0') + '-15',
     source:i % 3 === 0 ? 'Boutique démo' : 'Enseigne démo',
     status:statuses[i % statuses.length], image:new URL('preview-assets/'+['garden','lighthouse','mountains'][i % 3]+'.svg',location.href).href
@@ -1538,7 +1538,7 @@ function openModal(id, collection = 'games'){
     setSelectValueAndSync('f-plateforme', g.plateforme);
     document.getElementById('f-collector').checked = !!g.collector;
   document.getElementById('f-japanese').checked = !!g.japanese;
-    document.getElementById('f-prix').value = g.prix != null ? String(g.prix).replace('.',',') : '';
+    document.getElementById('f-prix').value = g.prix != null ? Number(g.prix).toFixed(g.currency === 'JPY' ? 0 : 2).replace('.',',') : '';
     document.getElementById('f-date').value = g.date || '';
     document.getElementById('f-source').value = g.source || '';
     document.getElementById('f-image').value = g.image || '';
