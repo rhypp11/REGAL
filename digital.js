@@ -34,28 +34,36 @@ function matchesCollectionStatus(game){
   const status = getEffectiveStatus(game);
   return isPlayablePurchase(game) && (state.status === '__none__' ? !status : status === state.status);
 }
-function collectionPlayablePurchases(cards){
-  const result = new Map();
+// Count purchases represented by the cards, including only children actually grouped here.
+function collectionPurchases(cards, {ignorePlatform = false, search = state.search || ''} = {}){
+  const purchases = new Map(cards.map(game => [game.id,game]));
   const types = selectedContentTypes();
+  if(types.length) return [...purchases.values()];
+  const query = search.trim().toLocaleLowerCase('fr');
   for(const game of cards){
-    if(isPlayablePurchase(game)) result.set(game.id,game);
-    if(state.media === 'physical') continue;
+    if(!JTDData.isDigital(game)) continue;
     for(const child of gameContents(game)){
-      const matchesScope = (!state.accountId || child.accountId === state.accountId)
-        && (!state.platform || child.plateforme === state.platform)
-        && (!types.length || types.includes(child.contentType));
-      if(isPlayablePurchase(child) && matchesScope && matchesCollectionStatus(child)) result.set(child.id,child);
+      if(child.plateforme !== game.plateforme) continue;
+      if(state.accountId && child.accountId !== state.accountId) continue;
+      if(!ignorePlatform && state.platform && child.plateforme !== state.platform) continue;
+      if(types.length && !types.includes(child.contentType)) continue;
+      if(!matchesCollectionStatus(child)) continue;
+      if(query && !game.nom.toLocaleLowerCase('fr').includes(query) && !child.nom.toLocaleLowerCase('fr').includes(query)) continue;
+      purchases.set(child.id,child);
     }
   }
-  return [...result.values()];
+  return [...purchases.values()];
+}
+function collectionPlayablePurchases(cards){
+  return collectionPurchases(cards).filter(isPlayablePurchase);
 }
 function collectionScope(){
-  return collectionCardsForFilters();
+  return collectionPurchases(collectionCardsForFilters(),{ignorePlatform:true,search:''});
 }
 function collectionCardsForFilters(search = ''){
   const types=selectedContentTypes();
   const source = types.length ? GAMES.filter(g=>types.includes(g.contentType || 'game')) : GAMES;
-  return JTDData.collectionCards(source.filter(matchesCollectionStatus),state.media || 'physical',state.media === 'physical' ? null : state.accountId,search);
+  return JTDData.collectionCards(source.filter(matchesCollectionStatus),state.media || 'physical',state.media === 'physical' ? null : state.accountId,search,!types.length);
 }
 function accountName(id){ const account = DIGITAL_ACCOUNTS.find(a => a.id === id); return account?.nickname || account?.name || 'Compte non renseigné'; }
 function accountIdentityHtml(account, showName = true){
@@ -73,12 +81,9 @@ function purchaseMoney(game){
 }
 function collectionValueLabel(games, euroTotal){
   if((state.media || 'physical') === 'physical') return '<span class="currency-total">'+euroTotal.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €</span>';
-  const purchases = new Map(games.map(game=>[game.id,game]));
-  for(const game of games) for(const dlc of gameContents(game)){
-    if((!state.accountId || dlc.accountId === state.accountId) && (!state.platform || dlc.plateforme === state.platform) && JTDData.isDigital(game)) purchases.set(dlc.id,dlc);
-  }
+  const purchases = collectionPurchases(games);
   const sums = new Map();
-  for(const game of purchases.values()) if(game.prix != null) sums.set(game.currency || 'EUR',(sums.get(game.currency || 'EUR') || 0) + game.prix);
+  for(const game of purchases) if(game.prix != null) sums.set(game.currency || 'EUR',(sums.get(game.currency || 'EUR') || 0) + game.prix);
   return [...sums].map(([currency,prix])=>'<span class="currency-total">'+escapeHTML(purchaseMoney({prix,currency}))+'</span>').join('') || '—';
 }
 function accountEcosystemLabel(ecosystem){
@@ -97,18 +102,18 @@ function renderMediaControls(){
   document.getElementById('collector-filter-section').classList.toggle('hidden',state.media === 'digital');
   if(!digital) state.contentType = null;
   document.getElementById('content-type-options').innerHTML = [['game','Jeux'],['dlc','DLC'],['upgrade','Mises à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+selectedContentTypes().includes(value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
-  const account = document.getElementById('collection-account');
-  account.classList.add('hidden');
-  if(state.media === 'physical') state.accountId = null;
-  account.innerHTML = '<option value="">Tous les comptes</option>'+DIGITAL_ACCOUNTS.map(a=>'<option value="'+escapeHTML(a.id)+'">'+escapeHTML(a.name)+'</option>').join('');
-  if(!DIGITAL_ACCOUNTS.some(a=>a.id === state.accountId)) state.accountId = null;
-  account.value = state.accountId || '';
-  const current = DIGITAL_ACCOUNTS.find(a=>a.id === state.accountId);
-  document.getElementById('collection-account-summary').innerHTML = current ? accountIdentityHtml(current) : '<span class="account-all-icon">'+MEDIA_ICONS.digital+'</span><span>Tous les comptes</span>';
+  if(state.media === 'physical' || !DIGITAL_ACCOUNTS.some(a=>a.id === state.accountId)) state.accountId = null;
+  const types = selectedContentTypes();
+  const purchases = GAMES.filter(game => JTDData.isDigital(game)
+    && (!state.platform || game.plateforme === state.platform)
+    && (!types.length || types.includes(game.contentType || 'game'))
+    && matchesCollectionStatus(game));
+  const silhouette = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>';
+  const option = (id,identity,count) => '<button type="button" class="plat-item console-account-option'+(state.accountId === (id || null) ? ' active' : '')+'" data-account="'+escapeHTML(id)+'" aria-pressed="'+(state.accountId === (id || null))+'">'+identity+'<span class="plat-count">'+count+'</span></button>';
   const list = document.getElementById('collection-account-options');
-  list.innerHTML = '<button type="button" class="console-account-option" data-account="" aria-pressed="'+(!state.accountId)+'">Tous les comptes</button>'+DIGITAL_ACCOUNTS.map(a=>'<button type="button" class="console-account-option" data-account="'+escapeHTML(a.id)+'" aria-pressed="'+(a.id === state.accountId)+'">'+accountIdentityHtml(a)+'</button>').join('');
+  list.innerHTML = option('','<span class="account-all-icon">'+silhouette+'</span><span class="plat-name">Tous les comptes</span>',purchases.length)
+    + DIGITAL_ACCOUNTS.map(account => option(account.id,accountIdentityHtml(account),purchases.filter(game=>game.accountId === account.id).length)).join('');
   bindAvatarFallbacks(list);
-  bindAvatarFallbacks(document.getElementById('collection-account-summary'));
 }
 function collectionFilterLabel(){
   const media = state.media || 'physical';
@@ -131,12 +136,13 @@ function decorateDigitalCard(card, game, options){
   const digital = JTDData.isDigital(game), dlc = JTDData.isAddon(game);
   card.classList.toggle('digital-game',digital);
   card.classList.toggle('dlc-card',dlc);
+  card.classList.toggle('upgrade-card',digital && game.contentType === 'upgrade');
   card.dataset.media = digital ? 'digital' : 'physical';
   if(dlc){
     if(game.contentType==='upgrade')card.querySelector('.card-status-control')?.remove();
     const banner = card.querySelector('.card-banner');
     // Keep the supplied artwork, with a visible DLC label even when no image is available.
-    banner.insertAdjacentHTML('beforeend','<span class="dlc-label">'+contentIcon(game)+'<span>'+contentKind(game)+'</span></span>');
+    banner.insertAdjacentHTML('beforeend','<span class="dlc-label" title="'+escapeHTML(contentKind(game))+'">'+contentIcon(game)+'<span>'+contentKind(game)+'</span></span>');
     if(!game.image){
       banner.classList.remove('placeholder');
       banner.querySelector('.card-fallback')?.remove();
@@ -178,13 +184,6 @@ function populateDigitalAccounts(selected, chooseDefault = false){
   const select = document.getElementById('f-account');
   select.innerHTML = '<option value="">Non renseigné</option>'+accounts.map(a=>'<option value="'+escapeHTML(a.id)+'">'+escapeHTML((a.nickname || a.name)+(a.region?' · '+a.region:''))+'</option>').join('');
   select.value = selected && accounts.some(a=>a.id === selected) ? selected : chooseDefault ? (accounts.find(a=>a.preferred)?.id || accounts[0]?.id || '') : '';
-  renderFormAccountIdentity();
-}
-function renderFormAccountIdentity(){
-  const account = DIGITAL_ACCOUNTS.find(a=>a.id === document.getElementById('f-account').value);
-  const container = document.getElementById('f-account-identity');
-  container.innerHTML = account ? accountIdentityHtml(account)+'<small>'+escapeHTML([account.ecosystem,account.region].filter(Boolean).join(' · '))+'</small>' : '';
-  bindAvatarFallbacks(container);
 }
 function populateParentGames(selected){
   const value=document.getElementById('f-parent');
@@ -224,6 +223,7 @@ function updateDigitalFields(){
   if(dlc) document.getElementById('modal-title').textContent = editingId ? (upgrade?'Mise à niveau':'Fiche du DLC') : (upgrade?'Ajouter une mise à niveau':'Ajouter un DLC');
   else if(!convertingArrivalId && editingCollection !== 'cemetery') document.getElementById('modal-title').textContent = editingId ? 'Fiche du jeu' : 'Ajouter un jeu';
   document.getElementById('f-content-type-field').classList.toggle('hidden',!digital);
+  document.getElementById('f-collector-field').classList.toggle('hidden',digital);
   document.getElementById('f-digital-fields').classList.toggle('hidden',!dlc);
   document.getElementById('f-source-field').classList.toggle('hidden',digital);
   document.getElementById('f-purchase-digital-fields').classList.toggle('hidden',!digital);
@@ -237,7 +237,7 @@ function updateDigitalFields(){
 function openDigitalFields(game){
   const physicalOnly = editingCollection === 'cemetery' || !!convertingArrivalId;
   const digital = !physicalOnly && (game ? JTDData.isDigital(game) : state.media === 'digital');
-  document.getElementById('f-media-section').classList.toggle('hidden',physicalOnly);
+  document.getElementById('f-media-field').classList.toggle('hidden',physicalOnly);
   document.getElementById('f-media').value = digital ? 'digital' : 'physical';
   document.getElementById('f-content-type').value = JTDData.isAddon(game) ? game.contentType : 'game';
   document.getElementById('f-currency').value = game?.currency || 'EUR';
@@ -404,19 +404,17 @@ function initDigitalControls(){
     const type=button.dataset.contentType;types.has(type) ? types.delete(type) : types.add(type);
     state.contentType=[...types].join(',') || null;buildPlatformList();render();
   };
-  document.getElementById('collection-account').onchange=event=>{
-    state.accountId=event.target.value || null;
-    if(state.accountId && state.media === 'physical') state.media='digital';
-    document.getElementById('collection-account-picker').open=false;
-    buildPlatformList();render();closeMobileDrawers();
-  };
   document.getElementById('collection-account-options').onclick=event=>{
     const button=event.target.closest('[data-account]');if(!button)return;
-    const select=document.getElementById('collection-account');select.value=state.accountId === button.dataset.account ? '' : button.dataset.account;select.dispatchEvent(new Event('change'));
+    const id=button.dataset.account;
+    state.accountId=state.accountId === id ? null : id || null;
+    if(state.accountId && state.media === 'physical') state.media='digital';
+    buildPlatformList();render();closeMobileDrawers();
+    if(!matchMedia('(max-width:820px)').matches) document.querySelector('#collection-account-options [data-account="'+CSS.escape(id)+'"]')?.focus({preventScroll:true});
   };
   document.getElementById('collection-manage-accounts').onclick=openDigitalAccounts;
   for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
-  document.getElementById('f-account').addEventListener('change',()=>{setGameSheetViewing(false);renderFormAccountIdentity();});
+  document.getElementById('f-account').addEventListener('change',()=>setGameSheetViewing(false));
   document.getElementById('f-parent-enabled').onchange=()=>{
     setGameSheetViewing(false);
     updateParentAttachment();

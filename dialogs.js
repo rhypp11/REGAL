@@ -89,11 +89,11 @@
     note.hidden=false;note.textContent=message;
     field.setAttribute('aria-describedby',[...new Set((field.getAttribute('aria-describedby')||'').split(/\s+/).filter(Boolean).concat(note.id))].join(' '));
     field.setAttribute('aria-invalid','true');field.dataset.invalidField='';
-    // Identity fields can be behind a compact summary in edit mode.
-    const editor = field.closest('.game-identity-editor');
+    // Identity and purchase fields can be behind compact summaries in edit mode.
+    const editor = field.closest('.game-identity-editor,.context-editor');
     if(editor?.classList.contains('hidden')){
       editor.classList.remove('hidden');
-      editor.parentElement.querySelector('.game-identity-summary')?.classList.add('hidden');
+      editor.parentElement.querySelector('.game-identity-summary,.context-summary')?.classList.add('hidden');
     }
     field.focus();
   }

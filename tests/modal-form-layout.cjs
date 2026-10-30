@@ -22,7 +22,7 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
      document.getElementById(prefix+'-nom').value=longTitle;
     },{prefix,longTitle});
     const editor=page.locator('#'+prefix+'-identity-editor');
-    const controls=editor.locator('.identity-collector-control');
+    const controls=(prefix==='f'?page.locator('#f-media-section #f-collector-field'):editor).locator('.identity-collector-control');
     await controls.first().click();await controls.last().click();
     assert.equal(await page.locator('#'+prefix+'-collector').isChecked(),true);
     assert.equal(await page.locator('#'+prefix+'-japanese').isChecked(),true);

@@ -33,7 +33,7 @@ const server=createSandboxServer();
      return {preview:window.JTD_PREVIEW_MODE,overflow:document.documentElement.scrollWidth>innerWidth,canvas:getComputedStyle(document.body).backgroundColor,header:getComputedStyle(document.querySelector('.topnav')).backgroundColor,logo:logo.complete&&logo.naturalWidth>0,logoRight:rect.right,themeButtonLeft:document.getElementById('theme-toggle').getBoundingClientRect().left,title:document.title};
     });
     assert.equal(state.preview,true);assert.equal(state.overflow,false,`${width} ${theme} ${name} overflow`);
-    assert.equal(state.canvas,theme==='light'?'rgb(245, 246, 247)':'rgb(23, 25, 27)');
+    assert.equal(state.canvas,theme==='light'?'rgb(244, 244, 247)':'rgb(21, 22, 24)');
     assert.equal(state.header,'rgb(25, 94, 112)');assert.equal(state.logo,true);assert.ok(state.logoRight<=state.themeButtonLeft);assert.match(state.title,/^REGAL \|/);
     await page.screenshot({path:path.join(os.tmpdir(),`jtd-regal-${width}-${theme}-${name}.png`),fullPage:true});
    }

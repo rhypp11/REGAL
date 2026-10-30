@@ -5,7 +5,7 @@
 #page-home .home-collection-summary { display:flex; flex-direction:column; gap:20px; padding:0; background:transparent; }
 .home-widget-title h2 { margin:0; font-size:16px; font-weight:650; }
 .home-widget-stats { display:flex; flex-direction:column; gap:20px; }
-.home-stat-section { padding:16px 12px; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-surface); }
+.home-stat-section { padding:16px 12px; border:1px solid var(--ui-border); border-radius:18px; background:var(--ui-surface); box-shadow:var(--ui-edge-highlight),var(--ui-panel-shadow); }
 .home-stat-section h3 { display:flex; align-items:center; margin:0 0 16px; font-size:13px; font-weight:650; color:var(--ui-text); }
 #page-home .home-summary-total { display:flex; flex-direction:row; align-items:baseline; gap:8px; padding:0 0 14px; margin:0; border:0; background:transparent; }
 #page-home .home-summary-total strong { font-size:30px; line-height:1; font-variant-numeric:tabular-nums; }

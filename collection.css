@@ -6,7 +6,7 @@
   min-height:var(--ui-control-height-lg);
   font-size:var(--ui-text-md);
   border:1px solid var(--ui-border);
-  border-radius:10px;
+  border-radius:14px;
   background:var(--ui-surface);
   color:var(--ui-text);
   box-shadow:none;
@@ -30,7 +30,7 @@
   padding:0 0 8px;
   gap:12px;
   border:1px solid color-mix(in srgb,var(--ui-border) 65%,transparent);
-  border-radius:14px;
+  border-radius:22px;
   background:color-mix(in srgb,var(--ui-surface) 55%,var(--ui-canvas));
   box-shadow:none;
 }
@@ -38,7 +38,7 @@
 #page-collection .platform-banner-head {
   justify-content:flex-start;
   padding:18px;
-  border-radius:13px 13px 0 0;
+  border-radius:21px 21px 0 0;
   background:var(--ui-surface-raised);
   color:var(--ui-text);
 }
@@ -58,7 +58,7 @@
 }
 #page-collection .platform-banner .page-filter-toggle { background:transparent; color:inherit; border-color:currentColor; }
 #page-collection .platform-banner-stats { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); grid-template-rows:auto auto; align-items:stretch; gap:12px; margin:0; padding:4px 16px 16px; }
-#page-collection .library-stat-group { min-width:0; padding:14px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-surface); }
+#page-collection .library-stat-group { min-width:0; padding:14px; border:1px solid var(--ui-border); border-radius:16px; background:var(--ui-surface); box-shadow:var(--ui-edge-highlight),var(--ui-panel-shadow); }
 #page-collection .library-stat-group h3 { margin:0 0 12px; font-size:12px; font-weight:650; color:var(--ui-text); }
 #page-collection .library-stat-values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px 8px; }
 #page-collection .library-stat { display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-width:0; color:var(--ui-text-muted); font-size:11px; line-height:1.5; }
@@ -147,6 +147,7 @@
   background:var(--ui-surface-raised);
 }
 #page-collection .card-banner::after { content:none; }
+#page-collection .card-banner .card-fallback { color:var(--ui-text-muted); }
 #page-collection .card-body { padding:12px 2px 2px; gap:var(--ui-space-2); }
 #page-collection .card-name {
   align-items:flex-start;

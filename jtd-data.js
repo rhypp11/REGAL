@@ -131,7 +131,7 @@
     if(!isAddon(game) || !game.parentId) return null;
     return games.find(parent => parent.id === game.parentId && canAttachContent(game,parent)) || null;
   }
-  function collectionCards(games, mode = 'physical', accountId = null, search = ''){
+  function collectionCards(games, mode = 'physical', accountId = null, search = '', groupAddons = true){
     const query = search.trim().toLocaleLowerCase('fr');
     return games.filter(game => {
       if(mode === 'physical' && isDigital(game)) return false;
@@ -139,7 +139,7 @@
       if(accountId && game.accountId !== accountId) return false;
       const parent = contentParent(game,games);
       // Keep a child discoverable by its account or its own name when its parent is filtered out.
-      if(isAddon(game) && parent && isDigital(parent) && parent.plateforme === game.plateforme && (!accountId || parent.accountId === accountId) &&
+      if(groupAddons && isAddon(game) && parent && isDigital(parent) && parent.plateforme === game.plateforme && (!accountId || parent.accountId === accountId) &&
         (!query || parent.nom.toLocaleLowerCase('fr').includes(query))) return false;
       return !query || game.nom.toLocaleLowerCase('fr').includes(query);
     });
@@ -223,9 +223,15 @@
       return result;
     };
     return {
-      version: 2,
+      version: 3,
       publishedAt,
-      games: list('games').filter(item => item && item.nom && item.plateforme).map(cleanGame),
+      games: list('games').filter(item => item && item.nom && item.plateforme).map(item => ({
+        ...cleanGame(item),
+        id: item.id == null ? null : String(item.id),
+        format: isDigital(item) ? 'Numérique' : 'Physique',
+        contentType: isAddon(item) ? item.contentType : 'game',
+        parentId: isAddon(item) && item.parentId != null ? String(item.parentId) : null
+      })),
       wishlist: list('wishlist').filter(item => item && item.nom && item.plateforme).map(cleanBoardItem),
       arrivals: list('arrivals').filter(item => item && item.nom && item.plateforme).map(cleanBoardItem),
       cemetery: cemetery.filter(item => item && item.nom && item.plateforme).map(cleanSaleItem)

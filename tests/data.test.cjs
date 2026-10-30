@@ -243,7 +243,7 @@ test('public share contains the requested boards and sale details without acquis
       game({id:'sold-b',prix:15,source:'Store',saleStatus:'sold',saleId:'internal-lot-id',salePrice:42})
     ]
   }, 123);
-  assert.equal(payload.version,2);
+  assert.equal(payload.version,3);
   assert.equal(payload.publishedAt,123);
   assert.equal(payload.games[0].nom,'Persona');
   assert.equal(payload.wishlist[0].date,'2027-05');
@@ -255,7 +255,7 @@ test('public share contains the requested boards and sale details without acquis
   assert.equal(payload.cemetery[1].lotSize,2);
   for(const board of [payload.games,payload.wishlist,payload.arrivals,payload.cemetery]){
     for(const item of board){
-      for(const field of ['id','prix','source','image','lien','saleId']) assert.equal(Object.hasOwn(item,field),false,field);
+      for(const field of ['prix','source','image','lien','saleId','accountId','digitalAccounts','dekuNote']) assert.equal(Object.hasOwn(item,field),false,field);
     }
   }
   for(const board of [payload.games,payload.cemetery]){
@@ -272,8 +272,23 @@ test('retired backup metadata preserves entries without becoming public collecti
   assert.equal(restored.games[0].type,original.type);
   assert.equal(restored.games[0].prix,25);
   const shared = D.createPublicSharePayload(restored).games[0];
-  assert.equal(Object.hasOwn(shared,'format'),false);
+  assert.equal(shared.format,'Physique');
   assert.equal(Object.hasOwn(shared,'type'),false);
 });
 
 
+
+test('live public collection preserves links and media without private purchase/account fields',()=>{
+  const payload=D.createPublicSharePayload({games:[
+    null,
+    {id:'base',nom:'Jeu fictif',plateforme:'Switch',format:'Physique',prix:40},
+    {id:'dlc',nom:'Extension fictive',plateforme:'Switch',format:'Numérique',contentType:'dlc',parentId:'base',accountId:'private-account',dekuNote:'private note',prix:10,currency:'JPY'}
+  ],digitalAccounts:[{id:'private-account',name:'Secret'}]},123);
+  assert.equal(payload.version,3);
+  assert.deepEqual(payload.games.map(g=>g.id),['base','dlc']);
+  assert.equal(payload.games[0].format,'Physique');
+  assert.equal(payload.games[1].contentType,'dlc');
+  assert.equal(payload.games[1].parentId,'base');
+  assert.equal(payload.games[1].format,'Numérique');
+  assert.doesNotMatch(JSON.stringify(payload),/private-account|private note|Secret|currency|prix/);
+});

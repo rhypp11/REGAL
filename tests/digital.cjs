@@ -14,7 +14,7 @@ async function openFilters(page){
   const closed = await page.evaluate(()=>matchMedia('(max-width:820px)').matches && !document.getElementById('collection-sidebar').classList.contains('mobile-open'));
   if(closed) await page.locator('#global-filter-toggle').click();
 }
-async function chooseAccount(page,value){await openFilters(page);if(!await page.locator('#collection-account-picker').evaluate(el=>el.open))await page.locator('#collection-account-picker summary').click();await page.locator('[data-account="'+value+'"]').click();}
+async function chooseAccount(page,value){await openFilters(page);await page.locator('[data-account="'+value+'"]').click();}
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const browser=await chromium.launch({headless:true,...(process.env.JTD_CHROME?{executablePath:process.env.JTD_CHROME}:{})});
@@ -57,7 +57,7 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       await chooseAccount(page,'jp');assert.equal(await page.locator('#grid .card').count(),1);
       assert.equal(await page.locator('.collection-filter-context').innerText(),'Numérique · Nintendo japonais');
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
-      assert.equal(await page.locator('#collection-account').inputValue(),'jp');
+      assert.equal(await page.evaluate(()=>state.accountId),'jp');
       assert.equal(await page.evaluate(()=>state.media),'digital');
       await chooseAccount(page,'');
       await page.locator('#add-btn').click();
@@ -146,7 +146,7 @@ async function chooseAccount(page,value){await openFilters(page);if(!await page.
       assert.equal(await page.evaluate(()=>ecosystemFor('Wii U')),'Nintendo Network');
       assert.equal(await page.locator('#cemetery-import-trigger, #digital-accounts-btn').count(),0);
       // Accounts are managed as labels, never connected credentials.
-      await openFilters(page);await page.locator('#collection-account-picker').evaluate(el=>el.open=true);await page.locator('#collection-manage-accounts').click();
+      await openFilters(page);await page.locator('#collection-manage-accounts').click();
       assert.equal(await page.locator('#collection-sidebar').evaluate(el=>el.classList.contains('mobile-open')),false,'Management sheet is not covered by the mobile drawer');
       assert.equal(await page.locator('#digital-accounts-overlay .modal').evaluate(el=>el.scrollWidth>el.clientWidth+1),false);
       assert.equal(await page.locator('.digital-account-row.editing').count(),0);
