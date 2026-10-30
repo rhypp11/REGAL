@@ -126,17 +126,12 @@
   .collection-context-filters { display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 36px; border:1px solid currentColor; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
 }
 #page-collection .grid { gap:24px 18px; }
-/* De face : tranche mate et appui inférieur pour le physique, carte numérique plate. */
-#page-collection .card.digital-game {
-  --collection-card-radius:18px;
-  --collection-card-shadow:0 2px 5px #0000000a;
-}
 #page-collection .card {
   padding:12px;
-  border:1px solid color-mix(in srgb,var(--ui-border) 65%,transparent);
-  border-radius:var(--collection-card-radius,4px);
+  border:1px solid color-mix(in srgb,var(--ui-border) 55%,transparent);
+  border-radius:12px;
   background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
-  box-shadow:var(--collection-card-shadow,inset 5px 0 0 color-mix(in srgb,var(--ui-text-muted) 40%,var(--ui-border)),0 3px 0 color-mix(in srgb,var(--ui-text-muted) 20%,var(--ui-border)),0 5px 8px #00000012);
+  box-shadow:none;
   overflow:visible;
   transition:border-color var(--ui-transition-fast),background var(--ui-transition-fast);
 }
@@ -144,6 +139,7 @@
   transform:none;
   border-color:color-mix(in srgb,var(--ui-accent) 24%,var(--ui-border));
   background:color-mix(in srgb,var(--ui-surface) 38%,var(--ui-canvas));
+  box-shadow:none;
 }
 #page-collection .card-banner {
   aspect-ratio:16/9;

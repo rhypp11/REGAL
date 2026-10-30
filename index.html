@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="ui-foundations.css?v=soft-materials-22">
 <link rel="stylesheet" href="regal.css?v=soft-materials-22">
 <link rel="stylesheet" href="game-sheet.css?v=soft-materials-22">
-<link rel="stylesheet" href="collection.css?v=matte-spine-23">
+<link rel="stylesheet" href="collection.css?v=uniform-cards-24">
 <link rel="stylesheet" href="digital.css?v=soft-materials-22">
 <link rel="stylesheet" href="deku-import.css?v=1">
 </head>
@@ -400,24 +400,7 @@
     <h2 id="modal-title">Ajouter un jeu</h2>
     <div class="form-section" id="f-media-section">
       <div class="field-row">
-        <div class="field"><label for="f-media">Format</label><select id="f-media"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div>
-        <div class="field hidden" id="f-content-type-field"><label for="f-content-type">Type de contenu</label><select id="f-content-type"><option value="game">Jeu complet</option><option value="dlc">Contenu téléchargeable (DLC)</option><option value="upgrade">Mise à niveau</option></select></div>
-      </div>
-
-    </div>
-
-    <div class="form-section game-sheet-section">
-      <div class="game-identity-summary hidden" id="f-identity-summary"></div>
-      <div class="game-identity-editor" id="f-identity-editor">
-      <div class="field">
-        <label for="f-nom">Nom du jeu</label>
-        <input type="text" id="f-nom" aria-required="true" placeholder="ex. Hollow Knight">
-      </div>
-      <div class="field-row identity-core-row">
-        <div class="field">
-          <label for="f-plateforme">Plateforme</label>
-          <select id="f-plateforme" aria-required="true"></select>
-        </div>
+        <div class="field" id="f-media-field"><label for="f-media">Format</label><select id="f-media"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div>
         <div class="field edition-options" id="f-collector-field" role="group" aria-label="Édition, optionnel">
           <span class="edition-options-label">Édition <span class="optional-label">optionnel</span></span>
           <label class="identity-collector-control" for="f-collector">
@@ -431,6 +414,21 @@
             <span>Japonais</span>
           </label>
         </div>
+        <div class="field hidden" id="f-content-type-field"><label for="f-content-type">Type de contenu</label><select id="f-content-type"><option value="game">Jeu complet</option><option value="dlc">Contenu téléchargeable (DLC)</option><option value="upgrade">Mise à niveau</option></select></div>
+      </div>
+
+    </div>
+
+    <div class="form-section game-sheet-section">
+      <div class="game-identity-summary hidden" id="f-identity-summary"></div>
+      <div class="game-identity-editor" id="f-identity-editor">
+      <div class="field">
+        <label for="f-nom">Nom du jeu</label>
+        <input type="text" id="f-nom" aria-required="true" placeholder="ex. Hollow Knight">
+      </div>
+      <div class="field">
+          <label for="f-plateforme">Plateforme</label>
+          <select id="f-plateforme" aria-required="true"></select>
       </div>
       <div class="image-url-row">
         <div class="field"><label for="f-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="f-image" placeholder="https://…"></div>
@@ -611,7 +609,7 @@
 </div></div>
 <script src="jtd-data.js?v=soft-materials-22"></script>
 <script src="dialogs.js?v=modal-keyboard-1"></script>
-<script src="digital.js?v=soft-materials-22"></script>
+<script src="digital.js?v=format-edition-24"></script>
 <script src="app.js?v=soft-materials-22"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>

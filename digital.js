@@ -223,6 +223,7 @@ function updateDigitalFields(){
   if(dlc) document.getElementById('modal-title').textContent = editingId ? (upgrade?'Mise à niveau':'Fiche du DLC') : (upgrade?'Ajouter une mise à niveau':'Ajouter un DLC');
   else if(!convertingArrivalId && editingCollection !== 'cemetery') document.getElementById('modal-title').textContent = editingId ? 'Fiche du jeu' : 'Ajouter un jeu';
   document.getElementById('f-content-type-field').classList.toggle('hidden',!digital);
+  document.getElementById('f-collector-field').classList.toggle('hidden',digital);
   document.getElementById('f-digital-fields').classList.toggle('hidden',!dlc);
   document.getElementById('f-source-field').classList.toggle('hidden',digital);
   document.getElementById('f-purchase-digital-fields').classList.toggle('hidden',!digital);
@@ -236,7 +237,7 @@ function updateDigitalFields(){
 function openDigitalFields(game){
   const physicalOnly = editingCollection === 'cemetery' || !!convertingArrivalId;
   const digital = !physicalOnly && (game ? JTDData.isDigital(game) : state.media === 'digital');
-  document.getElementById('f-media-section').classList.toggle('hidden',physicalOnly);
+  document.getElementById('f-media-field').classList.toggle('hidden',physicalOnly);
   document.getElementById('f-media').value = digital ? 'digital' : 'physical';
   document.getElementById('f-content-type').value = JTDData.isAddon(game) ? game.contentType : 'game';
   document.getElementById('f-currency').value = game?.currency || 'EUR';
