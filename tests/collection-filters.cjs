@@ -81,13 +81,15 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
             const fg=luminance(getComputedStyle(el).color);return (Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05);
           });
           const dlc=document.querySelector('[data-dialog-trigger="game:dlc"] .dlc-label'),upgrade=document.querySelector('.upgrade-card .dlc-label');
-          return {physicalStyle:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderLeftStyle,radius:getComputedStyle(card).borderTopLeftRadius,physicalBorder:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderLeftWidth,digitalBorder:getComputedStyle(card).borderLeftWidth,physicalRadius:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderTopLeftRadius,borderStyle:getComputedStyle(card).borderTopStyle,background:rgb(background),physical:rgb(getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).backgroundColor),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
+          return {physicalShadow:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).boxShadow,digitalShadow:getComputedStyle(card).boxShadow,physicalStyle:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderLeftStyle,radius:getComputedStyle(card).borderTopLeftRadius,physicalBorder:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderLeftWidth,digitalBorder:getComputedStyle(card).borderLeftWidth,physicalRadius:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderTopLeftRadius,borderStyle:getComputedStyle(card).borderTopStyle,background:rgb(background),physical:rgb(getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).backgroundColor),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
         });
         assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
         assert.ok(theme==='dark'?appearance.physical.every(value=>value<40):appearance.physical.every(value=>value>240),'Physical cards retain the base surface');
         assert.deepEqual(appearance.background,appearance.physical,'Both formats share the same surface');
         assert.equal(appearance.radius,'18px','Digital cards have round corners in every view');
-        assert.equal(appearance.physicalRadius,'6px','Physical cards keep box-like corners');
+        assert.equal(appearance.physicalRadius,'4px','Physical cards keep box-like corners');
+        assert.match(appearance.physicalShadow,/inset/,'Physical keeps its matte spine in every view');
+        assert.doesNotMatch(appearance.digitalShadow,/inset/,'Digital remains flat');
         assert.equal(appearance.borderStyle,'solid','Digital keeps a thin solid edge');
         assert.equal(appearance.physicalStyle,'solid','Physical uses a case rim');
         assert.equal(appearance.physicalBorder,'1px');assert.equal(appearance.digitalBorder,'1px');
