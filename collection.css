@@ -191,7 +191,7 @@
 #page-collection .card-purchase-date,
 #page-collection .card-source,
 #page-collection .card-price {
-  font-family:var(--ui-font-mono);
+  font-family:var(--ui-font-sans);
   font-size:10.5px;
   line-height:var(--ui-leading-normal);
 }

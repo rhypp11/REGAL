@@ -35,7 +35,7 @@
 .content-related-copy strong { font-size:13px; font-weight:600; overflow-wrap:anywhere; }
 .content-related-copy small { font-size:11px; color:var(--muted); }
 .content-related-account { grid-column:2; }
-.content-related-price { white-space:nowrap; font:11px/1.5 var(--ui-font-mono); align-self:center; }
+.content-related-price { white-space:nowrap; font:11px/1.5 var(--ui-font-sans); align-self:center; }
 #f-parent-preview { display:flex; gap:12px; align-items:center; margin:10px 0; }
 #modal-overlay .game-identity-summary .identity-thumb { width:112px; height:63px; flex-basis:112px; }
 #f-content-details:empty { display:none; }
