@@ -46,7 +46,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.match(await page.locator('[data-stat="spent"]').innerText(),/10/);
       for(const view of ['cards','gallery','list']){
         await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
-        await page.locator('[data-dialog-trigger="game:dlc"]').click();
+        await page.locator('[data-dialog-trigger="game:dlc"] .card-name').click();
         assert.match(await page.locator('#modal-title').innerText(),/DLC/);
         await page.locator('#cancel-btn').click();
       }
