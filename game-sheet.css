@@ -212,5 +212,9 @@
 #f-format-title { display:none; font-size:16px; font-weight:650; color:var(--ui-text); }
 #modal-overlay.game-sheet-viewing #f-media-field { display:none; }
 #modal-overlay.game-sheet-viewing #f-format-title,
-.purchase-format-heading:has(#f-media-field.hidden) #f-format-title { display:block; }
+.purchase-format-heading:has(#f-media-field.hidden) #f-format-title { display:inline-flex; align-items:center; gap:8px; }
 #f-context-editor > .edition-options { margin-bottom:2px; }
+
+.purchase-format-icon { display:inline-flex; align-items:center; }
+.purchase-format-icon svg { width:16px; height:16px; flex-shrink:0; }
+#f-format-title > svg { width:18px; height:18px; flex-shrink:0; }

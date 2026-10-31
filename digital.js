@@ -217,7 +217,7 @@ function renderParentPreview(){
 }
 function updateDigitalFields(){
   const digital = document.getElementById('f-media').value === 'digital';
-  document.getElementById('f-format-title').textContent = digital ? 'Numérique' : 'Physique';
+  document.getElementById('f-format-title').innerHTML = MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span>';
   document.querySelectorAll('[name="f-media-choice"]').forEach(input=>{input.checked=input.value===(digital?'digital':'physical');});
   const dlc = digital && ['dlc','upgrade'].includes(document.getElementById('f-content-type').value);
   const upgrade = document.getElementById('f-content-type').value === 'upgrade';
@@ -400,6 +400,7 @@ function openDigitalAccounts(){
 function closeDigitalAccounts(){window.JTDDialogs.close('digital-accounts-overlay');}
 window.closeDigitalAccounts = closeDigitalAccounts;
 function initDigitalControls(){
+  document.querySelectorAll('[data-format-icon]').forEach(element=>{element.innerHTML=MEDIA_ICONS[element.dataset.formatIcon];});
   document.querySelectorAll('[name="f-media-choice"]').forEach(input=>input.addEventListener('change',()=>{
     if(!input.checked)return;
     const select=document.getElementById('f-media');select.value=input.value;
