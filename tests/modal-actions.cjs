@@ -42,6 +42,8 @@ const server=createSandboxServer();
      await page.locator('#f-identity-summary .identity-edit-btn').click();
      assert.equal(await page.locator('#save-btn').isVisible(),true,'Game pencil enters editing');
     }
+    const lastSection=page.locator('.modal-overlay:not(.hidden) .modal > .form-section').last();
+    assert.equal(await lastSection.evaluate(el=>getComputedStyle(el).borderBottomWidth),'0px','Only one separator before the actions: '+scene);
     const footer=page.locator('.modal-overlay:not(.hidden) .modal-edit-actions');
     await footer.locator('[data-modal-action="save"]').scrollIntoViewIfNeeded();
     const result=await footer.evaluate(el=>{
@@ -62,4 +64,5 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
 

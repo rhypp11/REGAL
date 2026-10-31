@@ -151,30 +151,21 @@
     </aside>
   <main class="home-main">
     <div class="home-view-controls" id="home-view-controls">
-    <div class="home-boards-switcher" id="home-boards-switcher" role="group" aria-label="Wishlist et arrivages">
-      <button type="button" class="home-boards-switch-btn active" data-target="wishlist">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>
-        Wishlist
-      </button>
-      <button type="button" class="home-boards-switch-btn" data-target="arrivals">
+    <div class="home-boards-switcher" id="home-boards-switcher" role="group" aria-label="Arrivages et wishlist">
+      <button type="button" class="home-boards-switch-btn active" data-target="arrivals">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="7" width="14" height="10"></rect><path d="M15 10h4l3 3v4h-7z"></path><circle cx="6" cy="19" r="2"></circle><circle cx="17.5" cy="19" r="2"></circle></svg>
         Arrivages
       </button>
+
+      <button type="button" class="home-boards-switch-btn" data-target="wishlist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>
+        Wishlist
+      </button>
     </div>
 
     </div>
 
-    <div class="home-boards show-wishlist" id="home-boards">
-
-      <section class="board wishlist">
-        <div class="board-head">
-          <div>
-            <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>Wishlist</h2>
-          </div>
-          <button class="board-add-btn" id="add-wishlist-btn">+ Ajouter</button>
-        </div>
-        <div class="board-rows" id="wishlist-rows"></div>
-      </section>
+    <div class="home-boards show-arrivals" id="home-boards">
 
       <section class="board arrivals" id="arrivals-board">
         <div class="board-head">
@@ -184,6 +175,16 @@
           <button class="board-add-btn" id="add-arrival-btn">+ Ajouter</button>
         </div>
         <div class="board-rows" id="arrivals-rows"></div>
+      </section>
+
+      <section class="board wishlist">
+        <div class="board-head">
+          <div>
+            <h2><svg class="board-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3l1.5 3.2L20 8l-3.5 1.8L15 13l-1.5-3.2L10 8l3.5-1.8L15 3z"></path><path d="M4 17l6-6"></path><path d="M3 21l3-1 1-3"></path></svg>Wishlist</h2>
+          </div>
+          <button class="board-add-btn" id="add-wishlist-btn">+ Ajouter</button>
+        </div>
+        <div class="board-rows" id="wishlist-rows"></div>
       </section>
 
     </div>
@@ -627,3 +628,4 @@
 </script>
 </body>
 </html>
+

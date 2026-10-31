@@ -24,12 +24,12 @@ const server=createSandboxServer();
     const rgb=color=>{ctx.clearRect(0,0,1,1);ctx.fillStyle=color;ctx.fillRect(0,0,1,1);return [...ctx.getImageData(0,0,1,1).data].slice(0,3);};
     const luminance=rgb=>rgb.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
     const contrast=(a,b)=>{a=luminance(a);b=luminance(b);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);};
-    const months=[...document.querySelectorAll('#home-boards .calendar-group-head:not(.calendar-group-head-loose)')].map(el=>{
+    const months=[...document.querySelectorAll('#arrivals-board .calendar-group-head:not(.calendar-group-head-loose)')].map(el=>{
      const css=getComputedStyle(el),title=getComputedStyle(el.querySelector('strong')),accent=css.getPropertyValue('--calendar-accent').trim();
      const foreground=rgb(title.color),background=rgb(css.backgroundColor),year=getComputedStyle(el.querySelector('.calendar-group-title span'));
      return {accent,background:css.backgroundColor,title:title.color,contrast:Math.min(contrast(foreground,background),contrast(rgb(year.color),background))};
     });
-    const dates=[...document.querySelectorAll('#home-boards .calendar-day:not(.calendar-day-loose)')].map(el=>{
+    const dates=[...document.querySelectorAll('#arrivals-board .calendar-day:not(.calendar-day-loose)')].map(el=>{
      const background=getComputedStyle(el).backgroundColor;
      return {background,contrast:Math.min(...[...el.children].map(child=>contrast(rgb(getComputedStyle(child).color),rgb(background))))};
     });
@@ -40,13 +40,12 @@ const server=createSandboxServer();
    assert.equal(palette.arrival,theme==='light'?'#0B6257':'#78DCC6');
    assert.equal(palette.warm,theme==='light'?'187,98,72':'212,161,137');
    assert.equal(palette.salmon,theme==='light'?'#A14F38':'#D4A189');
-   assert.equal(palette.months.length,24);assert.equal(new Set(palette.months.map(x=>x.background)).size,12);
+   assert.equal(palette.months.length,12);assert.equal(new Set(palette.months.map(x=>x.background)).size,12);
    assert.deepEqual(palette.monthSource,['#45818E','#38761D','#6AA84F','#F1C232','#E69138','#B45F06','#E06666','#990000','#741B47','#351C75','#0B5394','#6D9EEB']);
    assert.deepEqual(palette.months.slice(0,12).map(x=>x.accent),palette.monthSource);
-   assert.deepEqual(palette.months.slice(12).map(x=>x.accent),palette.monthSource);
    assert.ok(palette.months.every(x=>x.contrast>=4.5),JSON.stringify(palette.months.filter(x=>x.contrast<4.5)));
    assert.deepEqual(palette.dateSource,['#A2C4C9','#93C47D','#B6D7A8','#FFD966','#F6B26B','#E69138','#EA9999','#E06666','#A64D79','#B4A7D6','#9FC5E8','#C9DAF8']);
-   assert.deepEqual(palette.dates.map(x=>x.background),[...palette.dateBackgrounds,...palette.dateBackgrounds]);
+   assert.deepEqual(palette.dates.map(x=>x.background),palette.dateBackgrounds);
    assert.ok(palette.dates.every(x=>x.contrast>=4.5),JSON.stringify(palette.dates.filter(x=>x.contrast<4.5)));
    assert.deepEqual(palette.statuses,theme==='light'?['#805211','#594082','#35582D','#325D84']:['#F1D49F','#CAB7F0','#B4D4A3','#A8C9EA']);
    assert.ok(new Set(palette.platforms).size>10,'Les plateformes conservent leur palette distincte');
@@ -79,3 +78,4 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

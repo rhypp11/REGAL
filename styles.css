@@ -6911,8 +6911,7 @@ input[type="date"] {
 /* Colonnes de l’agenda : date, image, titre et lien sur mobile. */
 
 @media (max-width:820px) {
-  #home-boards .board.arrivals .board-row,
-  #home-boards .board.wishlist .board-row {
+  #home-boards .board.arrivals .board-row {
     display: grid;
     grid-template-columns: 42px 82px minmax(0,1fr) auto !important;
     grid-template-rows: 1fr !important;
@@ -6932,35 +6931,23 @@ input[type="date"] {
     width: 42px;
     height: 42px;
   }
-  #home-boards .board-thumb {
+  #home-boards .arrivals .board-thumb {
     grid-column: 2 !important;
     grid-row: 1 !important;
     width: 82px;
     height: 46px;
   }
-  #home-boards .board-info {
+  #home-boards .arrivals .board-info {
     grid-column: 3 !important;
     grid-row: 1 !important;
     justify-content: center;
     align-self: center !important;
   }
-  #home-boards .board-link {
+  #home-boards .arrivals .board-link {
     grid-column: 4 !important;
     grid-row: 1 !important;
     position: static;
     transform: none;
-  }
-  #home-boards .board.wishlist .wishlist-row-released {
-    grid-template-columns: 82px minmax(0,1fr) auto !important;
-  }
-  #home-boards .wishlist-row-released .board-thumb {
-    grid-column: 1 !important;
-  }
-  #home-boards .wishlist-row-released .board-info {
-    grid-column: 2 !important;
-  }
-  #home-boards .wishlist-row-released .board-link {
-    grid-column: 3 !important;
   }
 }
 
@@ -7399,4 +7386,5 @@ body:has(.modal-overlay:not(.hidden)) #sandbox-environment-badge { top: 12px; bo
     height: 90px;
   }
 }
+
 

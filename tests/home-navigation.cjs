@@ -15,6 +15,7 @@ const server=createSandboxServer();
     CEMETERY=[{id:'sold',nom:'Vendu',plateforme:'PC',saleStatus:'sold',prix:500},{id:'pending',nom:'À vendre',plateforme:'PC',saleStatus:'pending'}];
     renderHomeStats();goToPage('home');
    });
+   assert.equal(await page.evaluate(()=>navigationBoard),'arrivals','Arrivals open by default');
    assert.equal(await page.locator('#home-total-games').textContent(),'1');
    assert.match(await page.locator('#home-summary-meta').textContent(),/Valeur d’achat0,00/);
    assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','collection','cemetery']);
@@ -41,11 +42,23 @@ const server=createSandboxServer();
    await page.locator('[data-page="home"]').click();
    assert.equal(await page.locator('#home-boards-switcher').isVisible(),width<=820);
    if(width<=820){await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('.board.wishlist').isVisible(),false)}
-   else {assert.equal(await page.locator('.board.wishlist').isVisible(),true);const left=await page.locator('.board.wishlist').boundingBox(),right=await page.locator('#arrivals-board').boundingBox();assert.ok(left.x+left.width<=right.x)}
+   else {assert.equal(await page.locator('.board.wishlist').isVisible(),true);const left=await page.locator('#arrivals-board').boundingBox(),right=await page.locator('.board.wishlist').boundingBox();assert.ok(left.x+left.width<=right.x);assert.ok(left.width>right.width*1.4)}
    assert.equal(await page.locator('#arrivals-board').isVisible(),true);
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(()=>navigationPage),'home');
-   if(width<=820)assert.equal(await page.evaluate(()=>navigationBoard),'arrivals');
+   assert.equal(await page.evaluate(()=>navigationBoard),'arrivals');
+   if(width<=820){
+    await page.locator('[data-target="wishlist"]').click();
+    assert.equal(await page.locator('.board.wishlist').isVisible(),true);
+    const compact=await page.locator('#wishlist-rows .board-row').first().evaluate(row=>{
+      const thumb=row.querySelector('.board-thumb').getBoundingClientRect(),info=row.querySelector('.board-info').getBoundingClientRect(),box=row.getBoundingClientRect();
+      return {start:thumb.left-box.left,gap:info.left-thumb.right,width:thumb.width,height:box.height};
+    });
+    assert.ok(compact.start<2 && compact.gap>=0 && compact.gap<12,'No empty calendar column in wishlist');
+    assert.equal(compact.width,60);assert.ok(compact.height<70,'Wishlist rows stay compact');
+    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+    assert.equal(await page.evaluate(()=>navigationBoard),'wishlist','Explicit wishlist selection survives reload');
+   }
    await page.screenshot({path:'/tmp/jtd-home-'+width+'-'+theme+'.png',fullPage:true});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await page.evaluate(()=>{GAMES=[];renderHomeStats();});assert.equal(await page.locator('#home-total-games').textContent(),'0');
@@ -53,5 +66,6 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
 
 
