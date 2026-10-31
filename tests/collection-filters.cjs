@@ -159,7 +159,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(converted.status,'termine');assert.equal(converted.date,'2026-10-15');
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
       assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='conversion').format),'Numérique');
-      await page.evaluate(()=>{openModal('conversion');setGameSheetViewing(false);document.getElementById('f-prix').value='12,345';});
+      await page.evaluate(()=>{openModal('conversion');setGameSheetViewing(false);setContextEditor('f',GAMES.find(g=>g.id==='conversion'),'purchase',true);document.getElementById('f-prix').value='12,345';});
       await page.locator('#save-btn').click();
       assert.equal(await page.locator('#f-context-editor').isVisible(),true,'Purchase validation reveals its folded editor');
       assert.equal(await page.locator('#f-prix').getAttribute('aria-invalid'),'true');

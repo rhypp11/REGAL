@@ -1512,6 +1512,7 @@ function commitBoardTransfer(from, to, id, draft){
   }
 }
 function setGameSheetViewing(viewing){
+  if(!viewing) setContextEditor('f',null,'purchase',false);
   document.getElementById('modal-overlay').classList.toggle('game-sheet-viewing', viewing);
   document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
 }

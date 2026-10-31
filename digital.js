@@ -294,13 +294,13 @@ function renderContentDetails(game){
     const button = document.createElement('button');button.type='button';button.className='content-purchase-link';
     button.innerHTML = '<span class="content-related-identity">'+relatedGameHtml(parent)+'</span>';
     button.onclick=()=>openModal(parent.id);section.appendChild(button);
-    const change=document.createElement('button');change.type='button';change.className='manage-link';change.textContent='Modifier le rattachement';change.onclick=()=>{setGameSheetViewing(false);setContextEditor('f',null,'purchase',false);document.getElementById('f-parent-search').focus();};section.appendChild(change);
+    const change=document.createElement('button');change.type='button';change.className='manage-link';change.textContent='Modifier le rattachement';change.onclick=()=>{setGameSheetViewing(false);document.getElementById('f-parent-search').focus();};section.appendChild(change);
   }else if(JTDData.isAddon(game)){
     const note = document.createElement('p');note.className='content-parent-note';
     note.textContent = game.parentId ? 'Jeu de base hors de la collection. Cet achat reste dans ta bibliothèque numérique.' : 'Aucun jeu associé.';
     section.appendChild(note);
   }
-  if(JTDData.isDLC(game)){const status=document.createElement('p');status.className='content-dlc-status';status.textContent='Statut du DLC : '+(STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(game))?.label || 'Non défini');section.appendChild(status);const edit=document.createElement('button');edit.type='button';edit.className='manage-link';edit.textContent='Modifier le statut';edit.onclick=()=>{setGameSheetViewing(false);setContextEditor('f',null,'purchase',false);document.getElementById('f-content-status').focus();};section.appendChild(edit);}
+  if(JTDData.isDLC(game)){const status=document.createElement('p');status.className='content-dlc-status';status.textContent='Statut du DLC : '+(STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(game))?.label || 'Non défini');section.appendChild(status);const edit=document.createElement('button');edit.type='button';edit.className='manage-link';edit.textContent='Modifier le statut';edit.onclick=()=>{setGameSheetViewing(false);document.getElementById('f-content-status').focus();};section.appendChild(edit);}
   if(children.length){
     const title = document.createElement('div');title.className='form-section-title';title.textContent='DLC et mises à niveau';section.appendChild(title);
     for(const child of children){
@@ -414,7 +414,7 @@ function initDigitalControls(){
     if(!matchMedia('(max-width:820px)').matches) document.querySelector('#collection-account-options [data-account="'+CSS.escape(id)+'"]')?.focus({preventScroll:true});
   };
   document.getElementById('collection-manage-accounts').onclick=openDigitalAccounts;
-  for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);setContextEditor('f',null,'purchase',false);updateDigitalFields();});
+  for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
   document.getElementById('f-account').addEventListener('change',()=>setGameSheetViewing(false));
   document.getElementById('f-parent-enabled').onchange=()=>{
     setGameSheetViewing(false);
