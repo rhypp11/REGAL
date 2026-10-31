@@ -191,7 +191,7 @@
 #page-collection .card-purchase-date,
 #page-collection .card-source,
 #page-collection .card-price {
-  font-family:var(--ui-font-mono);
+  font-family:var(--ui-font-sans);
   font-size:10.5px;
   line-height:var(--ui-leading-normal);
 }
@@ -246,13 +246,14 @@
 }
 :root:not([data-theme="dark"]) #page-collection .add-btn { color:var(--ui-accent); }
 
-/* Une identité stable ; statut et contenus partagent une seule rangée. */
+/* Trois niveaux : titre, plateforme et statut, puis support et contenus. */
 #page-collection .card-identity { display:flex; flex-direction:column; align-items:stretch; gap:5px; }
-#page-collection .card-platform-line { display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; min-width:0; }
+#page-collection .card-platform-line { display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px; min-width:0; }
+#page-collection .card-platform-line .card-status-control { margin:0; flex:0 0 auto; }
+#page-collection .card-platform-line .card-status-badge { padding:3px 0; }
 #page-collection .card-state-row { display:flex; align-items:center; justify-content:flex-start; flex-wrap:wrap; gap:4px 10px; margin-top:2px; }
-#page-collection .card-state-row .card-status-control { display:flex; margin:0; flex:0 0 auto; order:0; }
-#page-collection .card-state-row .card-status-badge { padding:3px 0; }
-#page-collection .card-state-row .card-media-mark { font-size:10px; }
+#page-collection .card-state-row :is(.card-media-mark,.card-console-account) { font-size:10px; }
+#page-collection .card-console-account { overflow:hidden; text-overflow:ellipsis; }
 #page-collection .card-state-row .card-dlc-count { font-size:10px; white-space:nowrap; }
 #page-collection .card-body { gap:6px; }
 .collection-display-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 14px; }

@@ -177,7 +177,7 @@ a {
 }
 
 .cloud-sync-status {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   padding: 5px 9px;
   border-radius: 20px;
@@ -234,7 +234,7 @@ a {
   background: var(--surface-raised);
   border: 1px solid var(--hairline);
   color: var(--text);
-  font-family: 'Segoe UI','Roboto',sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13px;
   font-weight: 600;
   padding: 10px 14px;
@@ -295,7 +295,7 @@ a {
   justify-content: center;
   background: var(--teal);
   color: var(--ink);
-  font-family: 'Segoe UI','Roboto',sans-serif;
+  font-family: var(--ui-font-sans);
   font-weight: 700;
   font-size: 13px;
 }
@@ -350,7 +350,7 @@ a {
   border-radius: 6px;
   padding: 8px 10px;
   color: var(--text);
-  font-family: 'Segoe UI','Roboto',sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13px;
   font-weight: 600;
 }
@@ -585,7 +585,7 @@ a {
 }
 
 .hero-stat-num {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-weight: 700;
   font-size: 15px;
   color: var(--text);
@@ -641,7 +641,7 @@ a {
 }
 
 .hero-playing-name {
-  font-family: 'Segoe UI','Roboto',sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
@@ -697,7 +697,7 @@ a {
 
 .board-total-estimate {
   display: block;
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   color: var(--muted);
   margin-top: 3px;
@@ -727,7 +727,7 @@ a {
 }
 
 .board-head-subtle h2 {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -781,7 +781,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 12px;
   color: var(--muted);
   overflow: hidden;
@@ -839,7 +839,7 @@ a {
 }
 
 .board-price {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 13px;
   color: var(--teal);
   font-weight: 600;
@@ -847,7 +847,7 @@ a {
 }
 
 .board-source {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   color: var(--muted);
   white-space: nowrap;
@@ -856,7 +856,7 @@ a {
 }
 
 .board-link {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   color: var(--orange);
   text-decoration: none;
@@ -1081,7 +1081,7 @@ a {
 }
 
 .plat-count {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   color: var(--muted);
 }
@@ -1352,7 +1352,7 @@ a {
 }
 
 .card-banner.placeholder span {
-  font-family: 'Segoe UI','Roboto',sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 28px;
   font-weight: 700;
   color: rgba(var(--ui-rgb),0.5);
@@ -1398,7 +1398,7 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 12px;
   color: var(--muted);
   border-top: 1px solid var(--hairline);
@@ -1580,7 +1580,7 @@ a {
 }
 
 .empty-state .big {
-  font-family: 'Segoe UI','Roboto',sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 18px;
   color: var(--text);
   margin-bottom: 6px;
@@ -1639,7 +1639,7 @@ a {
 }
 
 .auth-loading .eyebrow {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1673,7 +1673,7 @@ a {
 }
 
 .login-brand .eyebrow {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1792,7 +1792,7 @@ a {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Segoe UI','Roboto',sans-serif;
+  font-family: var(--ui-font-sans);
 }
 
 .linked-game-card-tags {
@@ -1888,7 +1888,7 @@ a {
 .collection-search-option .csopt-plat {
   font-size: 10.5px;
   color: var(--muted);
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   flex-shrink: 0;
 }
 
@@ -2072,7 +2072,7 @@ a {
 }
 
 .toast-action {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 12px;
   font-weight: 600;
   color: var(--teal);
@@ -2305,7 +2305,7 @@ a {
 }
 
 .btn {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 12.5px;
   padding: 10px 16px;
   border-radius: 8px;
@@ -2354,7 +2354,7 @@ a {
   background: none;
   border: none;
   color: var(--teal);
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -2413,7 +2413,7 @@ a {
 }
 
 .add-platform-row button {
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 12px;
   font-weight: 600;
   color: var(--ink);
@@ -2447,7 +2447,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
 }
 
 .platform-row .row-fields {
@@ -2481,13 +2481,13 @@ a {
 
 .platform-row .name-input {
   flex: 1;
-  font-family: 'Segoe UI','Roboto',sans-serif;
+  font-family: var(--ui-font-sans);
   font-weight: 600;
 }
 
 .platform-row .logo-input {
   flex: 1.6;
-  font-family: 'JetBrains Mono',monospace;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
 }
 
@@ -2587,7 +2587,7 @@ select:focus-visible,
 }
 
 body {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   letter-spacing: -0.005em;
 }
 
@@ -2595,7 +2595,7 @@ button,
 input,
 select,
 textarea {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
 }
 
 .topnav {
@@ -2613,7 +2613,7 @@ textarea {
 }
 
 .nav-tab {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 14px;
   font-weight: 600;
   padding-top: 17px;
@@ -2626,7 +2626,7 @@ textarea {
 }
 
 .brand-word {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 20px;
 }
 
@@ -2636,7 +2636,7 @@ textarea {
 }
 
 .side-label {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .055em;
@@ -2682,7 +2682,7 @@ textarea {
 
 .board-head h2,
 .board-name {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
 }
 
 .board-row {
@@ -2695,7 +2695,7 @@ textarea {
 
 .board-add-btn,
 .board-manage-btn {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-weight: 700;
 }
 
@@ -2704,7 +2704,7 @@ textarea {
 }
 
 .platform-banner-stat {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   border: 0 !important;
   background: rgba(var(--ui-rgb),.045) !important;
 }
@@ -2735,7 +2735,7 @@ textarea {
 
 .status-display-inner,
 .status-btn {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -2743,7 +2743,7 @@ textarea {
 .add-btn,
 .reset-btn,
 .results-reset-btn {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-weight: 700;
 }
 
@@ -2764,12 +2764,12 @@ textarea {
 .field select,
 .field textarea,
 .icon-select-trigger {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
 }
 
 .field label,
 .modal-extra-label {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   text-transform: none;
   letter-spacing: .015em;
   font-weight: 700;
@@ -2789,7 +2789,7 @@ textarea {
 }
 
 .profile-menu-item {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
 }
 
 @media (max-width:640px) {
@@ -2931,7 +2931,7 @@ textarea {
   min-height: 40px;
   padding: 9px 15px;
   border-radius: 10px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13px;
   font-weight: 700;
   display: inline-flex;
@@ -2981,7 +2981,7 @@ input[type="date"] {
   padding: 9px 14px;
   border-radius: 10px;
   font-size: 13px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-weight: 700;
 }
 
@@ -3007,7 +3007,7 @@ input[type="date"] {
   border-radius: 7px;
   background: transparent;
   color: var(--muted);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -3284,7 +3284,7 @@ input[type="date"] {
 }
 
 .card-fallback {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 30px;
   font-weight: 800;
   color: rgba(var(--ui-rgb),.5);
@@ -3304,7 +3304,7 @@ input[type="date"] {
   order: 2;
   margin-left: auto;
   gap: 6px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   font-weight: 700;
 }
@@ -3329,7 +3329,7 @@ input[type="date"] {
 }
 
 .card-name {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.3;
@@ -3356,7 +3356,7 @@ input[type="date"] {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   color: var(--muted);
   white-space: nowrap;
@@ -3374,13 +3374,13 @@ input[type="date"] {
   white-space: nowrap;
   padding-left: 8px;
   border-left: 1px solid rgba(var(--ui-rgb),.09);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
 }
 
 .card-price {
   flex-shrink: 0;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-weight: 700;
   color: var(--teal);
 }
@@ -3478,7 +3478,7 @@ input[type="date"] {
   border: 0;
   background: transparent;
   color: var(--muted);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   font-weight: 650;
   text-align: left;
@@ -3528,7 +3528,7 @@ input[type="date"] {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   white-space: nowrap;
 }
@@ -3632,7 +3632,7 @@ input[type="date"] {
 #collection-sidebar .side-label {
   padding: 0 8px;
   margin: 0 0 3px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .025em;
@@ -3678,7 +3678,7 @@ input[type="date"] {
   gap: 9px;
   border: 0;
   border-radius: 10px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13px;
   font-weight: 550;
   color: color-mix(in srgb,var(--text) 88%,var(--muted) 12%);
@@ -3726,7 +3726,7 @@ input[type="date"] {
   padding: 2px 6px;
   border-radius: 999px;
   background: rgba(var(--ui-rgb),.045);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   text-align: center;
   color: var(--muted);
@@ -3747,7 +3747,7 @@ input[type="date"] {
   border: 0;
   border-radius: 9px;
   background: transparent;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 12.5px;
   font-weight: 550;
   transition: background .14s ease,color .14s ease;
@@ -3812,7 +3812,7 @@ input[type="date"] {
   border: 0;
   border-radius: 9px;
   background: transparent;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0;
@@ -3852,7 +3852,7 @@ input[type="date"] {
   border-bottom: 1px solid rgba(var(--ui-rgb),.05);
   box-shadow: none;
   color: var(--text);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
 }
 
 .platform-banner::before {
@@ -3888,7 +3888,7 @@ input[type="date"] {
 }
 
 .platform-banner-fallback {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 12px;
   font-weight: 800;
 }
@@ -3975,7 +3975,7 @@ input[type="date"] {
   border-radius: 12px;
   background: rgba(var(--ui-rgb),.045);
   box-shadow: inset 0 0 0 1px rgba(var(--ui-rgb),.045);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13.5px;
   transition: background .15s ease,box-shadow .15s ease;
 }
@@ -4004,7 +4004,7 @@ input[type="date"] {
   border-radius: 11px;
   background: rgba(var(--ui-rgb),.035);
   box-shadow: inset 0 0 0 1px rgba(var(--ui-rgb),.04);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 12.5px;
   color: var(--muted);
 }
@@ -4014,7 +4014,7 @@ input[type="date"] {
   margin-left: 0;
   padding: 0 15px;
   border-radius: 11px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 12.5px;
   font-weight: 750;
   letter-spacing: 0;
@@ -4026,7 +4026,7 @@ input[type="date"] {
   gap: 6px;
   margin: -3px 0 0;
   padding: 0 2px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
 }
 
@@ -4056,7 +4056,7 @@ input[type="date"] {
   padding: 3px 6px;
   border: 0;
   border-radius: 6px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   letter-spacing: 0;
   opacity: .7;
@@ -4126,7 +4126,7 @@ input[type="date"] {
 
 .board.wishlist .board-head h2 {
   gap: 9px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 17px;
   font-weight: 750;
   letter-spacing: -.02em;
@@ -4141,7 +4141,7 @@ input[type="date"] {
 .board.wishlist .board-count {
   padding: 2px 7px;
   background: rgba(var(--warm-rgb),.10);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   font-weight: 700;
   color: var(--orange);
@@ -4149,7 +4149,7 @@ input[type="date"] {
 
 .board.wishlist .board-total-estimate {
   margin: 3px 0 0 27px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   color: var(--muted);
 }
@@ -4161,7 +4161,7 @@ input[type="date"] {
   background: rgba(var(--warm-rgb),.11);
   box-shadow: inset 0 0 0 1px rgba(var(--warm-rgb),.13);
   color: var(--orange);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0;
@@ -4197,7 +4197,7 @@ input[type="date"] {
 }
 
 .board.wishlist .board-name {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13.5px;
   font-weight: 700;
   letter-spacing: -.01em;
@@ -4205,7 +4205,7 @@ input[type="date"] {
 
 .board.wishlist .board-plat {
   gap: 6px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   color: var(--muted);
 }
@@ -4230,7 +4230,7 @@ input[type="date"] {
   border-radius: 8px;
   background: rgba(var(--ui-rgb),.025);
   color: var(--muted);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 0;
   transition: background .14s ease,color .14s ease;
 }
@@ -4256,7 +4256,7 @@ input[type="date"] {
 
 .board.wishlist .board-empty {
   padding: 34px 18px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
 }
 
 @media (max-width:640px) {
@@ -4293,7 +4293,7 @@ input[type="date"] {
 
 .board.arrivals .board-head h2 {
   gap: 9px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-weight: 750;
   letter-spacing: -.02em;
 }
@@ -4307,7 +4307,7 @@ input[type="date"] {
 .board.arrivals .board-count {
   padding: 2px 7px;
   background: rgba(var(--accent-rgb),.10);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   font-weight: 700;
   color: var(--teal);
@@ -4315,7 +4315,7 @@ input[type="date"] {
 
 .board.arrivals .board-total-estimate {
   margin: 3px 0 0 28px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   color: var(--muted);
 }
@@ -4327,7 +4327,7 @@ input[type="date"] {
   background: rgba(var(--accent-rgb),.11);
   box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb),.13);
   color: var(--teal);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0;
@@ -4372,7 +4372,7 @@ input[type="date"] {
 }
 
 .board.arrivals .board-name {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13.5px;
   font-weight: 700;
   letter-spacing: -.01em;
@@ -4380,7 +4380,7 @@ input[type="date"] {
 
 .board.arrivals .board-plat {
   gap: 6px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   color: var(--muted);
 }
@@ -4397,7 +4397,7 @@ input[type="date"] {
   align-items: center;
   justify-content: flex-end;
   gap: 5px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
   white-space: nowrap;
 }
@@ -4480,7 +4480,7 @@ input[type="date"] {
 
 .home-summary-kicker {
   margin-bottom: 4px;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: .035em;
@@ -4488,7 +4488,7 @@ input[type="date"] {
 }
 
 .home-summary-total strong {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-weight: 800;
   color: var(--text);
 }
@@ -4501,7 +4501,7 @@ input[type="date"] {
 
 .home-summary-meta {
   flex-wrap: wrap;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   color: var(--muted);
   line-height: 1.45;
@@ -4513,7 +4513,7 @@ input[type="date"] {
 }
 
 #home-sidebar .home-platform-section .side-label {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   letter-spacing: .025em;
   text-transform: none;
 }
@@ -4540,7 +4540,7 @@ input[type="date"] {
 }
 
 .home-platform-bar-row .plat-bar-label {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   color: color-mix(in srgb,var(--text) 84%,var(--muted) 16%);
 }
 
@@ -4556,7 +4556,7 @@ input[type="date"] {
 .home-platform-bar-row .plat-bar-label .count {
   border-radius: 999px;
   background: rgba(var(--ui-rgb),.035);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   text-align: center;
   color: var(--muted);
 }
@@ -4954,7 +4954,7 @@ input[type="date"] {
     height: 38px;
     padding: 0 8px;
     border-radius: 9px;
-    font-family: 'DM Sans',system-ui,sans-serif;
+    font-family: var(--ui-font-sans);
     font-size: 12px;
   }
   #home-boards {
@@ -5503,7 +5503,7 @@ input[type="date"] {
   border-radius: 9px;
   padding: 8px 11px;
   cursor: pointer;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 12px;
   font-weight: 700;
 }
@@ -5593,7 +5593,7 @@ input[type="date"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13.5px;
   font-weight: 700;
   color: var(--text);
@@ -5601,7 +5601,7 @@ input[type="date"] {
 
 .platform-row .row-count {
   flex-shrink: 0;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   color: var(--muted);
 }
@@ -5670,7 +5670,7 @@ input[type="date"] {
 
 .platform-editor-field>span {
   color: var(--muted);
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 10.5px;
   font-weight: 650;
 }
@@ -5724,7 +5724,7 @@ input[type="date"] {
   border-radius: 8px;
   padding: 7px 10px;
   cursor: pointer;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   font-weight: 700;
 }
@@ -5839,7 +5839,7 @@ input[type="date"] {
   justify-content: center;
   overflow: hidden;
   color: rgba(var(--ui-rgb),.65);
-  font: 700 10px/1 'JetBrains Mono',monospace;
+  font: 700 10px/1 var(--ui-font-sans);
 }
 
 .identity-thumb img {
@@ -5860,7 +5860,7 @@ input[type="date"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font: 700 14px/1.25 'DM Sans',system-ui,sans-serif;
+  font: 700 14px/1.25 var(--ui-font-sans);
   color: var(--text);
 }
 
@@ -5869,7 +5869,7 @@ input[type="date"] {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  font: 500 11.5px/1.2 'DM Sans',system-ui,sans-serif;
+  font: 500 11.5px/1.2 var(--ui-font-sans);
   color: var(--muted);
 }
 
@@ -5985,7 +5985,7 @@ input[type="date"] {
 }
 
 .context-summary-values small {
-  font: 600 9.5px/1.2 'DM Sans',system-ui,sans-serif;
+  font: 600 9.5px/1.2 var(--ui-font-sans);
   color: color-mix(in srgb,var(--muted) 75%,transparent);
 }
 
@@ -5994,7 +5994,7 @@ input[type="date"] {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font: 650 12px/1.3 'DM Sans',system-ui,sans-serif;
+  font: 650 12px/1.3 var(--ui-font-sans);
   color: var(--text);
 }
 
@@ -6100,7 +6100,7 @@ input[type="date"] {
   background: rgba(var(--ui-rgb),.035);
   color: var(--muted);
   cursor: pointer;
-  font: 650 11.5px/1.2 'DM Sans',system-ui,sans-serif;
+  font: 650 11.5px/1.2 var(--ui-font-sans);
 }
 
 .identity-collector-toggle input {
@@ -6139,7 +6139,7 @@ input[type="date"] {
   background: rgba(var(--ui-rgb),.045);
   color: var(--muted);
   cursor: pointer;
-  font: 650 12px/1 'DM Sans',system-ui,sans-serif;
+  font: 650 12px/1 var(--ui-font-sans);
 }
 
 .identity-collector-control input {
@@ -6188,7 +6188,7 @@ input[type="date"] {
 
 .topnav-nav .nav-tab {
   justify-content: center;
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 13px;
   font-weight: 700;
   color: var(--muted);
@@ -6369,7 +6369,7 @@ input[type="date"] {
 }
 
 .home-summary-stat strong {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 19px;
   line-height: 1.05;
   font-weight: 800;
@@ -6380,7 +6380,7 @@ input[type="date"] {
 }
 
 .home-summary-stat span {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11.5px;
   font-weight: 600;
   color: var(--muted);
@@ -6448,7 +6448,7 @@ input[type="date"] {
 }
 
 .board-head h2 {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 17px;
   font-weight: 800;
   letter-spacing: -.015em;
@@ -6459,7 +6459,7 @@ input[type="date"] {
 }
 
 .board-count {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 11px;
 }
 
@@ -6507,7 +6507,7 @@ input[type="date"] {
 }
 
 .calendar-group-title strong {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 17px;
   line-height: 1;
   font-weight: 800;
@@ -6517,7 +6517,7 @@ input[type="date"] {
 }
 
 .calendar-group-title span {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
@@ -6556,14 +6556,14 @@ input[type="date"] {
 }
 
 .calendar-day strong {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 17px;
   line-height: 1;
   font-weight: 800;
 }
 
 .calendar-day span {
-  font-family: 'DM Sans',system-ui,sans-serif;
+  font-family: var(--ui-font-sans);
   font-size: 9px;
   line-height: 1;
   font-weight: 700;

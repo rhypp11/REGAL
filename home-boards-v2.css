@@ -63,7 +63,7 @@
   border:1px solid rgba(var(--board-accent-rgb),.26);
   background:rgba(var(--board-accent-rgb),.10);
   color:var(--board-accent);
-  font-family:var(--ui-font-mono);
+  font-family:var(--ui-font-sans);
   font-size:10px;
   font-weight:600;
 }
@@ -71,7 +71,7 @@
 #home-boards .board-total-estimate {
   margin:3px 0 0 24px;
   color:var(--ui-text-muted);
-  font-family:var(--ui-font-mono);
+  font-family:var(--ui-font-sans);
   font-size:10px;
 }
 
@@ -148,7 +148,7 @@
 
 #home-boards .calendar-group-title span {
   color:var(--calendar-ink,var(--ui-text-muted));
-  font-family:var(--ui-font-mono);
+  font-family:var(--ui-font-sans);
   font-size:9.5px;
   font-weight:500;
 }
@@ -268,14 +268,14 @@
   border-radius:var(--ui-radius-xs);
   background:rgba(var(--ui-rgb),.035);
   color:var(--ui-text-muted);
-  font-family:var(--ui-font-mono);
+  font-family:var(--ui-font-sans);
   font-size:8.5px;
 }
 
 #home-boards .arrival-purchase,
 #home-boards .board-source,
 #home-boards .board-price {
-  font-family:var(--ui-font-mono);
+  font-family:var(--ui-font-sans);
   font-size:9.5px;
 }
 

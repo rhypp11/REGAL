@@ -46,7 +46,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.match(await page.locator('[data-stat="spent"]').innerText(),/10/);
       for(const view of ['cards','gallery','list']){
         await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
-        await page.locator('[data-dialog-trigger="game:dlc"]').click();
+        await page.locator('[data-dialog-trigger="game:dlc"] .card-name').click();
         assert.match(await page.locator('#modal-title').innerText(),/DLC/);
         await page.locator('#cancel-btn').click();
       }
@@ -96,26 +96,36 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-platform-line .card-status-control').count(),1);
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-console-account').count(),1);
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-media-mark').count(),1);
         await page.screenshot({path:'/tmp/jtd-card-surface-'+view+'-'+width+'-'+theme+'.png'});
       }
       await page.evaluate(()=>{state.media='digital';state.accountId='jp';buildPlatformList();render();openModal('base');});
+      assert.equal(await page.locator('#f-content-details .content-addon-link').count(),2);
+      assert.equal(await page.locator('#f-content-details .content-type-dlc .content-kind-icon').count(),1);
+      assert.equal(await page.locator('#f-content-details .content-type-upgrade .content-kind-icon').count(),1);
+      assert.equal(await page.locator('#f-quick-hide-fields').evaluate(el=>getComputedStyle(el).borderBottomWidth),'0px');
+      await page.screenshot({path:'/tmp/jtd-linked-content-'+width+'-'+theme+'.png'});
+      assert.equal(await page.locator('#f-format-title').innerText(),'Numérique');
+      assert.equal(await page.evaluate(()=>document.getElementById('f-media-section').compareDocumentPosition(document.getElementById('f-identity-summary')) & Node.DOCUMENT_POSITION_PRECEDING),2);
       await page.locator('#f-context-summary .context-edit-btn').click();
       assert.equal(await page.locator('#f-account').isVisible(),true);
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
       assert.equal(await page.locator('#f-content-type-field').isVisible(),true);
-      await page.locator('#f-media').selectOption('physical');
+      await page.locator('[name="f-media-choice"][value="physical"]').check();
       assert.equal(await page.locator('#f-collector-field').isVisible(),true);
       assert.equal(await page.locator('#f-content-type-field').isVisible(),false);
       assert.equal(await page.locator('#f-media-section #f-collector-field').count(),1);
       await page.locator('#f-collector').check();await page.locator('#f-japanese').check();
-      await page.locator('#f-media').selectOption('digital');
+      await page.locator('[name="f-media-choice"][value="digital"]').check();
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
       assert.equal(await page.evaluate(()=>{const fields=readDigitalFields();return fields.collector || fields.japanese;}),false);
-      await page.locator('#f-media').selectOption('physical');
+      await page.locator('[name="f-media-choice"][value="physical"]').check();
       assert.equal(await page.locator('#f-collector').isChecked(),true);
       assert.equal(await page.locator('#f-japanese').isChecked(),true);
       await page.screenshot({path:'/tmp/jtd-physical-edition-'+width+'-'+theme+'.png'});
-      await page.locator('#f-media').selectOption('digital');
+      await page.locator('[name="f-media-choice"][value="digital"]').check();
       assert.equal(await page.locator('#modal-overlay #f-account-identity, #modal-overlay #f-manage-accounts').count(),0,'Editor contains only the account choice');
       assert.equal(await page.locator('#modal-overlay').getByRole('button',{name:/Gérer les comptes/}).count(),0);
       await page.screenshot({path:'/tmp/jtd-purchase-account-'+width+'-'+theme+'.png'});
@@ -145,7 +155,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         openModal('conversion');
       });
       await page.locator('#f-identity-summary .identity-edit-btn').click();
-      await page.locator('#f-media').selectOption('digital');
+      await page.locator('[name="f-media-choice"][value="digital"]').check();
       await page.locator('#save-btn').click();
       assert.equal(await page.locator('#modal-overlay').isVisible(),false,'Changing only format must save and close');
       let converted=await page.evaluate(()=>GAMES.find(g=>g.id==='conversion'));
@@ -154,7 +164,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(converted.status,'termine');assert.equal(converted.date,'2026-10-15');
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
       assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='conversion').format),'Numérique');
-      await page.evaluate(()=>{openModal('conversion');setGameSheetViewing(false);document.getElementById('f-prix').value='12,345';});
+      await page.evaluate(()=>{openModal('conversion');setGameSheetViewing(false);setContextEditor('f',GAMES.find(g=>g.id==='conversion'),'purchase',true);document.getElementById('f-prix').value='12,345';});
       await page.locator('#save-btn').click();
       assert.equal(await page.locator('#f-context-editor').isVisible(),true,'Purchase validation reveals its folded editor');
       assert.equal(await page.locator('#f-prix').getAttribute('aria-invalid'),'true');
