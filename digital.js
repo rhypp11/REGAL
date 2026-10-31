@@ -218,6 +218,7 @@ function renderParentPreview(){
 function updateDigitalFields(){
   const digital = document.getElementById('f-media').value === 'digital';
   document.getElementById('f-format-title').textContent = digital ? 'Numérique' : 'Physique';
+  document.querySelectorAll('[name="f-media-choice"]').forEach(input=>{input.checked=input.value===(digital?'digital':'physical');});
   const dlc = digital && ['dlc','upgrade'].includes(document.getElementById('f-content-type').value);
   const upgrade = document.getElementById('f-content-type').value === 'upgrade';
   document.querySelector('label[for="f-nom"]').textContent = dlc ? 'Nom du contenu' : 'Nom du jeu';
@@ -304,9 +305,14 @@ function renderContentDetails(game){
   if(children.length){
     const title = document.createElement('div');title.className='form-section-title';title.textContent='DLC et mises à niveau';section.appendChild(title);
     for(const child of children){
-      const button = document.createElement('button');button.type='button';button.className='content-purchase-link';
-      button.innerHTML = '<span class="content-related-identity">'+relatedGameHtml(child)+'<span class="content-related-account">'+accountIdentityHtml(DIGITAL_ACCOUNTS.find(a=>a.id === child.accountId))+'</span></span><span class="content-related-price">'+purchaseMoney(child)+'</span>';
-      if(JTDData.isDLC(child)){const status=document.createElement('span');status.className='content-dlc-status';status.textContent=STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child))?.label || 'Statut non défini';button.querySelector('.content-related-copy').appendChild(status);}
+      const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-addon-link content-type-'+child.contentType;
+      const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;
+      const account=DIGITAL_ACCOUNTS.find(a=>a.id===child.accountId);
+      const thumb='<span class="content-related-thumb'+gameImageClass(child)+'">'+(child.image?gameImageHtml(child):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
+      button.innerHTML='<span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+thumb+
+        '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
+        '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
+        '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+(account?'<span class="content-related-account">'+accountIdentityHtml(account)+'</span>':'')+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
       button.onclick=()=>openModal(child.id);section.appendChild(button);
     }
     const sums = new Map();
@@ -394,6 +400,11 @@ function openDigitalAccounts(){
 function closeDigitalAccounts(){window.JTDDialogs.close('digital-accounts-overlay');}
 window.closeDigitalAccounts = closeDigitalAccounts;
 function initDigitalControls(){
+  document.querySelectorAll('[name="f-media-choice"]').forEach(input=>input.addEventListener('change',()=>{
+    if(!input.checked)return;
+    const select=document.getElementById('f-media');select.value=input.value;
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+  }));
   document.getElementById('collection-media-tabs').addEventListener('click',event=>{
     const button = event.target.closest('[data-media]');if(!button)return;
     state.media=state.media === button.dataset.media ? 'all' : button.dataset.media;state.accountId=null;state.contentType=null;state.collector=false;state.japanese=false;state.status=null;

@@ -131,3 +131,24 @@
 .content-link-toggle input:checked + .content-link-switch::after { transform:translateX(16px); }
 .content-link-toggle input:focus-visible + .content-link-switch { outline:2px solid var(--accent); outline-offset:3px; }
 #f-parent-editor { padding-top:12px; }
+
+/* Contenus liés : repère de type, image puis trois lignes lisibles. */
+.content-purchase-link.content-addon-link { --content-tone:#366a48; display:grid; grid-template-columns:20px 88px minmax(0,1fr); gap:12px; align-items:center; padding:12px 10px; margin-top:8px; border:1px solid var(--ui-border); border-left:3px solid var(--content-tone); border-radius:10px; background:transparent; }
+:root[data-theme="dark"] .content-purchase-link.content-addon-link { --content-tone:#a4d5ae; }
+.content-purchase-link.content-type-upgrade { --content-tone:#275e8b; }
+:root[data-theme="dark"] .content-purchase-link.content-type-upgrade { --content-tone:#8fc8f3; }
+.content-addon-link .content-kind-icon { display:flex; color:var(--content-tone); }
+.content-addon-link .content-kind-icon svg { width:20px; height:20px; color:inherit; }
+.content-addon-link .content-related-copy { gap:6px; }
+.content-related-platform,.content-related-meta { display:flex; align-items:center; flex-wrap:wrap; min-width:0; gap:5px 10px; font-size:11px; color:var(--ui-text-muted); }
+.content-addon-link .content-kind-label { color:var(--content-tone); font-size:10px; font-weight:600; }
+.content-addon-link .content-related-account { min-width:0; max-width:100%; }
+.content-addon-link .console-account-identity { max-width:100%; gap:5px; }
+.content-addon-link .console-account-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.content-addon-link .content-related-price { margin-left:auto; white-space:nowrap; max-width:none; }
+.content-addon-link:hover { background:color-mix(in srgb,var(--content-tone) 5%,var(--ui-surface)); }
+@media(max-width:480px) {
+  .content-purchase-link.content-addon-link { grid-template-columns:18px 64px minmax(0,1fr); gap:8px; padding:10px 8px; }
+  .content-addon-link .content-kind-icon svg { width:18px; height:18px; }
+  .content-addon-link .content-related-copy strong { font-size:12px; }
+}

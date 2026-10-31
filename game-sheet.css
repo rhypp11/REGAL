@@ -127,7 +127,8 @@
 /* A shared rhythm for identity, purchase and related content in every sheet. */
 .sheet-dialog > .modal h2 { font-size:23px; letter-spacing:-.025em; }
 .sheet-dialog > .modal .form-section { background:transparent; border:0; border-bottom:1px solid var(--hairline); border-radius:0; padding:18px 0; margin:0; }
-.sheet-dialog > .modal .form-section:last-of-type { border-bottom:0; }
+.sheet-dialog > .modal .form-section:last-of-type,
+.sheet-dialog > .modal #f-quick-hide-fields { border-bottom:0; }
 .sheet-dialog .form-section-title { color:var(--text); font-size:12px; font-weight:600; }
 .sheet-dialog .context-summary { background:transparent; box-shadow:none; }
 .sheet-dialog .content-purchases { margin-top:6px; }
@@ -203,7 +204,11 @@
 /* Le format est le titre du bloc d’achat, après l’identité et l’image. */
 #f-media-section { display:flex; flex-direction:column; gap:14px; min-width:0; }
 .purchase-format-heading { min-width:0; }
-.purchase-format-heading select { min-height:44px; width:auto; max-width:100%; padding:8px 36px 8px 10px; font:650 16px/1.4 var(--ui-font-sans); color:var(--ui-text); background:var(--ui-surface); border:1px solid var(--ui-border); border-radius:10px; }
+.purchase-format-options { display:inline-flex; flex-wrap:wrap; gap:8px; }
+.purchase-format-options label { display:flex; align-items:center; gap:7px; min-height:40px; padding:7px 12px; border:1px solid var(--ui-border); border-radius:9px; font-size:12px; font-weight:600; color:var(--ui-text-muted); cursor:pointer; }
+.purchase-format-options label:has(input:checked) { color:var(--ui-text); border-color:var(--ui-accent); background:color-mix(in srgb,var(--ui-accent) 8%,transparent); }
+.purchase-format-options input { width:14px; height:14px; min-height:0; margin:0; padding:0; accent-color:var(--ui-accent); }
+.purchase-format-options label:has(input:focus-visible) { outline:2px solid var(--ui-accent); outline-offset:3px; }
 #f-format-title { display:none; font-size:16px; font-weight:650; color:var(--ui-text); }
 #modal-overlay.game-sheet-viewing #f-media-field { display:none; }
 #modal-overlay.game-sheet-viewing #f-format-title,

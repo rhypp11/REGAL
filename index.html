@@ -22,9 +22,9 @@
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=open-sans-26">
 <link rel="stylesheet" href="regal.css?v=soft-materials-22">
-<link rel="stylesheet" href="game-sheet.css?v=purchase-layout-27">
+<link rel="stylesheet" href="game-sheet.css?v=compact-content-28">
 <link rel="stylesheet" href="collection.css?v=purchase-layout-27">
-<link rel="stylesheet" href="digital.css?v=purchase-layout-27">
+<link rel="stylesheet" href="digital.css?v=compact-content-28">
 <link rel="stylesheet" href="deku-import.css?v=1">
 </head>
 <body>
@@ -422,7 +422,7 @@
       <div id="f-media-section">
       <div class="purchase-format-heading" id="game-sheet-purchase-title">
         <span id="f-format-title">Physique</span>
-        <div id="f-media-field"><select id="f-media" aria-label="Format de l’achat"><option value="physical">Physique</option><option value="digital">Numérique</option></select></div>
+        <div id="f-media-field"><select id="f-media" class="hidden" tabindex="-1" aria-label="Format de l’achat"><option value="physical">Physique</option><option value="digital">Numérique</option></select><div class="purchase-format-options" role="radiogroup" aria-label="Format de l’achat"><label><input type="radio" name="f-media-choice" value="physical"><span>Physique</span></label><label><input type="radio" name="f-media-choice" value="digital"><span>Numérique</span></label></div></div>
       </div>
       <div class="context-summary hidden" id="f-context-summary"></div>
       <div class="context-editor" id="f-context-editor">
@@ -610,7 +610,7 @@
 </div></div>
 <script src="jtd-data.js?v=soft-materials-22"></script>
 <script src="dialogs.js?v=context-error-25"></script>
-<script src="digital.js?v=purchase-layout-27"></script>
+<script src="digital.js?v=compact-content-28"></script>
 <script src="app.js?v=purchase-layout-27"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>

@@ -108,12 +108,12 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await page.locator('#f-account').isVisible(),true);
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
       assert.equal(await page.locator('#f-content-type-field').isVisible(),true);
-      await page.locator('#f-media').selectOption('physical');
+      await page.locator('[name="f-media-choice"][value="physical"]').check();
       assert.equal(await page.locator('#f-collector-field').isVisible(),true);
       assert.equal(await page.locator('#f-content-type-field').isVisible(),false);
       assert.equal(await page.locator('#f-media-section #f-collector-field').count(),1);
       await page.locator('#f-collector').check();await page.locator('#f-japanese').check();
-      await page.locator('#f-media').selectOption('digital');
+      await page.locator('[name="f-media-choice"][value="digital"]').check();
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
       assert.equal(await page.evaluate(()=>{const fields=readDigitalFields();return fields.collector || fields.japanese;}),false);
       await page.locator('#f-media').selectOption('physical');
