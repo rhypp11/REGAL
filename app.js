@@ -1148,7 +1148,10 @@ function renderCard(g, options = {}){
     identity.querySelectorAll('.card-platform,.card-status-control').forEach(el=>platformLine.appendChild(el));
     identity.prepend(platformLine);
     const footer = document.createElement('div');footer.className='card-state-row';
-    card.querySelectorAll('.card-media-mark,.card-console-account,.card-dlc-count').forEach(el=>footer.appendChild(el));
+    for(const selector of ['.card-media-mark','.card-console-account','.card-dlc-count']){
+      const element=card.querySelector(selector);
+      if(element) footer.appendChild(element);
+    }
     if(footer.childNodes.length) identity.appendChild(footer);
   }
   const onOpen = options.onOpen || (() => openModal(g.id));
