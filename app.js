@@ -1145,11 +1145,13 @@ function renderCard(g, options = {}){
   if(!options.readOnly){
     const identity = card.querySelector('.card-identity');
     const platformLine = document.createElement('div');platformLine.className='card-platform-line';
-    identity.querySelectorAll('.card-platform,.card-console-account').forEach(el=>platformLine.appendChild(el));
+    identity.querySelectorAll('.card-platform,.card-status-control').forEach(el=>platformLine.appendChild(el));
     identity.prepend(platformLine);
     const footer = document.createElement('div');footer.className='card-state-row';
-    identity.querySelector('.card-status-control') && footer.appendChild(identity.querySelector('.card-status-control'));
-    card.querySelectorAll('.card-media-mark,.card-dlc-count').forEach(el=>footer.appendChild(el));
+    for(const selector of ['.card-media-mark','.card-console-account','.card-dlc-count']){
+      const element=card.querySelector(selector);
+      if(element) footer.appendChild(element);
+    }
     if(footer.childNodes.length) identity.appendChild(footer);
   }
   const onOpen = options.onOpen || (() => openModal(g.id));
@@ -1513,6 +1515,7 @@ function commitBoardTransfer(from, to, id, draft){
   }
 }
 function setGameSheetViewing(viewing){
+  if(!viewing) setContextEditor('f',null,'purchase',false);
   document.getElementById('modal-overlay').classList.toggle('game-sheet-viewing', viewing);
   document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
 }
