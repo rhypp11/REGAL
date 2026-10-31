@@ -1145,11 +1145,10 @@ function renderCard(g, options = {}){
   if(!options.readOnly){
     const identity = card.querySelector('.card-identity');
     const platformLine = document.createElement('div');platformLine.className='card-platform-line';
-    identity.querySelectorAll('.card-platform,.card-console-account').forEach(el=>platformLine.appendChild(el));
+    identity.querySelectorAll('.card-platform,.card-status-control').forEach(el=>platformLine.appendChild(el));
     identity.prepend(platformLine);
     const footer = document.createElement('div');footer.className='card-state-row';
-    identity.querySelector('.card-status-control') && footer.appendChild(identity.querySelector('.card-status-control'));
-    card.querySelectorAll('.card-media-mark,.card-dlc-count').forEach(el=>footer.appendChild(el));
+    card.querySelectorAll('.card-media-mark,.card-console-account,.card-dlc-count').forEach(el=>footer.appendChild(el));
     if(footer.childNodes.length) identity.appendChild(footer);
   }
   const onOpen = options.onOpen || (() => openModal(g.id));

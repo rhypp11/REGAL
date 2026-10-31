@@ -22,7 +22,6 @@
 .dlc-label > span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .dlc-placeholder { position:absolute; inset:0 0 20px; display:flex; align-items:center; justify-content:center; color:var(--content-band-text); }
 .dlc-placeholder svg { width:30px; height:30px; }
-#modal-overlay.game-sheet-viewing #f-media-section { display:none; }
 .content-format-summary { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; margin-bottom:12px; }
 .content-format-summary svg { color:var(--accent); }
 .content-purchases .form-section-title { margin-top:14px; }

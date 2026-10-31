@@ -96,9 +96,14 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-platform-line .card-status-control').count(),1);
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-console-account').count(),1);
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-media-mark').count(),1);
         await page.screenshot({path:'/tmp/jtd-card-surface-'+view+'-'+width+'-'+theme+'.png'});
       }
       await page.evaluate(()=>{state.media='digital';state.accountId='jp';buildPlatformList();render();openModal('base');});
+      assert.equal(await page.locator('#f-format-title').innerText(),'Numérique');
+      assert.equal(await page.evaluate(()=>document.getElementById('f-media-section').compareDocumentPosition(document.getElementById('f-identity-summary')) & Node.DOCUMENT_POSITION_PRECEDING),2);
       await page.locator('#f-context-summary .context-edit-btn').click();
       assert.equal(await page.locator('#f-account').isVisible(),true);
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);

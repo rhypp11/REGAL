@@ -199,3 +199,13 @@
 }
 #platform-modal-overlay .platform-modal-actions .btn { width:auto !important; min-width:112px !important; }
 
+
+/* Le format est le titre du bloc d’achat, après l’identité et l’image. */
+#f-media-section { display:flex; flex-direction:column; gap:14px; min-width:0; }
+.purchase-format-heading { min-width:0; }
+.purchase-format-heading select { min-height:44px; width:auto; max-width:100%; padding:8px 36px 8px 10px; font:650 16px/1.4 var(--ui-font-sans); color:var(--ui-text); background:var(--ui-surface); border:1px solid var(--ui-border); border-radius:10px; }
+#f-format-title { display:none; font-size:16px; font-weight:650; color:var(--ui-text); }
+#modal-overlay.game-sheet-viewing #f-media-field { display:none; }
+#modal-overlay.game-sheet-viewing #f-format-title,
+.purchase-format-heading:has(#f-media-field.hidden) #f-format-title { display:block; }
+#f-context-editor > .edition-options { margin-bottom:2px; }
