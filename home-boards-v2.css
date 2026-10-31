@@ -180,12 +180,12 @@
 }
 
 #home-boards .board.wishlist .board-row {
-  grid-template-columns:44px 92px minmax(0,1fr) auto;
-  gap:10px;
+  grid-template-columns:60px minmax(0,1fr) auto;
+  gap:8px;
 }
 
 #home-boards .board.wishlist .wishlist-row-released {
-  grid-template-columns:92px minmax(0,1fr) auto;
+  grid-template-columns:60px minmax(0,1fr) auto;
 }
 
 #home-boards .board.arrivals .board-row {
@@ -347,18 +347,7 @@
   color:var(--arrival) !important;
 }
 
-@media(min-width:821px) {
-  #home-boards {
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    align-items:start;
-  }
-}
-
-@media(max-width:1100px) and (min-width:821px) {
-  #home-boards {
-    grid-template-columns:1fr;
-  }
-}
+#home-boards { align-items:start; }
 
 @media(max-width:820px) {
   .home-main {
@@ -417,9 +406,7 @@
     padding:6px 9px 6px 10px;
   }
 
-  #home-boards .board.wishlist .board-row,
-  #home-boards .board.arrivals .board-row,
-  #home-boards .board.wishlist .wishlist-row-released {
+  #home-boards .board.arrivals .board-row {
     min-height:64px;
     padding:7px 8px;
     grid-template-columns:38px 82px minmax(0,1fr) auto !important;
@@ -427,9 +414,6 @@
     gap:8px !important;
   }
 
-  #home-boards .board.wishlist .wishlist-row-released {
-    grid-template-columns:82px minmax(0,1fr) auto !important;
-  }
 
   #home-boards .calendar-day {
     grid-column:1;
@@ -477,16 +461,11 @@
     padding:8px;
   }
 
-  #home-boards .board.wishlist .board-row,
-  #home-boards .board.arrivals .board-row,
-  #home-boards .board.wishlist .wishlist-row-released {
+  #home-boards .board.arrivals .board-row {
     grid-template-columns:34px 70px minmax(0,1fr) auto !important;
     gap:7px !important;
   }
 
-  #home-boards .board.wishlist .wishlist-row-released {
-    grid-template-columns:70px minmax(0,1fr) auto !important;
-  }
 
   #home-boards .calendar-day {
     width:32px;
@@ -501,4 +480,68 @@
   #home-boards .board-name {
     font-size:12.5px;
   }
+}
+
+
+/* Wishlist : un panneau compact, secondaire au calendrier des arrivages. */
+#home-boards .board.wishlist {
+  padding:14px;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-lg);
+  background:var(--ui-surface);
+  box-shadow:var(--ui-edge-highlight),var(--ui-panel-shadow);
+}
+#home-boards .wishlist .board-head { min-height:44px; padding:0 0 12px; }
+#home-boards .wishlist .board-empty { margin:0; }
+#home-boards .wishlist .board-head h2 { font-size:13px; font-weight:650; }
+#home-boards .wishlist .calendar-group {
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+#home-boards .wishlist .calendar-group + .calendar-group { margin-top:12px; border-top:0; }
+#home-boards .wishlist .calendar-group-head {
+  min-height:28px;
+  margin:0 0 3px;
+  padding:4px 8px;
+  border:0;
+  border-left:3px solid var(--calendar-accent,var(--ui-border));
+  background:transparent;
+}
+#home-boards .wishlist .calendar-group-title strong {
+  color:var(--ui-text-muted);
+  font-size:11px;
+  font-weight:650;
+}
+#home-boards .wishlist .calendar-group-title span { color:var(--ui-text-muted); }
+#home-boards .board.wishlist .board-row {
+  min-height:56px;
+  padding:7px 0;
+  border-radius:0;
+}
+#home-boards .wishlist .board-thumb { width:60px; height:34px; grid-row:1; }
+#home-boards .wishlist .board-plat { flex-wrap:wrap; row-gap:3px; }
+#home-boards .wishlist .wishlist-release-date {
+  margin:0;
+  padding:0;
+  background:transparent;
+  font-family:inherit;
+  font-size:10px;
+}
+#home-boards .wishlist .board-name { font-size:12px; }
+#home-boards .wishlist .board-link { width:28px; height:32px; }
+
+@media(max-width:820px) {
+  #home-boards .board.wishlist { padding:12px; }
+  #home-boards .wishlist .board-head { min-height:0; padding:0 0 12px; }
+  #home-boards .board.wishlist .board-row {
+    grid-template-columns:60px minmax(0,1fr) auto !important;
+    grid-template-rows:1fr !important;
+    gap:8px !important;
+    min-height:56px !important;
+    padding:7px 0 !important;
+  }
+  #home-boards .wishlist .board-thumb { grid-column:1 !important; }
+  #home-boards .wishlist .board-info { grid-column:2 !important; }
+  #home-boards .wishlist .board-link { grid-column:3 !important; grid-row:1 !important; position:static; transform:none; }
 }

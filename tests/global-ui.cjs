@@ -52,8 +52,9 @@ const server=createSandboxServer();
     if(view==='home'&&width>820){
      assert.equal(await page.locator('.board.wishlist').isVisible(),true);
      assert.equal(await page.locator('#arrivals-board').isVisible(),true);
-     const left=await page.locator('.board.wishlist').boundingBox(),right=await page.locator('#arrivals-board').boundingBox();
-     assert.ok(left.x+left.width<=right.x && Math.abs(left.y-right.y)<1,'Desktop boards are side by side');
+     const left=await page.locator('#arrivals-board').boundingBox(),right=await page.locator('.board.wishlist').boundingBox();
+     if(width>1200)assert.ok(left.x+left.width<=right.x && Math.abs(left.y-right.y)<1,'Arrivals lead the desktop layout');
+     else assert.ok(left.y+left.height<=right.y,'Arrivals precede wishlist on narrow desktop');
     }
     await page.screenshot({path:'/tmp/jtd-global-'+view+'-'+width+'-'+theme+'.png',fullPage:true});
    }
@@ -152,6 +153,7 @@ const server=createSandboxServer();
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
 
 
 

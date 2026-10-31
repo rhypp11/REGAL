@@ -1938,16 +1938,15 @@ function renderWishlist(){
     const linkHtml = safeURL(item.lien)
       ? `<a class="board-link" href="${escapeHTML(safeURL(item.lien))}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(item.lien)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
       : '';
-    const dateHtml = released ? '' : calendarDayHtml(item.date);
-    const releasedDateHtml = released
-      ? `<time class="wishlist-release-date" datetime="${escapeHTML(parseWishlistDate(item.date).key)}" title="Date de sortie">${escapeHTML(parseWishlistDate(item.date).label)}</time>`
+    const parsedDate = parseWishlistDate(item.date);
+    const releaseDateHtml = item.date
+      ? `<span class="wishlist-release-date" title="Date de sortie">${escapeHTML(parsedDate.label)}</span>`
       : '';
     row.innerHTML = `
-      ${dateHtml}
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${escapeHTML(item.nom)}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${escapeHTML(item.nom)}</span></div>
-        <div class="board-plat">${platIconHtml}<span>${escapeHTML(item.plateforme)}</span>${releasedDateHtml}</div>
+        <div class="board-plat">${platIconHtml}<span>${escapeHTML(item.plateforme)}</span>${releaseDateHtml}</div>
       </div>
       ${linkHtml}
     `;
@@ -2671,7 +2670,7 @@ const NAVIGATION_KEY = 'navigation-v1';
 let navigationReady = false;
 let restoringNavigation = false;
 let navigationPage = 'home';
-let navigationBoard = 'wishlist';
+let navigationBoard = 'arrivals';
 let firstNavigation = true;
 
 function navigationSnapshot(){
@@ -2683,7 +2682,7 @@ function navigationHash(view){
   if(view.media && view.media !== 'physical') params.set('media',view.media);
   for(const key of ['collector','japanese']) if(view[key]) params.set(key, '1');
   if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
-  if(view.board === 'arrivals') params.set('board', 'arrivals');
+  if(['arrivals','wishlist'].includes(view.board)) params.set('board', view.board);
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
 }
 function navigationFromHash(){
@@ -2708,7 +2707,7 @@ function persistNavigation(push = false){
   saveNavigationView(view);
 }
 function setHomeBoard(board){
-  navigationBoard = board === 'arrivals' ? 'arrivals' : 'wishlist';
+  navigationBoard = board === 'wishlist' ? 'wishlist' : 'arrivals';
   document.querySelectorAll('.home-boards-switch-btn').forEach(button => {
     const active = button.dataset.target === navigationBoard;
     button.classList.toggle('active', active);
@@ -2967,6 +2966,7 @@ document.addEventListener('error', event => {
     image.replaceWith(dot);
   }
 }, true);
+
 
 
 
