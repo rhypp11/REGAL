@@ -14,6 +14,7 @@ test('PC boxes, custom launchers and legacy purchases survive backup, transfer a
   assert.equal(D.createPublicSharePayload(restored).games[0].launcher,'Steam');
   assert.equal(D.createChatGPTPayload(restored).data.games[1].launcher,'GOG');
   assert.equal(D.isPC({plateforme:' pc '}),true);assert.equal(D.isPC(box),false);
+  assert.equal(Object.hasOwn(D.normalizeData({games:[{...box,launcher:null}]}).games[0],'launcher'),false);
   assert.throws(()=>D.normalizeData({games:[{...games[0],launcher:{}}]}),/launcher/);
   assert.throws(()=>D.normalizeData({games:[{...games[0],launcher:'x'.repeat(81)}]}),/Launcher/);
 });

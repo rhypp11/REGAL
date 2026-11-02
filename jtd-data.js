@@ -61,6 +61,7 @@
         // Missing mode in older backups keeps the whole image. Unknown modes cannot become CSS.
         if(value.imageFit !== undefined) item.imageFit = value.imageFit === 'cover' ? 'cover' : 'contain';
         if(item.launcher != null){ item.launcher = item.launcher.trim(); if(item.launcher.length > 80) throw new Error('Launcher trop long'); }
+        if(!item.launcher) delete item.launcher;
         if(item.image) item.image = safeURL(item.image, true) || null;
         if(item.lien) item.lien = safeURL(item.lien) || null;
         if(key === 'games'){
