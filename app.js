@@ -1613,6 +1613,7 @@ function saveModal(){
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
   const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit, launcher:readLauncherField()};
+  if(!fields.launcher && !editingId) delete fields.launcher;
   try { Object.assign(fields, readDigitalFields()); }
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
