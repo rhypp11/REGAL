@@ -5,6 +5,7 @@ const server=createSandboxServer();
 const fixture={games:[
  {id:'console',nom:'Jeu console fictif',plateforme:'Switch 2',format:'Physique',prix:40},
  {id:'box',nom:'Collector fictif',plateforme:'PC',format:'Physique',launcher:'Steam',collector:true,prix:80},
+ {id:'box-dlc',nom:'Contenu du collector',plateforme:'PC',format:'Numérique',launcher:'Steam',contentType:'dlc',parentId:'box',prix:5},
  {id:'old',nom:'Ancienne boîte',plateforme:'PC',format:'Physique',prix:10},
  {id:'steam',nom:'Jardin des étoiles',plateforme:'PC',format:'Numérique',launcher:'Steam',prix:20},
  {id:'gog',nom:'Les Gardiens du phare',plateforme:'PC',format:'Numérique',launcher:'GOG',prix:15},

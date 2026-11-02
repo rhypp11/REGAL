@@ -44,6 +44,7 @@ function collectionPurchases(cards, {ignorePlatform = false, ignoreLauncher = fa
     if(!JTDData.isDigital(game)) continue;
     for(const child of gameContents(game)){
       if(child.plateforme !== game.plateforme || !matchesLibrary(child) || (!ignoreLauncher && !matchesLauncher(child))) continue;
+      if(pcCollection() && ((state.pcPhysical && !hasPCBox(child)) || (state.collector && !child.collector))) continue;
       if(state.accountId && child.accountId !== state.accountId) continue;
       if(!ignorePlatform && state.platform && child.plateforme !== state.platform) continue;
       if(types.length && !types.includes(child.contentType)) continue;
@@ -62,7 +63,7 @@ function collectionScope(){
 }
 function collectionCardsForFilters(search = '', ignoreLauncher = false){
   const types=selectedContentTypes();
-  const library = GAMES.filter(matchesLibrary);
+  const library = GAMES.filter(matchesLibrary).map(game=>pcCollection() ? {...game,pcPhysical:hasPCBox(game),format:'Numérique'} : game);
   const source = types.length ? library.filter(g=>types.includes(g.contentType || 'game')) : library;
   return JTDData.collectionCards(source.filter(matchesCollectionStatus).filter(game=>ignoreLauncher || matchesLauncher(game)),pcCollection() ? 'all' : state.media || 'physical',pcCollection() || state.media === 'physical' ? null : state.accountId,search,!types.length);
 }
