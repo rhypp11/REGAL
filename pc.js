@@ -14,6 +14,8 @@ function matchesLibrary(game){ return JTDData.isPC(game) === pcCollection(); }
 function matchesLauncher(game){ return !pcCollection() || !state.launcher || (game.launcher || '') === (state.launcher === '__none__' ? '' : state.launcher); }
 function launcherLabel(value){ return value && value !== '__none__' ? value : 'Sans launcher'; }
 function renderLibraryControls(){
+  if(pcCollection()) { state.platform=null;state.accountId=null; }
+  else state.launcher=null;
   document.querySelectorAll('#collection-library-tabs [data-library]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.library === (state.library || 'consoles'))));
   document.getElementById('collection-platform-label').textContent = pcCollection() ? 'Launchers' : 'Plateformes';
   for(const id of ['sort-platforms-btn','manage-platforms-btn']) document.getElementById(id).classList.toggle('hidden',pcCollection());

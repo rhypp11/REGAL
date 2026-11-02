@@ -23,6 +23,9 @@ async function ids(page){return page.locator('#grid .card').evaluateAll(cards=>c
    page.on('request',r=>{if(/firestore|identitytoolkit|securetoken/.test(r.url()))cloud.push(r.url());});
    await page.goto(process.env.PREVIEW_URL || 'http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(()=>window.JTD_PREVIEW_MODE),true);
+   await page.evaluate(()=>{applyRestoredData(JTDData.normalizeData({games:[{id:'only-console',nom:'Console',plateforme:'Switch 2'}]}));applyNavigation({page:'collection',library:'pc',platform:'Switch 2'});});
+   assert.match(await page.locator('.empty-state').innerText(),/Ta collection PC est vide/);
+   assert.equal(await page.evaluate(()=>state.platform),null);
    await page.evaluate(data=>{applyRestoredData(JTDData.normalizeData(data));applyNavigation({page:'collection'});},fixture);
    assert.deepEqual(await ids(page),['game:console']);
    await page.locator('[data-library="pc"]').click();

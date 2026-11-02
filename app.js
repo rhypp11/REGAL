@@ -1226,8 +1226,8 @@ function render(){
     const empty = document.createElement('div');
     empty.className = 'empty-state';
     empty.style.gridColumn = '1 / -1';
-    empty.innerHTML = GAMES.length === 0
-      ? '<div class="big">Ta collection est vide</div>Ajoute ton premier jeu avec « Ajouter un jeu ».'
+    empty.innerHTML = !GAMES.some(matchesLibrary)
+      ? `<div class="big">${pcCollection() ? 'Ta collection PC est vide' : 'Ta collection est vide'}</div>Ajoute ton premier jeu avec « Ajouter un jeu ».`
       : `<div class="big">Aucun jeu ne correspond</div>Essaie d'élargir tes filtres ou ta recherche.`;
     grid.appendChild(empty);
     return;
