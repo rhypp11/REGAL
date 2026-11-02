@@ -874,7 +874,7 @@ function filteredGames(){
   return collectionCardsForFilters(q).filter(g => {
       if(!matchesLauncher(g)) return false;
       if(state.platform && g.plateforme !== state.platform) return false;
-      if(pcCollection() && state.pcPhysical && !hasPCBox(g)) return false;
+      if(pcCollection() && state.pcPhysical && pcEdition(g)!=='box') return false;
       if(state.collector && !g.collector) return false;
       if(state.japanese && !g.japanese) return false;
       if(q && !g.nom.toLowerCase().includes(q)) return false;
@@ -991,8 +991,8 @@ function renderPlatformBanner(cards){
   const collectionStats = [
     stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
     !state.platform ? stat(platformsCount, pcCollection() ? (platformsCount > 1 ? 'Launchers' : 'Launcher') : (platformsCount > 1 ? 'Plateformes' : 'Plateforme'), 'platforms') : '',
-    stat(games.filter(g=>pcCollection() ? hasPCBox(g) : !JTDData.isDigital(g)).length,'Physique','physical'),
-    stat(pcCollection() ? games.length : games.filter(g=>JTDData.isDigital(g)).length,'Numérique','digital'),
+    stat(games.filter(g=>pcCollection() ? pcEdition(g)==='box' : !JTDData.isDigital(g)).length,pcCollection() ? 'Boîtes' : 'Physique','physical'),
+    !pcCollection() ? stat(games.filter(g=>JTDData.isDigital(g)).length,'Numérique','digital') : '',
     collectors ? stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors') : '',
     !pcCollection() && games.some(g=>g.japanese) ? stat(games.filter(g=>g.japanese).length,'Éditions japonaises','japanese') : ''
   ].join('');
@@ -1145,7 +1145,7 @@ function renderCard(g, options = {}){
     const detail=(label,value)=>`<div><dt>${label}</dt><dd>${value}</dd></div>`;
     const digital=JTDData.isDigital(g);
     const details=document.createElement('dl');details.className='card-list-details';
-    details.innerHTML=detail(JTDData.isPC(g) ? 'Édition' : 'Support',JTDData.isPC(g) ? (g.collector ? 'Collector' : hasPCBox(g) ? 'Physique' : '—') : digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+detail(JTDData.isPC(g) ? 'Launcher' : digital ? 'Compte' : 'Enseigne',JTDData.isPC(g) ? escapeHTML(launcherLabel(g.launcher)) : digital ? escapeHTML(accountName(g.accountId)) : escapeHTML(g.source || '—'));
+    details.innerHTML=detail(JTDData.isPC(g) ? 'Édition' : 'Support',JTDData.isPC(g) ? (g.collector ? 'Collector' : hasPCBox(g) ? 'Boîte' : 'Aucune') : digital ? 'Numérique' : 'Physique')+(hasPurchaseDetails(g) ? detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—') : '')+detail(JTDData.isPC(g) ? 'Launcher' : digital ? 'Compte' : 'Enseigne',JTDData.isPC(g) ? escapeHTML(launcherLabel(g.launcher)) : digital ? escapeHTML(accountName(g.accountId)) : escapeHTML(g.source || '—'));
     card.querySelector('.card-body').appendChild(details);
   }
   decorateDigitalCard(card, g, options);
@@ -1181,7 +1181,7 @@ function renderResultsBar(count){
   if(pcCollection() && state.launcher) filters.push(launcherLabel(state.launcher));
   if(state.contentType) filters.push(contentFilterLabel());
   if(state.collector) filters.push('⭐ Collector');
-  if(pcCollection() && state.pcPhysical) filters.push('Physique');
+  if(pcCollection() && state.pcPhysical) filters.push('Boîte');
   if(state.japanese) filters.push({label:'Japonais', japanese:true});
   if(state.status){
     const s = STATUS_OPTIONS.find(x => x.key === state.status);
@@ -1440,6 +1440,7 @@ function contextEditIcon(){
 
 function contextSummaryHtml(item, type){
   if(type === 'purchase'){
+    if(JTDData.isPC(item) && !hasPCBox(item)) return '<div class="context-summary-values"><span><small>Launcher</small><strong>'+escapeHTML(launcherLabel(item.launcher))+'</strong></span><span><small>Édition</small><strong>Aucune</strong></span></div><button type="button" class="context-edit-btn" title="Modifier les informations" aria-label="Modifier les informations">'+contextEditIcon()+'</button>';
     const bits = [
       `<span><small>Prix payé</small><strong>${item.prix != null ? purchaseMoney(item) : '—'}</strong></span>`,
       `<span><small>Date d'achat</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
@@ -1695,7 +1696,7 @@ function renderHomeStats(){
   const icon=(content)=>`<span class="stats-icon" aria-hidden="true">${content}</span>`;
   const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
   const meta=document.getElementById('home-summary-meta');
-  const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
+  const sums=new Map();GAMES.forEach(g=>{if(hasPurchaseDetails(g) && g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
   if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<div class="home-value-stat"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></div>`;
   const ring=document.getElementById('home-completion-ring');
   if(ring){const done=playable.length ? finished/playable.length*100 : 0, shared=playable.length ? multi/playable.length*100 : 0;

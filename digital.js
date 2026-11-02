@@ -44,7 +44,7 @@ function collectionPurchases(cards, {ignorePlatform = false, ignoreLauncher = fa
     if(!JTDData.isDigital(game)) continue;
     for(const child of gameContents(game)){
       if(child.plateforme !== game.plateforme || !matchesLibrary(child) || (!ignoreLauncher && !matchesLauncher(child))) continue;
-      if(pcCollection() && ((state.pcPhysical && !hasPCBox(child)) || (state.collector && !child.collector))) continue;
+      if(pcCollection() && ((state.pcPhysical && pcEdition(child)!=='box') || (state.collector && !child.collector))) continue;
       if(state.accountId && child.accountId !== state.accountId) continue;
       if(!ignorePlatform && state.platform && child.plateforme !== state.platform) continue;
       if(types.length && !types.includes(child.contentType)) continue;
@@ -63,7 +63,7 @@ function collectionScope(){
 }
 function collectionCardsForFilters(search = '', ignoreLauncher = false){
   const types=selectedContentTypes();
-  const library = GAMES.filter(matchesLibrary).map(game=>pcCollection() ? {...game,pcPhysical:hasPCBox(game),format:'Numérique'} : game);
+  const library = GAMES.filter(matchesLibrary).map(game=>pcCollection() ? {...game,pcPhysical:hasPCBox(game),format:'Numérique',...(!hasPCBox(game)?{prix:null,date:null,source:null}:{})} : game);
   const source = types.length ? library.filter(g=>types.includes(g.contentType || 'game')) : library;
   return JTDData.collectionCards(source.filter(matchesCollectionStatus).filter(game=>ignoreLauncher || matchesLauncher(game)),pcCollection() ? 'all' : state.media || 'physical',pcCollection() || state.media === 'physical' ? null : state.accountId,search,!types.length);
 }
@@ -78,14 +78,14 @@ function contentKind(game){ return game?.contentType === 'upgrade' ? 'Mise à ni
 function contentIcon(game){ return MEDIA_ICONS[game?.contentType === 'upgrade' ? 'upgrade' : 'dlc']; }
 function bindAvatarFallbacks(root){root.querySelectorAll('.console-avatar img').forEach(img=>{img.onerror=()=>img.remove();});}
 function purchaseMoney(game){
-  if(game.prix == null) return '—';
+  if(!hasPurchaseDetails(game) || game.prix == null) return '—';
   return new Intl.NumberFormat('fr-FR',{style:'currency',currency:game.currency || 'EUR',maximumFractionDigits:(game.currency === 'JPY' ? 0 : 2)}).format(game.prix);
 }
 function collectionValueLabel(games, euroTotal){
   if((state.media || 'physical') === 'physical') return '<span class="currency-total">'+euroTotal.toLocaleString('fr-FR',{maximumFractionDigits:0}) + ' €</span>';
   const purchases = collectionPurchases(games);
   const sums = new Map();
-  for(const game of purchases) if(game.prix != null) sums.set(game.currency || 'EUR',(sums.get(game.currency || 'EUR') || 0) + game.prix);
+  for(const game of purchases) if(hasPurchaseDetails(game) && game.prix != null) sums.set(game.currency || 'EUR',(sums.get(game.currency || 'EUR') || 0) + game.prix);
   return [...sums].map(([currency,prix])=>'<span class="currency-total">'+escapeHTML(purchaseMoney({prix,currency}))+'</span>').join('') || '—';
 }
 function accountEcosystemLabel(ecosystem){
@@ -163,7 +163,8 @@ function decorateDigitalCard(card, game, options){
     if(fallback) fallback.innerHTML=logo ? '<img src="'+escapeHTML(logo)+'" alt="">' : MEDIA_ICONS.digital;
     card.querySelector('.card-platform').innerHTML=launcherIdentityHtml(game.launcher);
     const mark=card.querySelector('.card-media-mark');
-    if(hasPCBox(game)) mark.innerHTML=MEDIA_ICONS.physical+'<span>Physique</span>';else mark.remove();
+    if(pcEdition(game)==='box') mark.innerHTML=MEDIA_ICONS.physical+'<span>Boîte</span>';else mark.remove();
+    if(!hasPurchaseDetails(game)) card.querySelector('.card-acquisition')?.remove();
   }
   const contents = gameContents(game);
   if(contents.length) body.insertAdjacentHTML('beforeend','<span class="card-dlc-count">'+MEDIA_ICONS.dlc+contents.length+(contents.some(g=>g.contentType === 'upgrade')?' contenu'+(contents.length>1?'s':''):' DLC')+'</span>');
@@ -240,7 +241,7 @@ function updateDigitalFields(){
   if(dlc) document.getElementById('modal-title').textContent = editingId ? (upgrade?'Mise à niveau':'Fiche du DLC') : (upgrade?'Ajouter une mise à niveau':'Ajouter un DLC');
   else if(!convertingArrivalId && editingCollection !== 'cemetery') document.getElementById('modal-title').textContent = editingId ? 'Fiche du jeu' : 'Ajouter un jeu';
   document.getElementById('f-content-type-field').classList.toggle('hidden',!digital);
-  document.getElementById('f-collector-field').classList.toggle('hidden',digital && !pc);
+  document.getElementById('f-collector-field').classList.toggle('hidden',pc || digital);
   document.getElementById('f-digital-fields').classList.toggle('hidden',!dlc);
   document.getElementById('f-source-field').classList.toggle('hidden',digital && !pc);
   document.getElementById('f-purchase-digital-fields').classList.toggle('hidden',!digital);
@@ -248,6 +249,7 @@ function updateDigitalFields(){
   document.getElementById('f-content-status-field').classList.toggle('hidden',!digital || upgrade || !dlc);
   populateParentGames();
   document.getElementById('f-price-currency').textContent = digital ? ({EUR:'€',JPY:'¥',USD:'$',GBP:'£'})[document.getElementById('f-currency').value] : '€';
+  updatePCPurchaseFields();
   const owned = GAMES.find(g=>g.id === editingId);
   document.getElementById('f-sell-btn').classList.toggle('hidden',!owned || digital || JTDData.isDigital(owned) || editingCollection !== 'games');
 }
@@ -285,10 +287,10 @@ function readDigitalFields(){
   }
   const raw = document.getElementById('f-prix').value.trim();
   const currency = document.getElementById('f-currency').value;
-  if(raw && (!/^\d+(?:[.,]\d{1,2})?$/.test(raw) || !Number.isFinite(Number(raw.replace(',','.'))) || (currency === 'JPY' && !/^\d+$/.test(raw)))){
+  if((!pc || pcEditionValue() !== 'digital') && raw && (!/^\d+(?:[.,]\d{1,2})?$/.test(raw) || !Number.isFinite(Number(raw.replace(',','.'))) || (currency === 'JPY' && !/^\d+$/.test(raw)))){
     throw {field:'f-prix',message:currency === 'JPY'?'Indique un prix en yens sans décimales.':'Indique un prix positif avec deux décimales maximum.'};
   }
-  return {format:'Numérique',contentType:dlc?kind:'game',parentId,accountId:JTDData.isPC({plateforme:document.getElementById('f-plateforme').value}) ? null : document.getElementById('f-account').value || null,currency,collector:pc && document.getElementById('f-collector').checked,japanese:false,...(pc?{pcPhysical:document.getElementById('f-pc-physical').checked || document.getElementById('f-collector').checked}:{}),...(kind==='dlc'?{status:document.getElementById('f-content-status').value || null}:kind==='upgrade'?{status:null}:{})};
+  return {format:'Numérique',contentType:dlc?kind:'game',parentId,accountId:JTDData.isPC({plateforme:document.getElementById('f-plateforme').value}) ? null : document.getElementById('f-account').value || null,currency,collector:pc && pcEditionValue()==='collector',japanese:false,...(pc?{pcPhysical:pcEditionValue()!=='digital'}:{}),...(pc && pcEditionValue()==='digital' ? preservePCPurchaseFields() : {}),...(kind==='dlc'?{status:document.getElementById('f-content-status').value || null}:kind==='upgrade'?{status:null}:{})};
 }
 function renderContentDetails(game){
   const container = document.getElementById('f-content-details');
@@ -328,14 +330,14 @@ function renderContentDetails(game){
       button.innerHTML='<span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+thumb+
         '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
         '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
-        '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+(account?'<span class="content-related-account">'+accountIdentityHtml(account)+'</span>':'')+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
+        '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+(account?'<span class="content-related-account">'+accountIdentityHtml(account)+'</span>':'')+(hasPurchaseDetails(child)?'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span>':'')+'</span></span>'; 
       button.onclick=()=>openModal(child.id);section.appendChild(button);
     }
     const sums = new Map();
     for(const purchase of [game,...children]) if(purchase.prix != null) sums.set(purchase.currency || 'EUR',(sums.get(purchase.currency || 'EUR') || 0)+purchase.prix);
     const total = document.createElement('div');total.className='content-purchase-total';
     total.textContent = 'Total jeu et contenus : '+[...sums].map(([currency,prix])=>purchaseMoney({currency,prix})).join(' + ');
-    section.appendChild(total);
+    if(!JTDData.isPC(game)) section.appendChild(total);
   }
   if(section.childNodes.length) container.appendChild(section);
   bindAvatarFallbacks(container);

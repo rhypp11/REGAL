@@ -4,6 +4,18 @@ let managingLaunchers=false;
 const isLauncherMetaKey=name=>name.startsWith(LAUNCHER_META_PREFIX);
 const launcherKey=name=>LAUNCHER_META_PREFIX+name;
 function pcCollection(){ return state.library === 'pc'; }
+function pcEdition(game){ return game?.collector ? 'collector' : game && (game.pcPhysical === true || !JTDData.isDigital(game)) ? 'box' : 'digital'; }
+function pcEditionValue(){ return document.getElementById('f-pc-edition').value; }
+function preservePCPurchaseFields(){
+  const original=[...GAMES,...CEMETERY].find(game=>game.id===editingId);
+  return {prix:original?.prix ?? null,date:original?.date ?? null,source:original?.source ?? null,currency:original?.currency || 'EUR'};
+}
+function hasPurchaseDetails(game){ return !JTDData.isPC(game) || hasPCBox(game); }
+function updatePCPurchaseFields(){
+  const pc=JTDData.isPC({plateforme:document.getElementById('f-plateforme').value}),enabled=!pc || pcEditionValue() !== 'digital';
+  document.getElementById('f-purchase-fields').classList.toggle('hidden',!enabled);
+  if(pc) document.getElementById('f-format-title').textContent=enabled ? 'Informations et achat de l’édition' : 'Informations';
+}
 function hasPCBox(game){ return JTDData.isPC(game) && (game.pcPhysical === true || !JTDData.isDigital(game) || game.collector === true); }
 function matchesLibrary(game){ return JTDData.isPC(game) === pcCollection(); }
 function matchesLauncher(game){ return !pcCollection() || !state.launcher || (game.launcher || '') === (state.launcher === '__none__' ? '' : state.launcher); }
@@ -27,6 +39,7 @@ function chooseCollectionLibrary(library){
 function renderLibraryControls(){
   if(pcCollection()){
     state.platform=null;state.accountId=null;state.media='all';state.japanese=false;
+    if(state.collector)state.pcPhysical=false;
     state.contentType=selectedContentTypes().filter(type=>type!=='upgrade').join(',') || null;
   }else {state.launcher=null;state.pcPhysical=false;}
   document.querySelectorAll('.nav-tab').forEach(button=>{
@@ -47,10 +60,10 @@ function decoratePCBanner(banner){
 }
 function buildPCEditionFilters(){
   const container=document.getElementById('format-toggles');container.replaceChildren();
-  for(const [key,label,icon] of [['collector','Collector',FORMAT_ICON_STAR],['pcPhysical','Physique',MEDIA_ICONS.physical]]){
+  for(const [key,label,icon] of [['collector','Collector',FORMAT_ICON_STAR],['pcPhysical','Boîte',MEDIA_ICONS.physical]]){
     const chip=document.createElement('div');chip.className='toggle-chip'+(state[key]?' active':'');chip.tabIndex=0;chip.dataset.pcEdition=key;
     chip.innerHTML='<span class="toggle-chip-label">'+icon+'<span>'+label+'</span></span>';setFilterAccessibility(chip,!!state[key]);
-    chip.onclick=()=>{state[key]=!state[key];buildFormatToggles();render();};container.appendChild(chip);
+    chip.onclick=()=>{state[key]=!state[key];if(state[key])state[key==='collector'?'pcPhysical':'collector']=false;buildFormatToggles();render();};container.appendChild(chip);
   }
 }
 function buildLauncherList(){
@@ -69,11 +82,12 @@ function buildLauncherList(){
 function updateLauncherField(){
   const pc=JTDData.isPC({plateforme:document.getElementById('f-plateforme').value});
   document.getElementById('f-launcher-field').classList.toggle('hidden',!pc);
-  document.getElementById('f-pc-physical-field').classList.toggle('hidden',!pc);
+  document.getElementById('f-pc-edition-field').classList.toggle('hidden',!pc);
   document.getElementById('f-japanese').closest('label').classList.toggle('hidden',pc);
   document.getElementById('f-plateforme').closest('.field').classList.toggle('hidden',pc);
   document.getElementById('f-account').closest('.field').classList.toggle('hidden',pc);
   document.getElementById('f-media-field').classList.toggle('hidden',pc || editingCollection==='cemetery' || !!convertingArrivalId);
+  document.querySelector('#f-pc-edition option[value="digital"]').disabled=pc && (editingCollection==='cemetery' || !!convertingArrivalId);
   const upgrade=document.querySelector('#f-content-type option[value="upgrade"]');upgrade.hidden=pc;upgrade.disabled=pc;
 }
 function refreshLauncherSelect(selected=document.getElementById('f-launcher').value){
@@ -82,7 +96,7 @@ function refreshLauncherSelect(selected=document.getElementById('f-launcher').va
 }
 function openLauncherField(game){
   refreshLauncherSelect(game?.launcher || (!game&&pcCollection()&&state.launcher!=='__none__'?state.launcher:'') || '');
-  document.getElementById('f-pc-physical').checked=hasPCBox(game);updateLauncherField();
+  document.getElementById('f-pc-edition').value=pcEdition(game);updateLauncherField();updatePCPurchaseFields();
 }
 function readLauncherField(){return JTDData.isPC({plateforme:document.getElementById('f-plateforme').value})?document.getElementById('f-launcher').value||null:null;}
 function commitLaunchers(meta,order,overrides={}){
@@ -126,8 +140,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('f-plateforme').addEventListener('change',updateLauncherField);
   document.getElementById('f-launcher').addEventListener('change',()=>setGameSheetViewing(false));
   document.getElementById('f-manage-launchers').onclick=()=>openPlatformModal(true);
-  document.getElementById('f-collector').addEventListener('change',()=>{if(JTDData.isPC({plateforme:document.getElementById('f-plateforme').value})&&document.getElementById('f-collector').checked)document.getElementById('f-pc-physical').checked=true;});
-  document.getElementById('f-pc-physical').onchange=()=>{if(!document.getElementById('f-pc-physical').checked)document.getElementById('f-collector').checked=false;};
+  document.getElementById('f-pc-edition').onchange=()=>{document.getElementById('f-collector').checked=pcEditionValue()==='collector';setGameSheetViewing(false);updatePCPurchaseFields();};
 });
 
 function pcPreviewGames(){ return [
