@@ -101,7 +101,7 @@ function loadPreviewData(){
     }
   } catch(error){ console.error('Lecture sandbox impossible', error); }
   const initial = JTDData.normalizeData({...PREVIEW_SEED,
-    games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo(),...digitalPreviewGames()] : PREVIEW_SEED.games,
+    games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo(),...digitalPreviewGames(),...pcPreviewGames()] : PREVIEW_SEED.games,
     digitalAccounts:HAS_PREVIEW_COLLECTION_DEMO ? digitalPreviewAccounts() : [],
     profileName:'Mode test'});
   return previewData = HAS_PREVIEW_COLLECTION_DEMO ? decoratePreviewData(initial) : initial;
@@ -450,6 +450,8 @@ let convertingArrivalId = null; // id de l'arrivage en cours de bascule vers la 
 let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascule vers la wishlist
 
 let state = {
+  library: 'consoles',
+  launcher: null,
   media: 'physical',
   contentType: null,
   accountId: null,
@@ -753,6 +755,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 function buildPlatformList(){
+  renderLibraryControls();
+  if(pcCollection()) return buildLauncherList();
   const scoped = collectionScope();
   if(state.platform && !scoped.some(g => g.plateforme === state.platform)) state.platform = null;
   const counts = Object.create(null);
@@ -867,6 +871,7 @@ function getEffectiveStatus(g){
 function filteredGames(){
   const q = state.search.trim().toLowerCase();
   return collectionCardsForFilters(q).filter(g => {
+      if(!matchesLauncher(g)) return false;
       if(state.platform && g.plateforme !== state.platform) return false;
       if(state.collector && !g.collector) return false;
       if(state.japanese && !g.japanese) return false;
@@ -947,7 +952,7 @@ function updateCollectionScrollContext(){
   const iconHtml=banner.querySelector('.platform-banner-logo,.platform-banner-fallback')?.outerHTML || '';
   const icon=context.querySelector('.collection-context-icon');
   if(icon.innerHTML!==iconHtml) icon.innerHTML=iconHtml;
-  context.querySelector('strong').textContent = state.platform || 'Tous les jeux';
+  context.querySelector('strong').textContent = pcCollection() ? (state.launcher ? launcherLabel(state.launcher) : 'Collection PC') : state.platform || 'Collection consoles';
   context.querySelector('.collection-context-media').innerHTML = collectionFilterLabel();
   const count = Number(banner.dataset.resultCount || 0);
   context.querySelector('.collection-context-count').textContent = count + (state.media && state.media !== 'physical' ? ' élément'+(count > 1 ? 's' : '') : count > 1 ? ' jeux' : ' jeu');
@@ -968,7 +973,7 @@ function renderPlatformBanner(cards){
   const playableGames = games.filter(isPlayablePurchase);
   const spent = games.reduce((sum,g) => sum + ((g.currency || 'EUR') === 'EUR' ? (g.prix || 0) : 0), 0);
   const collectors = games.filter(g => g.collector).length;
-  const platformsCount = new Set(games.map(g => g.plateforme)).size;
+  const platformsCount = new Set(games.map(g => pcCollection() ? g.launcher || '__none__' : g.plateforme)).size;
   const statIcons = {
     games:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/></svg>',
     platforms:ICON_STATUS_PLAYING,
@@ -980,10 +985,10 @@ function renderPlatformBanner(cards){
     multi:ICON_STATUS_MULTI
   };
   const stat = (value, label, key) =>
-    `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span class="library-stat-label"><span class="library-stat-icon" aria-hidden="true">${statIcons[key] || ''}</span>${key === 'platforms' ? `<span class="library-stat-label-wide">${escapeHTML(label)}</span><span class="library-stat-label-short">${platformsCount > 1 ? 'Supports' : 'Support'}</span>` : escapeHTML(label)}</span></span>`;
+    `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span class="library-stat-label"><span class="library-stat-icon" aria-hidden="true">${statIcons[key] || ''}</span>${key === 'platforms' ? `<span class="library-stat-label-wide">${escapeHTML(label)}</span><span class="library-stat-label-short">${pcCollection() ? 'Launchers' : platformsCount > 1 ? 'Supports' : 'Support'}</span>` : escapeHTML(label)}</span></span>`;
   const collectionStats = [
     stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
-    !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',
+    !state.platform ? stat(platformsCount, pcCollection() ? (platformsCount > 1 ? 'Launchers' : 'Launcher') : (platformsCount > 1 ? 'Plateformes' : 'Plateforme'), 'platforms') : '',
     stat(games.filter(g=>!JTDData.isDigital(g)).length,'Physique','physical'),
     stat(games.filter(g=>JTDData.isDigital(g)).length,'Numérique','digital'),
     collectors ? stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors') : '',
@@ -1009,7 +1014,7 @@ function renderPlatformBanner(cards){
     banner.innerHTML = `
       <div class="platform-banner-head">
         <span class="platform-banner-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3.7 5.5l-1.2 3a2 2 0 0 1-3.2.8L15 15H9l-2.3 2.3a2 2 0 0 1-3.2-.8l-1.2-3A4 4 0 0 1 6 8Z"></path><path d="M7 12h4M9 10v4"></path><circle cx="16.5" cy="11.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="18.5" cy="13.5" r=".7" fill="currentColor" stroke="none"></circle></svg></span>
-        <div><span class="platform-banner-title">Tous les jeux</span></div>
+        <div><span class="platform-banner-title">${pcCollection() ? (state.launcher ? escapeHTML(launcherLabel(state.launcher)) : "Collection PC") : "Collection consoles"}</span></div>
       </div>
       ${detailsHtml}
     `;
@@ -1138,7 +1143,7 @@ function renderCard(g, options = {}){
     const detail=(label,value)=>`<div><dt>${label}</dt><dd>${value}</dd></div>`;
     const digital=JTDData.isDigital(g);
     const details=document.createElement('dl');details.className='card-list-details';
-    details.innerHTML=detail('Support',digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+detail(digital ? 'Compte' : 'Enseigne',digital ? escapeHTML(accountName(g.accountId)) : escapeHTML(g.source || '—'));
+    details.innerHTML=detail('Support',digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+detail(JTDData.isPC(g) ? 'Launcher' : digital ? 'Compte' : 'Enseigne',JTDData.isPC(g) ? escapeHTML(launcherLabel(g.launcher)) : digital ? escapeHTML(accountName(g.accountId)) : escapeHTML(g.source || '—'));
     card.querySelector('.card-body').appendChild(details);
   }
   decorateDigitalCard(card, g, options);
@@ -1171,6 +1176,7 @@ function renderResultsBar(count){
 
   const filters = [];
   if(state.platform) filters.push(state.platform);
+  if(pcCollection() && state.launcher) filters.push(launcherLabel(state.launcher));
   if(state.contentType) filters.push(contentFilterLabel());
   if(state.collector) filters.push('⭐ Collector');
   if(state.japanese) filters.push({label:'Japonais', japanese:true});
@@ -1203,6 +1209,7 @@ function syncCollectionView(){
 }
 
 function render(){
+  renderLibraryControls();
   syncCollectionView();
   renderMediaControls();
   persistNavigation();
@@ -1432,7 +1439,8 @@ function contextSummaryHtml(item, type){
     const bits = [
       `<span><small>Prix payé</small><strong>${item.prix != null ? purchaseMoney(item) : '—'}</strong></span>`,
       `<span><small>Date d'achat</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
-      JTDData.isDigital(item) ? `<span><small>Compte</small><strong>${escapeHTML(accountName(item.accountId))}</strong></span>` : `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
+      JTDData.isPC(item) ? `<span><small>Launcher</small><strong>${escapeHTML(launcherLabel(item.launcher))}</strong></span>` : '',
+      JTDData.isDigital(item) ? (JTDData.isPC(item) ? '' : `<span><small>Compte</small><strong>${escapeHTML(accountName(item.accountId))}</strong></span>`) : `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
     return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>`;
   }
@@ -1550,11 +1558,14 @@ function openModal(id, collection = 'games'){
     deleteBtn.classList.add('hidden');
     document.getElementById('f-nom').value = '';
     populatePlatformSelect('f-plateforme');
-    if(state.platform){
+    if(pcCollection()){
+      setSelectValueAndSync('f-plateforme', 'PC');
+    } else if(state.platform){
       setSelectValueAndSync('f-plateforme', state.platform);
     } else {
       const lastPlatform = getLastUsed('platform', '');
-      if(lastPlatform) setSelectValueAndSync('f-plateforme', lastPlatform);
+      if(lastPlatform && !JTDData.isPC({plateforme:lastPlatform})) setSelectValueAndSync('f-plateforme', lastPlatform);
+      else setSelectValueAndSync('f-plateforme', allPlatformNames().find(p=>!JTDData.isPC({plateforme:p})) || '');
     }
     document.getElementById('f-collector').checked = false;
   document.getElementById('f-japanese').checked = false;
@@ -1567,6 +1578,7 @@ function openModal(id, collection = 'games'){
   updateImagePreview();
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
   openDigitalFields(identityItem);
+  openLauncherField(identityItem);
   setIdentityEditor('f', identityItem, !!editingId);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
@@ -1600,7 +1612,7 @@ function saveModal(){
   const prix = parsePriceInput(document.getElementById('f-prix').value);
   const date = document.getElementById('f-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
-  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit};
+  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit, launcher:readLauncherField()};
   try { Object.assign(fields, readDigitalFields()); }
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
@@ -1619,7 +1631,12 @@ function saveModal(){
 
   setLastUsed('platform', plateforme);
   const savedMedia = JTDData.isDigital(fields) ? 'digital' : 'physical';
-  if(editingCollection === 'games' && state.media !== 'all') state.media = savedMedia;
+  if(editingCollection === 'games'){
+    state.library = JTDData.isPC(fields) ? 'pc' : 'consoles';
+    if(pcCollection()) { state.platform=null; if(state.launcher && !matchesLauncher(fields)) state.launcher=null; }
+    else state.launcher=null;
+    if(state.media !== 'all') state.media = savedMedia;
+  }
   closeModal();
   buildPlatformList();
   render();
@@ -1630,7 +1647,8 @@ function saveModal(){
   }
   if(received) showToast(`« ${received.nom} » ajouté à la collection.`, 'Voir', () => {
     goToPage('collection');
-    state.platform = received.plateforme;
+    state.library = JTDData.isPC(received) ? 'pc' : 'consoles';state.launcher=null;
+    state.platform = pcCollection() ? null : received.plateforme;
     state.search = ''; document.getElementById('search-input').value = '';
     state.status = null; state.collector = false; state.japanese = false;
     buildPlatformList(); buildFormatToggles(); buildStatusToggles(); render();
@@ -2152,6 +2170,7 @@ function addArrivalToCollection(id){
   editingCollection = 'games';
   fillIdentityFields('f', item);
   openDigitalFields(item);
+  openLauncherField(item);
 
   document.getElementById('modal-title').textContent = 'Confirmer la réception';
   document.getElementById('delete-btn').classList.add('hidden');
@@ -2660,7 +2679,7 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  state = { media:state.media || 'physical', accountId:null, contentType:null, platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
+  state = { library:state.library || 'consoles', launcher:null, media:state.media || 'physical', accountId:null, contentType:null, platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
@@ -2681,7 +2700,7 @@ function navigationSnapshot(){
 }
 function navigationHash(view){
   const params = new URLSearchParams();
-  for(const key of ['platform','status','search','accountId','contentType']) if(view[key]) params.set(key, view[key]);
+  for(const key of ['library','launcher','platform','status','search','accountId','contentType']) if(view[key]) params.set(key, view[key]);
   if(view.media && view.media !== 'physical') params.set('media',view.media);
   for(const key of ['collector','japanese']) if(view[key]) params.set(key, '1');
   if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
@@ -2724,10 +2743,12 @@ function applyNavigation(view = {}){
   restoringNavigation = true;
   navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
   state = {
+    library:view.library === 'pc' || (!view.library && JTDData.isPC({plateforme:view.platform})) ? 'pc' : 'consoles',
+    launcher:typeof view.launcher === 'string' ? view.launcher.slice(0,80) || null : null,
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
     contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
     accountId:DIGITAL_ACCOUNTS.some(a => a.id === view.accountId) ? view.accountId : null,
-    platform:allPlatformNames().includes(view.platform) ? view.platform : null,
+    platform:!JTDData.isPC({plateforme:view.platform}) && allPlatformNames().includes(view.platform) ? view.platform : null,
     collector:view.collector === true, japanese:view.japanese === true,
     status:STATUS_OPTIONS.some(s => s.key === view.status) || view.status === '__none__' ? view.status : null,
     search:typeof view.search === 'string' ? view.search.slice(0,200) : '',

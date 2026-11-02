@@ -39,7 +39,7 @@
         }
         used.add(id);
         const item = {id, nom, plateforme};
-        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId','journalPreviousStatus','contentType','parentId','accountId','currency','dekuNote','dekuAddedAt']){
+        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId','journalPreviousStatus','contentType','parentId','accountId','currency','dekuNote','dekuAddedAt','launcher']){
           if(value[field] !== undefined) item[field] = text(value[field], field);
         }
         for(const field of ['collector','japanese']){
@@ -60,6 +60,7 @@
         }
         // Missing mode in older backups keeps the whole image. Unknown modes cannot become CSS.
         if(value.imageFit !== undefined) item.imageFit = value.imageFit === 'cover' ? 'cover' : 'contain';
+        if(item.launcher != null){ item.launcher = item.launcher.trim(); if(item.launcher.length > 80) throw new Error('Launcher trop long'); }
         if(item.image) item.image = safeURL(item.image, true) || null;
         if(item.lien) item.lien = safeURL(item.lien) || null;
         if(key === 'games'){
@@ -119,6 +120,7 @@
     if(target.some(item => item.id === id)) throw new Error('Élément déjà transféré');
     return {source:source.filter(item => item.id !== id), target:[...target, {...draft, id}]};
   }
+  function isPC(game){ return /^(pc|steam)$/i.test(String(game?.plateforme || '').trim()); }
   function isDigital(game){ return ['Numérique','Dématérialisé','Digital'].includes(game?.format); }
   function isDLC(game){ return isDigital(game) && game.contentType === 'dlc'; }
   function isAddon(game){ return isDigital(game) && ['dlc','upgrade'].includes(game.contentType); }
@@ -229,6 +231,7 @@
         ...cleanGame(item),
         id: item.id == null ? null : String(item.id),
         format: isDigital(item) ? 'Numérique' : 'Physique',
+        ...(isPC(item) ? {launcher:item.launcher || null} : {}),
         contentType: isAddon(item) ? item.contentType : 'game',
         parentId: isAddon(item) && item.parentId != null ? String(item.parentId) : null
       })),
@@ -284,7 +287,7 @@
     },data:{...shared,games:shared.games.map((game,i)=>({...game,format:normalized.games[i].format,contentType:normalized.games[i].contentType || 'game',parentId:normalized.games[i].parentId || null}))}};
   }
 
-  const api = {isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {isPC,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

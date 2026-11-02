@@ -35,7 +35,7 @@ function matchesCollectionStatus(game){
   return isPlayablePurchase(game) && (state.status === '__none__' ? !status : status === state.status);
 }
 // Count purchases represented by the cards, including only children actually grouped here.
-function collectionPurchases(cards, {ignorePlatform = false, search = state.search || ''} = {}){
+function collectionPurchases(cards, {ignorePlatform = false, ignoreLauncher = false, search = state.search || ''} = {}){
   const purchases = new Map(cards.map(game => [game.id,game]));
   const types = selectedContentTypes();
   if(types.length) return [...purchases.values()];
@@ -43,7 +43,7 @@ function collectionPurchases(cards, {ignorePlatform = false, search = state.sear
   for(const game of cards){
     if(!JTDData.isDigital(game)) continue;
     for(const child of gameContents(game)){
-      if(child.plateforme !== game.plateforme) continue;
+      if(child.plateforme !== game.plateforme || !matchesLibrary(child) || (!ignoreLauncher && !matchesLauncher(child))) continue;
       if(state.accountId && child.accountId !== state.accountId) continue;
       if(!ignorePlatform && state.platform && child.plateforme !== state.platform) continue;
       if(types.length && !types.includes(child.contentType)) continue;
@@ -58,12 +58,13 @@ function collectionPlayablePurchases(cards){
   return collectionPurchases(cards).filter(isPlayablePurchase);
 }
 function collectionScope(){
-  return collectionPurchases(collectionCardsForFilters(),{ignorePlatform:true,search:''});
+  return collectionPurchases(collectionCardsForFilters('',true),{ignorePlatform:true,ignoreLauncher:true,search:''});
 }
-function collectionCardsForFilters(search = ''){
+function collectionCardsForFilters(search = '', ignoreLauncher = false){
   const types=selectedContentTypes();
-  const source = types.length ? GAMES.filter(g=>types.includes(g.contentType || 'game')) : GAMES;
-  return JTDData.collectionCards(source.filter(matchesCollectionStatus),state.media || 'physical',state.media === 'physical' ? null : state.accountId,search,!types.length);
+  const library = GAMES.filter(matchesLibrary);
+  const source = types.length ? library.filter(g=>types.includes(g.contentType || 'game')) : library;
+  return JTDData.collectionCards(source.filter(matchesCollectionStatus).filter(game=>ignoreLauncher || matchesLauncher(game)),state.media || 'physical',pcCollection() || state.media === 'physical' ? null : state.accountId,search,!types.length);
 }
 function accountName(id){ const account = DIGITAL_ACCOUNTS.find(a => a.id === id); return account?.nickname || account?.name || 'Compte non renseigné'; }
 function accountIdentityHtml(account, showName = true){
@@ -97,14 +98,14 @@ function renderMediaControls(){
     button.setAttribute('aria-pressed',String((state.media || 'physical') === mode));
   }
   const digital = state.media !== 'physical';
-  document.getElementById('collection-account-field').classList.toggle('hidden',!digital);
+  document.getElementById('collection-account-field').classList.toggle('hidden',!digital || pcCollection());
   document.getElementById('content-filter-section').classList.toggle('hidden',!digital);
   document.getElementById('collector-filter-section').classList.toggle('hidden',state.media === 'digital');
   if(!digital) state.contentType = null;
   document.getElementById('content-type-options').innerHTML = [['game','Jeux'],['dlc','DLC'],['upgrade','Mises à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+selectedContentTypes().includes(value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
-  if(state.media === 'physical' || !DIGITAL_ACCOUNTS.some(a=>a.id === state.accountId)) state.accountId = null;
+  if(pcCollection() || state.media === 'physical' || !DIGITAL_ACCOUNTS.some(a=>a.id === state.accountId)) state.accountId = null;
   const types = selectedContentTypes();
-  const purchases = GAMES.filter(game => JTDData.isDigital(game)
+  const purchases = GAMES.filter(game => matchesLibrary(game) && JTDData.isDigital(game)
     && (!state.platform || game.plateforme === state.platform)
     && (!types.length || types.includes(game.contentType || 'game'))
     && matchesCollectionStatus(game));
@@ -153,10 +154,11 @@ function decorateDigitalCard(card, game, options){
   if(!options.readOnly){
     body.querySelector('.card-identity').insertAdjacentHTML('beforeend','<span class="card-media-mark">'+MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span></span>');
   }
+  if(JTDData.isPC(game)) card.querySelector('.card-platform').textContent='PC · '+launcherLabel(game.launcher);
   const contents = gameContents(game);
   if(contents.length) body.insertAdjacentHTML('beforeend','<span class="card-dlc-count">'+MEDIA_ICONS.dlc+contents.length+(contents.some(g=>g.contentType === 'upgrade')?' contenu'+(contents.length>1?'s':''):' DLC')+'</span>');
   if(digital){
-    if(game.accountId) body.querySelector('.card-platform').insertAdjacentHTML('afterend','<span class="card-console-account">'+accountIdentityHtml(DIGITAL_ACCOUNTS.find(a=>a.id === game.accountId))+'</span>');
+    if(!JTDData.isPC(game) && game.accountId) body.querySelector('.card-platform').insertAdjacentHTML('afterend','<span class="card-console-account">'+accountIdentityHtml(DIGITAL_ACCOUNTS.find(a=>a.id === game.accountId))+'</span>');
     const price = card.querySelector('.card-price');
     if(price) price.textContent = game.prix == null ? 'Non renseigné' : purchaseMoney(game);
     bindAvatarFallbacks(body);
@@ -216,6 +218,7 @@ function renderParentPreview(){
   document.getElementById('f-parent-clear').classList.toggle('hidden',!parent);
 }
 function updateDigitalFields(){
+  updateLauncherField();
   const digital = document.getElementById('f-media').value === 'digital';
   document.getElementById('f-format-title').innerHTML = MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span>';
   document.querySelectorAll('[name="f-media-choice"]').forEach(input=>{input.checked=input.value===(digital?'digital':'physical');});
@@ -238,7 +241,7 @@ function updateDigitalFields(){
 }
 function openDigitalFields(game){
   const physicalOnly = editingCollection === 'cemetery' || !!convertingArrivalId;
-  const digital = !physicalOnly && (game ? JTDData.isDigital(game) : state.media === 'digital');
+  const digital = !physicalOnly && (game ? JTDData.isDigital(game) : state.media === 'digital' || (pcCollection() && state.media !== 'physical'));
   document.getElementById('f-media-field').classList.toggle('hidden',physicalOnly);
   document.getElementById('f-media').value = digital ? 'digital' : 'physical';
   document.getElementById('f-content-type').value = JTDData.isAddon(game) ? game.contentType : 'game';
@@ -272,7 +275,7 @@ function readDigitalFields(){
   if(raw && (!/^\d+(?:[.,]\d{1,2})?$/.test(raw) || !Number.isFinite(Number(raw.replace(',','.'))) || (currency === 'JPY' && !/^\d+$/.test(raw)))){
     throw {field:'f-prix',message:currency === 'JPY'?'Indique un prix en yens sans décimales.':'Indique un prix positif avec deux décimales maximum.'};
   }
-  return {format:'Numérique',contentType:dlc?kind:'game',parentId,accountId:document.getElementById('f-account').value || null,currency,collector:false,japanese:false,...(kind==='dlc'?{status:document.getElementById('f-content-status').value || null}:kind==='upgrade'?{status:null}:{})};
+  return {format:'Numérique',contentType:dlc?kind:'game',parentId,accountId:JTDData.isPC({plateforme:document.getElementById('f-plateforme').value}) ? null : document.getElementById('f-account').value || null,currency,collector:false,japanese:false,...(kind==='dlc'?{status:document.getElementById('f-content-status').value || null}:kind==='upgrade'?{status:null}:{})};
 }
 function renderContentDetails(game){
   const container = document.getElementById('f-content-details');
@@ -445,7 +448,7 @@ function initDigitalControls(){
     const account=document.getElementById('f-account').value;populateDigitalAccounts(account || parent.accountId || '',!account);
     renderParentPreview();
   };
-  document.getElementById('f-plateforme').addEventListener('change',()=>{populateDigitalAccounts('',true);renderParentPreview();});
+  document.getElementById('f-plateforme').addEventListener('change',()=>{populateDigitalAccounts('',true);renderParentPreview();updateLauncherField();});
   document.getElementById('digital-account-add').onclick=()=>{const draft=document.querySelector('.digital-account-row[data-new="true"]');if(draft)draft.querySelector('.digital-account-edit').click();else editDigitalAccountRow();};
   document.getElementById('digital-accounts-save').onclick=closeDigitalAccounts;
 }

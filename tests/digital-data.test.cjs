@@ -4,6 +4,19 @@ const D=require('../jtd-data.js');
 const box={id:'box',nom:'Jeu en boîte',plateforme:'Switch',format:'Physique',prix:40};
 const base={id:'base',nom:'Jeu numérique',plateforme:'Switch',format:'Numérique',contentType:'game',accountId:'eu',prix:30,currency:'EUR'};
 const dlc={id:'dlc',nom:'Extension',plateforme:'Switch',format:'Numérique',contentType:'dlc',parentId:'base',accountId:'eu',prix:20,currency:'EUR'};
+
+test('PC boxes, custom launchers and legacy purchases survive backup, transfer and public export',()=>{
+  const games=[{...box,plateforme:'PC',launcher:'Steam',collector:true},{...base,plateforme:'PC',launcher:'GOG'},{id:'old-pc',nom:'Ancienne boîte',plateforme:'PC'}];
+  const restored=D.parseBackup({app:'Jeux Tout Doux',version:4,data:{games}});
+  assert.equal(restored.games[0].collector,true);assert.equal(restored.games[0].format,'Physique');
+  assert.equal(restored.games[0].launcher,'Steam');assert.equal(restored.games[1].launcher,'GOG');assert.equal(restored.games[2].launcher,undefined);
+  assert.equal(D.transferItem(restored.games,[],box.id,restored.games[0]).target[0].launcher,'Steam');
+  assert.equal(D.createPublicSharePayload(restored).games[0].launcher,'Steam');
+  assert.equal(D.createChatGPTPayload(restored).data.games[1].launcher,'GOG');
+  assert.equal(D.isPC({plateforme:' pc '}),true);assert.equal(D.isPC(box),false);
+  assert.throws(()=>D.normalizeData({games:[{...games[0],launcher:{}}]}),/launcher/);
+  assert.throws(()=>D.normalizeData({games:[{...games[0],launcher:'x'.repeat(81)}]}),/Launcher/);
+});
 test('old backups stay physical; digital purchases, accounts, currency and attachment round-trip',()=>{
   assert.equal(D.parseBackup([{id:'old',nom:'Ancien jeu',plateforme:'PS2'}]).games[0].format,'Physique');
   const data={games:[box,base,dlc],digitalAccounts:[{id:'eu',name:'Principal',ecosystem:'Nintendo',region:'Europe',preferred:true}]};

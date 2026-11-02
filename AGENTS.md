@@ -61,6 +61,13 @@ Préserver l'ordre de chargement et les interfaces partagées entre scripts. Ré
 
 Ces repères décrivent les choix actuels ; une nouvelle instruction explicite de Rom peut les faire évoluer.
 
+### Collection PC
+
+- La collection propose deux espaces Consoles / PC. Ils filtrent la même liste d'achats ; aucun déplacement ni duplication des exemplaires existants. PC reste la plateforme des boîtes et collectors, même avec un code à l'intérieur.
+- Côté PC, les launchers remplacent le filtre de plateformes : Steam, GOG, Epic Games Store, Battle.net, Xbox app, EA app, Ubisoft Connect ou saisie libre. Le launcher reste facultatif (Sans launcher) et concerne aussi le physique. Pas de comptes consoles dans les fiches et filtres PC.
+- Physique et Numérique restent disponibles des deux côtés. Les accès par abonnement et partage familial seront traités avec le journal ; pas d'import ni de connexion automatique aux launchers.
+- Préserver launcher dans les sauvegardes, transferts et exports. Les statistiques de l'accueil couvrent les deux espaces ; les statistiques de collection suivent l'espace et ses filtres. Tester les parcours avec tests/pc.cjs.
+
 ## Vérification et maintenance
 
 - Privilégier les changements ciblés et simples. Lors d'un nettoyage, supprimer les restes devenus inutiles plutôt qu'empiler des overrides CSS ou des chemins de compatibilité non justifiés.
