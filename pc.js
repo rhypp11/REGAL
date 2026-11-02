@@ -96,7 +96,12 @@ function refreshLauncherSelect(selected=document.getElementById('f-launcher').va
 }
 function openLauncherField(game){
   refreshLauncherSelect(game?.launcher || (!game&&pcCollection()&&state.launcher!=='__none__'?state.launcher:'') || '');
-  document.getElementById('f-pc-edition').value=pcEdition(game);updateLauncherField();updatePCPurchaseFields();
+  document.getElementById('f-pc-edition').value=pcEdition(game);
+  if(JTDData.isPC({plateforme:document.getElementById('f-plateforme').value}) && pcEdition(game)==='digital'){
+    for(const id of ['f-prix','f-date','f-source'])document.getElementById(id).value='';
+    document.getElementById('f-currency').value='EUR';
+  }
+  updateLauncherField();updatePCPurchaseFields();
 }
 function readLauncherField(){return JTDData.isPC({plateforme:document.getElementById('f-plateforme').value})?document.getElementById('f-launcher').value||null:null;}
 function commitLaunchers(meta,order,overrides={}){

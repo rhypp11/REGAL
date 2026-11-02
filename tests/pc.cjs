@@ -36,7 +36,7 @@ async function manage(page){await drawer(page);await page.locator('#manage-platf
    await page.locator('#f-context-summary .context-edit-btn').click();
    assert.equal(await page.locator('#f-pc-edition').inputValue(),'digital');
    for(const id of ['f-prix','f-date','f-source','f-currency'])assert.equal(await page.locator('#'+id).isVisible(),false);
-   await page.locator('#f-pc-edition').selectOption('box');assert.equal(await page.locator('#f-prix').isVisible(),true);
+   await page.locator('#f-pc-edition').selectOption('box');assert.equal(await page.locator('#f-prix').isVisible(),true);assert.equal(await page.locator('#f-prix').inputValue(),'','An old digital price never becomes the price of a new box');
    await page.locator('#f-prix').fill('123,45');await page.locator('#f-pc-edition').selectOption('collector');assert.equal(await page.locator('#f-prix').inputValue(),'123,45');
    await page.locator('#f-pc-edition').selectOption('digital');await page.locator('#f-prix').evaluate(el=>el.value='invalid');await page.locator('#save-btn').click();
    assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='gog').prix),15,'Existing acquisition is preserved but never read from a hidden field');
