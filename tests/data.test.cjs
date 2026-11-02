@@ -272,7 +272,7 @@ test('retired backup metadata preserves entries without becoming public collecti
   assert.equal(restored.games[0].type,original.type);
   assert.equal(restored.games[0].prix,25);
   const shared = D.createPublicSharePayload(restored).games[0];
-  assert.equal(shared.format,'Physique');
+  assert.equal(shared.format,'Numérique');
   assert.equal(Object.hasOwn(shared,'type'),false);
 });
 

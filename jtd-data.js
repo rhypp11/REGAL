@@ -232,7 +232,7 @@
       games: list('games').filter(item => item && item.nom && item.plateforme).map(item => ({
         ...cleanGame(item),
         id: item.id == null ? null : String(item.id),
-        format: isDigital(item) ? 'Numérique' : 'Physique',
+        format: isPC(item) || isDigital(item) ? 'Numérique' : 'Physique',
         ...(isPC(item) ? {launcher:item.launcher || null,pcPhysical:item.pcPhysical === true || !isDigital(item) || item.collector === true} : {}),
         contentType: isAddon(item) ? item.contentType : 'game',
         parentId: isAddon(item) && item.parentId != null ? String(item.parentId) : null
@@ -286,7 +286,7 @@
       games:'Jeux physiques et numériques, DLC et mises à niveau actuellement dans la collection ; parentId rattache un contenu à son jeu de base.',
       cemetery:'Exemplaires physiques à vendre (pending) ou vendus (sold).',
       salePrice:'Prix encaissé par vente ; un même saleId désigne un lot dont le prix ne doit être compté qu’une fois.'
-    },data:{...shared,games:shared.games.map((game,i)=>({...game,format:normalized.games[i].format,contentType:normalized.games[i].contentType || 'game',parentId:normalized.games[i].parentId || null}))}};
+    },data:{...shared,games:shared.games.map((game,i)=>({...game,format:isPC(normalized.games[i])?'Numérique':normalized.games[i].format,contentType:normalized.games[i].contentType || 'game',parentId:normalized.games[i].parentId || null}))}};
   }
 
   const api = {isPC,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};

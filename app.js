@@ -2379,7 +2379,7 @@ function buildPlatformRows(){
   const counts = Object.create(null);
   [GAMES, ARRIVALS, WISHLIST, CEMETERY.filter(g => g.saleStatus !== 'sold')].forEach(items => items.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; }));
   allPlatformNames().forEach(p => { if(!(p in counts)) counts[p] = 0; });
-  const platforms = getOrderedPlatformNames();
+  const platforms = getOrderedPlatformNames().filter(name=>!JTDData.isPC({plateforme:name}));
 
   const container = document.getElementById('platform-rows');
   container.innerHTML = "";
