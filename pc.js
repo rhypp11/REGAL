@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     state.media=pcCollection() ? 'all' : 'physical';state.collector=false;state.japanese=false;state.status=null;state.search='';
     document.getElementById('search-input').value='';
     buildPlatformList();buildFormatToggles();buildStatusToggles();render();
+    button.focus({preventScroll:true});
   };
   document.getElementById('f-plateforme').addEventListener('change',updateLauncherField);
   document.getElementById('f-launcher').addEventListener('input',()=>setGameSheetViewing(false));
