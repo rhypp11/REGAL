@@ -15,6 +15,10 @@ test('PC boxes, custom launchers and legacy purchases survive backup, transfer a
   assert.equal(D.createChatGPTPayload(restored).data.games[1].launcher,'GOG');
   assert.equal(D.isPC({plateforme:' pc '}),true);assert.equal(D.isPC(box),false);
   assert.equal(Object.hasOwn(D.normalizeData({games:[{...box,launcher:null}]}).games[0],'launcher'),false);
+  const owned={...base,plateforme:'PC',collector:true,pcPhysical:true,launcher:'Mes jeux'};
+  assert.deepEqual(D.parseBackup({app:'Jeux Tout Doux',version:4,data:{games:[owned]}}).games[0].pcPhysical,true);
+  assert.equal(D.createChatGPTPayload({games:[owned]}).data.games[0].pcPhysical,true);
+  assert.throws(()=>D.normalizeData({games:[{...owned,pcPhysical:'oui'}]}),/PC/);
   assert.throws(()=>D.normalizeData({games:[{...games[0],launcher:{}}]}),/launcher/);
   assert.throws(()=>D.normalizeData({games:[{...games[0],launcher:'x'.repeat(81)}]}),/Launcher/);
 });

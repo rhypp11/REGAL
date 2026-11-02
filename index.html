@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="ui-foundations.css?v=open-sans-26">
 <link rel="stylesheet" href="regal.css?v=soft-materials-22">
 <link rel="stylesheet" href="game-sheet.css?v=format-icons-29">
-<link rel="stylesheet" href="collection.css?v=pc-collection-2">
+<link rel="stylesheet" href="collection.css?v=pc-library-3">
 <link rel="stylesheet" href="digital.css?v=compact-content-28">
 <link rel="stylesheet" href="deku-import.css?v=1">
 </head>
@@ -82,7 +82,8 @@
 
     <div class="topnav-nav" aria-label="Navigation principale">
       <button class="nav-tab active" data-page="home" title="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg><span class="nav-tab-label">Accueil</span></button>
-      <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
+      <button class="nav-tab" data-page="collection" title="Collection consoles" aria-label="Collection consoles"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label"><span class="nav-collection-prefix">Collection </span>consoles</span></button>
+      <button class="nav-tab" data-page="pc" title="Collection PC" aria-label="Collection PC"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg><span class="nav-tab-label"><span class="nav-collection-prefix">Collection </span>PC</span></button>
       <button class="nav-tab" data-page="cemetery" title="Cimetière"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V10a6 6 0 0 1 12 0v11M4 21h16M9 10h6M12 7v6"/></svg><span class="nav-tab-label">Cimetière</span></button>
     </div>
     <div class="topnav-break"></div>
@@ -369,10 +370,6 @@
   </aside>
 
   <main class="main">
-    <div class="collection-library-tabs" id="collection-library-tabs" role="group" aria-label="Collection">
-      <button type="button" data-library="consoles" aria-pressed="true">Consoles</button>
-      <button type="button" data-library="pc" aria-pressed="false">PC</button>
-    </div>
     <div class="platform-banner" id="platform-banner"></div>
 
     <div class="top-row">
@@ -431,7 +428,7 @@
       </div>
       <div class="context-summary hidden" id="f-context-summary"></div>
       <div class="context-editor" id="f-context-editor">
-        <div class="field hidden" id="f-launcher-field"><label for="f-launcher">Launcher <span class="optional-label">optionnel</span></label><input type="text" id="f-launcher" list="pc-launcher-options" maxlength="80" placeholder="Sans launcher"><datalist id="pc-launcher-options"></datalist></div>
+        <div class="field hidden" id="f-launcher-field"><label for="f-launcher">Launcher <span class="optional-label">optionnel</span></label><div class="pc-launcher-choice"><select id="f-launcher"></select><button type="button" class="icon-link-btn" id="f-manage-launchers" aria-label="Gérer les launchers" title="Gérer les launchers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button></div></div>
 
         <div class="field edition-options" id="f-collector-field" role="group" aria-label="Édition, optionnel">
           <span class="edition-options-label">Édition <span class="optional-label">optionnel</span></span>
@@ -440,6 +437,7 @@
             <span class="identity-collector-toggle-icon"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>
             <span>Collector</span>
           </label>
+          <label class="identity-collector-control hidden" id="f-pc-physical-field" for="f-pc-physical"><input type="checkbox" id="f-pc-physical"><span>Physique</span></label>
           <label class="identity-collector-control" for="f-japanese">
             <input type="checkbox" id="f-japanese">
             <span class="japanese-flag" aria-hidden="true"></span>
@@ -615,11 +613,11 @@
 <div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
 <div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>
 </div></div>
-<script src="jtd-data.js?v=pc-collection-1"></script>
+<script src="jtd-data.js?v=pc-library-3"></script>
 <script src="dialogs.js?v=context-error-25"></script>
-<script src="digital.js?v=pc-collection-1"></script>
-<script src="pc.js?v=2"></script>
-<script src="app.js?v=pc-collection-2"></script>
+<script src="digital.js?v=pc-library-3"></script>
+<script src="pc.js?v=pc-library-3"></script>
+<script src="app.js?v=pc-library-3"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=cemetery-ergonomie-1"></script>

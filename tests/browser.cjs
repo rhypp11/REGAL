@@ -98,7 +98,7 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.games[0].nom),payload.data.games[0].nom);
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.wishlist[0].lien),null);
       await page.locator('.nav-tab[data-page="collection"]').click();
-      await page.locator('[data-library="pc"]').click();
+      await page.locator('.nav-tab[data-page="pc"]').click();
       assert.equal(await page.locator('#page-collection .card-name-text').innerText(),payload.data.games[0].nom);
       assert.equal(await page.locator('#page-collection .card-source').count(),0);
       await page.locator('#page-collection .card-name-text').click();
@@ -116,7 +116,7 @@ async function restore(page, value, confirm=true){
       await restore(page,payload);
       assert.equal(pickers,3);
       await page.evaluate(()=>{renamePlatform('PC','Ordinateur "test"');buildPlatformList();render();});
-      await page.locator('[data-library="consoles"]').click();
+      await page.locator('.nav-tab[data-page="collection"]').click();
       assert.ok(await page.evaluate(()=>[GAMES,ARRIVALS,WISHLIST].every(list=>list.every(item=>item.plateforme==='Ordinateur "test"'))));
       await page.locator('#page-collection .card').click();
       await page.locator('#cancel-btn').click();

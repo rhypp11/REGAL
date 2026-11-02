@@ -311,13 +311,14 @@
   #page-collection .library-stat-group:first-child { grid-row:auto; }
 }
 
-/* Library navigation belongs to the collection heading, alongside its context. */
-#page-collection .platform-banner-head { flex-wrap:wrap; }
-#page-collection .platform-banner-head > div:not(.collection-library-tabs) { flex:1; min-width:0; }
-.collection-library-tabs { display:inline-flex; flex:0 0 auto; align-items:center; gap:2px; padding:3px; border:1px solid color-mix(in srgb,currentColor 18%,transparent); border-radius:var(--ui-radius-sm); background:color-mix(in srgb,currentColor 4%,transparent); color:inherit; }
-#page-collection .platform-banner-head > .collection-library-tabs { flex-direction:row; gap:2px; }
-.collection-library-tabs button { min-height:34px; padding:6px 14px; border:1px solid transparent; border-radius:6px; background:transparent; color:inherit; opacity:.7; font:600 12px/1.4 var(--ui-font-sans); cursor:pointer; }
-.collection-library-tabs button:hover { opacity:1; background:color-mix(in srgb,currentColor 6%,transparent); }
-.collection-library-tabs button[aria-pressed="true"] { opacity:1; background:var(--ui-surface); color:var(--ui-accent); border-color:var(--ui-border); }
-.collection-library-tabs button:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
-@media(max-width:560px) { .collection-library-tabs { flex-basis:100%; } .collection-library-tabs button { flex:1; } }
+/* The two collections use the existing primary navigation. */
+.pc-launcher-choice { display:flex; align-items:center; gap:8px; }
+.pc-launcher-choice select { flex:1; min-width:0; }
+.pc-launcher-choice .icon-link-btn { flex:0 0 34px; }
+.launcher-identity { display:inline-flex; align-items:center; gap:6px; min-width:0; }
+.launcher-identity img { width:18px; height:18px; object-fit:contain; flex-shrink:0; }
+.launcher-identity span { overflow:hidden; text-overflow:ellipsis; }
+.card-fallback :is(svg,img) { width:32px; height:32px; object-fit:contain; }
+@media(max-width:1100px) { .nav-collection-prefix { display:none; } }
+@media(max-width:820px) { .topnav .topnav-nav { grid-template-columns:repeat(4,minmax(0,1fr)); } .nav-tab-label { text-transform:capitalize; } }
+@media(max-width:380px) { .topnav-nav .nav-tab-label { font-size:11px; } }

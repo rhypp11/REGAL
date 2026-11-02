@@ -392,7 +392,7 @@ function movePlatformOrder(name, direction){
   const swapIdx = idx + direction;
   if(idx === -1 || swapIdx < 0 || swapIdx >= order.length) return;
   [order[idx], order[swapIdx]] = [order[swapIdx], order[idx]];
-  platformOrder = order;
+  platformOrder = [...order,...platformOrder.filter(isLauncherMetaKey)];
   savePlatformOrder();
 }
 
@@ -814,6 +814,7 @@ function setFilterAccessibility(element, active){
 }
 
 function buildFormatToggles(){
+  if(pcCollection()) return buildPCEditionFilters();
   const container = document.getElementById('format-toggles');
   container.innerHTML = "";
   const collectorChip = document.createElement('div');
@@ -873,6 +874,7 @@ function filteredGames(){
   return collectionCardsForFilters(q).filter(g => {
       if(!matchesLauncher(g)) return false;
       if(state.platform && g.plateforme !== state.platform) return false;
+      if(pcCollection() && state.pcPhysical && !hasPCBox(g)) return false;
       if(state.collector && !g.collector) return false;
       if(state.japanese && !g.japanese) return false;
       if(q && !g.nom.toLowerCase().includes(q)) return false;
@@ -989,10 +991,10 @@ function renderPlatformBanner(cards){
   const collectionStats = [
     stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
     !state.platform ? stat(platformsCount, pcCollection() ? (platformsCount > 1 ? 'Launchers' : 'Launcher') : (platformsCount > 1 ? 'Plateformes' : 'Plateforme'), 'platforms') : '',
-    stat(games.filter(g=>!JTDData.isDigital(g)).length,'Physique','physical'),
-    stat(games.filter(g=>JTDData.isDigital(g)).length,'Numérique','digital'),
+    stat(games.filter(g=>pcCollection() ? hasPCBox(g) : !JTDData.isDigital(g)).length,'Physique','physical'),
+    stat(pcCollection() ? games.length : games.filter(g=>JTDData.isDigital(g)).length,'Numérique','digital'),
     collectors ? stat(collectors, collectors > 1 ? 'Collectors' : 'Collector', 'collectors') : '',
-    games.some(g=>g.japanese) ? stat(games.filter(g=>g.japanese).length,'Éditions japonaises','japanese') : ''
+    !pcCollection() && games.some(g=>g.japanese) ? stat(games.filter(g=>g.japanese).length,'Éditions japonaises','japanese') : ''
   ].join('');
   const completionStats = [
     stat(playableGames.filter(g => !getEffectiveStatus(g) || getEffectiveStatus(g)==='a_jouer').length,'À faire','a_jouer'),
@@ -1143,7 +1145,7 @@ function renderCard(g, options = {}){
     const detail=(label,value)=>`<div><dt>${label}</dt><dd>${value}</dd></div>`;
     const digital=JTDData.isDigital(g);
     const details=document.createElement('dl');details.className='card-list-details';
-    details.innerHTML=detail('Support',digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+detail(JTDData.isPC(g) ? 'Launcher' : digital ? 'Compte' : 'Enseigne',JTDData.isPC(g) ? escapeHTML(launcherLabel(g.launcher)) : digital ? escapeHTML(accountName(g.accountId)) : escapeHTML(g.source || '—'));
+    details.innerHTML=detail(JTDData.isPC(g) ? 'Édition' : 'Support',JTDData.isPC(g) ? (g.collector ? 'Collector' : hasPCBox(g) ? 'Physique' : '—') : digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+detail(JTDData.isPC(g) ? 'Launcher' : digital ? 'Compte' : 'Enseigne',JTDData.isPC(g) ? escapeHTML(launcherLabel(g.launcher)) : digital ? escapeHTML(accountName(g.accountId)) : escapeHTML(g.source || '—'));
     card.querySelector('.card-body').appendChild(details);
   }
   decorateDigitalCard(card, g, options);
@@ -1179,6 +1181,7 @@ function renderResultsBar(count){
   if(pcCollection() && state.launcher) filters.push(launcherLabel(state.launcher));
   if(state.contentType) filters.push(contentFilterLabel());
   if(state.collector) filters.push('⭐ Collector');
+  if(pcCollection() && state.pcPhysical) filters.push('Physique');
   if(state.japanese) filters.push({label:'Japonais', japanese:true});
   if(state.status){
     const s = STATUS_OPTIONS.find(x => x.key === state.status);
@@ -1215,7 +1218,7 @@ function render(){
   persistNavigation();
   const games = sortGames(filteredGames());
   renderPlatformBanner(games);
-  mountLibraryControls(document.getElementById('platform-banner'));
+  decoratePCBanner(document.getElementById('platform-banner'));
   renderResultsBar(collectionPurchases(games).length);
 
   const grid = document.getElementById('grid');
@@ -1241,7 +1244,7 @@ function render(){
 
 function allPlatformNames(){
   const names = new Set([...GAMES,...ARRIVALS,...WISHLIST,...CEMETERY].map(g => g.plateforme));
-  Object.keys(platformMeta).forEach(p => names.add(p));
+  Object.keys(platformMeta).filter(p=>!isLauncherMetaKey(p)).forEach(p => names.add(p));
   return [...names].sort();
 }
 
@@ -1401,7 +1404,7 @@ function identitySummaryHtml(item){
     <div class="identity-thumb${gameImageClass(item)}" style="${image ? '' : `background:${color}`}">${thumb}</div>
     <div class="identity-copy">
       <strong>${collectorMark}${japaneseEditionMark(item)}<span>${escapeHTML(name)}</span></strong>
-      <span>${platformIcon}${escapeHTML(platform)}</span>
+      <span>${JTDData.isPC(item) ? launcherIdentityHtml(item.launcher) : platformIcon+escapeHTML(platform)}</span>
     </div>
     <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
@@ -1441,7 +1444,7 @@ function contextSummaryHtml(item, type){
       `<span><small>Prix payé</small><strong>${item.prix != null ? purchaseMoney(item) : '—'}</strong></span>`,
       `<span><small>Date d'achat</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
       JTDData.isPC(item) ? `<span><small>Launcher</small><strong>${escapeHTML(launcherLabel(item.launcher))}</strong></span>` : '',
-      JTDData.isDigital(item) ? (JTDData.isPC(item) ? '' : `<span><small>Compte</small><strong>${escapeHTML(accountName(item.accountId))}</strong></span>`) : `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
+      JTDData.isDigital(item) && !JTDData.isPC(item) ? `<span><small>Compte</small><strong>${escapeHTML(accountName(item.accountId))}</strong></span>` : `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
     return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>`;
   }
@@ -1681,8 +1684,8 @@ function deleteGame(){
 
 function renderHomeStats(){
   const games=GAMES.filter(g=>!JTDData.isAddon(g));
-  const physical=games.filter(g=>!JTDData.isDigital(g));
-  const digital=games.filter(g=>JTDData.isDigital(g));
+  const physical=games.filter(g=>JTDData.isPC(g) ? hasPCBox(g) : !JTDData.isDigital(g));
+  const digital=games.filter(g=>JTDData.isPC(g) || JTDData.isDigital(g));
   const total=games.length;
   const playable=GAMES.filter(isPlayablePurchase);
   const finished=playable.filter(g=>['termine','termine_ailleurs'].includes(g.status)).length;
@@ -2356,7 +2359,10 @@ document.getElementById('w-image').addEventListener('input', () => updateImagePr
 
 /* ---------- Modal gestion des plateformes ---------- */
 
-function openPlatformModal(){
+function openPlatformModal(forLaunchers){
+  managingLaunchers = forLaunchers === true || pcCollection();
+  document.getElementById('platform-modal-title').textContent=managingLaunchers ? 'Launchers' : 'Plateformes';
+  const newName=document.getElementById('new-platform-name');newName.placeholder=managingLaunchers ? 'Nom du launcher…' : 'Nom de la nouvelle plateforme…';newName.setAttribute('aria-label',managingLaunchers ? 'Nom du nouveau launcher' : 'Nom de la nouvelle plateforme');
   closeMobileDrawers();
   buildPlatformRows();
   window.JTDDialogs.open('platform-modal-overlay', {onDismiss:closePlatformModal,initialFocus:'#new-platform-toggle'});
@@ -2369,6 +2375,7 @@ function closePlatformModal(){
 }
 
 function buildPlatformRows(){
+  if(managingLaunchers) return buildLauncherRows();
   const counts = Object.create(null);
   [GAMES, ARRIVALS, WISHLIST, CEMETERY.filter(g => g.saleStatus !== 'sold')].forEach(items => items.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; }));
   allPlatformNames().forEach(p => { if(!(p in counts)) counts[p] = 0; });
@@ -2557,6 +2564,7 @@ function setAddPlatformOpen(open){
 }
 
 function addPlatform(){
+  if(managingLaunchers) return addLauncher();
   const input = document.getElementById('new-platform-name');
   const name = input.value.trim();
   if(!name) { window.JTDDialogs.error(input.id,'Indique le nom de la plateforme.'); return; }
@@ -2704,7 +2712,7 @@ function navigationHash(view){
   const params = new URLSearchParams();
   for(const key of ['library','launcher','platform','status','search','accountId','contentType']) if(view[key]) params.set(key, view[key]);
   if(view.media && view.media !== 'physical') params.set('media',view.media);
-  for(const key of ['collector','japanese']) if(view[key]) params.set(key, '1');
+  for(const key of ['collector','japanese','pcPhysical']) if(view[key]) params.set(key, '1');
   if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
   if(['arrivals','wishlist'].includes(view.board)) params.set('board', view.board);
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
@@ -2713,7 +2721,7 @@ function navigationFromHash(){
   const match = location.hash.match(/^#(home|collection|cemetery)(?:\?(.*))?$/);
   if(!match) return null;
   const params = new URLSearchParams(match[2]);
-  return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1'};
+  return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1', pcPhysical:params.get('pcPhysical') === '1'};
 }
 function saveNavigationView(view){
   try {
@@ -2751,7 +2759,7 @@ function applyNavigation(view = {}){
     contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
     accountId:DIGITAL_ACCOUNTS.some(a => a.id === view.accountId) ? view.accountId : null,
     platform:!JTDData.isPC({plateforme:view.platform}) && allPlatformNames().includes(view.platform) ? view.platform : null,
-    collector:view.collector === true, japanese:view.japanese === true,
+    collector:view.collector === true, japanese:view.japanese === true, pcPhysical:view.pcPhysical === true,
     status:STATUS_OPTIONS.some(s => s.key === view.status) || view.status === '__none__' ? view.status : null,
     search:typeof view.search === 'string' ? view.search.slice(0,200) : '',
     sort:['name-asc','name-desc','price-desc','price-asc','date-desc','date-asc'].includes(view.sort) ? view.sort : 'name-asc'
@@ -2777,13 +2785,14 @@ function resetNavigationSession(){
     history.replaceState(null, '', location.pathname + location.search);
   }
 }
-function goToPage(page, push = true){
+function goToPage(page, push = true, library = null){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
+  if(library) chooseCollectionLibrary(library);
   navigationPage = ['collection','cemetery'].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
-    const active = b.dataset.page === navigationPage;
+    const active = b.dataset.page === (navigationPage === 'collection' && pcCollection() ? 'pc' : navigationPage);
     b.classList.toggle('active', active);
     if(active) b.setAttribute('aria-current', 'page');
     else b.removeAttribute('aria-current');
@@ -2820,7 +2829,7 @@ window.addEventListener('hashchange', () => {
 
 document.querySelectorAll('.nav-tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    goToPage(btn.dataset.page);
+    goToPage(btn.dataset.page === 'pc' ? 'collection' : btn.dataset.page,true,btn.dataset.page === 'pc' ? 'pc' : btn.dataset.page === 'collection' ? 'consoles' : null);
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
 });
@@ -2850,7 +2859,7 @@ function toggleMobileDrawer(el){
 }
 document.getElementById('mobile-backdrop').addEventListener('click', closeMobileDrawers);
 
-const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
+const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', pc:'collection-sidebar', cemetery: 'cemetery-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
   const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));

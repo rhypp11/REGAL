@@ -46,6 +46,7 @@
           if(value[field] != null && typeof value[field] !== 'boolean') throw new Error('Édition invalide');
           item[field] = value[field] === true;
         }
+        if(value.pcPhysical !== undefined){ if(typeof value.pcPhysical !== 'boolean') throw new Error('Édition PC invalide'); item.pcPhysical=value.pcPhysical; }
         if(value.prix != null && (typeof value.prix !== 'number' || !Number.isFinite(value.prix))) throw new Error('Prix invalide');
         if(value.prix !== undefined) item.prix = value.prix;
         for(const field of ['estimatedPrice','salePrice','saleOrder']){
@@ -232,7 +233,7 @@
         ...cleanGame(item),
         id: item.id == null ? null : String(item.id),
         format: isDigital(item) ? 'Numérique' : 'Physique',
-        ...(isPC(item) ? {launcher:item.launcher || null} : {}),
+        ...(isPC(item) ? {launcher:item.launcher || null,pcPhysical:item.pcPhysical === true || !isDigital(item) || item.collector === true} : {}),
         contentType: isAddon(item) ? item.contentType : 'game',
         parentId: isAddon(item) && item.parentId != null ? String(item.parentId) : null
       })),

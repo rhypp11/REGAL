@@ -63,10 +63,10 @@ Ces repères décrivent les choix actuels ; une nouvelle instruction explicite d
 
 ### Collection PC
 
-- La collection propose deux espaces Consoles / PC. Ils filtrent la même liste d'achats ; aucun déplacement ni duplication des exemplaires existants. PC reste la plateforme des boîtes et collectors, même avec un code à l'intérieur.
-- Côté PC, les launchers remplacent le filtre de plateformes : Steam, GOG, Epic Games Store, Battle.net, Xbox app, EA app, Ubisoft Connect ou saisie libre. Le launcher reste facultatif (Sans launcher) et concerne aussi le physique. Pas de comptes consoles dans les fiches et filtres PC.
-- Physique et Numérique restent disponibles des deux côtés. Les accès par abonnement et partage familial seront traités avec le journal ; pas d'import ni de connexion automatique aux launchers.
-- Préserver launcher dans les sauvegardes, transferts et exports. Les statistiques de l'accueil couvrent les deux espaces ; les statistiques de collection suivent l'espace et ses filtres. Tester les parcours avec tests/pc.cjs.
+- La navigation principale propose Accueil, Collection consoles, Collection PC et Cimetière. Sur mobile, les quatre boutons restent sur une ligne ; les libellés se raccourcissent en Consoles et PC. Aucun sélecteur de bibliothèque dans le bandeau.
+- Les launchers sont créés par Rom, avec nom, couleur, image et ordre personnalisé. Pas de catalogue imposé ni de suggestions codées en dur. Le gestionnaire reprend les composants des plateformes et conserve les références lors d'un renommage. Sans launcher reste possible.
+- Le PC est toujours présenté comme numérique. Physique et Collector sont des éditions supplémentaires du même achat ; Collector implique une boîte. Conserver les anciennes boîtes sans migration destructive. Pas de filtre Japonais, de sélecteur Physique/Numérique ou de nouvelles mises à niveau PC ; seulement Jeux et DLC. Les cartes affichent le launcher sans répéter PC.
+- Les métadonnées de launchers sont isolées dans platformMeta sous le préfixe __pc_launcher__: et leur ordre dans platformOrder ; elles ne sont jamais proposées comme plateformes. Cette frontière existante assure les sauvegardes et la synchronisation sans nouveau stockage indépendant. Préserver launcher et pcPhysical dans les sauvegardes, transferts et exports. Tester les parcours avec tests/pc.cjs. Pas d'import ni de connexion automatique aux launchers.
 
 ## Vérification et maintenance
 
