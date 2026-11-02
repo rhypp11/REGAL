@@ -134,7 +134,7 @@ const server=createSandboxServer();
     await page.screenshot({path:`/tmp/jtd-collection-scroll-${width}-${theme}.png`});
     await page.evaluate(()=>{state.platform=null;render();});
     await page.waitForTimeout(50);
-    assert.equal(await band.locator('strong').innerText(),'Tous les jeux','Context updates after a filter change');
+    assert.equal(await band.locator('strong').innerText(),'Collection consoles','Context updates after a filter change');
     await page.evaluate(()=>goToPage('home'));
     assert.equal(await band.isVisible(),false,'Context stays within collection');
     await page.evaluate(()=>{goToPage('collection');window.scrollTo(0,0);document.querySelector('#page-collection .main').scrollTop=0;});
