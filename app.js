@@ -1215,6 +1215,7 @@ function render(){
   persistNavigation();
   const games = sortGames(filteredGames());
   renderPlatformBanner(games);
+  mountLibraryControls(document.getElementById('platform-banner'));
   renderResultsBar(collectionPurchases(games).length);
 
   const grid = document.getElementById('grid');

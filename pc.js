@@ -1,5 +1,10 @@
 /* PC is a collection scope, not a second copy of the library. */
 const PC_LAUNCHERS = ['Steam','GOG','Epic Games Store','Battle.net','Xbox app','EA app','Ubisoft Connect','Autre'];
+const libraryControls = document.getElementById('collection-library-tabs');
+function mountLibraryControls(banner){
+  banner.querySelector('.platform-banner-head').appendChild(libraryControls);
+  if(pcCollection()) banner.querySelector('.platform-banner-fallback').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>';
+}
 function pcPreviewGames(){ return [
   {id:'test-pc-box',nom:'Les Gardiens du phare — Collector PC démo',plateforme:'PC',format:'Physique',collector:true,launcher:'Steam',prix:89.99},
   {id:'test-pc-box-free',nom:'Le Dernier atelier — Boîte PC démo',plateforme:'PC',format:'Physique',prix:19.99},
@@ -26,10 +31,11 @@ function buildLauncherList(){
   for(const game of scoped){ const key=game.launcher || '__none__'; counts.set(key,(counts.get(key)||0)+1); }
   const container=document.getElementById('platform-list');container.replaceChildren();
   const option=(key,label,count)=>{
-    const button=document.createElement('button');button.type='button';button.className='plat-item'+(state.launcher === key ? ' active' : '');
+    const button=document.createElement('div');button.className='plat-item'+(state.launcher === key ? ' active' : '');button.tabIndex=0;
     button.dataset.launcher=key || '';button.setAttribute('aria-pressed',String(state.launcher === key));
     button.innerHTML='<span class="spine-chip" aria-hidden="true"></span><span class="plat-name">'+escapeHTML(label)+'</span><span class="plat-count">'+count+'</span>';
     button.onclick=()=>{state.launcher=state.launcher === key ? null : key;buildPlatformList();render();closeMobileDrawers();};
+    setFilterAccessibility(button,state.launcher === key);
     container.appendChild(button);
   };
   option(null,'Tous les launchers',scoped.length);
