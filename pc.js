@@ -131,11 +131,11 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 function pcPreviewGames(){ return [
-  {id:'test-pc-box',nom:'Les Gardiens du phare — Collector PC démo',plateforme:'PC',format:'Physique',collector:true,launcher:'Steam',prix:89.99},
-  {id:'test-pc-box-free',nom:'Le Dernier atelier — Boîte PC démo',plateforme:'PC',format:'Physique',prix:19.99},
-  {id:'test-pc-steam',nom:'La Route des étoiles — PC démo',plateforme:'PC',format:'Numérique',launcher:'Steam',prix:29.99},
+  {id:'test-pc-box',nom:'Les Gardiens du phare — Collector démo',plateforme:'PC',format:'Physique',collector:true,launcher:'Steam',prix:89.99},
+  {id:'test-pc-box-free',nom:'Le Dernier atelier — Boîte démo',plateforme:'PC',format:'Physique',prix:19.99},
+  {id:'test-pc-steam',nom:'La Route des étoiles — démo',plateforme:'PC',format:'Numérique',launcher:'Steam',prix:29.99},
   {id:'test-pc-dlc',nom:'La Route des étoiles — Extension démo',plateforme:'PC',format:'Numérique',launcher:'Steam',contentType:'dlc',parentId:'test-pc-steam',prix:9.99},
-  {id:'test-pc-gog',nom:'Mémoires de la forêt — PC démo',plateforme:'PC',format:'Numérique',launcher:'GOG',prix:14.99},
-  {id:'test-pc-epic',nom:'L’Archipel oublié — PC démo',plateforme:'PC',format:'Numérique',launcher:'Epic Games Store',prix:0},
-  {id:'test-pc-xbox',nom:'Les Voyageurs de l’aube — PC démo',plateforme:'PC',format:'Numérique',launcher:'Xbox app',prix:24.99}
+  {id:'test-pc-gog',nom:'Mémoires de la forêt — démo',plateforme:'PC',format:'Numérique',launcher:'GOG',prix:14.99},
+  {id:'test-pc-epic',nom:'L’Archipel oublié — démo',plateforme:'PC',format:'Numérique',launcher:'Epic Games Store',prix:0},
+  {id:'test-pc-xbox',nom:'Les Voyageurs de l’aube — démo',plateforme:'PC',format:'Numérique',launcher:'Xbox app',prix:24.99}
 ]; }
