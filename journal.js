@@ -16,7 +16,7 @@
     {id:'journal-demo-2',group:'completed',name:'Chroniques du phare',platform:'PC',date:'2022-08-15',estimated:true,format:'digital',mode:'online',completion:'hundred',notes:['','A','S','B','A'],feeling:'love'},
     {id:'journal-demo-3',group:'playing',name:'Échos de cristal',platform:'PC',format:'digital'},
     {id:'journal-demo-4',group:'backlog',name:'Les Montagnes d’Ambre',platform:'Switch 2',precision:'Suggéré par Camille',format:'physical'},
-    {id:'journal-demo-5',group:'release',name:'La Traversée de Solaria',platform:'PC',date:'2027-02',format:'digital'}
+    {id:'journal-demo-5',group:'release',name:'La Traversée de Solaria',platform:'PC',date:'2027-02-12',format:'digital'}
   ].map((entry,index)=>({...entry,image:new URL('preview-assets/'+['garden','lighthouse','mountains'][index%3]+'.svg',location.href).href}));
 
   function records(){
@@ -36,6 +36,7 @@
   }
   function dateLabel(entry,short=false){
     if(typeof entry.date !== 'string' || !entry.date) return 'À annoncer';
+    if(entry.date==='TBD') return 'TBD';
     if(entry.yearOnly) return '≈ '+entry.date.slice(0,4);
     if(entry.date.length===4) return entry.date;
     const [year,month,day] = entry.date.split('-');
@@ -43,22 +44,86 @@
     if(!day || short) return MONTH_NAMES_FULL[Number(month)-1]+(short?'':' '+year);
     return Number(day)+' '+MONTH_NAMES_FULL[Number(month)-1]+' '+year;
   }
-  function image(entry){
-    const src = safeURL(entry.image,true);
-    return src ? '<img class="journal-art" src="'+esc(src)+'" alt="" loading="lazy">' : '';
-  }
   function score(value,criterion){
     return '<span class="journal-grade" data-grade="'+esc(value||'')+'" title="'+esc(criterion+': '+(value||'Sans note'))+'">'+esc(value||'–')+'</span>';
   }
+  const bubble='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
+  const pencil='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20h9M4 20l1-5L16 4l4 4L9 19z"/></svg>';
+  const accessLabel=entry=>entry.access&&entry.access!=='owned'
+    ? [access[entry.access],entry.access==='subscription'?entry.service:''].filter(Boolean).join(' · ') : '';
+  function gameThumb(entry){
+    return boardThumb({nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit});
+  }
+  function day(entry){
+    if(entry.estimated) return '<span class="calendar-day calendar-day-loose" title="Date approximative" aria-label="Date approximative"><strong>≈</strong></span>';
+    return calendarDayHtml(entry.date);
+  }
   function row(entry){
     const done = entry.group === 'completed';
-    const month=done&&!entry.yearOnly?Number(entry.date?.slice(5,7))-1:-1;
-    const monthStyle=MONTH_DATE_COLORS[month]?' style="--journal-month-bg:'+MONTH_DATE_COLORS[month]+';--journal-month-ink:'+MONTH_DATE_TEXT_COLORS[month]+'"':'';
-    return '<button type="button" class="journal-row'+(done?' journal-completion-row':'')+'" data-journal-entry="'+esc(entry.id)+'">'+
-      (entry.date || entry.group==='release'?'<time class="journal-month"'+monthStyle+' title="'+esc(dateLabel(entry))+'">'+esc(dateLabel(entry,done))+'</time>':'')+
-      image(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small>'+esc([entry.platform,entry.precision].filter(Boolean).join(' · '))+'</small>'+
-      (done?'<small>'+esc([formats[entry.format],modes[entry.mode],completions[entry.completion]].filter(Boolean).join(' · '))+'</small>':'')+'</span>'+
-      (done?'<span class="journal-scores">'+criteria.map((criterion,index)=>score(entry.notes?.[index],criterion)).join('')+'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span></span>':'')+'</button>';
+    const tracked = entry.group === 'release';
+    return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'">'+
+      (done?day(entry):tracked?(validDay(entry.date)?calendarDayHtml(entry.date):''):'')+
+      gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small>'+esc([entry.platform,entry.precision].filter(Boolean).join(' · '))+'</small>'+
+      (done?'<small>'+esc([formats[entry.format],modes[entry.mode],completions[entry.completion]].filter(Boolean).join(' · '))+'</small>':'')+
+      (done&&accessLabel(entry)?'<span class="journal-access">'+esc(accessLabel(entry))+'</span>':'')+'</span>'+
+      (done?'<span class="journal-scores">'+criteria.map((criterion,index)=>score(entry.notes?.[index],criterion)).join('')+'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>'+
+        (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'')+'</button>';
+  }
+  function calendar(entries,groupBy){
+    const groups = new Map();
+    for(const entry of entries){
+      const group=groupBy(entry);
+      if(!groups.has(group.key)) groups.set(group.key,{...group,items:[]});
+      groups.get(group.key).items.push(entry);
+    }
+    return [...groups.values()].map(group=>'<section class="journal-calendar">'+
+      calendarGroupHtml(group.label,'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('');
+  }
+  function completedGroup(entry){
+    if(entry.yearOnly) return {key:'year',label:'Année seule'};
+    const month=Number(entry.date.slice(5,7))-1;
+    return {key:entry.date.slice(0,7),label:MONTH_NAMES_FULL[month]||'Date inconnue',color:MONTH_COLORS[month]};
+  }
+  function releaseGroup(entry){
+    const value=String(entry.date||'');
+    const month=/^\d{4}-(?:0[1-9]|1[0-2])(?:-\d{2})?$/.test(value)?Number(value.slice(5,7))-1:-1;
+    if(month>=0) return {key:value.slice(0,7),label:MONTH_NAMES_FULL[month]+' '+value.slice(0,4),color:MONTH_COLORS[month]};
+    const label=/^\d{4}$/.test(value)?value:'TBD';
+    return {key:label,label};
+  }
+  function stats(entries){
+    const countBy=key=>{
+      const counts=new Map();
+      for(const entry of entries){
+        const value=entry[key]||(key==='access'?'owned':'');
+        if(value) counts.set(value,(counts.get(value)||0)+1);
+      }
+      return counts;
+    };
+    const stat=(label,count,graphic='')=>'<div class="journal-stat"><span>'+graphic+esc(label)+'</span><b>'+count+'</b></div>';
+    const section=(label,html)=>'<section class="journal-stat-section"><h4>'+label+'</h4>'+html+'</section>';
+    const counts=countBy('completion'), total=entries.length;
+    const colors=['var(--status-done)','var(--amber)','#8867bb'];
+    let start=0;
+    const gradient=Object.keys(completions).map((key,index)=>{
+      const end=start+(total?(counts.get(key)||0)/total*100:0);
+      const part=colors[index]+' '+start+'% '+end+'%';
+      start=end;
+      return part;
+    });
+    const ring='<div class="home-completion-ring journal-stat-ring" style="background:'+
+      (total?'conic-gradient('+gradient.join(',')+',var(--ui-border) '+start+'% 100%)':'var(--ui-border)')+
+      '"><span><strong>'+total+'</strong><small>Complétions</small></span></div>';
+    const platforms=[...countBy('platform')].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'fr')).map(([name,count])=>{
+      const logo=safeURL(getPlatformLogo(name),true);
+      const graphic=logo?'<img src="'+esc(logo)+'" alt="">':'<i style="background:'+esc(getPlatformColor(name))+'"></i>';
+      return stat(name,count,graphic);
+    }).join('');
+    const formatCount=countBy('format'), accessCount=countBy('access');
+    return section('Complétions',ring+Object.entries(completions).map(([key,label],index)=>stat(label,counts.get(key)||0,'<i style="background:'+colors[index]+'"></i>')).join(''))+
+      section('Plateformes',platforms||'<p class="journal-empty">Aucune plateforme.</p>')+
+      section('Supports',Object.entries(formats).map(([key,label])=>stat(label,formatCount.get(key)||0)).join(''))+
+      section('Accès',Object.entries(access).map(([key,label])=>stat(label,accessCount.get(key)||0)).join(''));
   }
   function render(){
     const entries = records();
@@ -69,16 +134,12 @@
     year.replaceChildren(...years.map(number=>new Option(number,number)));
     year.value = years.includes(value)?value:years[0];
     const selected = completed.filter(entry=>entry.date.startsWith(year.value)).sort((a,b)=>b.date.localeCompare(a.date));
-    const platforms = new Map();
-    for(const entry of selected) platforms.set(entry.platform,(platforms.get(entry.platform)||0)+1);
-    $('journal-stats').innerHTML = '<strong>'+selected.length+' complétion'+(selected.length>1?'s':'')+'</strong>'+
-      [...platforms].sort((a,b)=>b[1]-a[1]).map(([name,count])=>'<div class="journal-stat"><span>'+esc(name)+'</span><b>'+count+'</b></div>').join('')+
-      '<hr>'+Object.entries(completions).map(([key,label])=>'<div class="journal-stat"><span>'+label+'</span><b>'+selected.filter(entry=>entry.completion===key).length+'</b></div>').join('');
-    $('journal-completed').innerHTML = selected.map(row).join('') || '<p class="journal-empty">Aucune complétion cette année.</p>';
+    $('journal-stats').innerHTML = stats(selected);
+    $('journal-completed').innerHTML = calendar(selected,completedGroup) || '<p class="journal-empty">Aucune complétion cette année.</p>';
     for(const group of ['playing','backlog','release']){
       const list = entries.filter(entry=>entry?.group===group);
       if(group==='release') list.sort((a,b)=>String(a.date||'9999').localeCompare(String(b.date||'9999')));
-      $('journal-'+group).innerHTML = list.map(row).join('') || '<p class="journal-empty">Aucun jeu.</p>';
+      $('journal-'+group).innerHTML = (group==='release'?calendar(list,releaseGroup):list.map(row).join('')) || '<p class="journal-empty">Aucun jeu.</p>';
     }
   }
   window.renderJournal = render;
@@ -110,28 +171,33 @@
     const date = new Date(value+'T12:00:00Z');
     return Number.isFinite(+date) && date.toISOString().slice(0,10)===value;
   }
-  function edit(entry,fromBacklog=false){
+  function edit(entry,fromBacklog=false,section='all'){
     const group=entry.group, done=group==='completed', release=group==='release';
     const date=entry.date ?? (done?today():'');
     const existing=records().some(record=>record?.id===entry.id);
     const generation=window.JTDAccountGeneration;
     const sources=GAMES;
-    show(existing&&!fromBacklog?'Modifier l’entrée':done?'Ajouter une complétion':'Ajouter un jeu',
+    const identityOnly=section==='identity', commentOnly=section==='comment', completionOnly=section==='completion';
+    const chooseSource=!existing||identityOnly;
+    show(identityOnly?'Modifier le jeu':commentOnly?'Modifier le commentaire':completionOnly?'Modifier la complétion':existing&&!fromBacklog?'Modifier l’entrée':done?'Ajouter une complétion':'Ajouter un jeu',
       '<form id="journal-form">'+
       '<section class="form-section journal-game-section">'+
-      '<div id="journal-game-summary"'+(!existing?' class="hidden"':'')+'>'+identityCard(entry,!fromBacklog)+'</div>'+
-      '<div id="journal-game-editor"'+(existing?' class="hidden"':'')+'>'+
-      (!existing?field('Chercher dans la collection',input('lookup','','type="search" placeholder="Titre ou plateforme"'))+field('Jeu de la collection',select('source',{'':'Saisie manuelle'},'')):'')+
+      '<div id="journal-game-summary"'+(!existing||identityOnly?' class="hidden"':'')+'>'+identityCard(entry,!fromBacklog&&!completionOnly&&!commentOnly)+'</div>'+
+      '<div id="journal-game-editor"'+(existing&&!identityOnly?' class="hidden"':'')+'>'+
+      (chooseSource?field('Chercher dans la collection',input('lookup','','type="search" placeholder="Titre ou plateforme"'))+field('Jeu de la collection',select('source',{'':'Saisie manuelle'},'')):'')+
       '<div class="journal-form-grid">'+field('Titre',input('name',entry.name,'required maxlength="500"'))+
       field('Plateforme',input('platform',entry.platform,'required maxlength="120" list="journal-platforms"'))+'</div>'+
       '<datalist id="journal-platforms">'+allPlatformNames().map(name=>'<option value="'+esc(name)+'"></option>').join('')+'</datalist>'+
       field('Précision',input('precision',entry.precision,'maxlength="250" placeholder="Version 1.0, suggéré par…"'))+
       '<div class="journal-form-grid">'+field('Image (URL)',input('image',entry.image,'maxlength="200000"'))+
       field('Support',select('format',formats,entry.format||'digital'))+'</div>'+
-      '<button type="button" class="btn btn-ghost" id="journal-apply-identity">Valider le jeu</button></div></section>'+
-      (done?'<section class="form-section"><div class="form-section-title">Complétion</div><div class="journal-form-grid">'+field('Date de complétion',input('date',date,'type="date" required'))+
-        field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+'</div>':'<section class="form-section">')+
-      (release?field('Sortie',input('date',date,'placeholder="AAAA, AAAA-MM ou AAAA-MM-JJ" maxlength="10"')):'')+
+      '<button type="button" class="btn btn-ghost'+(identityOnly?' hidden':'')+'" id="journal-apply-identity">Valider le jeu</button></div></section>'+
+      '<section class="form-section'+(identityOnly||commentOnly?' hidden':'')+'">'+
+      (done?'<div class="form-section-title">Complétion</div><div class="journal-form-grid">'+field('Date de complétion',input('date',date,'type="date" required'))+
+        field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+'</div>':'')+
+      (release?'<div class="field flexible-date-field"><span>Date de sortie</span><div class="date-mode" data-date-mode="journal-release">'+
+        ['date','year','tbd'].map((mode,index)=>'<button type="button" class="date-mode-btn" data-mode="'+mode+'">'+['Date','Année','TBD'][index]+'</button>').join('')+
+        '</div><input type="date" id="journal-release-date" aria-label="Date de sortie"><input type="number" id="journal-release-year" min="1970" max="2100" step="1" placeholder="2027" aria-label="Année de sortie"></div>':'')+
       (!done&&!release?field('Statut',select('group',{backlog:'Backlog',playing:'En cours'},group)):'')+
       (done?field('Accès',select('access',access,entry.access||'owned')):'')+
       (done?'<div id="journal-service">'+field('Nom de l’abonnement',input('service',entry.service,'maxlength="120"'))+'</div>'+
@@ -139,9 +205,10 @@
         '<div class="journal-form-grid">'+field('Mode de jeu',select('mode',modes,entry.mode||'solo'))+
         field('Complétion',select('completion',completions,entry.completion||'finished'))+'</div>'+
         '<div class="journal-form-ratings">'+criteria.map((label,index)=>field(label,select('note'+index,Object.fromEntries(ratings.map(value=>[value,value||'–'])),entry.notes?.[index]||''))).join('')+'</div>'+
-        field('Ressenti',select('feeling',{'':'–',...feelings},entry.feeling||''))+
-        field('Commentaire','<textarea name="comment" maxlength="10000" rows="4">'+esc(entry.comment||'')+'</textarea>'):'')+
-      '</section><p id="journal-error" role="alert" class="journal-error"></p></form>',true);
+        field('Ressenti',select('feeling',{'':'–',...feelings},entry.feeling||'')):'')+
+      '</section>'+
+      (done?'<section class="form-section'+(identityOnly||completionOnly?' hidden':'')+'">'+field('Commentaire','<textarea name="comment" maxlength="10000" rows="4">'+esc(entry.comment||'')+'</textarea>')+'</section>':'')+
+      '<p id="journal-error" role="alert" class="journal-error"></p></form>',true);
     const form=$('journal-form'), elements=form.elements;
     const summary=$('journal-game-summary'), editor=$('journal-game-editor');
     const compactIdentity=()=>{
@@ -156,7 +223,7 @@
     };
     $('journal-apply-identity').onclick=compactIdentity;
     summary.addEventListener('click',event=>{
-      if(!event.target.closest('.identity-edit-btn') || fromBacklog) return;
+      if(!event.target.closest('.identity-edit-btn') || fromBacklog || completionOnly || commentOnly) return;
       editor.classList.remove('hidden');
       summary.classList.add('hidden');
       elements.name.focus();
@@ -182,8 +249,20 @@
         elements.platform.value=item.plateforme;
         elements.image.value=item.image||'';
         elements.format.value=JTDData.isAddon(item)?'extension':JTDData.isDigital(item)?'digital':'physical';
-        compactIdentity();
+        if(!identityOnly) compactIdentity();
       });
+    }
+    let releaseDateChanged=false;
+    if(release){
+      const wrap=form.querySelector('[data-date-mode="journal-release"]');
+      const setDateInputs=()=>{ $('journal-release-date').disabled=wrap.dataset.currentMode!=='date'; $('journal-release-year').disabled=wrap.dataset.currentMode!=='year'; };
+      setFlexibleDate('journal-release',date);
+      setDateInputs();
+      wrap.addEventListener('click',event=>{
+        const button=event.target.closest('[data-mode]');
+        if(button){ flexibleDateMode('journal-release',button.dataset.mode); setDateInputs(); releaseDateChanged=true; }
+      });
+      form.querySelector('.flexible-date-field').addEventListener('input',()=>{releaseDateChanged=true;});
     }
     if(done){
       const toggle = () => $('journal-service').classList.toggle('hidden',elements.access.value!=='subscription');
@@ -197,11 +276,13 @@
       try{
         if(!value('name')||!value('platform')) throw Error('Renseigne le titre et la plateforme.');
         if(done&&!validDay(value('date'))) throw Error('Renseigne une date de complétion valide.');
-        if(release&&value('date')&&!/^[1-9]\d{3}(?:-(?:0[1-9]|1[0-2]))?$/.test(value('date'))&&!validDay(value('date'))) throw Error('Indique une année, un mois ou une date valide.');
+        const releaseDate=release?(getFlexibleDate('journal-release')||(!releaseDateChanged?date:'')||'TBD'):'';
+        if(release&&releaseDate!=='TBD'&&!/^\d{4}(?:-(?:0[1-9]|1[0-2]))?$/.test(releaseDate)&&!validDay(releaseDate)) throw Error('Indique une année ou une date valide.');
         const art=safeURL(value('image'),true);
         if(value('image')&&!art) throw Error('L’adresse de l’image est invalide.');
         const next={id:entry.id||crypto.randomUUID(),group:value('group')||group,name:value('name'),platform:value('platform'),precision:value('precision'),image:art,format:value('format')};
-        if(done||release) next.date=value('date');
+        if(done) next.date=value('date');
+        if(release) next.date=releaseDate;
         if(done) Object.assign(next,{estimated:value('estimated')!=='0',yearOnly:value('estimated')==='year',access:value('access'),service:value('access')==='subscription'?value('service'):'',replayed:elements.replayed.checked,mode:value('mode'),completion:value('completion'),notes:criteria.map((_,index)=>value('note'+index)),feeling:value('feeling'),comment:value('comment')});
         const current=records();
         if(existing&&!current.some(record=>record?.id===entry.id)) throw Error('Cette entrée n’existe plus.');
@@ -211,7 +292,8 @@
           $('journal-year').value=next.date.slice(0,4);
           if(fromBacklog){ $('journal-layout').dataset.tab='completed'; syncTabs(); }
         }
-        close(); render();
+        if(section==='all') close(); else detail(next);
+        render();
       }catch(error){$('journal-error').textContent=error.message;}
     });
   }
@@ -219,16 +301,27 @@
     const done=entry.group==='completed';
     const generation=window.JTDAccountGeneration;
     const canComplete=['playing','backlog'].includes(entry.group);
+    const editButton=(id,label)=>'<button type="button" id="'+id+'" class="context-edit-btn" aria-label="'+label+'" title="'+label+'">'+pencil+'</button>';
     show(done?'Fiche de complétion':'Fiche du jeu',
-      '<section class="form-section">'+identityCard(entry)+'</section>'+
-      '<section class="form-section"><div class="form-section-title">'+(done?'Complétion':entry.group==='release'?'Sortie':'Backlog')+'</div>'+
-      '<div class="context-summary">'+
-      ((entry.date || entry.group==='release')?'<p>'+esc(dateLabel(entry))+(entry.estimated?' · Date approximative':'')+'</p>':'')+
-      '<p>'+esc([entry.access&&access[entry.access],entry.service,entry.replayed&&'Rejoué',modes[entry.mode],completions[entry.completion],feelings[entry.feeling],canComplete&&(entry.group==='playing'?'En cours':'À faire')].filter(Boolean).join(' · '))+'</p></div>'+
-      (done?'<div class="journal-detail-ratings">'+criteria.map((label,index)=>'<div>'+esc(label)+score(entry.notes?.[index],label)+'</div>').join('')+'</div>'+
-      '<div class="form-section-title">Commentaire</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p>':'')+
-      '</section>',false,canComplete);
+      '<section class="form-section">'+identityCard(entry,true)+'</section>'+
+      '<section class="form-section"><div class="journal-section-heading"><div class="form-section-title">'+(done?'Complétion':entry.group==='release'?'Sortie':'Backlog')+'</div>'+
+      (done?editButton('journal-edit-completion','Modifier la complétion'):'')+'</div>'+
+      '<div class="journal-completion-context">'+
+      (done?'<div class="journal-date-summary">'+day(entry)+'<strong>'+esc(entry.yearOnly?entry.date.slice(0,4):dateLabel({...entry,estimated:false},true)+' '+entry.date.slice(0,4))+'</strong></div>':
+        entry.group==='release'?'<strong>'+esc(dateLabel(entry))+'</strong>':'')+
+      '<p>'+esc([entry.replayed&&'Rejoué',modes[entry.mode],completions[entry.completion],feelings[entry.feeling],canComplete&&(entry.group==='playing'?'En cours':'À faire')].filter(Boolean).join(' · '))+'</p>'+
+      (accessLabel(entry)?'<span class="journal-access">'+esc(accessLabel(entry))+'</span>':'')+'</div>'+
+      (done?'<div class="journal-detail-ratings">'+criteria.map((label,index)=>'<div>'+esc(label)+score(entry.notes?.[index],label)+'</div>').join('')+'</div>':'')+
+      '</section>'+
+      (done?'<section class="form-section journal-comment-section"><div class="journal-section-heading"><div class="form-section-title">Commentaire</div>'+
+        editButton('journal-edit-comment','Modifier le commentaire')+'</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),false,canComplete);
+    $('journal-dialog-body').querySelector('.identity-edit-btn').onclick=()=>edit(entry,false,'identity');
+    $('journal-edit').classList.toggle('hidden',done);
     $('journal-edit').onclick=()=>edit(entry);
+    if(done){
+      $('journal-edit-completion').onclick=()=>edit(entry,false,'completion');
+      $('journal-edit-comment').onclick=()=>edit(entry,false,'comment');
+    }
     $('journal-complete').onclick=()=>edit({...entry,group:'completed'},true);
     $('journal-delete').onclick=()=>confirmAction('Supprimer cette entrée du journal ?',()=>{
       if(generation!==window.JTDAccountGeneration) return;

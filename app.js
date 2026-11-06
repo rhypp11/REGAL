@@ -1696,24 +1696,27 @@ function renderHomeStats(){
   const physical=games.filter(g=>!JTDData.isDigital(g));
   const digital=games.filter(g=>JTDData.isDigital(g));
   const total=games.length;
-  const playable=GAMES.filter(isPlayablePurchase);
-  const finished=playable.filter(g=>['termine','termine_ailleurs'].includes(g.status)).length;
-  const multi=playable.filter(g=>g.status==='multi').length;
-  const todo=playable.length-finished-multi;
   const totalEl=document.getElementById('home-total-games');if(totalEl) totalEl.textContent=total;
   const icon=(content)=>`<span class="stats-icon" aria-hidden="true">${content}</span>`;
   const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
   const meta=document.getElementById('home-summary-meta');
   const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
   if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
-  const ring=document.getElementById('home-completion-ring');
-  if(ring){const done=playable.length ? finished/playable.length*100 : 0, shared=playable.length ? multi/playable.length*100 : 0;
-    ring.style.background=playable.length ? `conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)` : 'var(--ui-border)';
-    ring.setAttribute('aria-label',`${finished} jeux et DLC terminés, ${multi} multijoueurs et ${todo} à faire sur ${playable.length}`);
-    ring.querySelector('strong').textContent=Math.round(done)+' %';
-  }
-  const legend=document.getElementById('home-status-legend');
-  if(legend) legend.innerHTML=`<span><i class="completion-dot done"></i>Terminés<strong>${finished}</strong></span><span><i class="completion-dot multi"></i>Multi<strong>${multi}</strong></span><span><i class="completion-dot todo"></i>À faire<strong>${todo}</strong></span>`;
+  const breakdown=document.getElementById('home-status-breakdown');
+  if(breakdown) breakdown.innerHTML = [['physical','Physique'],['digital','Numérique']].map(([format,label])=>{
+    const playable=GAMES.filter(game=>isPlayablePurchase(game) && JTDData.isDigital(game)===(format==='digital'));
+    const finished=playable.filter(game=>['termine','termine_ailleurs'].includes(game.status)).length;
+    const multi=playable.filter(game=>game.status==='multi').length;
+    const todo=playable.length-finished-multi;
+    const done=playable.length?finished/playable.length*100:0;
+    const shared=playable.length?multi/playable.length*100:0;
+    return `<div class="home-completion-group" data-home-progress="${format}">
+      <h4>${icon(MEDIA_ICONS[format])}${label}</h4>
+      <div class="home-completion">
+        <div class="home-completion-ring" role="img" aria-label="${finished} jeux et DLC terminés sur ${playable.length}" style="background:conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)"><span><strong>${Math.round(done)} %</strong><small>Terminés</small></span></div>
+        <div class="home-completion-legend"><span><i class="completion-dot done"></i>Terminés<strong>${finished}</strong></span><span><i class="completion-dot multi"></i>Multi<strong>${multi}</strong></span><span><i class="completion-dot todo"></i>À faire<strong>${todo}</strong></span></div>
+      </div></div>`;
+  }).join('');
 }
 
 /* ---------- Accueil : Arrivages & Wishlist ---------- */
