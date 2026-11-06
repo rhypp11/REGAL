@@ -999,44 +999,40 @@ function renderPlatformBanner(cards){
     </section><section class="library-stat-group" aria-labelledby="completion-stats-title">
     <h3 id="completion-stats-title">${playableGames.some(JTDData.isDLC) ? 'Complétion des jeux et DLC' : 'Complétion'}</h3><div class="library-stat-values library-completion-values">${completionStats}</div></section><section class="library-stat-group library-value-group" aria-label="Valeur des achats">${stat(collectionValueLabel(games, spent), 'Valeur', 'spent')}</section>`;
 
-  const detailsHtml=`<details class="collection-stat-details" ${collectionStatsOpen ? 'open' : ''}><summary><strong>${total} ${total > 1 ? 'Éléments' : 'Élément'}</strong><span>Détails<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="platform-banner-stats">${statsHtml}</div></details>`;
-  if(!state.platform){
-    banner.classList.remove('hidden');
-    banner.classList.add('neutral');
-    banner.style.background = '';
-    banner.style.color = '';
-    banner.style.setProperty('--platform-accent','var(--teal)');
-    banner.innerHTML = `
-      <div class="platform-banner-head">
-        <span class="platform-banner-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3.7 5.5l-1.2 3a2 2 0 0 1-3.2.8L15 15H9l-2.3 2.3a2 2 0 0 1-3.2-.8l-1.2-3A4 4 0 0 1 6 8Z"></path><path d="M7 12h4M9 10v4"></path><circle cx="16.5" cy="11.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="18.5" cy="13.5" r=".7" fill="currentColor" stroke="none"></circle></svg></span>
-        <div><span class="platform-banner-title">Tous les jeux</span></div>
-      </div>
-      ${detailsHtml}
-    `;
-    banner.querySelector('details > summary').addEventListener('click',()=>{collectionStatsOpen=!banner.querySelector('details').open;});
-  banner.querySelector('details').addEventListener('toggle',event=>{if(event.target.isConnected) collectionStatsOpen=event.target.open;});
-    renderCollectionFilterContext(banner);
-    if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
-    return;
-  }
-
-  const color = getPlatformColor(state.platform);
-  const logo = getPlatformLogo(state.platform);
-  const initials = state.platform.slice(0,2).toUpperCase();
-  banner.classList.remove('hidden', 'neutral');
+  const color = state.platform ? getPlatformColor(state.platform) : 'var(--teal)';
+  const logo = state.platform ? getPlatformLogo(state.platform) : '';
+  const title = state.platform || 'Tous les jeux';
+  const logoHtml = state.platform
+    ? (logo
+      ? `<img class="platform-banner-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
+      : `<span class="platform-banner-fallback">${escapeHTML(state.platform.slice(0,2).toUpperCase())}</span>`)
+    : '<span class="platform-banner-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3.7 5.5l-1.2 3a2 2 0 0 1-3.2.8L15 15H9l-2.3 2.3a2 2 0 0 1-3.2-.8l-1.2-3A4 4 0 0 1 6 8Z"></path><path d="M7 12h4M9 10v4"></path><circle cx="16.5" cy="11.5" r=".7" fill="currentColor" stroke="none"></circle><circle cx="18.5" cy="13.5" r=".7" fill="currentColor" stroke="none"></circle></svg></span>';
+  banner.classList.remove('hidden');
+  banner.classList.toggle('neutral',!state.platform);
   banner.style.background = '';
   banner.style.color = '';
   banner.style.setProperty('--platform-accent',color);
   banner.style.setProperty('--platform-band-text',platformBandText(color));
-  const logoHtml = logo
-    ? `<img class="platform-banner-logo" src="${escapeHTML(safeURL(logo, true))}" alt="">`
-    : `<span class="platform-banner-fallback">${escapeHTML(initials)}</span>`;
+  const countLabel = `${total} ${total > 1 ? 'éléments' : 'élément'}`;
   banner.innerHTML = `
-    <div class="platform-banner-head">${logoHtml}<div><span class="platform-banner-title">${escapeHTML(state.platform)}</span></div></div>
-    ${detailsHtml}
+    <div class="platform-banner-head">
+      ${logoHtml}
+      <div class="platform-banner-label"><span class="platform-banner-title">${escapeHTML(title)}</span></div>
+      <button type="button" class="collection-stat-toggle" aria-label="${countLabel}, statistiques" aria-expanded="${collectionStatsOpen}" aria-controls="collection-stats">
+        <span>${countLabel}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </div>
+    <div class="platform-banner-stats" id="collection-stats"${collectionStatsOpen ? '' : ' hidden'}>${statsHtml}</div>
   `;
-  banner.querySelector('details > summary').addEventListener('click',()=>{collectionStatsOpen=!banner.querySelector('details').open;});
-  banner.querySelector('details').addEventListener('toggle',event=>{if(event.target.isConnected) collectionStatsOpen=event.target.open;});
+  const stats = banner.querySelector('#collection-stats');
+  const toggle = banner.querySelector('.collection-stat-toggle');
+  toggle.addEventListener('click',()=>{
+    collectionStatsOpen = !collectionStatsOpen;
+    toggle.setAttribute('aria-expanded',String(collectionStatsOpen));
+    stats.hidden = !collectionStatsOpen;
+    requestCollectionContextUpdate();
+  });
   renderCollectionFilterContext(banner);
   if(navigationPage === 'collection') banner.querySelector('.platform-banner-head').prepend(mobileFilterToggle);
 }
