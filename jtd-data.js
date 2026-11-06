@@ -244,6 +244,25 @@
       throw new Error('Données trop volumineuses pour la synchronisation. Aucune modification appliquée. Réduis les images ou les avis après avoir téléchargé une sauvegarde.');
     return data;
   }
+  function parseDelimited(text, delimiter){
+    const records = [];
+    let row = [], field = '', quoted = false;
+    for(let i=0;i<text.length;i++){
+      const ch = text[i];
+      if(quoted){
+        if(ch === '"' && text[i+1] === '"'){field+='"';i++;}
+        else if(ch === '"') quoted = false;
+        else field += ch;
+      } else if(ch === '"' && field === '') quoted = true;
+      else if(ch === delimiter){row.push(field);field='';}
+      else if(ch === '\n' || ch === '\r'){
+        if(ch === '\r' && text[i+1] === '\n') i++;
+        row.push(field); field=''; records.push(row); row=[];
+      } else field += ch;
+    }
+    if(field || row.length){row.push(field);records.push(row);}
+    return records.filter(record => record.some(value => String(value).trim()));
+  }
   function foldImport(value){
     return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr').replace(/[^a-z0-9]+/g,' ').trim();
   }
@@ -284,7 +303,7 @@
     },data:{...shared,games:shared.games.map((game,i)=>({...game,format:normalized.games[i].format,contentType:normalized.games[i].contentType || 'game',parentId:normalized.games[i].parentId || null}))}};
   }
 
-  const api = {isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

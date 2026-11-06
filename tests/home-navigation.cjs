@@ -149,6 +149,25 @@ const server=createSandboxServer();
    await page.locator('#journal-year').selectOption('2022');
    assert.equal(await page.locator('.journal-row').filter({hasText:'Étoile de test'}).isVisible(),true);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   const csv={name:'Journal fictif.csv',mimeType:'text/csv',buffer:Buffer.from([
+    'Date,! si date approximative,plateforme,nom,support,mode de jeu,completion,📖 histoire,🕹️ gameplay,🖼️ visuel,🕓 durée de vie,🎼 musique,🤍 ressenti',
+    '2017,!,3DS,Import ancien,💿,👤,✅,S+,A,B,C,D,👍',
+    '2017 - 2 juin,,PC,Import rejoué,🔁,📶,💯,A,A,A,A,A,💎',
+    'juil.,,NSW,Import au mois,🌐,📺,🏆,B,-,S,A,S+,🩷'
+   ].join('\n'))};
+   const input=page.locator('#journal-import-file');
+   await input.setInputFiles(csv);
+   await page.locator('#journal-import-count').waitFor();
+   assert.match(await page.locator('#journal-import-count').innerText(),/3 sélectionnées/);
+   assert.match(await page.locator('.journal-import-flag').last().innerText(),/Année proposée : 2017/);
+   await page.locator('#journal-save').click();
+   await page.locator('#journal-year').selectOption('2017');
+   assert.equal(await page.locator('#journal-completed .journal-row').count(),3);
+   assert.equal(await page.evaluate(()=>LEGACY_JOURNAL.find(record=>record.regalJournal===2).entries.filter(entry=>entry.importKey).length),3);
+   await input.setInputFiles(csv);
+   await page.locator('#journal-import-count').waitFor();
+   assert.equal(await page.locator('#journal-save').isEnabled(),false);
+   await page.locator('#journal-close').click();
    assert.deepEqual(errors,[]);await context.close();console.log('PASS home/navigation',width,theme);
   }
  }finally{await browser.close();server.close();}

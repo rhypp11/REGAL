@@ -113,7 +113,7 @@
     const countBy=key=>{
       const counts=new Map();
       for(const entry of entries){
-        const value=entry[key]||(key==='access'?'owned':'');
+        const value=entry[key]??(key==='access'?'owned':'');
         if(value) counts.set(value,(counts.get(value)||0)+1);
       }
       return counts;
@@ -179,6 +179,8 @@
     $('journal-dialog-title').textContent = title;
     $('journal-dialog-body').innerHTML = html;
     $('journal-save').classList.toggle('hidden',!editing);
+    $('journal-save').textContent='Enregistrer';
+    $('journal-save').disabled=false;
     $('journal-delete').classList.toggle('hidden',!canDelete);
     $('journal-complete').classList.toggle('hidden',!canComplete);
     JTDDialogs.open('journal-overlay',{onDismiss:close});
@@ -223,7 +225,7 @@
       '<div class="field-row identity-core-row">'+field('Plateforme','<select id="journal-platform" name="platform">'+
         '<option value="">Choisir une plateforme…</option>'+platforms.map(name=>'<option value="'+esc(name)+'"'+(name===entry.platform?' selected':'')+'>'+esc(name)+'</option>').join('')+
         '<option value="'+customPlatform+'">Autre plateforme…</option></select>')+
-      field('Support',select('format',formats,entry.format||'digital'))+'</div>'+
+      field('Support',select('format',{'':'Non renseigné',...formats},entry.format??'digital'))+'</div>'+
       '<div id="journal-custom-platform" class="hidden">'+field('Nom de la plateforme',input('platformCustom','','maxlength="120"'))+'</div>'+
       '<div class="image-url-row">'+field('Image du jeu',input('image',entry.image,'id="j-image" maxlength="200000" placeholder="https://…"'))+
       '<div id="j-image-preview" class="image-preview image-preview-compact"><span>Aperçu de l’image</span></div></div>'+
@@ -237,7 +239,7 @@
         '<div class="journal-form-grid">'+
         field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+
         field('Complétion',select('completion',completions,entry.completion||'finished'))+'</div>'+
-        field('Accès',select('access',access,entry.access||'owned'))+
+        field('Accès',select('access',{'':'Non renseigné',...access},entry.access??'owned'))+
         '<div id="journal-service">'+field('Nom de l’abonnement',input('service',entry.service,'maxlength="120"'))+'</div>'+
         '<label class="journal-checkbox"><input type="checkbox" name="replayed"'+(entry.replayed?' checked':'')+'> Rejoué</label>'+
         '<div class="journal-form-ratings">'+criteria.map((label,index)=>field(label,select('note'+index,Object.fromEntries(ratings.map(value=>[value,value||'–'])),entry.notes?.[index]||''))).join('')+
@@ -373,6 +375,7 @@
         const releaseDate=release?(getFlexibleDate('journal-release')||(!releaseDateChanged?date:'')||'TBD'):'';
         if(release&&releaseDate!=='TBD'&&!/^\d{4}(?:-(?:0[1-9]|1[0-2]))?$/.test(releaseDate)&&!validDay(releaseDate)) throw Error('Indique une année ou une date valide.');
         const next={...readGame(),id:entry.id||crypto.randomUUID(),group:value('group')||group};
+        if(entry.importKey) next.importKey=entry.importKey;
         if(done) next.date=value('date');
         if(release) next.date=releaseDate;
         if(done) Object.assign(next,{estimated:value('estimated')!=='0',yearOnly:value('estimated')==='year',access:value('access'),service:value('access')==='subscription'?value('service'):'',replayed:elements.replayed.checked,mode:value('mode'),completion:value('completion'),notes:criteria.map((_,index)=>value('note'+index)),feeling:value('feeling'),comment:value('comment')});
@@ -420,6 +423,81 @@
     }
     bindDelete(entry,generation);
   }
+  function importPreview(items,generation){
+    const existing=records();
+    const known=new Set(existing.map(entry=>entry?.importKey).filter(Boolean));
+    const similar=new Set(existing.filter(entry=>entry?.group==='completed').map(JTDJournalImport.signature));
+    const platforms=allPlatformNames();
+    const rows=items.map(({entry,inferredYear,rawDate})=>{
+      const platform=platforms.find(name=>JTDData.importPlatform(name)===entry.platform)||entry.platform;
+      return {entry:{...entry,platform},inferredYear,rawDate,imported:known.has(entry.importKey),possible:similar.has(JTDJournalImport.signature(entry))};
+    });
+    const dateMode={'exact':'Exacte','approx':'Approximative','year':'Année seule'};
+    const line=(item,index)=>{
+      const entry=item.entry;
+      const info=[entry.platform,completions[entry.completion],entry.replayed?'Rejoué':'',item.imported?'Déjà importée':item.possible?'Doublon possible':''].filter(Boolean).join(' · ');
+      const flagged=item.inferredYear?'Année proposée : '+entry.date.slice(0,4):entry.yearOnly?'Année seule':entry.estimated?'Date signalée par !':'';
+      return '<li class="journal-import-row" data-import-index="'+index+'">'+
+        '<label class="journal-import-choice"><input type="checkbox" name="include"'+(item.imported?' disabled':item.possible?'':' checked')+'>'+
+        '<span><strong>'+esc(entry.name)+'</strong><small>'+esc(info)+'</small></span></label>'+
+        (item.imported?'':'<div class="journal-import-fields">'+
+        '<label>Repère de tri <input type="date" name="importDate" value="'+esc(entry.date)+'" aria-label="Repère de tri"></label>'+
+        '<label>Précision '+select('dateMode',dateMode,entry.yearOnly?'year':entry.estimated?'approx':'exact')+'</label>'+
+        (!entry.format?'<label>Support '+select('importFormat',{'':'Non renseigné',...formats},'')+'</label>':'')+
+        '</div>')+(flagged?'<small class="journal-import-flag">'+esc(flagged)+' · '+esc(item.rawDate)+'</small>':'')+'</li>';
+    };
+    show('Importer les complétions',
+      '<form id="journal-form" class="journal-import-preview">'+
+      '<p id="journal-import-count" role="status"></p>'+
+      '<p class="journal-empty">Le CSV ne contient ni images ni commentaires. Les entrées s’ajoutent au Journal.</p>'+
+      '<ol class="journal-import-list">'+rows.map(line).join('')+'</ol>'+
+      '<p id="journal-error" role="alert" class="journal-error"></p></form>',{editing:true});
+    const form=$('journal-form');
+    const selected=()=>[...form.querySelectorAll('[name="include"]:checked')];
+    const update=()=>{
+      const count=selected().length;
+      $('journal-import-count').textContent=count+' sélectionnée'+(count>1?'s':'')+' sur '+rows.length+' complétions';
+      $('journal-save').textContent='Importer ('+count+')';
+      $('journal-save').disabled=!count;
+    };
+    form.addEventListener('change',update);
+    update();
+    form.addEventListener('submit',event=>{
+      event.preventDefault();
+      if(generation!==window.JTDAccountGeneration){close();return;}
+      try{
+        const current=records(), present=new Set(current.map(entry=>entry?.importKey).filter(Boolean));
+        const added=[];
+        for(const checkbox of selected()){
+          const line=checkbox.closest('[data-import-index]');
+          const item=rows[Number(line.dataset.importIndex)];
+          if(present.has(item.entry.importKey)) continue;
+          const date=line.querySelector('[name="importDate"]').value;
+          if(!validDay(date)) throw Error('Date invalide pour « '+item.entry.name+' ».');
+          const mode=line.querySelector('[name="dateMode"]').value;
+          added.push({...item.entry,id:crypto.randomUUID(),date,estimated:mode!=='exact',yearOnly:mode==='year',format:line.querySelector('[name="importFormat"]')?.value??item.entry.format});
+        }
+        if(added.length) commit([...current,...added]);
+        close();
+        render();
+        showToast(added.length+' complétion'+(added.length>1?'s importées.':' importée.'));
+      }catch(error){$('journal-error').textContent=error.message;}
+    });
+  }
+  $('journal-import-open').addEventListener('click',()=>$('journal-import-file').click());
+  $('journal-import-file').addEventListener('change',async event=>{
+    const file=event.target.files[0];
+    event.target.value='';
+    if(!file) return;
+    const generation=window.JTDAccountGeneration;
+    try{
+      if(file.size>1000000) throw Error('Le fichier dépasse 1 Mo.');
+      const items=JTDJournalImport.parse(await file.text());
+      if(generation!==window.JTDAccountGeneration) return;
+      if(!items.length) throw Error('Le CSV ne contient aucune complétion.');
+      importPreview(items,generation);
+    }catch(error){showToast(error.message);}
+  });
   const mobileJournal=matchMedia('(max-width:820px)');
   function syncTabs(){
     const layout=$('journal-layout');
