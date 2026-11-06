@@ -149,6 +149,13 @@ const server=createSandboxServer();
    await page.locator('#journal-year').selectOption('2022');
    assert.equal(await page.locator('.journal-row').filter({hasText:'Étoile de test'}).isVisible(),true);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.evaluate(()=>{
+    const image=new URL('preview-assets/garden.svg',location.href).href;
+    GAMES.push({id:'import-from-collection',nom:'Import ancien !',plateforme:'Nintendo 3DS',image,imageFit:'cover'});
+    CEMETERY.push({id:'import-from-cemetery',nom:'Import rejoué !',plateforme:'PC',image,saleStatus:'sold',salePrice:5});
+    GAMES.push({id:'import-switch-copy',nom:'Import au mois !',plateforme:'Nintendo Switch'});
+    CEMETERY.push({id:'import-switch-sold',nom:'Import au mois ?',plateforme:'NSW',saleStatus:'sold',salePrice:5});
+   });
    const csv={name:'Journal fictif.csv',mimeType:'text/csv',buffer:Buffer.from([
     'Date,! si date approximative,plateforme,nom,support,mode de jeu,completion,📖 histoire,🕹️ gameplay,🖼️ visuel,🕓 durée de vie,🎼 musique,🤍 ressenti',
     '2017,!,3DS,Import ancien,💿,👤,✅,S+,A,B,C,D,👍',
@@ -165,18 +172,31 @@ const server=createSandboxServer();
    await page.locator('#journal-import-count').waitFor();
    assert.match(await page.locator('#journal-import-count').innerText(),/3 sélectionnées/);
    assert.match(await page.locator('.journal-import-flag').last().innerText(),/Année proposée : 2017/);
+   const matches=page.locator('[name="importMatch"]');
+   assert.deepEqual(await matches.evaluateAll(fields=>fields.map(field=>field.value)),['0','0','']);
+   assert.match(await matches.nth(1).locator('option:checked').innerText(),/Cimetière/);
    await page.locator('#journal-save').click();
    assert.equal(await page.locator('#page-journal').isVisible(),true);
    assert.equal(await page.locator('#journal-year').inputValue(),'2017');
    const importedRows=page.locator('#journal-completed .journal-row .journal-title strong');
-   assert.deepEqual(await importedRows.allTextContents(),['Import ancien','Import rejoué','Import au mois']);
+   assert.deepEqual(await importedRows.allTextContents(),['Import ancien !','Import rejoué !','Import au mois']);
    await page.locator('#journal-sort').selectOption('desc');
-   assert.deepEqual(await importedRows.allTextContents(),['Import au mois','Import rejoué','Import ancien']);
+   assert.deepEqual(await importedRows.allTextContents(),['Import au mois','Import rejoué !','Import ancien !']);
    assert.equal(await page.evaluate(()=>LEGACY_JOURNAL.find(record=>record.regalJournal===2).entries.filter(entry=>entry.importKey).length),3);
+   const imported=()=>page.evaluate(()=>LEGACY_JOURNAL.find(record=>record.regalJournal===2).entries.filter(entry=>entry.importKey));
+   const before=await imported();
+   assert.match(before[0].image,/garden\.svg$/);
+   assert.equal(before[0].imageFit,'cover');
+   assert.equal(before[0].notes[0],'S+');
+   assert.match(before[1].image,/garden\.svg$/);
+   await page.evaluate(()=>{GAMES.find(game=>game.id==='import-from-collection').nom='Import ancien ?';});
    await input.setInputFiles(csv);
    await page.locator('#journal-import-count').waitFor();
    assert.equal(await page.locator('#journal-save').isEnabled(),false);
-   await page.locator('#journal-close').click();
+   await page.locator('[data-import-index="0"] [name="include"]').check();
+   await page.locator('#journal-save').click();
+   const after=await imported();
+   assert.deepEqual(after,[{...before[0],name:'Import ancien ?'},...before.slice(1)]);
    assert.deepEqual(errors,[]);await context.close();console.log('PASS home/navigation',width,theme);
   }
  }finally{await browser.close();server.close();}

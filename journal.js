@@ -429,21 +429,54 @@
   }
   function importPreview(items,generation){
     const existing=records();
-    const known=new Set(existing.map(entry=>entry?.importKey).filter(Boolean));
+    const known=new Map(existing.filter(entry=>entry?.importKey).map(entry=>[entry.importKey,entry]));
     const similar=new Set(existing.filter(entry=>entry?.group==='completed').map(JTDJournalImport.signature));
     const platforms=allPlatformNames();
+    const groupPlatforms=games=>{
+      const groups=new Map();
+      for(const game of games){
+        const platform=JTDData.importPlatform(game.plateforme);
+        if(!groups.has(platform)) groups.set(platform,[]);
+        groups.get(platform).push(game);
+      }
+      return groups;
+    };
+    const owned=groupPlatforms(GAMES), archived=groupPlatforms(CEMETERY);
+    const matches=new Map();
     const rows=items.map(({entry,inferredYear,rawDate})=>{
       const platform=platforms.find(name=>JTDData.importPlatform(name)===entry.platform)||entry.platform;
-      return {entry:{...entry,platform},inferredYear,rawDate,imported:known.has(entry.importKey),possible:similar.has(JTDJournalImport.signature(entry))};
+      const key=JSON.stringify([JTDData.foldImport(entry.name),entry.platform]);
+      if(!matches.has(key)){
+        const candidates=JTDData.importCandidates({nom:entry.name,plateforme:platform},
+          owned.get(entry.platform)||[],archived.get(entry.platform)||[]).filter(candidate=>candidate.score>0);
+        const exact=candidates.filter(candidate=>candidate.exact);
+        matches.set(key,{candidates:[...exact,...candidates.filter(candidate=>!candidate.exact).slice(0,5)],defaultMatch:exact.length===1?'0':''});
+      }
+      const match=matches.get(key);
+      const matched=match.defaultMatch===''?null:match.candidates[Number(match.defaultMatch)];
+      const imported=known.get(entry.importKey);
+      return {entry:{...entry,platform},inferredYear,rawDate,imported,...match,
+        possible:similar.has(JTDJournalImport.signature(entry))||
+          (matched&&similar.has(JTDJournalImport.signature({...entry,name:matched.nom})))};
     });
+    const location={collection:'Collection',sold:'Cimetière · vendu',pending:'Cimetière · à vendre'};
+    const matchControl=item=>{
+      if(!item.candidates.length) return '';
+      const options={'':item.imported?'Garder le nom et l’image actuels':'Garder le titre du CSV'};
+      for(const [index,game] of item.candidates.entries()){
+        options[index]=[game.nom,location[game.location],safeURL(game.image,true)?'avec image':''].filter(Boolean).join(' · ');
+      }
+      return '<label class="journal-import-match">Jeu correspondant '+select('importMatch',options,item.defaultMatch)+'</label>';
+    };
     const dateMode={'exact':'Exacte','approx':'Approximative','year':'Année seule'};
     const line=(item,index)=>{
       const entry=item.entry;
-      const info=[entry.platform,completions[entry.completion],entry.replayed?'Rejoué':'',item.imported?'Déjà importée':item.possible?'Doublon possible':''].filter(Boolean).join(' · ');
+      const info=[entry.platform,completions[entry.completion],entry.replayed?'Rejoué':'',item.imported?(item.candidates.length?'Déjà importée · nom et image modifiables':'Déjà importée'):item.possible?'Doublon possible':item.defaultMatch!==''?'Correspondance proposée':item.candidates.length?'Correspondance à choisir':''].filter(Boolean).join(' · ');
       const flagged=item.inferredYear?'Année proposée : '+entry.date.slice(0,4):entry.yearOnly?'Année seule':entry.estimated?'Date signalée par !':'';
       return '<li class="journal-import-row" data-import-index="'+index+'">'+
-        '<label class="journal-import-choice"><input type="checkbox" name="include"'+(item.imported?' disabled':item.possible?'':' checked')+'>'+
+        '<label class="journal-import-choice"><input type="checkbox" name="include"'+(item.imported?(item.candidates.length?'':' disabled'):item.possible?'':' checked')+'>'+
         '<span><strong>'+esc(entry.name)+'</strong><small>'+esc(info)+'</small></span></label>'+
+        matchControl(item)+
         (item.imported?'':'<div class="journal-import-fields">'+
         '<label>Repère de tri <input type="date" name="importDate" value="'+esc(entry.date)+'" aria-label="Repère de tri"></label>'+
         '<label>Précision '+select('dateMode',dateMode,entry.yearOnly?'year':entry.estimated?'approx':'exact')+'</label>'+
@@ -453,7 +486,7 @@
     show('Importer les complétions',
       '<form id="journal-form" class="journal-import-preview">'+
       '<p id="journal-import-count" role="status"></p>'+
-      '<p class="journal-empty">Le CSV ne contient ni images ni commentaires. Les entrées s’ajoutent au Journal.</p>'+
+      '<p class="journal-empty">Une correspondance reprend le nom et l’image du jeu. Pour une entrée déjà importée, coche la ligne pour actualiser uniquement ces deux éléments.</p>'+
       '<ol class="journal-import-list">'+rows.map(line).join('')+'</ol>'+
       '<p id="journal-error" role="alert" class="journal-error"></p></form>',{editing:true});
     const form=$('journal-form');
@@ -470,28 +503,37 @@
       event.preventDefault();
       if(generation!==window.JTDAccountGeneration){close();return;}
       try{
-        const current=records(), present=new Set(current.map(entry=>entry?.importKey).filter(Boolean));
-        const added=[];
+        const current=records(), present=new Map(current.filter(entry=>entry?.importKey).map(entry=>[entry.importKey,entry]));
+        const added=[], updated=new Map();
         for(const checkbox of selected()){
           const line=checkbox.closest('[data-import-index]');
           const item=rows[Number(line.dataset.importIndex)];
-          if(present.has(item.entry.importKey)) continue;
+          const match=line.querySelector('[name="importMatch"]')?.value;
+          const game=match?item.candidates[Number(match)]:null;
+          const currentEntry=present.get(item.entry.importKey);
+          const identity=game?{name:game.nom}:null;
+          const image=game&&safeURL(game.image,true);
+          if(image) Object.assign(identity,{image,imageFit:game.imageFit==='cover'?'cover':'contain'});
+          if(currentEntry){
+            if(identity) updated.set(currentEntry.id,{...currentEntry,...identity});
+            continue;
+          }
           const date=line.querySelector('[name="importDate"]').value;
           if(!validDay(date)) throw Error('Date invalide pour « '+item.entry.name+' ».');
           const mode=line.querySelector('[name="dateMode"]').value;
-          added.push({...item.entry,id:crypto.randomUUID(),date,estimated:mode!=='exact',yearOnly:mode==='year',format:line.querySelector('[name="importFormat"]')?.value??item.entry.format});
+          added.push({...item.entry,...identity,id:crypto.randomUUID(),date,estimated:mode!=='exact',yearOnly:mode==='year',format:line.querySelector('[name="importFormat"]')?.value??item.entry.format});
         }
-        if(added.length) commit([...current,...added]);
+        if(added.length||updated.size) commit([...current.map(entry=>updated.get(entry?.id)||entry),...added]);
         close();
-        if(added.length){
+        if(added.length||updated.size){
           $('journal-layout').dataset.tab='completed';
           syncTabs();
           if(navigationPage!=='journal') goToPage('journal');
           render();
-          $('journal-year').value=added.map(entry=>entry.date.slice(0,4)).sort().at(-1);
+          $('journal-year').value=[...added,...updated.values()].map(entry=>entry.date.slice(0,4)).sort().at(-1);
         }
         render();
-        showToast(added.length+' complétion'+(added.length>1?'s importées.':' importée.'));
+        showToast([added.length?added.length+' importée(s)':'',updated.size?updated.size+' mise(s) à jour':''].filter(Boolean).join(' · ')||'Aucun changement.');
       }catch(error){$('journal-error').textContent=error.message;}
     });
   }
