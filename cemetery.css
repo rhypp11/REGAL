@@ -109,11 +109,16 @@
 .cemetery-toolbar input:hover,.cemetery-toolbar select:hover { border-color:var(--ui-text-muted); }
 
 #cemetery-list {
-  overflow:hidden;
+  position:relative;
+  display:grid;
+  gap:10px;
+}
+#cemetery-list > :is(.sale-group,.sale-lot,.sale-order-row) {
   border:1px solid var(--ui-border);
   border-radius:var(--ui-radius-lg);
   background:var(--ui-surface);
 }
+#cemetery-list > :is(.sale-group,.sale-lot) { overflow:hidden; }
 
 /* L’identité mène la lecture ; les montants restent en retrait. */
 .sale-group {
@@ -122,7 +127,6 @@
   grid-template-areas:"games sale";
   min-width:0;
   margin:0;
-  background:transparent;
 }
 .sale-cards {
   grid-area:games;
@@ -166,10 +170,11 @@
   text-overflow:ellipsis;
 }
 
-.cemetery-order-tools { display:flex; justify-content:flex-end; margin:0 0 10px; }
-.cemetery-order-tools .btn { min-height:40px; }
-#cemetery-list > * + * { border-top:1px solid var(--ui-border); }
-.sale-lot { min-width:0; background:color-mix(in srgb,var(--status-multi) 4%,var(--ui-surface)); }
+.cemetery-order-tools { display:flex; align-items:center; justify-content:flex-end; gap:12px; margin:0 0 10px; }
+.cemetery-order-tools .btn { min-height:40px; flex-shrink:0; }
+.cemetery-order-hint { margin:0 auto 0 0; color:var(--ui-text-muted); font-size:12px; }
+.sale-lot { min-width:0; }
+.sale-lot-summary { background:color-mix(in srgb,var(--status-multi) 4%,var(--ui-surface)); }
 .sale-lot-summary,.sale-order-row {
   display:flex;
   align-items:center;
@@ -183,9 +188,9 @@
 .sale-lot-summary:hover { background:color-mix(in srgb,var(--status-multi) 7%,var(--ui-surface)); }
 .sale-lot-summary:focus-visible { outline:2px solid var(--ui-accent); outline-offset:-2px; }
 .sale-lot-title,.sale-order-title { flex:1; min-width:0; overflow-wrap:anywhere; font-size:13px; }
-.sale-lot-title { display:grid; gap:2px; }
-.sale-lot-title > span { color:var(--ui-text-muted); font-size:11px; }
-.sale-lot-summary .sale-group-heading {
+.sale-lot-title,.sale-order-title { display:grid; gap:2px; }
+:is(.sale-lot-title,.sale-order-title) > span { color:var(--ui-text-muted); font-size:11px; }
+:is(.sale-lot-summary,.sale-order-row) .sale-group-heading {
   order:0;
   min-height:0;
   padding:0;
@@ -195,12 +200,38 @@
   flex-direction:column;
   gap:2px;
 }
-.sale-lot-summary .sale-venue { max-width:none; }
+:is(.sale-lot-summary,.sale-order-row) .sale-venue { max-width:none; }
+.sale-order-row .sale-amount { white-space:nowrap; }
 .sale-lot-summary svg { flex-shrink:0; }
 .sale-lot[open] > .sale-lot-summary svg { transform:rotate(180deg); }
-.sale-lot[open] > .sale-cards { border-top:1px solid var(--ui-border); }
-.sale-order-actions { display:flex; flex-shrink:0; gap:6px; }
-.sale-order-actions .btn { width:44px; min-height:44px; padding:0; }
+.sale-lot > .sale-cards { gap:8px; padding:8px; border-top:1px solid var(--ui-border); }
+.sale-lot .sale-cards .sale-game.card { border:1px solid var(--ui-border); border-radius:var(--ui-radius-md); }
+.sale-order-row { position:relative; min-width:0; }
+.sale-order-handle {
+  display:grid;
+  place-items:center;
+  flex:0 0 44px;
+  height:44px;
+  padding:0;
+  border:1px solid var(--ui-border);
+  border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface-raised);
+  color:var(--ui-text-muted);
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+}
+.sale-order-handle:hover { color:var(--ui-text); }
+.sale-order-handle:focus-visible { outline:2px solid var(--ui-accent); outline-offset:2px; }
+#cemetery-list > .sale-order-dragging {
+  z-index:2;
+  border-color:var(--ui-accent);
+  box-shadow:var(--ui-panel-shadow);
+  transform:translateY(var(--sale-drag-y,0px));
+  cursor:grabbing;
+  user-select:none;
+}
+.sale-order-dragging .sale-order-handle { cursor:grabbing; }
 
 
 .sale-game.card {
@@ -321,7 +352,7 @@
   .cemetery-main { padding:var(--ui-space-4) 0 56px; }
   .cemetery-toolbar { grid-template-columns:1fr; gap:8px; }
   .cemetery-tabs { width:100%; min-width:0; }
-  #cemetery-list { border-radius:var(--ui-radius-md); }
+  #cemetery-list > :is(.sale-group,.sale-lot,.sale-order-row) { border-radius:var(--ui-radius-md); }
   .sale-group { grid-template-columns:minmax(0,1fr) 124px; }
   .sale-group-heading { padding:8px; }
   .sale-amount { font-size:12.5px; }
@@ -347,7 +378,7 @@
     min-height:34px;
     padding:6px 9px;
     border-left:0;
-    border-bottom:1px solid var(--ui-border);
+    border-top:1px solid var(--ui-border);
     flex-direction:row;
     align-items:center;
     justify-content:space-between;

@@ -54,38 +54,116 @@ function saleCards(group){
   }
   return cards;
 }
-function moveSale(key, offset){
+function persistSaleOrder(keys, movedKey){
   const groups = orderedSaleGroups('sold');
-  const from = groups.findIndex(group => saleKey(group[0]) === key);
-  const to = from + offset;
-  if(from < 0 || to < 0 || to >= groups.length) return;
-  [groups[from],groups[to]] = [groups[to],groups[from]];
-  const positions = new Map(groups.map((group,index)=>[saleKey(group[0]),groups.length-index]));
+  const current = groups.map(group=>saleKey(group[0]));
+  const positions = new Map(keys.map((key,index)=>[key,keys.length-index]));
+  if(keys.length !== current.length || current.some(key=>!positions.has(key))){
+    renderCemetery();
+    return;
+  }
+  if(keys.every((key,index)=>key === current[index])) return;
   const next = CEMETERY.map(game=>{
     const saleOrder = game.saleStatus === 'sold' ? positions.get(saleKey(game)) : undefined;
     return saleOrder === undefined || saleOrder === game.saleOrder ? game : {...game,saleOrder};
   });
-  if(!commitCemetery(next)){ showToast('L’ordre n’a pas pu être enregistré.'); return; }
-  const row = [...saleEl('cemetery-list').querySelectorAll('.sale-order-row')].find(element=>element.dataset.saleKey === key);
-  (row?.querySelector(`[data-move="${offset}"]:enabled`) || row?.querySelector('[data-move]:enabled'))?.focus();
+  if(!commitCemetery(next)){
+    renderCemetery();
+    showToast('L’ordre n’a pas pu être enregistré.');
+  }
+  const row = [...saleEl('cemetery-list').querySelectorAll('.sale-order-row')].find(element=>element.dataset.saleKey === movedKey);
+  row?.querySelector('.sale-order-handle')?.focus({preventScroll:true});
 }
-function renderOrderRow(group,index,length){
+function renderOrderRow(group){
   const item = group[0];
-  const key = saleKey(item);
   const row = document.createElement('div');
   row.className = 'sale-order-row';
-  row.dataset.saleKey = key;
-  const title = group.length > 1 ? 'Lot · ' + lotLabel(group) : item.nom;
-  row.innerHTML = `<span class="sale-order-title">${escapeHTML(title)}</span>
-    <span class="sale-order-actions">
-      <button type="button" class="btn btn-ghost" data-move="-1" aria-label="Monter ${escapeHTML(title)}"${index === 0 ? ' disabled' : ''}>↑</button>
-      <button type="button" class="btn btn-ghost" data-move="1" aria-label="Descendre ${escapeHTML(title)}"${index === length-1 ? ' disabled' : ''}>↓</button>
-    </span>`;
-  row.querySelector('.sale-order-actions').addEventListener('click',event=>{
-    const button = event.target.closest('[data-move]');
-    if(button) moveSale(key,Number(button.dataset.move));
-  });
+  row.dataset.saleKey = saleKey(item);
+  const isLot = group.length > 1;
+  const title = isLot ? 'Lot · ' + group.length + ' jeux' : item.nom;
+  const subtitle = isLot ? lotLabel(group) : item.plateforme;
+  row.innerHTML = `<button type="button" class="sale-order-handle" aria-label="Déplacer ${escapeHTML(title)} · ${escapeHTML(subtitle)}" aria-describedby="cemetery-order-hint">
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor" aria-hidden="true">
+        <circle cx="7" cy="5" r="1.3"/><circle cx="13" cy="5" r="1.3"/>
+        <circle cx="7" cy="10" r="1.3"/><circle cx="13" cy="10" r="1.3"/>
+        <circle cx="7" cy="15" r="1.3"/><circle cx="13" cy="15" r="1.3"/>
+      </svg>
+    </button>
+    <span class="sale-order-title"><strong>${escapeHTML(title)}</strong><span>${escapeHTML(subtitle)}</span></span>
+    ${saleHeading(item)}`;
   return row;
+}
+function initSaleReordering(){
+  const list = saleEl('cemetery-list');
+  const rows = () => [...list.querySelectorAll('.sale-order-row')];
+  const keys = () => rows().map(row=>row.dataset.saleKey);
+  let drag = null;
+
+  function placeRow(row,center){
+    const before = rows().find(other=>{
+      if(other === row) return false;
+      const bounds = other.getBoundingClientRect();
+      return center < bounds.top+bounds.height/2;
+    }) || null;
+    if(row.nextElementSibling !== before) list.insertBefore(row,before);
+  }
+  function slide(){
+    if(!drag || !drag.row.isConnected) return;
+    const {row,y,offset} = drag;
+    const edge = 80;
+    if(y < edge) window.scrollBy(0,-Math.min(16,(edge-y)/4));
+    else if(y > innerHeight-edge) window.scrollBy(0,Math.min(16,(y-innerHeight+edge)/4));
+    const center = y-offset;
+    placeRow(row,center);
+    const top = list.getBoundingClientRect().top + row.offsetTop;
+    row.style.setProperty('--sale-drag-y', (center-top-row.offsetHeight/2) + 'px');
+    drag.frame = requestAnimationFrame(slide);
+  }
+  function finish(event, save){
+    if(!drag || event.pointerId !== drag.pointerId) return;
+    const {row,frame,active,offset} = drag;
+    drag = null;
+    cancelAnimationFrame(frame);
+    if(!active || !row.isConnected) return;
+    row.classList.remove('sale-order-dragging');
+    row.style.removeProperty('--sale-drag-y');
+    if(save){
+      placeRow(row,event.clientY-offset);
+      persistSaleOrder(keys(),row.dataset.saleKey);
+    } else renderCemetery();
+  }
+
+  list.addEventListener('pointerdown',event=>{
+    const handle = event.target.closest('.sale-order-handle');
+    if(!handle || drag || !event.isPrimary || event.button !== 0) return;
+    const row = handle.closest('.sale-order-row');
+    const bounds = row.getBoundingClientRect();
+    drag = {row,pointerId:event.pointerId,y:event.clientY,start:event.clientY,offset:event.clientY-bounds.top-bounds.height/2,active:false,frame:0};
+    list.setPointerCapture(event.pointerId);
+  });
+  list.addEventListener('pointermove',event=>{
+    if(!drag || event.pointerId !== drag.pointerId) return;
+    drag.y = event.clientY;
+    if(drag.active || Math.abs(drag.y-drag.start) < 4) return;
+    drag.active = true;
+    drag.row.classList.add('sale-order-dragging');
+    slide();
+  });
+  list.addEventListener('pointerup',event=>finish(event,true));
+  list.addEventListener('pointercancel',event=>finish(event,false));
+  list.addEventListener('lostpointercapture',event=>finish(event,false));
+  list.addEventListener('keydown',event=>{
+    const handle = event.target.closest('.sale-order-handle');
+    if(!handle || !['ArrowUp','ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const row = handle.closest('.sale-order-row');
+    const current = keys();
+    const from = current.indexOf(row.dataset.saleKey);
+    const to = from + (event.key === 'ArrowUp' ? -1 : 1);
+    if(to < 0 || to >= current.length) return;
+    [current[from],current[to]] = [current[to],current[from]];
+    persistSaleOrder(current,row.dataset.saleKey);
+  });
 }
 function renderCemetery(){
   const container = saleEl('cemetery-list');
@@ -110,13 +188,14 @@ function renderCemetery(){
   orderToggle.title = platform || search ? 'Efface les filtres pour réordonner les ventes' : '';
   orderToggle.textContent = reorderingSales ? 'Terminer' : 'Réordonner';
   orderToggle.setAttribute('aria-pressed',String(reorderingSales));
+  saleEl('cemetery-order-hint').classList.toggle('hidden',!reorderingSales);
 
   const openLots = new Set([...container.querySelectorAll('.sale-lot[open]')].map(lot=>lot.dataset.saleKey));
   container.classList.toggle('pending-sales',saleView === 'pending');
   container.replaceChildren();
   if(!groups.length){ container.innerHTML = '<div class="cemetery-empty">Aucun jeu ici pour le moment.</div>'; return; }
-  groups.forEach((group,index)=>{
-    if(reorderingSales){ container.append(renderOrderRow(group,index,groups.length)); return; }
+  groups.forEach(group=>{
+    if(reorderingSales){ container.append(renderOrderRow(group)); return; }
     const item = group[0];
     if(group.length > 1){
       const lot = document.createElement('details');
@@ -301,6 +380,5 @@ saleEl('cemetery-order-toggle').addEventListener('click',()=>{
 saleEl('cemetery-search').addEventListener('input', renderCemetery);
 saleEl('cemetery-platform').addEventListener('change', renderCemetery);
 document.querySelectorAll('[data-sale-view]').forEach(button => button.addEventListener('click', () => setSaleView(button.dataset.saleView)));
+initSaleReordering();
 renderCemetery();
-
-
