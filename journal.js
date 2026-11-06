@@ -172,16 +172,14 @@
       identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),imageFit:entry.imageFit},
         formats[entry.format]||'')+'</div>';
   }
-  function show(title,html,editing=false,canComplete=false){
+  function show(title,html,{editing=false,canComplete=false,canDelete=false}={}){
     editorEvents?.abort();
     editorEvents = new AbortController();
     $('journal-dialog-title').textContent = title;
     $('journal-dialog-body').innerHTML = html;
     $('journal-save').classList.toggle('hidden',!editing);
-    $('journal-delete').classList.toggle('hidden',editing);
-    $('journal-edit').classList.toggle('hidden',editing);
+    $('journal-delete').classList.toggle('hidden',!canDelete);
     $('journal-complete').classList.toggle('hidden',!canComplete);
-    $('journal-close').textContent = editing ? 'Annuler' : 'Fermer';
     JTDDialogs.open('journal-overlay',{onDismiss:close});
     const target = [...$('journal-dialog-body').querySelectorAll('input:not([type="hidden"]),button')].find(element=>element.getClientRects().length);
     target?.focus({preventScroll:true});
@@ -190,6 +188,13 @@
     if(!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const date = new Date(value+'T12:00:00Z');
     return Number.isFinite(+date) && date.toISOString().slice(0,10)===value;
+  }
+  function bindDelete(entry,generation){
+    $('journal-delete').onclick=()=>confirmAction('Supprimer cette entrée du journal ?',()=>{
+      if(generation!==window.JTDAccountGeneration) return;
+      try { commit(records().filter(record=>record?.id!==entry.id)); close(); render(); }
+      catch(error){ showToast(error.message); }
+    });
   }
   function edit(entry,fromBacklog=false,section='all'){
     const group=entry.group, done=group==='completed', release=group==='release';
@@ -201,6 +206,8 @@
     const chooseSource=!existing||identityOnly;
     const platforms=[...new Set([...allPlatformNames(),'PC',entry.platform].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
     const customPlatform='__journal_custom_platform__';
+    const canComplete=existing&&!done&&!release;
+    const precisionField=field('Précision',input('precision',entry.precision,'maxlength="250" placeholder="Version 1.0, suggéré par…"'));
     show(identityOnly?'Modifier le jeu':commentOnly?'Modifier le commentaire':section==='release'?'Modifier la sortie':completionOnly?'Modifier la complétion':existing&&!fromBacklog?'Modifier l’entrée':done?'Ajouter une complétion':'Ajouter un jeu',
       '<form id="journal-form">'+
       '<section class="form-section journal-game-section">'+
@@ -222,23 +229,26 @@
       field('Affichage de l’image',select('imageFit',{contain:'Image entière',cover:'Remplir le cadre'},entry.imageFit==='cover'?'cover':'contain'))+
       '<button type="button" class="btn btn-ghost'+(identityOnly?' hidden':'')+'" id="journal-apply-identity">Valider le jeu</button></div></div></section>'+
       '<section class="form-section'+(identityOnly||commentOnly?' hidden':'')+'">'+
-      (done?'<div class="form-section-title">Complétion</div><div class="journal-form-grid">'+field('Date de complétion',input('date',date,'type="date" required'))+
-        field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+'</div>':'')+
-      (release?'<div class="field flexible-date-field"><span>Date de sortie</span><div class="date-mode" data-date-mode="journal-release">'+
-        ['date','year','tbd'].map((mode,index)=>'<button type="button" class="date-mode-btn" data-mode="'+mode+'">'+['Date','Année','TBD'][index]+'</button>').join('')+
-        '</div><input type="date" id="journal-release-date" aria-label="Date de sortie"><input type="number" id="journal-release-year" min="1970" max="2100" step="1" placeholder="2027" aria-label="Année de sortie"></div>':'')+
-      (!done&&!release?field('Statut',select('group',{backlog:'Backlog',playing:'En cours'},group)):'')+
-      (done?field('Accès',select('access',access,entry.access||'owned')):'')+
-      (done?'<div id="journal-service">'+field('Nom de l’abonnement',input('service',entry.service,'maxlength="120"'))+'</div>'+
-        '<label class="journal-checkbox"><input type="checkbox" name="replayed"'+(entry.replayed?' checked':'')+'> Rejoué</label>'+
-        '<div class="journal-form-grid">'+field('Mode de jeu',select('mode',modes,entry.mode||'solo'))+
+      (done?'<div class="form-section-title">Complétion</div>'+
+        '<div class="journal-context-fields journal-context-fields-completion">'+
+        field('Date de complétion',input('date',date,'type="date" required'))+
+        field('Mode de jeu',select('mode',modes,entry.mode||'solo'))+precisionField+'</div>'+
+        '<div class="journal-form-grid">'+
+        field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+
         field('Complétion',select('completion',completions,entry.completion||'finished'))+'</div>'+
+        field('Accès',select('access',access,entry.access||'owned'))+
+        '<div id="journal-service">'+field('Nom de l’abonnement',input('service',entry.service,'maxlength="120"'))+'</div>'+
+        '<label class="journal-checkbox"><input type="checkbox" name="replayed"'+(entry.replayed?' checked':'')+'> Rejoué</label>'+
         '<div class="journal-form-ratings">'+criteria.map((label,index)=>field(label,select('note'+index,Object.fromEntries(ratings.map(value=>[value,value||'–'])),entry.notes?.[index]||''))).join('')+
-          field('Ressenti',select('feeling',{'':'–',...feelings},entry.feeling||''))+'</div>':'')+
-      field('Précision',input('precision',entry.precision,'maxlength="250" placeholder="Version 1.0, suggéré par…"'))+
+          field('Ressenti',select('feeling',{'':'–',...feelings},entry.feeling||''))+'</div>':
+      release?'<div class="journal-context-fields"><div class="field flexible-date-field"><span>Date de sortie</span><div class="date-mode" data-date-mode="journal-release">'+
+        ['date','year','tbd'].map((mode,index)=>'<button type="button" class="date-mode-btn" data-mode="'+mode+'">'+['Date','Année','TBD'][index]+'</button>').join('')+
+        '</div><input type="date" id="journal-release-date" aria-label="Date de sortie"><input type="number" id="journal-release-year" min="1970" max="2100" step="1" placeholder="2027" aria-label="Année de sortie"></div>'+
+        precisionField+'</div>':
+      '<div class="journal-context-fields">'+field('Statut',select('group',{backlog:'À faire',playing:'En cours'},group))+precisionField+'</div>')+
       '</section>'+
       (done?'<section class="form-section'+(identityOnly||completionOnly?' hidden':'')+'">'+field('Commentaire','<textarea name="comment" maxlength="10000" rows="4">'+esc(entry.comment||'')+'</textarea>')+'</section>':'')+
-      '<p id="journal-error" role="alert" class="journal-error"></p></form>',true);
+      '<p id="journal-error" role="alert" class="journal-error"></p></form>',{editing:true,canComplete,canDelete:existing&&!fromBacklog});
     const form=$('journal-form'), elements=form.elements;
     const summary=$('journal-game-summary'), editor=$('journal-game-editor');
     const platformValue=()=>elements.platform.value===customPlatform?elements.platformCustom.value.trim():elements.platform.value;
@@ -341,18 +351,27 @@
       elements.access.addEventListener('change',toggle);
       toggle();
     }
+    const value=name=>elements[name]?.value.trim()||'';
+    const readGame=()=>{
+      if(!value('name')||!platformValue()) throw Error('Renseigne le titre et la plateforme.');
+      const art=safeURL(value('image'),true);
+      if(value('image')&&!art) throw Error('L’adresse de l’image est invalide.');
+      return {name:value('name'),platform:platformValue(),precision:value('precision'),image:art,imageFit:value('imageFit'),format:value('format')};
+    };
+    if(existing&&!fromBacklog) bindDelete(entry,generation);
+    if(canComplete) $('journal-complete').onclick=()=>{
+      if(generation!==window.JTDAccountGeneration){close();return;}
+      try { edit({...entry,...readGame(),group:'completed'},true); }
+      catch(error){ $('journal-error').textContent=error.message; }
+    };
     form.addEventListener('submit',event=>{
       event.preventDefault();
       if(generation!==window.JTDAccountGeneration){close();return;}
-      const value=name=>elements[name]?.value.trim()||'';
       try{
-        if(!value('name')||!platformValue()) throw Error('Renseigne le titre et la plateforme.');
         if(done&&!validDay(value('date'))) throw Error('Renseigne une date de complétion valide.');
         const releaseDate=release?(getFlexibleDate('journal-release')||(!releaseDateChanged?date:'')||'TBD'):'';
         if(release&&releaseDate!=='TBD'&&!/^\d{4}(?:-(?:0[1-9]|1[0-2]))?$/.test(releaseDate)&&!validDay(releaseDate)) throw Error('Indique une année ou une date valide.');
-        const art=safeURL(value('image'),true);
-        if(value('image')&&!art) throw Error('L’adresse de l’image est invalide.');
-        const next={id:entry.id||crypto.randomUUID(),group:value('group')||group,name:value('name'),platform:platformValue(),precision:value('precision'),image:art,imageFit:value('imageFit'),format:value('format')};
+        const next={...readGame(),id:entry.id||crypto.randomUUID(),group:value('group')||group};
         if(done) next.date=value('date');
         if(release) next.date=releaseDate;
         if(done) Object.assign(next,{estimated:value('estimated')!=='0',yearOnly:value('estimated')==='year',access:value('access'),service:value('access')==='subscription'?value('service'):'',replayed:elements.replayed.checked,mode:value('mode'),completion:value('completion'),notes:criteria.map((_,index)=>value('note'+index)),feeling:value('feeling'),comment:value('comment')});
@@ -369,42 +388,36 @@
       }catch(error){$('journal-error').textContent=error.message;}
     });
   }
+  const calendarIcon=statIcon('<rect x="4" y="6" width="16" height="14" rx="2"/><path d="M8 4v4m8-4v4M4 10h16"/>');
+  const contextField=(label,value,className='')=>'<div><dt>'+label+'</dt><dd class="'+className+'">'+value+'</dd></div>';
   function detail(entry){
     const done=entry.group==='completed';
     const generation=window.JTDAccountGeneration;
-    const canComplete=['playing','backlog'].includes(entry.group);
+    if(['playing','backlog'].includes(entry.group)){ edit(entry); return; }
     const editButton=(id,label)=>'<button type="button" id="'+id+'" class="context-edit-btn" aria-label="'+label+'" title="'+label+'">'+pencil+'</button>';
     show(done?'Fiche de complétion':'Fiche du jeu',
       '<section class="form-section">'+identityCard(entry,true)+'</section>'+
       '<section class="form-section"><div class="journal-section-heading"><div class="form-section-title">'+(done?completionBadge(entry.completion):entry.group==='release'?'Sortie':'Backlog')+'</div>'+
       (done?editButton('journal-edit-completion','Modifier la complétion'):entry.group==='release'?editButton('journal-edit-release','Modifier la date de sortie'):'')+'</div>'+
-      '<div class="journal-completion-context">'+
-      '<div class="journal-context-line">'+
-      ((done||entry.group==='release')?'<span class="journal-context-date"'+(entry.estimated?' aria-label="Date approximative"':'')+'>'+statIcon('<rect x="4" y="6" width="16" height="14" rx="2"/><path d="M8 4v4m8-4v4M4 10h16"/>')+esc(dateLabel(entry))+'</span>':'')+
-      (done&&entry.replayed?'<span>Rejoué</span>':'')+
-      (done&&modes[entry.mode]?'<span>'+esc(modes[entry.mode])+'</span>':'')+
-      (canComplete?'<span>'+(entry.group==='playing'?'En cours':'À faire')+'</span>':'')+
-      (accessLabel(entry)?'<span class="journal-access">'+esc(accessLabel(entry))+'</span>':'')+'</div>'+
-      (entry.precision?'<p class="journal-context-precision">'+esc(entry.precision)+'</p>':'')+'</div>'+
+      '<dl class="journal-context-fields'+(done?' journal-context-fields-completion':'')+'">'+
+      contextField(done?'Date de complétion':'Sortie','<span class="journal-context-date"'+(entry.estimated?' aria-label="Date approximative"':'')+'>'+calendarIcon+esc(dateLabel(entry))+'</span>')+
+      (done?contextField('Mode de jeu',esc(modes[entry.mode]||'—')):'')+
+      contextField('Précision',esc(entry.precision||'—'), 'journal-context-precision')+'</dl>'+
+      (done&&(entry.replayed||accessLabel(entry))?'<div class="journal-context-flags">'+
+      (entry.replayed?'<span>Rejoué</span>':'')+
+      (accessLabel(entry)?'<span class="journal-access">'+esc(accessLabel(entry))+'</span>':'')+'</div>':'')+
       (done?'<div class="journal-detail-ratings">'+criteria.map((label,index)=>'<div>'+esc(label)+score(entry.notes?.[index],label)+'</div>').join('')+
       '<div>Ressenti<span class="journal-rating-feeling">'+esc(feelings[entry.feeling]||'–')+'</span></div></div>':'')+
       '</section>'+
       (done?'<section class="form-section journal-comment-section"><div class="journal-section-heading"><div class="form-section-title journal-comment-heading">'+bubble+'Commentaire</div>'+
-        editButton('journal-edit-comment','Modifier le commentaire')+'</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),false,canComplete);
+        editButton('journal-edit-comment','Modifier le commentaire')+'</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),{canDelete:true});
     $('journal-dialog-body').querySelector('.identity-edit-btn').onclick=()=>edit(entry,false,'identity');
-    $('journal-edit').classList.toggle('hidden',done||entry.group==='release');
     if(entry.group==='release') $('journal-edit-release').onclick=()=>edit(entry,false,'release');
-    $('journal-edit').onclick=()=>edit(entry);
     if(done){
       $('journal-edit-completion').onclick=()=>edit(entry,false,'completion');
       $('journal-edit-comment').onclick=()=>edit(entry,false,'comment');
     }
-    $('journal-complete').onclick=()=>edit({...entry,group:'completed'},true);
-    $('journal-delete').onclick=()=>confirmAction('Supprimer cette entrée du journal ?',()=>{
-      if(generation!==window.JTDAccountGeneration) return;
-      try { commit(records().filter(record=>record?.id!==entry.id)); close(); render(); }
-      catch(error){ showToast(error.message); }
-    });
+    bindDelete(entry,generation);
   }
   const mobileJournal=matchMedia('(max-width:820px)');
   function syncTabs(){

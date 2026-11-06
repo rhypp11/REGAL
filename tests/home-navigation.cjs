@@ -134,6 +134,7 @@ const server=createSandboxServer();
    assert.equal(await page.locator('.journal-detail-ratings .journal-grade[data-grade="S+"]').count(),1);
    assert.equal(await page.locator('#journal-dialog-body [aria-label="Date approximative"]').count(),1);
    assert.equal(await page.locator('.journal-comment').innerText(),'Commentaire de test');
+   assert.deepEqual(await page.locator('#journal-dialog-body dt').allTextContents(),['Date de complétion','Mode de jeu','Précision']);
    assert.equal(await page.locator('.journal-row .journal-comment-mark').count(),1);
    await page.locator('#journal-edit-comment').click();
    await page.locator('#journal-form [name="comment"]').fill('Commentaire modifié');
