@@ -73,6 +73,29 @@ const server=createSandboxServer();
    await page.screenshot({path:'/tmp/jtd-home-'+width+'-'+theme+'.png',fullPage:true});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await page.evaluate(()=>{GAMES=[];renderHomeStats();});assert.equal(await page.locator('#home-total-games').textContent(),'0');
+   await page.evaluate(()=>{
+    GAMES=[{id:'report-zero',nom:'Étoile de test',plateforme:'Switch 2',date:'2023-04-02',prix:0}];
+    CEMETERY=[
+     {id:'report-sold',nom:'Étoile vendue',plateforme:'PS5',date:'2023-05',prix:30,saleStatus:'sold',salePrice:12},
+     {id:'report-pending',nom:'Jeu sans prix',plateforme:'PS5',date:'2023',saleStatus:'pending'}
+    ];
+    renderHomeStats();goToPage('cemetery');
+   });
+   await page.locator('#global-search-open').click();
+   await page.locator('#global-search-input').fill('etoile');
+   assert.equal(await page.locator('#global-search-results li').count(),2);
+   await page.getByRole('button',{name:/Étoile vendue.*Cimetière/}).click();
+   assert.equal(await page.locator('#sale-modal-overlay').isVisible(),true);
+   await page.keyboard.press('Escape');
+   await page.locator('[data-page="home"]').click();
+   if(width<=820) await page.locator('#global-filter-toggle').click();
+   await page.locator('#purchase-report-open').click();
+   if(width<=820) assert.ok(await page.evaluate(()=>Number(getComputedStyle(document.getElementById('purchase-report-overlay')).zIndex)>Number(getComputedStyle(document.getElementById('home-sidebar')).zIndex)),'Report appears over the statistics drawer');
+   await page.locator('#purchase-report-year').selectOption('2023');
+   assert.match(await page.locator('.purchase-report-total').innerText(),/3 achats[\s\S]*30,00/);
+   assert.match(await page.locator('.purchase-report-platform').filter({hasText:'PS5'}).innerText(),/2 achats[\s\S]*30,00/);
+   assert.match(await page.locator('#purchase-report-results').innerText(),/1 achat sans prix/);
+   await page.locator('#purchase-report-close').click();
    assert.deepEqual(errors,[]);await context.close();console.log('PASS home/navigation',width,theme);
   }
  }finally{await browser.close();server.close();}

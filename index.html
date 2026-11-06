@@ -16,16 +16,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;650;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=removable-filters-35">
-<link rel="stylesheet" href="cemetery.css?v=open-sans-26">
+<link rel="stylesheet" href="cemetery.css?v=sale-cards-37">
 <link rel="stylesheet" href="home-boards-v2.css?v=removable-filters-35">
 <link rel="stylesheet" href="home-dashboard.css?v=soft-materials-22">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=open-sans-26">
 <link rel="stylesheet" href="regal.css?v=soft-materials-22">
 <link rel="stylesheet" href="game-sheet.css?v=format-icons-29">
-<link rel="stylesheet" href="collection.css?v=compact-banner-34">
+<link rel="stylesheet" href="collection.css?v=navigation-review-36">
 <link rel="stylesheet" href="digital.css?v=compact-content-28">
 <link rel="stylesheet" href="deku-import.css?v=1">
+<link rel="stylesheet" href="overview.css?v=2">
 </head>
 <body>
 
@@ -87,6 +88,7 @@
     </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
+      <button type="button" class="theme-toggle" id="global-search-open" title="Recherche globale" aria-label="Recherche globale" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4.5 4.5"/></svg></button>
       <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Activer le thème sombre" title="Activer le thème sombre" aria-pressed="false">
         <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 13A9 9 0 0 1 11 3.2 9 9 0 1 0 20.8 13Z"/></svg>
         <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
@@ -522,6 +524,10 @@
       <input type="search" id="cemetery-search" placeholder="Chercher un jeu…" aria-label="Chercher dans le cimetière">
       <select id="cemetery-platform" aria-label="Plateforme"><option value="">Toutes les plateformes</option></select>
     </div>
+    <div class="cemetery-order-tools hidden" id="cemetery-order-tools">
+      <p class="cemetery-order-hint hidden" id="cemetery-order-hint">Glisse la poignée. Au clavier, utilise les flèches haut et bas.</p>
+      <button type="button" class="btn btn-ghost" id="cemetery-order-toggle" aria-pressed="false">Réordonner</button>
+    </div>
     <div id="cemetery-list"></div>
     </main>
   </div>
@@ -609,14 +615,35 @@
 <div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
 <div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>
 </div></div>
+<div class="modal-overlay sheet-dialog hidden" id="global-search-overlay" role="dialog" aria-modal="true" aria-labelledby="global-search-title">
+  <div class="modal overview-modal">
+    <h2 id="global-search-title">Recherche globale</h2>
+    <div class="field">
+      <label for="global-search-input">Titre du jeu</label>
+      <input type="search" id="global-search-input" placeholder="Chercher un jeu…" autocomplete="off">
+    </div>
+    <p class="overview-note" id="global-search-status" role="status"></p>
+    <ul id="global-search-results" class="overview-list"></ul>
+    <div class="modal-actions"><button type="button" class="btn btn-ghost" id="global-search-close">Fermer</button></div>
+  </div>
+</div>
+<div class="modal-overlay sheet-dialog hidden" id="purchase-report-overlay" role="dialog" aria-modal="true" aria-labelledby="purchase-report-title">
+  <div class="modal overview-modal">
+    <h2 id="purchase-report-title">Bilan des achats</h2>
+    <div class="field"><label for="purchase-report-year">Année</label><select id="purchase-report-year"></select></div>
+    <div id="purchase-report-results"></div>
+    <div class="modal-actions"><button type="button" class="btn btn-ghost" id="purchase-report-close">Fermer</button></div>
+  </div>
+</div>
 <script src="jtd-data.js?v=soft-materials-22"></script>
 <script src="dialogs.js?v=context-error-25"></script>
 <script src="digital.js?v=removable-filters-35"></script>
-<script src="app.js?v=removable-filters-35"></script>
+<script src="app.js?v=navigation-review-36"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
-<script src="cemetery.js?v=cemetery-ergonomie-1"></script>
+<script src="cemetery.js?v=sale-cards-37"></script>
 <script src="cemetery-import.js?v=import-review-2"></script>
+<script src="overview.js?v=1"></script>
 <script src="lifecycle.js?v=soft-materials-22"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){

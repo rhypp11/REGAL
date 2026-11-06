@@ -296,6 +296,11 @@
 #page-collection #grid[data-view="gallery"] :is(.card-identity,.card-state-row) { display:none; }
 
 @media(max-width:820px){
+  .collection-display-row:has(.results-filters) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 12px; }
+  .collection-display-row:has(.results-filters) .results-bar { display:contents; }
+  .collection-display-row .results-count { grid-area:1 / 1; }
+  .collection-display-row .results-filters { grid-area:2 / 1 / auto / -1; }
+  .collection-display-row .collection-view-switch { grid-area:1 / 2; }
   .collection-view-switch button { width:44px; height:44px; }
   #page-collection .card-state-row .card-status-badge { min-height:26px; }
 }

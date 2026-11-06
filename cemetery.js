@@ -1,65 +1,222 @@
 /* Collection exits retain their acquisition record. A shared saleId represents one sale/lot. */
 let saleView = 'pending';
 let saleEditingId = null;
+let reorderingSales = false;
 const saleEl = id => document.getElementById(id);
 function saleGroup(item){
   return item.saleStatus === 'sold' && item.saleId
     ? CEMETERY.filter(g => g.saleStatus === 'sold' && g.saleId === item.saleId) : [item];
 }
+function saleKey(item){
+  return item.saleStatus === 'sold' && item.saleId ? 'lot:' + item.saleId : 'game:' + item.id;
+}
+function orderedSaleGroups(status){
+  const groups = new Map();
+  for(const item of CEMETERY){
+    if(item.saleStatus !== status) continue;
+    const key = saleKey(item);
+    if(!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(item);
+  }
+  const result = [...groups.values()];
+  if(status === 'sold') result.sort((a,b) => (b[0].saleOrder ?? 0) - (a[0].saleOrder ?? 0));
+  return result;
+}
+function lotLabel(group){
+  const counts = new Map();
+  for(const item of group) counts.set(item.plateforme,(counts.get(item.plateforme) || 0) + 1);
+  return [...counts].map(([platform,count]) => count + ' ' + platform).join(' · ');
+}
 function updateCemeteryStats(){
   const pending = CEMETERY.filter(game => game.saleStatus === 'pending');
   const sold = CEMETERY.filter(game => game.saleStatus === 'sold');
   const sales = new Map();
-  for(const game of sold) sales.set(game.saleId || game.id, Number(game.salePrice) || 0);
+  for(const game of sold) sales.set(saleKey(game), Number(game.salePrice) || 0);
   saleEl('cemetery-stat-sales').textContent = euros([...sales.values()].reduce((sum, price) => sum + price, 0));
   saleEl('cemetery-stat-estimated').textContent = euros(pending.reduce((sum, game) => sum + (Number(game.estimatedPrice) || 0), 0));
   saleEl('cemetery-stat-sold-count').textContent = String(sold.length);
   saleEl('cemetery-stat-pending-count').textContent = String(pending.length);
 }
+function saleHeading(item){
+  const venue = item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : 'Canal à définir';
+  const amount = item.saleStatus === 'sold' ? item.salePrice : item.estimatedPrice;
+  return '<span class="sale-group-heading"><span class="sale-heading-main"><strong class="sale-amount">' + (amount != null ? euros(amount) : '—') + '</strong></span><span class="sale-venue">' + venue + '</span></span>';
+}
+function saleCards(group){
+  const cards = document.createElement('div');
+  cards.className = 'sale-cards';
+  for(const game of group){
+    const card = renderCard(game,{readOnly:true,onOpen:()=>openSaleModal(game.id)});
+    card.classList.add('sale-game');
+    const purchase = card.querySelector('.card-purchase');
+    if(purchase) purchase.replaceWith(...purchase.childNodes);
+    cards.append(card);
+  }
+  return cards;
+}
+function persistSaleOrder(keys, movedKey){
+  const groups = orderedSaleGroups('sold');
+  const current = groups.map(group=>saleKey(group[0]));
+  const positions = new Map(keys.map((key,index)=>[key,keys.length-index]));
+  if(keys.length !== current.length || current.some(key=>!positions.has(key))){
+    renderCemetery();
+    return;
+  }
+  if(keys.every((key,index)=>key === current[index])) return;
+  const next = CEMETERY.map(game=>{
+    const saleOrder = game.saleStatus === 'sold' ? positions.get(saleKey(game)) : undefined;
+    return saleOrder === undefined || saleOrder === game.saleOrder ? game : {...game,saleOrder};
+  });
+  if(!commitCemetery(next)){
+    renderCemetery();
+    showToast('L’ordre n’a pas pu être enregistré.');
+  }
+  const row = [...saleEl('cemetery-list').querySelectorAll('.sale-order-row')].find(element=>element.dataset.saleKey === movedKey);
+  row?.querySelector('.sale-order-handle')?.focus({preventScroll:true});
+}
+function renderOrderRow(group){
+  const item = group[0];
+  const row = document.createElement('div');
+  row.className = 'sale-order-row';
+  row.dataset.saleKey = saleKey(item);
+  const isLot = group.length > 1;
+  const title = isLot ? 'Lot · ' + group.length + ' jeux' : item.nom;
+  const subtitle = isLot ? lotLabel(group) : item.plateforme;
+  row.innerHTML = `<button type="button" class="sale-order-handle" aria-label="Déplacer ${escapeHTML(title)} · ${escapeHTML(subtitle)}" aria-describedby="cemetery-order-hint">
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor" aria-hidden="true">
+        <circle cx="7" cy="5" r="1.3"/><circle cx="13" cy="5" r="1.3"/>
+        <circle cx="7" cy="10" r="1.3"/><circle cx="13" cy="10" r="1.3"/>
+        <circle cx="7" cy="15" r="1.3"/><circle cx="13" cy="15" r="1.3"/>
+      </svg>
+    </button>
+    <span class="sale-order-title"><strong>${escapeHTML(title)}</strong><span>${escapeHTML(subtitle)}</span></span>
+    ${saleHeading(item)}`;
+  return row;
+}
+function initSaleReordering(){
+  const list = saleEl('cemetery-list');
+  const rows = () => [...list.querySelectorAll('.sale-order-row')];
+  const keys = () => rows().map(row=>row.dataset.saleKey);
+  let drag = null;
+
+  function placeRow(row,center){
+    const before = rows().find(other=>{
+      if(other === row) return false;
+      const bounds = other.getBoundingClientRect();
+      return center < bounds.top+bounds.height/2;
+    }) || null;
+    if(row.nextElementSibling !== before) list.insertBefore(row,before);
+  }
+  function slide(){
+    if(!drag || !drag.row.isConnected) return;
+    const {row,y,offset} = drag;
+    const edge = 80;
+    if(y < edge) window.scrollBy(0,-Math.min(16,(edge-y)/4));
+    else if(y > innerHeight-edge) window.scrollBy(0,Math.min(16,(y-innerHeight+edge)/4));
+    const center = y-offset;
+    placeRow(row,center);
+    const top = list.getBoundingClientRect().top + row.offsetTop;
+    row.style.setProperty('--sale-drag-y', (center-top-row.offsetHeight/2) + 'px');
+    drag.frame = requestAnimationFrame(slide);
+  }
+  function finish(event, save){
+    if(!drag || event.pointerId !== drag.pointerId) return;
+    const {row,frame,active,offset} = drag;
+    drag = null;
+    cancelAnimationFrame(frame);
+    if(!active || !row.isConnected) return;
+    row.classList.remove('sale-order-dragging');
+    row.style.removeProperty('--sale-drag-y');
+    if(save){
+      placeRow(row,event.clientY-offset);
+      persistSaleOrder(keys(),row.dataset.saleKey);
+    } else renderCemetery();
+  }
+
+  list.addEventListener('pointerdown',event=>{
+    const handle = event.target.closest('.sale-order-handle');
+    if(!handle || drag || !event.isPrimary || event.button !== 0) return;
+    const row = handle.closest('.sale-order-row');
+    const bounds = row.getBoundingClientRect();
+    drag = {row,pointerId:event.pointerId,y:event.clientY,start:event.clientY,offset:event.clientY-bounds.top-bounds.height/2,active:false,frame:0};
+    list.setPointerCapture(event.pointerId);
+  });
+  list.addEventListener('pointermove',event=>{
+    if(!drag || event.pointerId !== drag.pointerId) return;
+    drag.y = event.clientY;
+    if(drag.active || Math.abs(drag.y-drag.start) < 4) return;
+    drag.active = true;
+    drag.row.classList.add('sale-order-dragging');
+    slide();
+  });
+  list.addEventListener('pointerup',event=>finish(event,true));
+  list.addEventListener('pointercancel',event=>finish(event,false));
+  list.addEventListener('lostpointercapture',event=>finish(event,false));
+  list.addEventListener('keydown',event=>{
+    const handle = event.target.closest('.sale-order-handle');
+    if(!handle || !['ArrowUp','ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const row = handle.closest('.sale-order-row');
+    const current = keys();
+    const from = current.indexOf(row.dataset.saleKey);
+    const to = from + (event.key === 'ArrowUp' ? -1 : 1);
+    if(to < 0 || to >= current.length) return;
+    [current[from],current[to]] = [current[to],current[from]];
+    persistSaleOrder(current,row.dataset.saleKey);
+  });
+}
 function renderCemetery(){
   const container = saleEl('cemetery-list');
   if(!container) return;
   updateCemeteryStats();
-  const platform = saleEl('cemetery-platform').value;
+  const select = saleEl('cemetery-platform');
+  const selectedPlatform = select.value;
   const platforms = [...new Set(CEMETERY.map(g => g.plateforme))].sort();
-  saleEl('cemetery-platform').innerHTML = '<option value="">Toutes les plateformes</option>' + platforms.map(p => '<option>' + escapeHTML(p) + '</option>').join('');
-  saleEl('cemetery-platform').value = platforms.includes(platform) ? platform : '';
+  select.replaceChildren(new Option('Toutes les plateformes',''),...platforms.map(platform=>new Option(platform,platform)));
+  const platform = platforms.includes(selectedPlatform) ? selectedPlatform : '';
+  select.value = platform;
   const search = saleEl('cemetery-search').value.trim().toLocaleLowerCase('fr');
-  const matches = g => (!platform || g.plateforme === platform) && (!search || g.nom.toLocaleLowerCase('fr').includes(search));
-  const items = CEMETERY.filter(g => g.saleStatus === saleView);
-  const groups = [];
-  const seen = new Set();
-  for(const item of items){
-    const key = item.saleStatus === 'sold' ? (item.saleId || item.id) : item.id;
-    if(seen.has(key)) continue;
-    seen.add(key);
-    const group = saleGroup(item);
-    if(group.some(matches)) groups.push(group);
-  }
-  if(saleView === 'sold') groups.sort((a,b) => (b[0].saleOrder || 0) - (a[0].saleOrder || 0));
-  container.classList.toggle('pending-sales', saleView === 'pending');
+  const matches = game => (!platform || game.plateforme === platform) && (!search || game.nom.toLocaleLowerCase('fr').includes(search));
+  const allGroups = orderedSaleGroups(saleView);
+  const groups = allGroups.filter(group=>group.some(matches));
+  const canReorder = saleView === 'sold' && allGroups.length > 1 && !platform && !search;
+  reorderingSales = reorderingSales && canReorder;
+  const orderTools = saleEl('cemetery-order-tools');
+  const orderToggle = saleEl('cemetery-order-toggle');
+  orderTools.classList.toggle('hidden',saleView !== 'sold' || allGroups.length < 2);
+  orderToggle.disabled = !canReorder;
+  orderToggle.title = platform || search ? 'Efface les filtres pour réordonner les ventes' : '';
+  orderToggle.textContent = reorderingSales ? 'Terminer' : 'Réordonner';
+  orderToggle.setAttribute('aria-pressed',String(reorderingSales));
+  saleEl('cemetery-order-hint').classList.toggle('hidden',!reorderingSales);
+
+  const openLots = new Set([...container.querySelectorAll('.sale-lot[open]')].map(lot=>lot.dataset.saleKey));
+  container.classList.toggle('pending-sales',saleView === 'pending');
   container.replaceChildren();
   if(!groups.length){ container.innerHTML = '<div class="cemetery-empty">Aucun jeu ici pour le moment.</div>'; return; }
-  for(const group of groups){
+  groups.forEach(group=>{
+    if(reorderingSales){ container.append(renderOrderRow(group)); return; }
     const item = group[0];
+    if(group.length > 1){
+      const lot = document.createElement('details');
+      lot.className = 'sale-lot';
+      lot.dataset.saleKey = saleKey(item);
+      lot.open = openLots.has(lot.dataset.saleKey);
+      lot.innerHTML = `<summary class="sale-lot-summary">
+        <span class="sale-lot-title"><strong>Lot · ${group.length} jeux</strong><span>${escapeHTML(lotLabel(group))}</span></span>
+        ${saleHeading(item)}
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>`;
+      lot.append(saleCards(group));
+      container.append(lot);
+      return;
+    }
     const block = document.createElement('section');
     block.className = 'sale-group';
-    const venue = item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : 'Canal à définir';
-    const amount = saleView === 'sold' ? item.salePrice : item.estimatedPrice;
-    block.innerHTML = '<div class="sale-group-heading"><div class="sale-heading-main"><strong class="sale-amount">' + (amount != null ? euros(amount) : '—') + '</strong></div><div class="sale-venue">' + escapeHTML(venue) + '</div></div>';
-    const cards = document.createElement('div');
-    cards.className = 'sale-cards';
-    for(const g of group){
-      const card = renderCard(g, {readOnly:true, onOpen:() => openSaleModal(g.id)});
-      card.classList.add('sale-game');
-      // Explicit field siblings keep date, source and price in a stable order.
-      const purchase = card.querySelector('.card-purchase');
-      if(purchase) purchase.replaceWith(...purchase.childNodes);
-      cards.appendChild(card);
-    }
-    block.appendChild(cards);
-    container.appendChild(block);
-  }
+    block.innerHTML = saleHeading(item);
+    block.append(saleCards(group));
+    container.append(block);
+  });
 }
 window.renderCemetery = renderCemetery;
 function renderSaleIdentity(group){
@@ -156,7 +313,7 @@ function saveSale(){
     const ids = item.saleStatus === 'sold' ? saleGroup(item).map(g => g.id) : [item.id, ...(sold ? selected : [])];
     const fields = {saleStatus:sold ? 'sold' : 'pending', saleChannel:saleEl('sale-channel').value || null};
     if(sold){
-      Object.assign(fields, {salePrice, saleId:item.saleId || crypto.randomUUID(), saleOrder:item.saleOrder ?? (Math.max(0,...CEMETERY.map(g => g.saleOrder || 0)) + 1)});
+      Object.assign(fields, {salePrice, saleId:item.saleId || crypto.randomUUID(), saleOrder:completed ? CEMETERY.reduce((max,game)=>Math.max(max,game.saleOrder ?? 0),0) + 1 : (item.saleOrder ?? 0)});
     }
     const next = CEMETERY.map(g => ids.includes(g.id) ? {...g, ...fields, ...(g.id === item.id ? {estimatedPrice} : {})} : g);
     if(commitCemetery(next)){ closeSaleModal(); if(completed) setSaleView('sold'); showToast(sold ? 'Vente enregistrée.' : 'Informations enregistrées.'); }
@@ -216,9 +373,12 @@ saleEl('sale-lot-toggle').addEventListener('change', () => {
 saleEl('sale-price').addEventListener('input',updateSaleAction);
 saleEl('sale-save').addEventListener('click', saveSale);
 saleEl('sale-cancel').addEventListener('click', closeSaleModal);
+saleEl('cemetery-order-toggle').addEventListener('click',()=>{
+  reorderingSales = !reorderingSales;
+  renderCemetery();
+});
 saleEl('cemetery-search').addEventListener('input', renderCemetery);
 saleEl('cemetery-platform').addEventListener('change', renderCemetery);
 document.querySelectorAll('[data-sale-view]').forEach(button => button.addEventListener('click', () => setSaleView(button.dataset.saleView)));
+initSaleReordering();
 renderCemetery();
-
-
