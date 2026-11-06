@@ -33,8 +33,8 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       assert.equal(await page.locator('.dlc-label').innerText(),'DLC');
       assert.equal(await page.locator('#status-toggles').innerText().then(t=>t.includes('En cours')),false);
       assert.equal(await page.locator('#platform-list').innerText().then(s=>s.includes('PlayStation 2')),false);
-      assert.equal(await page.locator('.collection-stat-details').getAttribute('open'),null,'Statistics start collapsed');
-      await page.locator('.collection-stat-details > summary').click();
+      assert.equal(await page.locator('.collection-stat-toggle').getAttribute('aria-expanded'),'false','Statistics start collapsed');
+      await page.locator('.collection-stat-toggle').click();
       assert.ok((await page.locator('[data-stat="spent"]').innerText()).includes('2 000'));
       assert.equal(await page.locator('#grid .card-price, #grid .card-digital-price').count(),0,'Digital prices follow the same default visibility as physical');
       assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-identity .card-console-account').count(),1);
@@ -124,7 +124,7 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       assert.equal(await page.locator('#collection-media-tabs [data-media="all"]').count(),0,'No redundant All button');
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
       assert.equal(await page.evaluate(()=>state.media),'all','Unfiltered format survives reload');
-      await page.locator('.collection-stat-details > summary').click();
+      await page.locator('.collection-stat-toggle').click();
       const money=page.locator('[data-stat="spent"] .currency-total');
       assert.ok(await money.count()>=2,'Currencies remain independent amounts');
       assert.doesNotMatch(await page.locator('[data-stat="spent"]').innerText(),/ \+ /);
