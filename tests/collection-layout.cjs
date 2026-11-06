@@ -26,6 +26,7 @@ const server=createSandboxServer();
       assert.equal(await statsToggle.getAttribute('aria-expanded'),'false');
       assert.equal(await statsPanel.isVisible(),false);
       const titleBox=await page.locator('.platform-banner-title').boundingBox();
+      assert.ok(titleBox.height<32,'The unfiltered title stays on one line');
       const toggleBox=await statsToggle.boundingBox();
       assert.ok(toggleBox.x>=titleBox.x+titleBox.width-.5,'Count fits beside the platform title');
       await statsToggle.press('Enter');

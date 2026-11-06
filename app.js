@@ -1013,13 +1013,13 @@ function renderPlatformBanner(cards){
   banner.style.color = '';
   banner.style.setProperty('--platform-accent',color);
   banner.style.setProperty('--platform-band-text',platformBandText(color));
-  const countLabel = `${total} ${total > 1 ? 'éléments' : 'élément'}`;
+  const countUnit = total > 1 ? 'éléments' : 'élément';
   banner.innerHTML = `
     <div class="platform-banner-head">
       ${logoHtml}
       <div class="platform-banner-label"><span class="platform-banner-title">${escapeHTML(title)}</span></div>
-      <button type="button" class="collection-stat-toggle" aria-label="${countLabel}, statistiques" aria-expanded="${collectionStatsOpen}" aria-controls="collection-stats">
-        <span>${countLabel}</span>
+      <button type="button" class="collection-stat-toggle" aria-label="${total} ${countUnit}, statistiques" aria-expanded="${collectionStatsOpen}" aria-controls="collection-stats">
+        <span>${total}<span class="collection-stat-unit"> ${countUnit}</span></span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </button>
     </div>
