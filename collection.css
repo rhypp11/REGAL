@@ -223,10 +223,13 @@
   #page-collection .card-name { font-size:14px; }
   #page-collection .card-acquisition { padding-top:6px; }
 }
-@media(max-width:380px) {
+@media(max-width:420px) {
   #page-collection .platform-banner-head { gap:8px; }
   #page-collection .platform-banner-title { font-size:19px; }
   #page-collection .platform-banner-head :is(.platform-banner-logo,.platform-banner-fallback) { width:28px; height:28px; flex-basis:28px; }
+}
+@media(max-width:380px) {
+  #page-collection .platform-banner.neutral .platform-banner-fallback,
   .collection-stat-unit { display:none; }
   #page-collection .card { padding:10px; }
   #page-collection .library-stat[data-stat="platforms"] .library-stat-icon { display:none; }
