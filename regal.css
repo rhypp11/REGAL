@@ -1,6 +1,6 @@
 /* REGAL — signature commune aux pages, menus et dialogues. */
-.profile-maintenance { border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); margin:6px 0; }
-.profile-maintenance summary { padding:12px; color:var(--muted); font-size:12px; cursor:pointer; }
+:is(.profile-maintenance,.profile-group) { border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); margin:6px 0; }
+:is(.profile-maintenance,.profile-group) summary { padding:12px; color:var(--muted); font-size:12px; cursor:pointer; }
 .profile-maintenance .profile-menu-sub { font-size:11px; }
 .topnav .profile-menu { width:min(330px,calc(100vw - 24px)); padding:10px; border:1px solid var(--hairline); border-radius:22px; background:var(--ui-material-fill); -webkit-backdrop-filter:blur(18px) saturate(115%); backdrop-filter:blur(18px) saturate(115%); box-shadow:var(--ui-edge-highlight),var(--ui-floating-shadow); }
 .profile-menu .profile-menu-item { min-height:44px; padding:11px 10px; border-radius:12px; }
@@ -58,3 +58,5 @@
 @media(prefers-reduced-transparency:reduce) {
   .topnav .profile-menu { background:var(--ui-surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
 }
+
+.topnav .profile-menu { max-height:min(560px,calc(100dvh - var(--topnav-h,100px) - 10px)); overflow:auto; }

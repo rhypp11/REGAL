@@ -229,7 +229,11 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
 @media(max-width:820px){
   #page-journal:has(.journal-layout[data-tab]:not([data-tab="completed"])) .journal-toolbar-actions { display:none; }
 }
-@media(max-width:390px){
+@media(max-width:720px){
   .journal-toolbar { flex-wrap:wrap; }
   .journal-toolbar-actions .btn { font-size:12px; padding-inline:7px; }
+  #journal-sort { order:2; flex:1 1 100%; }
 }
+
+#journal-sort { min-width:0; font-size:12px; }
+.journal-date-fields .field { min-width:0; }

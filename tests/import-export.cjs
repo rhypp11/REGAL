@@ -61,7 +61,7 @@ async function importFile(page,data){
   await page.evaluate(()=>{CEMETERY=[...CEMETERY,{id:'concurrent',nom:'Concurrent',plateforme:'PC',saleStatus:'pending'}];});
   await page.locator('#cemetery-import-apply').click();assert.match(await page.locator('#cemetery-import-error').textContent(),/changé/);assert.equal(await page.evaluate(()=>CEMETERY.some(g=>g.id==='new')),false);await page.locator('#cemetery-import-cancel').click();
   // Advice exports exclude the retired private archive.
-  const downloadEvent=page.waitForEvent('download');await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
+  const downloadEvent=page.waitForEvent('download');await page.locator('#profile-menu-btn').click();await page.locator('#profile-share-group > summary').click();await page.locator('#chatgpt-export-btn').click();
   const advice=JSON.parse(fs.readFileSync(await (await downloadEvent).path(),'utf8'));
   assert.equal('journal' in advice.data,false);
   assert.equal(await page.evaluate(()=>Object.hasOwn(JTDData.createPublicSharePayload(buildBackupPayload().data),'journal')),false);

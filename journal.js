@@ -143,6 +143,7 @@
       section('Supports',Object.entries(formats).map(([key,label])=>stat(label,formatCount.get(key)||0,MEDIA_ICONS[key==='extension'?'dlc':key])).join(''))+
       section('Accès',Object.entries(access).map(([key,label])=>stat(label,accessCount.get(key)||0,accessIcons[key])).join(''));
   }
+  const sortByYear=new Map();
   function render(){
     const entries = records();
     const completed = entries.filter(entry=>entry?.group==='completed' && typeof entry.date==='string');
@@ -151,7 +152,10 @@
     const years = [...new Set([today().slice(0,4),...completed.map(entry=>entry.date.slice(0,4))])].sort().reverse();
     year.replaceChildren(...years.map(number=>new Option(number,number)));
     year.value = years.includes(value)?value:years[0];
-    const selected = completed.filter(entry=>entry.date.startsWith(year.value)).sort((a,b)=>b.date.localeCompare(a.date));
+    const sort=$('journal-sort');
+    sort.value=sortByYear.get(year.value)||(year.value<today().slice(0,4)?'asc':'desc');
+    const direction=sort.value==='asc'?1:-1;
+    const selected = completed.filter(entry=>entry.date.startsWith(year.value)).sort((a,b)=>direction*a.date.localeCompare(b.date));
     $('journal-stats').innerHTML = stats(selected);
     $('journal-completed').innerHTML = calendar(selected,completedGroup) || '<p class="journal-empty">Aucune complétion cette année.</p>';
     for(const group of ['playing','backlog','release']){
@@ -233,12 +237,12 @@
       '<button type="button" class="btn btn-ghost'+(identityOnly?' hidden':'')+'" id="journal-apply-identity">Valider le jeu</button></div></div></section>'+
       '<section class="form-section'+(identityOnly||commentOnly?' hidden':'')+'">'+
       (done?'<div class="form-section-title">Complétion</div>'+
-        '<div class="journal-context-fields journal-context-fields-completion">'+
+        '<div class="journal-form-grid journal-date-fields">'+
         field('Date de complétion',input('date',date,'type="date" required'))+
-        field('Mode de jeu',select('mode',modes,entry.mode||'solo'))+precisionField+'</div>'+
-        '<div class="journal-form-grid">'+
-        field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+
+        field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+'</div>'+
+        '<div class="journal-form-grid">'+field('Mode de jeu',select('mode',modes,entry.mode||'solo'))+
         field('Complétion',select('completion',completions,entry.completion||'finished'))+'</div>'+
+        precisionField+
         field('Accès',select('access',{'':'Non renseigné',...access},entry.access??'owned'))+
         '<div id="journal-service">'+field('Nom de l’abonnement',input('service',entry.service,'maxlength="120"'))+'</div>'+
         '<label class="journal-checkbox"><input type="checkbox" name="replayed"'+(entry.replayed?' checked':'')+'> Rejoué</label>'+
@@ -479,6 +483,13 @@
         }
         if(added.length) commit([...current,...added]);
         close();
+        if(added.length){
+          $('journal-layout').dataset.tab='completed';
+          syncTabs();
+          if(navigationPage!=='journal') goToPage('journal');
+          render();
+          $('journal-year').value=added.map(entry=>entry.date.slice(0,4)).sort().at(-1);
+        }
         render();
         showToast(added.length+' complétion'+(added.length>1?'s importées.':' importée.'));
       }catch(error){$('journal-error').textContent=error.message;}
@@ -507,6 +518,7 @@
   mobileJournal.addEventListener('change',syncTabs);
   syncTabs();
   $('journal-year').addEventListener('change',render);
+  $('journal-sort').addEventListener('change',event=>{sortByYear.set($('journal-year').value,event.target.value);render();});
   $('journal-close').addEventListener('click',close);
   $('page-journal').addEventListener('click',event=>{
     const add=event.target.closest('[data-journal-add]');
