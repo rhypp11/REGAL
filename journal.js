@@ -71,9 +71,10 @@
     const done = entry.group === 'completed';
     const tracked = entry.group === 'release';
     return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'">'+
-      (done?day(entry):tracked?(validDay(entry.date)?calendarDayHtml(entry.date):''):'')+
+      (done?day(entry):'')+
       gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small>'+esc([entry.platform,entry.precision].filter(Boolean).join(' · '))+'</small>'+
       (done?'<small>'+esc([formats[entry.format],modes[entry.mode]].filter(Boolean).join(' · '))+'</small>':'')+
+      (tracked&&validDay(entry.date)?'<small class="journal-release-date">'+esc(parseWishlistDate(entry.date).label)+'</small>':'')+
       (done&&accessLabel(entry)?'<span class="journal-access">'+esc(accessLabel(entry))+'</span>':'')+'</span>'+
       (done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
         (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'')+'</button>';

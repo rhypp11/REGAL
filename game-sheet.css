@@ -55,11 +55,18 @@
 }
 .sheet-dialog .modal-edit-actions [data-modal-action="delete"] {
   margin-left:auto;
+  color:var(--danger);
+  border-color:color-mix(in srgb,var(--danger) 44%,var(--ui-border));
+  background:transparent;
+}
+.sheet-dialog .modal-edit-actions [data-modal-action="delete"]:hover { background:color-mix(in srgb,var(--danger) 10%,var(--ui-surface)); }
+.sheet-dialog .modal-edit-actions .btn-primary { border-radius:10px; }
+.sheet-dialog .modal-edit-actions [data-modal-action="cancel"] {
+  border:1px solid var(--ui-border);
+  background:var(--ui-surface-raised);
   color:var(--ui-text-muted);
 }
-.sheet-dialog .modal-edit-actions [data-modal-action="delete"]:hover { color:var(--danger); }
-.sheet-dialog .modal-edit-actions .btn-primary { border-radius:10px; }
-.sheet-dialog .modal-edit-actions [data-modal-action="cancel"] { border-color:transparent; background:transparent; color:var(--ui-text-muted); }
+.sheet-dialog .modal-edit-actions [data-modal-action="cancel"]:hover { color:var(--ui-text); }
 @media(min-width:821px) {
   .sheet-dialog > .modal :is(#f-identity-editor,#a-identity-editor,#w-identity-editor) .identity-core-row {
     grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);
