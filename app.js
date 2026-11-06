@@ -1293,7 +1293,7 @@ function japaneseEditionMark(item){
 const ICON_EDITION_REGION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18Z"/></svg>`;
 const FORMAT_ICON_STAR = `<svg class="format-icon star-icon icon-select-icon-svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" title="Collector"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
 
-function iconSelectify(selectId, getIcon){
+function iconSelectify(selectId, getIcon, signal){
   iconSelectRegistry[selectId] = { getIcon };
   const select = document.getElementById(selectId);
   if(!select || select.dataset.iconified){
@@ -1325,7 +1325,7 @@ function iconSelectify(selectId, getIcon){
   });
   document.addEventListener('click', (e) => {
     if(!wrap.contains(e.target)) list.classList.add('hidden');
-  });
+  },{signal});
 
   select.addEventListener('change', () => syncIconSelectTrigger(selectId));
 
