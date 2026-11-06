@@ -85,6 +85,7 @@
   const field = (label,content) => '<label class="field"><span>'+label+'</span>'+content+'</label>';
   const input = (name,value='',attrs='') => '<input name="'+name+'" value="'+esc(value??'')+'" '+attrs+'>';
   const close = () => JTDDialogs.close('journal-overlay');
+  window.refreshJournal = () => { if(!$('journal-overlay').classList.contains('hidden')) close(); render(); };
   function show(title,html,editing=false){
     $('journal-dialog-title').textContent = title;
     $('journal-dialog-body').innerHTML = html;
@@ -209,4 +210,5 @@
       document.querySelectorAll('[data-journal-tab]').forEach(button=>button.setAttribute('aria-pressed',String(button===tab)));
     }
   });
+  if(navigationPage==='journal') render();
 })();

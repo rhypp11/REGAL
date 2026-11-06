@@ -136,7 +136,7 @@ function replaceAppData(data){
   platformOrder = data.platformOrder;
   PROFILE_NAME = data.profileName;
   PROFILE_AVATAR = data.profileAvatar;
-  window.renderJournal?.();
+  window.refreshJournal?.();
 }
 window.replaceAppData = replaceAppData;
 window.persistAppData = data => {
