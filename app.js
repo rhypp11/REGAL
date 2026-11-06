@@ -2801,6 +2801,7 @@ function goToPage(page, push = true){
   if(navigationPage === 'cemetery'){ document.title = 'REGAL | Cimetière'; window.renderCemetery?.(); }
   if(navigationPage === 'cemetery') document.getElementById('cemetery-view-controls').prepend(mobileFilterToggle);
   if(navigationPage === 'home') document.getElementById('home-view-controls').prepend(mobileFilterToggle);
+  if(navigationPage === 'journal') document.getElementById('journal-toolbar').prepend(mobileFilterToggle);
   mobileFilterToggle.setAttribute('aria-label', navigationPage === 'collection' ? 'Afficher les filtres' : 'Afficher les statistiques');
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
@@ -2860,7 +2861,7 @@ function toggleMobileDrawer(el){
 }
 document.getElementById('mobile-backdrop').addEventListener('click', closeMobileDrawers);
 
-const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
+const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar', journal:'journal-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
   const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));
