@@ -37,7 +37,7 @@
 .journal-title { display:grid; flex:1; min-width:85px; gap:3px; overflow-wrap:anywhere; }
 .journal-title strong { font-size:13px; }
 .journal-title small { color:var(--ui-text-muted); font-size:10px; }
-.journal-scores { display:flex; align-items:center; gap:3px; }
+.journal-row-status { display:flex; align-items:center; gap:7px; flex-shrink:0; margin-left:auto; }
 .journal-grade { display:inline-grid; place-items:center; width:23px; height:23px; border-radius:5px; background:var(--ui-surface-raised); color:var(--ui-text); font-size:10px; font-weight:700; }
 .journal-grade[data-grade="D"],.journal-grade[data-grade="C"] { background:#844b49; color:white; }
 .journal-grade[data-grade="B"] { background:#ebd895; color:#211b09; }
@@ -74,7 +74,7 @@
   .journal-layout[data-tab="completed"] [data-journal-panel]:not([data-journal-panel="completed"]),
   .journal-layout[data-tab="backlog"] :is([data-journal-panel]:not([data-journal-panel="backlog"])),
   .journal-layout[data-tab="release"] :is([data-journal-panel]:not([data-journal-panel="release"])) { display:none; }
-  .journal-completion-row .journal-scores { margin-left:auto; }
+  .journal-completion-row .journal-row-status { margin-left:auto; }
   .journal-form-ratings { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
 
@@ -128,4 +128,35 @@
 @media(max-width:820px){
   #journal-actions:has(#journal-edit.hidden):has(#journal-save.hidden):has(#journal-complete.hidden) { display:flex; flex-wrap:nowrap; align-items:center; justify-content:space-between; }
   #journal-actions:has(#journal-edit.hidden):has(#journal-save.hidden):has(#journal-complete.hidden) .modal-primary-actions { width:auto; }
+}
+
+.journal-completion-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 7px; border:1px solid color-mix(in srgb,var(--badge-color) 32%,var(--ui-border)); border-radius:7px; color:var(--ui-text); background:color-mix(in srgb,var(--badge-color) 14%,var(--ui-surface)); font-size:11px; font-weight:700; white-space:nowrap; --badge-color:var(--status-done); }
+.journal-completion-badge[data-completion="hundred"] { --badge-color:var(--amber); }
+.journal-completion-badge[data-completion="achievements"] { --badge-color:#8867bb; }
+.journal-completion-badge svg,.journal-comment-heading svg { width:15px; height:15px; }
+.journal-comment-heading { display:flex; align-items:center; gap:7px; }
+.journal-section-heading .journal-completion-badge { font-size:13px; }
+.journal-source-choice { display:flex; flex-wrap:wrap; gap:7px; padding:0; margin:0 0 12px; border:0; min-width:0; }
+.journal-source-choice legend { padding:0; margin-bottom:6px; font-size:12px; color:var(--ui-text-muted); }
+.journal-source-choice label { display:flex; align-items:center; gap:5px; min-height:38px; padding:4px 8px; border:1px solid var(--ui-border); border-radius:7px; font-size:12px; cursor:pointer; }
+.journal-source-choice label:has(input:checked) { border-color:var(--ui-accent); background:var(--ui-surface-raised); }
+.journal-source-choice input { accent-color:var(--ui-accent); }
+.journal-source-results { display:grid; gap:4px; max-height:210px; overflow:auto; }
+.journal-source-results button { display:flex; align-items:baseline; justify-content:space-between; gap:8px; min-height:40px; padding:7px 9px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-surface); color:var(--ui-text); text-align:left; cursor:pointer; }
+.journal-source-results small { color:var(--ui-text-muted); }
+#journal-precision-field { margin-top:10px; }
+@media(min-width:821px){
+  #page-journal { display:grid; grid-template-columns:minmax(0,2.2fr) minmax(240px,1fr); grid-template-areas:'toolbar side' 'completed side'; grid-template-rows:auto 1fr; gap:0 22px; align-items:start; }
+  .journal-toolbar { grid-area:toolbar; }
+  .journal-layout { display:contents; }
+  .journal-side { grid-area:side; min-width:0; padding-left:16px; border-left:1px solid var(--ui-border); }
+  .journal-side .journal-tabs { margin-bottom:10px; }
+}
+@media(min-width:1240px){
+  #page-journal { grid-template-columns:minmax(156px,.78fr) minmax(0,3fr) minmax(235px,1.35fr); grid-template-areas:'stats toolbar side' 'stats completed side'; gap:0 18px; }
+  #page-journal #global-filter-toggle { display:none; }
+  #page-journal .journal-sidebar { grid-area:stats; position:sticky; top:calc(var(--topnav-h) + 12px); left:auto; bottom:auto; z-index:auto; width:auto; max-height:calc(100dvh - var(--topnav-h) - 24px); padding:0; background:transparent; transform:none; visibility:visible; }
+}
+@media(max-width:820px){
+  .journal-side { display:contents; }
 }
