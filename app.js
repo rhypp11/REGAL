@@ -1405,7 +1405,7 @@ function gameImageHtml(item, alt = '', board = false){
 }
 function gameImageClass(item){ return ' game-art-frame image-fit-' + (item?.imageFit === 'cover' ? 'cover' : 'contain'); }
 
-function identitySummaryHtml(item){
+function identitySummaryHtml(item, detail = ''){
   const name = item && item.nom ? item.nom : 'Jeu';
   const platform = item && item.plateforme ? item.plateforme : 'Plateforme';
   const image = item && item.image ? item.image : null;
@@ -1425,6 +1425,7 @@ function identitySummaryHtml(item){
     <div class="identity-copy">
       <strong>${collectorMark}${japaneseEditionMark(item)}<span>${escapeHTML(name)}</span></strong>
       <span>${platformIcon}${escapeHTML(platform)}</span>
+      ${detail ? `<small class="identity-detail">${escapeHTML(detail)}</small>` : ''}
     </div>
     <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>

@@ -90,8 +90,8 @@
   window.refreshJournal = () => { if(!$('journal-overlay').classList.contains('hidden')) close(); render(); };
   function identityCard(entry,editable=false){
     return '<div class="game-identity-summary'+(editable?'':' journal-identity-read')+'">'+
-      identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),imageFit:entry.imageFit})+
-      '<small class="journal-identity-meta">'+esc([formats[entry.format],entry.precision].filter(Boolean).join(' · '))+'</small></div>';
+      identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),imageFit:entry.imageFit},
+        [formats[entry.format],entry.precision].filter(Boolean).join(' · '))+'</div>';
   }
   function show(title,html,editing=false,canComplete=false){
     $('journal-dialog-title').textContent = title;
