@@ -18,7 +18,7 @@
 [data-journal-panel="completed"] { grid-area:completed; }
 [data-journal-panel="backlog"],[data-journal-panel="release"] { grid-area:side; }
 @media(min-width:821px) {
-  [data-journal-tab="completed"],
+  .journal-tabs [data-journal-tab="completed"],
   .journal-layout[data-side="backlog"] [data-journal-panel="release"],
   .journal-layout[data-side="release"] [data-journal-panel="backlog"] { display:none; }
 }
@@ -124,3 +124,8 @@
 
 #page-journal :is([data-journal-panel="completed"],[data-journal-panel="release"]) { padding:0; border:0; background:transparent; }
 #page-journal :is([data-journal-panel="completed"],[data-journal-panel="release"]) .journal-calendar { background:var(--ui-surface); }
+
+@media(max-width:820px){
+  #journal-actions:has(#journal-edit.hidden):has(#journal-save.hidden):has(#journal-complete.hidden) { display:flex; flex-wrap:nowrap; align-items:center; justify-content:space-between; }
+  #journal-actions:has(#journal-edit.hidden):has(#journal-save.hidden):has(#journal-complete.hidden) .modal-primary-actions { width:auto; }
+}
