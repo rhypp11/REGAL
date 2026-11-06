@@ -24,8 +24,8 @@ async function importFile(page,data){
   assert.equal(await page.locator('#share-btn, #share-disable-btn').count(),0);
   assert.equal(await page.locator('#chatgpt-export-btn').count(),1);
   await page.evaluate(data=>applyRestoredData(JTDData.normalizeData(data)),fixture);
-  assert.equal(await page.locator('[data-page="journal"], #page-journal, [id^="j-"], [id^="f-journal"]').count(),0);
-  assert.equal(await page.locator('script[src*="journal"], link[href*="journal"]').count(),0);
+  assert.equal(await page.locator('[data-page="journal"]').count(),1);
+  assert.equal(await page.locator('[id^="f-journal"]').count(),0,'Journal entries do not change collection forms');
   await page.evaluate(()=>{goToPage('collection');setStatus('copy-a','a_jouer');});
   assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='copy-a').status),'a_jouer','old links cannot override a collection status');
   await page.locator('.card').filter({hasText:'Chroniques du Vent'}).first().locator('.card-status-badge').click();
