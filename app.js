@@ -753,8 +753,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 function buildPlatformList({keepSelection = false} = {}){
+  const scoped = collectionScope();
   const counts = Object.create(null);
-  collectionScope().forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
+  scoped.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
   if(state.platform && !Object.hasOwn(counts,state.platform)){
     if(keepSelection) counts[state.platform] = 0;
     else state.platform = null;
