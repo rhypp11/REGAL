@@ -1189,8 +1189,7 @@ function renderResultsBar(count){
         ${key === 'collector' ? FORMAT_ICON_STAR : ''}
         <span class="results-filter-label">${escapeHTML(label)}</span><span class="results-filter-cross" aria-hidden="true">×</span>
       </button>`).join('');
-    html += `<span class="results-filters">${chips}</span>`;
-    html += '<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button>';
+    html += `<span class="results-filters">${chips}<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button></span>`;
   }
   bar.innerHTML = html;
 }
@@ -1704,7 +1703,7 @@ function renderHomeStats(){
   const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
   const meta=document.getElementById('home-summary-meta');
   const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
-  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<div class="home-value-stat"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></div>`;
+  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
   const ring=document.getElementById('home-completion-ring');
   if(ring){const done=playable.length ? finished/playable.length*100 : 0, shared=playable.length ? multi/playable.length*100 : 0;
     ring.style.background=playable.length ? `conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)` : 'var(--ui-border)';

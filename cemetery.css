@@ -124,7 +124,6 @@
   margin:0;
   background:transparent;
 }
-.sale-group + .sale-group { border-top:1px solid var(--ui-border); }
 .sale-cards {
   grid-area:games;
   display:flex;
@@ -167,13 +166,42 @@
   text-overflow:ellipsis;
 }
 
-/* Un fond discret suffit à regrouper les lots. */
-.sale-group:has(.sale-game + .sale-game) {
-  background:color-mix(in srgb,var(--status-multi) 4%,var(--ui-surface));
+.cemetery-order-tools { display:flex; justify-content:flex-end; margin:0 0 10px; }
+.cemetery-order-tools .btn { min-height:40px; }
+#cemetery-list > * + * { border-top:1px solid var(--ui-border); }
+.sale-lot { min-width:0; background:color-mix(in srgb,var(--status-multi) 4%,var(--ui-surface)); }
+.sale-lot-summary,.sale-order-row {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:56px;
+  padding:8px 12px;
+  color:var(--ui-text);
 }
-.sale-group:has(.sale-game + .sale-game) .sale-group-heading {
-  background:color-mix(in srgb,var(--status-multi) 7%,var(--ui-surface));
+.sale-lot-summary { cursor:pointer; list-style:none; }
+.sale-lot-summary::-webkit-details-marker { display:none; }
+.sale-lot-summary:hover { background:color-mix(in srgb,var(--status-multi) 7%,var(--ui-surface)); }
+.sale-lot-summary:focus-visible { outline:2px solid var(--ui-accent); outline-offset:-2px; }
+.sale-lot-title,.sale-order-title { flex:1; min-width:0; overflow-wrap:anywhere; font-size:13px; }
+.sale-lot-title { display:grid; gap:2px; }
+.sale-lot-title > span { color:var(--ui-text-muted); font-size:11px; }
+.sale-lot-summary .sale-group-heading {
+  order:0;
+  min-height:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  align-items:flex-end;
+  flex-direction:column;
+  gap:2px;
 }
+.sale-lot-summary .sale-venue { max-width:none; }
+.sale-lot-summary svg { flex-shrink:0; }
+.sale-lot[open] > .sale-lot-summary svg { transform:rotate(180deg); }
+.sale-lot[open] > .sale-cards { border-top:1px solid var(--ui-border); }
+.sale-order-actions { display:flex; flex-shrink:0; gap:6px; }
+.sale-order-actions .btn { width:44px; min-height:44px; padding:0; }
+
 
 .sale-game.card {
   display:grid;
