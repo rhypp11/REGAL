@@ -182,12 +182,8 @@
     }
   }
   window.renderJournal = render;
-  const select = (name,options,value) => '<select name="'+name+'">'+Object.entries(options).map(([key,label])=>
+  const select = (name,options,value) => '<select id="journal-field-'+name+'" name="'+name+'">'+Object.entries(options).map(([key,label])=>
     '<option value="'+esc(key)+'"'+(key===value?' selected':'')+'>'+esc(label)+'</option>').join('')+'</select>';
-  const withSymbols=(labels,symbols)=>Object.fromEntries(Object.entries(labels).map(([key,label])=>[key,symbols[key]?symbols[key]+'  '+label:label]));
-  const modeOptions=withSymbols(modes,{solo:'◉',local:'◫',online:'↔'});
-  const completionOptions=withSymbols(completions,{finished:'✓',hundred:'%',achievements:'☆'});
-  const accessOptions=withSymbols(access,{owned:'□',subscription:'▤',loan:'⇄',family:'◫',emulation:'▣'});
   const field = (label,content) => '<label class="field"><span>'+label+'</span>'+content+'</label>';
   const input = (name,value='',attrs='') => '<input name="'+name+'" value="'+esc(value??'')+'" '+attrs+'>';
   let editorEvents;
@@ -261,10 +257,10 @@
         '<div class="journal-form-grid journal-date-fields">'+
         field('Date de complétion',input('date',date,'type="date" required'))+
         field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+'</div>'+
-        '<div class="journal-form-grid">'+field('Mode de jeu',select('mode',modeOptions,entry.mode||'solo'))+
-        field('Complétion',select('completion',completionOptions,entry.completion||'finished'))+'</div>'+
+        '<div class="journal-form-grid">'+field('Mode de jeu',select('mode',modes,entry.mode||'solo'))+
+        field('Complétion',select('completion',completions,entry.completion||'finished'))+'</div>'+
         precisionField+
-        field('Accès',select('access',{'':'Non renseigné',...accessOptions},entry.access??'owned'))+
+        field('Accès',select('access',{'':'Non renseigné',...access},entry.access??'owned'))+
         '<div id="journal-service">'+field('Nom de l’abonnement',input('service',entry.service,'maxlength="120"'))+'</div>'+
         '<label class="journal-checkbox"><input type="checkbox" name="replayed"'+(entry.replayed?' checked':'')+'> Rejoué</label>'+
         '<div class="journal-form-ratings">'+criteria.map((label,index)=>field(label,select('note'+index,Object.fromEntries(ratings.map(value=>[value,value||'–'])),entry.notes?.[index]||''))).join('')+
@@ -282,6 +278,16 @@
     const platformValue=()=>elements.platform.value===customPlatform?elements.platformCustom.value.trim():elements.platform.value;
     const updatePlatform=()=> $('journal-custom-platform').classList.toggle('hidden',elements.platform.value!==customPlatform);
     iconSelectify('journal-platform',name=>name&&name!==customPlatform?getPlatformOptionIconHtml(name):'',editorEvents.signal);
+    if(done&&!identityOnly&&!commentOnly){
+      const selectIcons={
+        mode:modeIcons,
+        completion:Object.fromEntries(Object.entries(completionIcons).map(([key,path])=>[key,statIcon(path)])),
+        access:accessIcons
+      };
+      for(const [name,icons] of Object.entries(selectIcons)){
+        iconSelectify('journal-field-'+name,value=>icons[value]||'',editorEvents.signal);
+      }
+    }
     elements.platform.addEventListener('change',updatePlatform);
     const compactIdentity=()=>{
       if(!elements.name.value.trim() || !platformValue()){
