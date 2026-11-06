@@ -202,3 +202,8 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
   #journal-actions .modal-primary-actions { width:auto; flex-wrap:wrap; }
   #journal-actions .modal-primary-actions .btn { padding-inline:9px; }
 }
+
+@media(max-width:820px){
+  #journal-actions .modal-primary-actions { width:100%; flex-wrap:nowrap; }
+  #journal-actions .modal-primary-actions .btn { width:auto !important; min-width:0; flex:1 1 0; }
+}
