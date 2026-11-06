@@ -90,6 +90,7 @@ const server=createSandboxServer();
    await page.locator('[data-page="home"]').click();
    if(width<=820) await page.locator('#global-filter-toggle').click();
    await page.locator('#purchase-report-open').click();
+   if(width<=820) assert.ok(await page.evaluate(()=>Number(getComputedStyle(document.getElementById('purchase-report-overlay')).zIndex)>Number(getComputedStyle(document.getElementById('home-sidebar')).zIndex)),'Report appears over the statistics drawer');
    await page.locator('#purchase-report-year').selectOption('2023');
    assert.match(await page.locator('.purchase-report-total').innerText(),/3 achats[\s\S]*30,00/);
    assert.match(await page.locator('.purchase-report-platform').filter({hasText:'PS5'}).innerText(),/2 achats[\s\S]*30,00/);
