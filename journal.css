@@ -62,3 +62,8 @@
   .journal-completion-row .journal-scores { margin-left:auto; }
   .journal-form-ratings { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
+
+@media (min-width:821px) and (max-width:1100px) {
+  .topnav .topnav-brand { width:auto; margin-right:0; padding-inline:14px; }
+  .topnav .topnav-nav .nav-tab { padding-inline:10px; }
+}
