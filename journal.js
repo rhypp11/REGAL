@@ -67,15 +67,26 @@
     if(entry.estimated) return '<span class="calendar-day calendar-day-loose" title="Date approximative" aria-label="Date approximative"><strong>≈</strong></span>';
     return calendarDayHtml(entry.date);
   }
+  function rowTags(entry){
+    const tags=[];
+    if(formats[entry.format]) tags.push([formats[entry.format],MEDIA_ICONS[entry.format==='extension'?'dlc':entry.format]]);
+    if(modes[entry.mode]) tags.push([modes[entry.mode],modeIcons[entry.mode]]);
+    if(accessLabel(entry)) tags.push([accessLabel(entry),accessIcons[entry.access]]);
+    if(entry.replayed) tags.push(['Rejoué',replayIcon]);
+    return tags.length?'<span class="journal-tags">'+tags.map(([label,icon])=>
+      '<span class="journal-tag">'+(icon||'')+esc(label)+'</span>').join('')+'</span>':'';
+  }
   function row(entry){
     const done = entry.group === 'completed';
     const tracked = entry.group === 'release';
     return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'">'+
       (done?day(entry):'')+
-      gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small>'+esc([entry.platform,entry.precision].filter(Boolean).join(' · '))+'</small>'+
-      (done?'<small>'+esc([formats[entry.format],modes[entry.mode]].filter(Boolean).join(' · '))+'</small>':'')+
+      gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small class="journal-row-platform">'+
+      (entry.platform?getPlatformOptionIconHtml(entry.platform)+esc(entry.platform):'')+
+      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+'</small>'+
+      (done?rowTags(entry):'')+
       (tracked&&validDay(entry.date)?'<small class="journal-release-date">'+esc(parseWishlistDate(entry.date).label)+'</small>':'')+
-      (done&&accessLabel(entry)?'<span class="journal-access">'+esc(accessLabel(entry))+'</span>':'')+'</span>'+
+      '</span>'+
       (done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
         (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'')+'</button>';
   }
@@ -102,6 +113,12 @@
     return {key:label,label};
   }
   const statIcon=path=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+path+'</svg>';
+  const modeIcons={
+    solo:statIcon('<circle cx="12" cy="8" r="3"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/>'),
+    local:statIcon('<rect x="4" y="5" width="16" height="12" rx="2"/><path d="M9 21h6m-3-4v4"/>'),
+    online:statIcon('<path d="M4 9a12 12 0 0 1 16 0M7 12a8 8 0 0 1 10 0m-7 3a4 4 0 0 1 4 0m-2 3h.01"/>')
+  };
+  const replayIcon=statIcon('<path d="M5 10a7 7 0 1 1 1 7M5 5v5h5"/>');
   const accessIcons={
     owned:statIcon('<path d="M4 8h16v12H4zM3 4h18v4H3zm7 8h4"/>'),
     subscription:statIcon('<rect x="4" y="6" width="16" height="13" rx="2"/><path d="M4 10h16m-6 5h3"/>'),
@@ -167,6 +184,10 @@
   window.renderJournal = render;
   const select = (name,options,value) => '<select name="'+name+'">'+Object.entries(options).map(([key,label])=>
     '<option value="'+esc(key)+'"'+(key===value?' selected':'')+'>'+esc(label)+'</option>').join('')+'</select>';
+  const withSymbols=(labels,symbols)=>Object.fromEntries(Object.entries(labels).map(([key,label])=>[key,symbols[key]?symbols[key]+'  '+label:label]));
+  const modeOptions=withSymbols(modes,{solo:'◉',local:'◫',online:'↔'});
+  const completionOptions=withSymbols(completions,{finished:'✓',hundred:'%',achievements:'☆'});
+  const accessOptions=withSymbols(access,{owned:'□',subscription:'▤',loan:'⇄',family:'◫',emulation:'▣'});
   const field = (label,content) => '<label class="field"><span>'+label+'</span>'+content+'</label>';
   const input = (name,value='',attrs='') => '<input name="'+name+'" value="'+esc(value??'')+'" '+attrs+'>';
   let editorEvents;
@@ -240,10 +261,10 @@
         '<div class="journal-form-grid journal-date-fields">'+
         field('Date de complétion',input('date',date,'type="date" required'))+
         field('Précision de la date',select('estimated',{'0':'Exacte','1':'Approximative','year':'Année seule'},entry.yearOnly?'year':entry.estimated?'1':'0'))+'</div>'+
-        '<div class="journal-form-grid">'+field('Mode de jeu',select('mode',modes,entry.mode||'solo'))+
-        field('Complétion',select('completion',completions,entry.completion||'finished'))+'</div>'+
+        '<div class="journal-form-grid">'+field('Mode de jeu',select('mode',modeOptions,entry.mode||'solo'))+
+        field('Complétion',select('completion',completionOptions,entry.completion||'finished'))+'</div>'+
         precisionField+
-        field('Accès',select('access',{'':'Non renseigné',...access},entry.access??'owned'))+
+        field('Accès',select('access',{'':'Non renseigné',...accessOptions},entry.access??'owned'))+
         '<div id="journal-service">'+field('Nom de l’abonnement',input('service',entry.service,'maxlength="120"'))+'</div>'+
         '<label class="journal-checkbox"><input type="checkbox" name="replayed"'+(entry.replayed?' checked':'')+'> Rejoué</label>'+
         '<div class="journal-form-ratings">'+criteria.map((label,index)=>field(label,select('note'+index,Object.fromEntries(ratings.map(value=>[value,value||'–'])),entry.notes?.[index]||''))).join('')+

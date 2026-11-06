@@ -180,6 +180,19 @@ const server=createSandboxServer();
    assert.equal(await page.locator('#journal-year').inputValue(),'2017');
    const importedRows=page.locator('#journal-completed .journal-row .journal-title strong');
    assert.deepEqual(await importedRows.allTextContents(),['Import ancien !','Import rejoué !','Import au mois']);
+   const art=await page.locator('#journal-completed .game-art-frame:has(.game-art-image)').evaluateAll(frames=>frames.map(frame=>{
+    const image=frame.querySelector('.game-art-image'), backdrop=frame.querySelector('.game-art-backdrop');
+    const a=frame.getBoundingClientRect(), b=image.getBoundingClientRect();
+    return {fit:getComputedStyle(image).objectFit,backdrop:getComputedStyle(backdrop).position,display:getComputedStyle(backdrop).display,
+      width:a.width,covers:Math.abs(a.width-b.width)<1 && Math.abs(a.height-b.height)<1};
+   }));
+   assert.deepEqual(art.map(entry=>entry.fit),['cover','contain']);
+   assert.equal(art[0].display,'none');
+   assert.equal(art[1].backdrop,'absolute');
+   assert.ok(art.every(entry=>entry.covers && entry.width>=(width>820?100:60)));
+   const importedRow=page.locator('#journal-completed .journal-row').filter({hasText:'Import ancien !'});
+   assert.equal(await importedRow.locator('.journal-row-platform :is(.icon-select-icon,.icon-select-dot)').count(),1);
+   assert.deepEqual(await importedRow.locator('.journal-tag').allTextContents(),['Physique','Solo']);
    await page.locator('#journal-sort').selectOption('desc');
    assert.deepEqual(await importedRows.allTextContents(),['Import au mois','Import rejoué !','Import ancien !']);
    assert.equal(await page.evaluate(()=>LEGACY_JOURNAL.find(record=>record.regalJournal===2).entries.filter(entry=>entry.importKey).length),3);
