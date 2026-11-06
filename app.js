@@ -136,6 +136,7 @@ function replaceAppData(data){
   platformOrder = data.platformOrder;
   PROFILE_NAME = data.profileName;
   PROFILE_AVATAR = data.profileAvatar;
+  window.refreshJournal?.();
 }
 window.replaceAppData = replaceAppData;
 window.persistAppData = data => {
@@ -1292,7 +1293,7 @@ function japaneseEditionMark(item){
 const ICON_EDITION_REGION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18Z"/></svg>`;
 const FORMAT_ICON_STAR = `<svg class="format-icon star-icon icon-select-icon-svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" title="Collector"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
 
-function iconSelectify(selectId, getIcon){
+function iconSelectify(selectId, getIcon, signal){
   iconSelectRegistry[selectId] = { getIcon };
   const select = document.getElementById(selectId);
   if(!select || select.dataset.iconified){
@@ -1324,7 +1325,7 @@ function iconSelectify(selectId, getIcon){
   });
   document.addEventListener('click', (e) => {
     if(!wrap.contains(e.target)) list.classList.add('hidden');
-  });
+  },{signal});
 
   select.addEventListener('change', () => syncIconSelectTrigger(selectId));
 
@@ -1404,7 +1405,7 @@ function gameImageHtml(item, alt = '', board = false){
 }
 function gameImageClass(item){ return ' game-art-frame image-fit-' + (item?.imageFit === 'cover' ? 'cover' : 'contain'); }
 
-function identitySummaryHtml(item){
+function identitySummaryHtml(item, detail = ''){
   const name = item && item.nom ? item.nom : 'Jeu';
   const platform = item && item.plateforme ? item.plateforme : 'Plateforme';
   const image = item && item.image ? item.image : null;
@@ -1424,6 +1425,7 @@ function identitySummaryHtml(item){
     <div class="identity-copy">
       <strong>${collectorMark}${japaneseEditionMark(item)}<span>${escapeHTML(name)}</span></strong>
       <span>${platformIcon}${escapeHTML(platform)}</span>
+      ${detail ? `<small class="identity-detail">${escapeHTML(detail)}</small>` : ''}
     </div>
     <button type="button" class="identity-edit-btn" title="Modifier les infos du jeu" aria-label="Modifier les infos du jeu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
@@ -1694,24 +1696,27 @@ function renderHomeStats(){
   const physical=games.filter(g=>!JTDData.isDigital(g));
   const digital=games.filter(g=>JTDData.isDigital(g));
   const total=games.length;
-  const playable=GAMES.filter(isPlayablePurchase);
-  const finished=playable.filter(g=>['termine','termine_ailleurs'].includes(g.status)).length;
-  const multi=playable.filter(g=>g.status==='multi').length;
-  const todo=playable.length-finished-multi;
   const totalEl=document.getElementById('home-total-games');if(totalEl) totalEl.textContent=total;
   const icon=(content)=>`<span class="stats-icon" aria-hidden="true">${content}</span>`;
   const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
   const meta=document.getElementById('home-summary-meta');
   const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
   if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
-  const ring=document.getElementById('home-completion-ring');
-  if(ring){const done=playable.length ? finished/playable.length*100 : 0, shared=playable.length ? multi/playable.length*100 : 0;
-    ring.style.background=playable.length ? `conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)` : 'var(--ui-border)';
-    ring.setAttribute('aria-label',`${finished} jeux et DLC terminés, ${multi} multijoueurs et ${todo} à faire sur ${playable.length}`);
-    ring.querySelector('strong').textContent=Math.round(done)+' %';
-  }
-  const legend=document.getElementById('home-status-legend');
-  if(legend) legend.innerHTML=`<span><i class="completion-dot done"></i>Terminés<strong>${finished}</strong></span><span><i class="completion-dot multi"></i>Multi<strong>${multi}</strong></span><span><i class="completion-dot todo"></i>À faire<strong>${todo}</strong></span>`;
+  const breakdown=document.getElementById('home-status-breakdown');
+  if(breakdown) breakdown.innerHTML = [['physical','Physique'],['digital','Numérique']].map(([format,label])=>{
+    const playable=GAMES.filter(game=>isPlayablePurchase(game) && JTDData.isDigital(game)===(format==='digital'));
+    const finished=playable.filter(game=>['termine','termine_ailleurs'].includes(game.status)).length;
+    const multi=playable.filter(game=>game.status==='multi').length;
+    const todo=playable.length-finished-multi;
+    const done=playable.length?finished/playable.length*100:0;
+    const shared=playable.length?multi/playable.length*100:0;
+    return `<div class="home-completion-group" data-home-progress="${format}">
+      <h4>${icon(MEDIA_ICONS[format])}${label}</h4>
+      <div class="home-completion">
+        <div class="home-completion-ring" role="img" aria-label="${finished} jeux et DLC terminés sur ${playable.length}" style="background:conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)"><span><strong>${Math.round(done)} %</strong><small>Terminés</small></span></div>
+        <div class="home-completion-legend"><span><i class="completion-dot done"></i>Terminés<strong>${finished}</strong></span><span><i class="completion-dot multi"></i>Multi<strong>${multi}</strong></span><span><i class="completion-dot todo"></i>À faire<strong>${todo}</strong></span></div>
+      </div></div>`;
+  }).join('');
 }
 
 /* ---------- Accueil : Arrivages & Wishlist ---------- */
@@ -2719,7 +2724,7 @@ function navigationHash(view){
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
 }
 function navigationFromHash(){
-  const match = location.hash.match(/^#(home|collection|cemetery)(?:\?(.*))?$/);
+  const match = location.hash.match(/^#(home|collection|cemetery|journal)(?:\?(.*))?$/);
   if(!match) return null;
   const params = new URLSearchParams(match[2]);
   return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1'};
@@ -2752,7 +2757,7 @@ function setHomeBoard(board){
 }
 function applyNavigation(view = {}){
   restoringNavigation = true;
-  navigationPage = ['collection','cemetery'].includes(view.page) ? view.page : 'home';
+  navigationPage = ['collection','cemetery','journal'].includes(view.page) ? view.page : 'home';
   state = {
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
     contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
@@ -2788,7 +2793,7 @@ function goToPage(page, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
-  navigationPage = ['collection','cemetery'].includes(page) ? page : 'home';
+  navigationPage = ['collection','cemetery','journal'].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
     const active = b.dataset.page === navigationPage;
     b.classList.toggle('active', active);
@@ -2800,9 +2805,12 @@ function goToPage(page, push = true){
   if(navigationPage === 'cemetery'){ document.title = 'REGAL | Cimetière'; window.renderCemetery?.(); }
   if(navigationPage === 'cemetery') document.getElementById('cemetery-view-controls').prepend(mobileFilterToggle);
   if(navigationPage === 'home') document.getElementById('home-view-controls').prepend(mobileFilterToggle);
+  if(navigationPage === 'journal') document.getElementById('journal-toolbar').prepend(mobileFilterToggle);
   mobileFilterToggle.setAttribute('aria-label', navigationPage === 'collection' ? 'Afficher les filtres' : 'Afficher les statistiques');
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
+  document.getElementById('page-journal').classList.toggle('hidden', navigationPage !== 'journal');
+  if(navigationPage === 'journal'){ document.title = 'REGAL | Journal'; window.renderJournal?.(); }
   restoringNavigation = true;
   if(navigationPage === 'collection'){
     buildPlatformList({keepSelection:true});
@@ -2857,7 +2865,7 @@ function toggleMobileDrawer(el){
 }
 document.getElementById('mobile-backdrop').addEventListener('click', closeMobileDrawers);
 
-const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar' };
+const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar', journal:'journal-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
   const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));

@@ -52,3 +52,7 @@
 
 
 
+
+.home-completion-group + .home-completion-group { margin-top:16px; padding-top:14px; border-top:1px solid var(--ui-border); }
+.home-completion-group h4 { display:flex; align-items:center; gap:6px; margin:0 0 9px; font-size:12px; }
+.home-completion-group .home-completion-ring { width:72px; height:72px; flex-basis:72px; }

@@ -127,7 +127,7 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.evaluate(()=>GAMES[0].format),'Ancien format');
       assert.equal(await page.evaluate(()=>GAMES[0].type),'Ancien type');
       const chatGPTDownloadEvent=page.waitForEvent('download');
-      await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
+      await page.locator('#profile-menu-btn').click();await page.locator('#profile-share-group > summary').click();await page.locator('#chatgpt-export-btn').click();
       const chatGPTDownload=await chatGPTDownloadEvent;
       assert.match(chatGPTDownload.suggestedFilename(),/^jeux-tout-doux-chatgpt-\d{4}-\d{2}-\d{2}\.json$/);
       const shared=JSON.parse(fs.readFileSync(await chatGPTDownload.path(),'utf8'));

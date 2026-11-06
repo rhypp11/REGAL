@@ -27,30 +27,11 @@
     const iso = raw.match(/^(\d{4}-\d{2}-\d{2})/);
     return iso ? iso[1] : raw;
   }
-  function parseDelimited(text, delimiter){
-    const records = [];
-    let row = [], field = '', quoted = false;
-    for(let i=0;i<text.length;i++){
-      const ch = text[i];
-      if(quoted){
-        if(ch === '"' && text[i+1] === '"'){field+='"';i++;}
-        else if(ch === '"') quoted = false;
-        else field += ch;
-      } else if(ch === '"' && field === '') quoted = true;
-      else if(ch === delimiter){row.push(field);field='';}
-      else if(ch === '\n' || ch === '\r'){
-        if(ch === '\r' && text[i+1] === '\n') i++;
-        row.push(field); field=''; records.push(row); row=[];
-      } else field += ch;
-    }
-    if(field || row.length){row.push(field);records.push(row);}
-    return records.filter(record => record.some(value => String(value).trim()));
-  }
   function fromCSV(text, fileName){
     const lines = text.replace(/^\uFEFF/,'').split(/\r?\n/,3);
     const delimiter = fileName.toLowerCase().endsWith('.tsv') || lines[0].split('\t').length > lines[0].split(';').length
       ? '\t' : (lines[0].split(';').length > lines[0].split(',').length ? ';' : ',');
-    const matrix = parseDelimited(text.replace(/^\uFEFF/,''), delimiter);
+    const matrix = JTDData.parseDelimited(text.replace(/^\uFEFF/,''), delimiter);
     if(matrix.length < 2) throw new Error('Le fichier ne contient aucune ligne de jeu.');
     const headers = matrix[0].map(normalize);
     const find = names => headers.findIndex(header => names.includes(header));

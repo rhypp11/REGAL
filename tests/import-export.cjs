@@ -24,8 +24,8 @@ async function importFile(page,data){
   assert.equal(await page.locator('#share-btn, #share-disable-btn').count(),0);
   assert.equal(await page.locator('#chatgpt-export-btn').count(),1);
   await page.evaluate(data=>applyRestoredData(JTDData.normalizeData(data)),fixture);
-  assert.equal(await page.locator('[data-page="journal"], #page-journal, [id^="j-"], [id^="f-journal"]').count(),0);
-  assert.equal(await page.locator('script[src*="journal"], link[href*="journal"]').count(),0);
+  assert.equal(await page.locator('[data-page="journal"]').count(),1);
+  assert.equal(await page.locator('[id^="f-journal"]').count(),0,'Journal entries do not change collection forms');
   await page.evaluate(()=>{goToPage('collection');setStatus('copy-a','a_jouer');});
   assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='copy-a').status),'a_jouer','old links cannot override a collection status');
   await page.locator('.card').filter({hasText:'Chroniques du Vent'}).first().locator('.card-status-badge').click();
@@ -61,7 +61,7 @@ async function importFile(page,data){
   await page.evaluate(()=>{CEMETERY=[...CEMETERY,{id:'concurrent',nom:'Concurrent',plateforme:'PC',saleStatus:'pending'}];});
   await page.locator('#cemetery-import-apply').click();assert.match(await page.locator('#cemetery-import-error').textContent(),/changé/);assert.equal(await page.evaluate(()=>CEMETERY.some(g=>g.id==='new')),false);await page.locator('#cemetery-import-cancel').click();
   // Advice exports exclude the retired private archive.
-  const downloadEvent=page.waitForEvent('download');await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
+  const downloadEvent=page.waitForEvent('download');await page.locator('#profile-menu-btn').click();await page.locator('#profile-share-group > summary').click();await page.locator('#chatgpt-export-btn').click();
   const advice=JSON.parse(fs.readFileSync(await (await downloadEvent).path(),'utf8'));
   assert.equal('journal' in advice.data,false);
   assert.equal(await page.evaluate(()=>Object.hasOwn(JTDData.createPublicSharePayload(buildBackupPayload().data),'journal')),false);
