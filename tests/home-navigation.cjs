@@ -44,6 +44,17 @@ const server=createSandboxServer();
    if(width<=820){await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('.board.wishlist').isVisible(),false)}
    else {assert.equal(await page.locator('.board.wishlist').isVisible(),true);const left=await page.locator('#arrivals-board').boundingBox(),right=await page.locator('.board.wishlist').boundingBox();assert.ok(left.x+left.width<=right.x);assert.ok(left.width>right.width*1.4)}
    assert.equal(await page.locator('#arrivals-board').isVisible(),true);
+   if(width>820){
+    for(const [selector,minWidth,minFont] of [['#arrivals-rows',140,16],['#wishlist-rows',96,14]]){
+     const sizes=await page.locator(selector+' .board-row').first().evaluate(row=>{
+      const thumb=row.querySelector('.board-thumb').getBoundingClientRect();
+      const title=row.querySelector('.board-name');
+      return {width:thumb.width,height:thumb.height,font:parseFloat(getComputedStyle(title).fontSize)};
+     });
+     assert.ok(sizes.width>=minWidth && Math.abs(sizes.width/sizes.height-16/9)<.02);
+     assert.ok(sizes.font>=minFont);
+    }
+   }
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(()=>navigationPage),'home');
    assert.equal(await page.evaluate(()=>navigationBoard),'arrivals');

@@ -752,13 +752,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   updateCollectionSidebarPosition();
 });
 
-function buildPlatformList(){
+function buildPlatformList({keepSelection = false} = {}){
   const scoped = collectionScope();
-  if(state.platform && !scoped.some(g => g.plateforme === state.platform)) state.platform = null;
   const counts = Object.create(null);
   scoped.forEach(g => { counts[g.plateforme] = (counts[g.plateforme]||0) + 1; });
+  if(state.platform && !Object.hasOwn(counts,state.platform)){
+    if(keepSelection) counts[state.platform] = 0;
+    else state.platform = null;
+  }
   const platforms = platformSortMode === 'custom'
-    ? getOrderedPlatformNames().filter(p => counts[p])
+    ? getOrderedPlatformNames().filter(p => Object.hasOwn(counts,p))
     : Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
 
   updateSortButtonUI();
@@ -1166,25 +1169,57 @@ function renderResultsBar(count){
   if(!bar) return;
 
   const filters = [];
-  if(state.platform) filters.push(state.platform);
-  if(state.contentType) filters.push(contentFilterLabel());
-  if(state.collector) filters.push('⭐ Collector');
-  if(state.japanese) filters.push({label:'Japonais', japanese:true});
+  if(state.platform) filters.push(['platform',state.platform]);
+  if(state.accountId) filters.push(['accountId',accountName(state.accountId)]);
+  for(const type of selectedContentTypes()) filters.push(['contentType',contentFilterLabel([type]),type]);
+  if(state.collector) filters.push(['collector','Collector']);
+  if(state.japanese) filters.push(['japanese','Japonais']);
   if(state.status){
-    const s = STATUS_OPTIONS.find(x => x.key === state.status);
-    filters.push(state.status === '__none__' ? 'Sans statut' : (s ? s.label : state.status));
+    const status = STATUS_OPTIONS.find(option => option.key === state.status);
+    filters.push(['status',state.status === '__none__' ? 'Sans statut' : (status?.label || state.status)]);
   }
-  if(state.search.trim()) filters.push(`« ${state.search.trim()} »`);
+  if(state.search.trim()) filters.push(['search',`« ${state.search.trim()} »`]);
 
   let html = `<span class="results-count">${count} ${state.media && state.media !== 'physical' ? 'élément'+(count > 1 ? 's' : '') : 'jeu'+(count > 1 ? 'x' : '')}</span>`;
   if(filters.length){
-    html += `<span class="results-filters">${filters.map(f => `<b>${f.japanese ? '<span class="japanese-flag" aria-hidden="true"></span> ' : ''}${escapeHTML(typeof f === 'string' ? f : f.label)}</b>`).join(' · ')}</span>`;
-    html += `<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button>`;
+    const chips = filters.map(([key,label,type]) => `
+      <button type="button" class="results-filter" data-filter="${key}"${type ? ` data-filter-value="${type}"` : ''}
+        title="Retirer ${escapeHTML(label)}" aria-label="Retirer ${escapeHTML(label)}">
+        ${key === 'japanese' ? '<span class="japanese-flag" aria-hidden="true"></span>' : ''}
+        ${key === 'collector' ? FORMAT_ICON_STAR : ''}
+        <span class="results-filter-label">${escapeHTML(label)}</span><span class="results-filter-cross" aria-hidden="true">×</span>
+      </button>`).join('');
+    html += `<span class="results-filters">${chips}</span>`;
+    html += '<button type="button" class="results-reset-btn" id="results-reset-btn">Réinitialiser</button>';
   }
   bar.innerHTML = html;
-  const resetBtn = document.getElementById('results-reset-btn');
-  if(resetBtn) resetBtn.addEventListener('click', () => document.getElementById('reset-btn').click());
 }
+
+document.getElementById('results-bar').addEventListener('click',event=>{
+  if(event.target.closest('#results-reset-btn')){
+    document.getElementById('reset-btn').click();
+    return;
+  }
+  const chip = event.target.closest('.results-filter');
+  if(!chip) return;
+  const bar = event.currentTarget;
+  const index = [...bar.querySelectorAll('.results-filter')].indexOf(chip);
+  const key = chip.dataset.filter;
+  const search = document.getElementById('search-input');
+  if(key === 'contentType'){
+    state.contentType = selectedContentTypes().filter(type => type !== chip.dataset.filterValue).join(',') || null;
+  } else if(key === 'search'){
+    state.search = search.value = '';
+  } else {
+    state[key] = typeof state[key] === 'boolean' ? false : null;
+  }
+  buildPlatformList({keepSelection:true});
+  buildFormatToggles();
+  buildStatusToggles();
+  render();
+  const remaining = bar.querySelectorAll('.results-filter');
+  (remaining[Math.min(index,remaining.length-1)] || search).focus({preventScroll:true});
+});
 
 let collectionView = 'cards';
 try { const saved=localStorage.getItem('regal:collection-view');if(['cards','gallery','list'].includes(saved)) collectionView=saved; } catch(error) {}
@@ -2771,7 +2806,7 @@ function goToPage(page, push = true){
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   restoringNavigation = true;
   if(navigationPage === 'collection'){
-    buildPlatformList();
+    buildPlatformList({keepSelection:true});
     buildFormatToggles();
     buildStatusToggles();
     render();

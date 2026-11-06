@@ -23,8 +23,8 @@ const MEDIA_ICONS = {
 function selectedContentTypes(value = state.contentType){
   return [...new Set(String(value || '').split(',').filter(type => ['game','dlc','upgrade'].includes(type)))];
 }
-function contentFilterLabel(){
-  return selectedContentTypes().map(type => ({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[type]).join(', ');
+function contentFilterLabel(types = selectedContentTypes()){
+  return types.map(type => ({game:'Jeux',dlc:'DLC',upgrade:'Mises à niveau'})[type]).join(', ');
 }
 function isPlayablePurchase(game){
   return !(JTDData.isDigital(game) && game.contentType === 'upgrade');
