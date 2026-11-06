@@ -272,9 +272,17 @@
 #page-collection .card-identity { display:flex; flex-direction:column; align-items:stretch; gap:5px; }
 #page-collection .card-platform-line { display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px; min-width:0; }
 #page-collection .card-platform-line .card-status-control { margin:0; flex:0 0 auto; }
-#page-collection .card-platform-line .card-status-badge { padding:3px 0; }
+#page-collection .card-platform-line .card-status-badge {
+  padding:4px 7px;
+  border:1px solid transparent;
+  border-radius:7px;
+  background:color-mix(in srgb,var(--status-fill) 25%,var(--ui-surface));
+}
+#page-collection .card-platform-line .card-status-badge:hover {
+  background:color-mix(in srgb,var(--status-fill) 38%,var(--ui-surface));
+}
 #page-collection .card-state-row { display:flex; align-items:center; justify-content:flex-start; flex-wrap:wrap; gap:4px 10px; margin-top:2px; }
-#page-collection .card-state-row :is(.card-media-mark,.card-console-account) { font-size:10px; }
+#page-collection .card-state-row .card-console-account { font-size:10px; }
 #page-collection .card-console-account { overflow:hidden; text-overflow:ellipsis; }
 #page-collection .card-state-row .card-dlc-count { font-size:10px; white-space:nowrap; }
 #page-collection .card-body { gap:6px; }

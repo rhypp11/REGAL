@@ -67,15 +67,26 @@
     if(entry.estimated) return '<span class="calendar-day calendar-day-loose" title="Date approximative" aria-label="Date approximative"><strong>≈</strong></span>';
     return calendarDayHtml(entry.date);
   }
+  function rowTags(entry){
+    const tags=[];
+    if(formats[entry.format]) tags.push([formats[entry.format],MEDIA_ICONS[entry.format==='extension'?'dlc':entry.format]]);
+    if(modes[entry.mode]) tags.push([modes[entry.mode],modeIcons[entry.mode]]);
+    if(accessLabel(entry)) tags.push([accessLabel(entry),accessIcons[entry.access]]);
+    if(entry.replayed) tags.push(['Rejoué',replayIcon]);
+    return tags.length?'<span class="journal-tags">'+tags.map(([label,icon])=>
+      '<span class="journal-tag">'+(icon||'')+esc(label)+'</span>').join('')+'</span>':'';
+  }
   function row(entry){
     const done = entry.group === 'completed';
     const tracked = entry.group === 'release';
     return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'">'+
       (done?day(entry):'')+
-      gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small>'+esc([entry.platform,entry.precision].filter(Boolean).join(' · '))+'</small>'+
-      (done?'<small>'+esc([formats[entry.format],modes[entry.mode]].filter(Boolean).join(' · '))+'</small>':'')+
+      gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small class="journal-row-platform">'+
+      (entry.platform?getPlatformOptionIconHtml(entry.platform)+esc(entry.platform):'')+
+      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+'</small>'+
+      (done?rowTags(entry):'')+
       (tracked&&validDay(entry.date)?'<small class="journal-release-date">'+esc(parseWishlistDate(entry.date).label)+'</small>':'')+
-      (done&&accessLabel(entry)?'<span class="journal-access">'+esc(accessLabel(entry))+'</span>':'')+'</span>'+
+      '</span>'+
       (done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
         (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'')+'</button>';
   }
@@ -102,6 +113,12 @@
     return {key:label,label};
   }
   const statIcon=path=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+path+'</svg>';
+  const modeIcons={
+    solo:statIcon('<circle cx="12" cy="8" r="3"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/>'),
+    local:statIcon('<rect x="4" y="5" width="16" height="12" rx="2"/><path d="M9 21h6m-3-4v4"/>'),
+    online:statIcon('<path d="M4 9a12 12 0 0 1 16 0M7 12a8 8 0 0 1 10 0m-7 3a4 4 0 0 1 4 0m-2 3h.01"/>')
+  };
+  const replayIcon=statIcon('<path d="M5 10a7 7 0 1 1 1 7M5 5v5h5"/>');
   const accessIcons={
     owned:statIcon('<path d="M4 8h16v12H4zM3 4h18v4H3zm7 8h4"/>'),
     subscription:statIcon('<rect x="4" y="6" width="16" height="13" rx="2"/><path d="M4 10h16m-6 5h3"/>'),
@@ -165,7 +182,7 @@
     }
   }
   window.renderJournal = render;
-  const select = (name,options,value) => '<select name="'+name+'">'+Object.entries(options).map(([key,label])=>
+  const select = (name,options,value) => '<select id="journal-field-'+name+'" name="'+name+'">'+Object.entries(options).map(([key,label])=>
     '<option value="'+esc(key)+'"'+(key===value?' selected':'')+'>'+esc(label)+'</option>').join('')+'</select>';
   const field = (label,content) => '<label class="field"><span>'+label+'</span>'+content+'</label>';
   const input = (name,value='',attrs='') => '<input name="'+name+'" value="'+esc(value??'')+'" '+attrs+'>';
@@ -261,6 +278,16 @@
     const platformValue=()=>elements.platform.value===customPlatform?elements.platformCustom.value.trim():elements.platform.value;
     const updatePlatform=()=> $('journal-custom-platform').classList.toggle('hidden',elements.platform.value!==customPlatform);
     iconSelectify('journal-platform',name=>name&&name!==customPlatform?getPlatformOptionIconHtml(name):'',editorEvents.signal);
+    if(done&&!identityOnly&&!commentOnly){
+      const selectIcons={
+        mode:modeIcons,
+        completion:Object.fromEntries(Object.entries(completionIcons).map(([key,path])=>[key,statIcon(path)])),
+        access:accessIcons
+      };
+      for(const [name,icons] of Object.entries(selectIcons)){
+        iconSelectify('journal-field-'+name,value=>icons[value]||'',editorEvents.signal);
+      }
+    }
     elements.platform.addEventListener('change',updatePlatform);
     const compactIdentity=()=>{
       if(!elements.name.value.trim() || !platformValue()){

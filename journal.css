@@ -240,3 +240,31 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
 
 .journal-import-match { display:block; margin-top:7px; font-size:11px; color:var(--ui-text-muted); }
 .journal-import-match select { display:block; width:100%; min-width:0; margin-top:3px; }
+
+.journal-row-platform { display:flex; align-items:center; flex-wrap:wrap; gap:4px 6px; }
+.journal-row-platform .icon-select-icon { width:15px; height:15px; object-fit:contain; }
+.journal-row-platform .icon-select-dot { width:8px; height:8px; flex:0 0 8px; }
+.journal-row-precision { overflow-wrap:anywhere; }
+.journal-row-precision::before { content:'·'; margin-right:6px; }
+.journal-tags { display:flex; flex-wrap:wrap; gap:3px 5px; }
+.journal-row-status .journal-completion-badge { border-color:transparent; background:var(--journal-badge-fill); color:var(--journal-badge-ink); --journal-badge-fill:#d6ebd7; --journal-badge-ink:#204a2a; }
+.journal-row-status .journal-completion-badge[data-completion="hundred"] { --journal-badge-fill:#f6e1aa; --journal-badge-ink:#624410; }
+.journal-row-status .journal-completion-badge[data-completion="achievements"] { --journal-badge-fill:#e6d8f3; --journal-badge-ink:#503278; }
+[data-theme="dark"] .journal-row-status .journal-completion-badge { --journal-badge-fill:#294834; --journal-badge-ink:#caedce; }
+[data-theme="dark"] .journal-row-status .journal-completion-badge[data-completion="hundred"] { --journal-badge-fill:#524022; --journal-badge-ink:#ffe3a0; }
+[data-theme="dark"] .journal-row-status .journal-completion-badge[data-completion="achievements"] { --journal-badge-fill:#48365f; --journal-badge-ink:#ebd8ff; }
+@media(min-width:821px){
+  #page-journal { --journal-art-width:clamp(104px,8vw,152px); --journal-side-art-width:clamp(78px,5.5vw,108px); }
+  .journal-completion-row { gap:12px; padding:10px; }
+  .journal-row .board-thumb { flex-basis:var(--journal-art-width); width:var(--journal-art-width); height:auto; aspect-ratio:16/9; }
+  .journal-backlog-group .journal-row .board-thumb,.journal-release-row .board-thumb { flex-basis:var(--journal-side-art-width); width:var(--journal-side-art-width); height:auto; aspect-ratio:16/9; }
+  .journal-completion-row .calendar-day { width:42px; height:46px; flex-basis:42px; }
+  .journal-title strong { font-size:clamp(14px,1.1vw,17px); }
+  .journal-title small,.journal-tag { font-size:12px; }
+  .journal-row-status .journal-completion-badge { font-size:12px; }
+  .journal-feeling { font-size:17px; }
+  #journal-stats { font-size:13px; }
+  .journal-stat-section h4 { font-size:14px; }
+  .journal-stat-ring small { font-size:10px; }
+  .journal-stat :is(img,i,svg) { width:16px; height:16px; }
+}
