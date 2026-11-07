@@ -38,7 +38,7 @@
 .dex-attribution { margin:24px 0 0; color:var(--ui-text-muted); font-size:12px; }
 .dex-attribution a { color:var(--ui-accent); }
 @media(max-width:700px) {
-  body.dex-prototype-enabled .topnav .topnav-nav { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  body.dex-prototype-enabled .topnav .topnav-nav { grid-template-columns:repeat(5,max-content); justify-content:space-between; }
   body.dex-prototype-enabled .topnav .topnav-nav .nav-tab-label { margin:0; font-size:11px; }
 }
 @media(max-width:1000px) { #dex-boxes { grid-template-columns:1fr; } #page-pokedex { max-width:760px; padding:20px; } }
