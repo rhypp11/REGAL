@@ -152,6 +152,7 @@ const server=createSandboxServer();
     await page.evaluate(()=>{goToPage('collection');window.scrollTo(0,0);});
     await page.locator('#global-filter-toggle').click();
     await page.setViewportSize({width:1440,height:900});
+    await page.locator('#mobile-backdrop').waitFor({state:'hidden'});
     assert.equal(await page.locator('#mobile-backdrop').isVisible(),false,'A desktop resize closes the drawer backdrop');
     assert.equal(await page.locator('#global-filter-toggle').getAttribute('aria-expanded'),'false');
    }
