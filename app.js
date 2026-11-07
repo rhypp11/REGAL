@@ -2772,7 +2772,7 @@ function navigationHash(view){
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
 }
 function navigationFromHash(){
-  const match = location.hash.match(/^#(home|collection|cemetery|journal)(?:\?(.*))?$/);
+  const match = location.hash.match(/^#(home|collection|cemetery|journal|pokedex)(?:\?(.*))?$/);
   if(!match) return null;
   const params = new URLSearchParams(match[2]);
   return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1'};
@@ -2805,7 +2805,7 @@ function setHomeBoard(board){
 }
 function applyNavigation(view = {}){
   restoringNavigation = true;
-  navigationPage = ['collection','cemetery','journal'].includes(view.page) ? view.page : 'home';
+  navigationPage = ['collection','cemetery','journal',...(IS_PREVIEW_MODE?['pokedex']:[])].includes(view.page) ? view.page : 'home';
   state = {
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
     contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
@@ -2841,7 +2841,7 @@ function goToPage(page, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
-  navigationPage = ['collection','cemetery','journal'].includes(page) ? page : 'home';
+  navigationPage = ['collection','cemetery','journal',...(IS_PREVIEW_MODE?['pokedex']:[])].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
     const active = b.dataset.page === navigationPage;
     b.classList.toggle('active', active);
@@ -2858,6 +2858,8 @@ function goToPage(page, push = true){
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   document.getElementById('page-journal').classList.toggle('hidden', navigationPage !== 'journal');
+  document.getElementById('page-pokedex').classList.toggle('hidden',navigationPage !== 'pokedex');
+  if(navigationPage === 'pokedex') document.title='REGAL | Pokédex';
   if(navigationPage === 'journal'){ document.title = 'REGAL | Journal'; window.renderJournal?.(); }
   restoringNavigation = true;
   if(navigationPage === 'collection'){

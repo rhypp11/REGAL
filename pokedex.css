@@ -1,0 +1,42 @@
+#page-pokedex { max-width:1480px; margin:0 auto; padding:28px; }
+.dex-heading,.dex-toolbar,.dex-box header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.dex-heading h1 { margin:0 0 5px; font-size:26px; }
+.dex-subtitle { color:var(--ui-text-muted); font-size:14px; }
+.dex-prototype { border:1px solid var(--ui-border); border-radius:20px; padding:6px 12px; font-size:12px; color:var(--ui-text-muted); }
+.dex-toolbar { margin-top:24px; padding:18px 0; border-block:1px solid var(--ui-border); flex-wrap:wrap; }
+#dex-progress { min-width:240px; display:grid; grid-template-columns:auto auto; align-items:baseline; gap:8px 20px; }
+#dex-progress strong { font-size:23px; }
+#dex-progress small,#dex-progress>span { font-size:13px; color:var(--ui-text-muted); font-weight:400; }
+.dex-progress-track { grid-column:1/-1; height:5px; background:var(--ui-border); border-radius:4px; overflow:hidden; }
+.dex-progress-track span { display:block; height:100%; background:#33946b; }
+.dex-legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; }
+.dex-legend>span { display:flex; align-items:center; gap:7px; }
+.dex-legend i { width:12px; height:12px; border:1px solid var(--ui-border); border-radius:4px; background:var(--ui-surface); }
+.dex-legend [data-state="1"] { background:#f0c657; border-color:#b58a26; }
+.dex-legend [data-state="2"] { background:#70bb92; border-color:#33946b; }
+.dex-notice { color:var(--ui-text-muted); font-size:12px; margin:12px 0 22px; }
+#dex-boxes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.dex-box { min-width:0; border:1px solid var(--ui-border); border-radius:14px; overflow:hidden; background:var(--ui-surface); }
+.dex-box header { padding:14px 16px; border-bottom:1px solid var(--ui-border); background:var(--ui-surface-raised); }
+.dex-box h2 { font-size:16px; letter-spacing:.04em; margin:0; font-variant-numeric:tabular-nums; }
+.dex-box header>span { font-size:12px; color:var(--ui-text-muted); }
+.dex-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px; padding:10px; }
+.dex-slot { position:relative; min-width:0; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-surface); transition:background .12s,border-color .12s; }
+.dex-slot[data-state="1"] { background:#f6dfa0; border-color:#c5a348; }
+.dex-slot[data-state="2"] { background:#b4dec5; border-color:#65a982; }
+.dex-slot[data-state="1"] .dex-pokemon,.dex-slot[data-state="2"] .dex-pokemon { color:#23342b; }
+.dex-slot:hover { border-color:var(--ui-accent); }
+.dex-pokemon { display:flex; flex-direction:column; width:100%; height:100%; align-items:center; border:0; background:transparent; color:var(--ui-text); padding:7px 3px 9px; cursor:pointer; font:inherit; border-radius:7px; }
+.dex-number { align-self:flex-start; margin-left:3px; font-size:10px; opacity:.65; font-variant-numeric:tabular-nums; }
+.dex-pokemon img { width:100%; height:auto; aspect-ratio:1; object-fit:contain; max-width:85px; }
+.dex-name { font-size:11px; line-height:1.2; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dex-state-mark { position:absolute; top:5px; right:7px; font-size:12px; }
+.dex-info { position:absolute; right:4px; top:23px; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-size:13px; font-weight:700; color:var(--ui-text); background:var(--ui-surface-raised); border:1px solid var(--ui-border); text-decoration:none; opacity:0; }
+.dex-slot:hover .dex-info,.dex-slot:focus-within .dex-info { opacity:1; }
+.dex-pokemon:focus-visible,.dex-info:focus-visible { outline:3px solid var(--ui-accent); outline-offset:2px; }
+.dex-empty { border:1px dashed var(--ui-border); border-radius:8px; min-height:80px; opacity:.45; }
+.dex-attribution { margin:24px 0 0; color:var(--ui-text-muted); font-size:12px; }
+.dex-attribution a { color:var(--ui-accent); }
+@media(max-width:1000px) { #dex-boxes { grid-template-columns:1fr; } #page-pokedex { max-width:760px; padding:20px; } }
+@media(hover:none) { .dex-info { opacity:1; } }
+@media(max-width:480px) { #page-pokedex { padding:16px 10px; } .dex-heading { align-items:flex-start; gap:8px; } .dex-heading h1 { font-size:22px; } .dex-prototype { font-size:10px; padding:5px 8px; } .dex-grid { gap:3px; padding:6px; } .dex-name { font-size:9px; } .dex-number { font-size:9px; } .dex-pokemon { padding:5px 2px 7px; } .dex-info { width:22px; height:22px; top:18px; right:1px; } .dex-empty { min-height:70px; } .dex-legend { gap:10px; font-size:12px; } }

@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="digital.css?v=compact-content-28">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=2">
+<link rel="stylesheet" href="pokedex.css?v=prototype-1">
 <link rel="stylesheet" href="journal.css?v=journal-sources-1">
 </head>
 <body>
@@ -85,6 +86,7 @@
     <div class="topnav-nav" aria-label="Navigation principale">
       <button class="nav-tab active" data-page="home" title="Accueil"><span class="nav-tab-label">Accueil</span></button>
       <button type="button" class="nav-tab" data-page="journal" title="Journal"><span class="nav-tab-label">Journal</span></button>
+      <button type="button" class="nav-tab hidden" id="pokedex-nav" data-page="pokedex"><span class="nav-tab-label">Pokédex</span></button>
       <button class="nav-tab" data-page="collection" title="Collection"><span class="nav-tab-label">Collection</span></button>
       <button class="nav-tab" data-page="cemetery" title="Cimetière"><span class="nav-tab-label">Cimetière</span></button>
     </div>
@@ -617,6 +619,13 @@
 
 
 
+<section class="page hidden" id="page-pokedex" aria-labelledby="pokedex-title">
+  <div class="dex-heading"><div><h1 id="pokedex-title">Pokédex</h1><span class="dex-subtitle">Kanto · 151 Pokémon</span></div><span class="dex-prototype">Maquette interactive</span></div>
+  <div class="dex-toolbar"><div id="dex-progress" aria-live="polite"></div><div class="dex-legend"><span><i></i>À obtenir</span><span><i data-state="1"></i>À transférer</span><span><i data-state="2"></i>Dans HOME</span></div></div>
+  <p class="dex-notice">Un clic : obtenu · Deux clics : dans HOME · Trois clics : à obtenir</p>
+  <p id="dex-error" role="status"></p><div id="dex-boxes"></div>
+  <footer class="dex-attribution">Données et visuels : <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> · Informations : Poképédia</footer>
+</section>
 <section class="page hidden" id="page-journal">
   <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien d’abord</option><option value="desc">Plus récent d’abord</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter</button></div></div>
   <aside class="sidebar journal-sidebar" id="journal-sidebar" aria-label="Statistiques du journal">
@@ -701,7 +710,7 @@
 <script src="jtd-data.js?v=journal-csv-1"></script>
 <script src="dialogs.js?v=context-error-25"></script>
 <script src="digital.js?v=density-1"></script>
-<script src="app.js?v=journal-sources-1"></script>
+<script src="app.js?v=pokedex-prototype-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>
@@ -709,6 +718,8 @@
 <script src="overview.js?v=1"></script>
 <script src="journal-import.js?v=1"></script>
 <script src="journal.js?v=journal-sources-1"></script>
+<script src="pokedex-data.js?v=prototype-1"></script>
+<script src="pokedex.js?v=prototype-1"></script>
 <script src="lifecycle.js?v=soft-materials-22"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
