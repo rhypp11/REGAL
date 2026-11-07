@@ -258,6 +258,28 @@ const server=createSandboxServer();
     }
    }
    await page.screenshot({path:'/tmp/jtd-journal-density-'+width+'-'+theme+'.png'});
+   await page.evaluate(()=>{
+    const active=LEGACY_JOURNAL.find(record=>record.regalJournal===2);
+    const template=active.entries[0];
+    active.entries=Array.from({length:40},(_,index)=>({...template,id:'scroll-'+index,name:'Complétion fictive '+index}));
+    renderJournal();
+    document.getElementById('journal-year').value='2026';
+    renderJournal();
+    window.scrollTo(0,400);
+   });
+   await page.waitForFunction(()=>scrollY>100);
+   const scrolled=await page.evaluate(()=>{
+    const header=document.querySelector('.topnav').getBoundingClientRect();
+    const sidebar=document.getElementById('journal-sidebar').getBoundingClientRect();
+    const counts=[...document.querySelectorAll('#journal-stats .journal-stat > strong')].map(element=>element.getBoundingClientRect().right);
+    return {headerTop:header.top,headerBottom:header.bottom,statsGap:sidebar.top-header.bottom,gutter:Math.min(...counts.map(right=>sidebar.right-right))};
+   });
+   assert.ok(Math.abs(scrolled.headerTop)<1&&scrolled.headerBottom>40,'The Journal keeps the shared top navigation on scroll');
+   if(width>=1240){
+    assert.ok(scrolled.statsGap>=0&&scrolled.statsGap<=24,'Statistics remain directly below the visible navigation');
+    assert.ok(scrolled.gutter>=12,'Statistics counts keep a readable right gutter');
+   }
+   await page.screenshot({path:'/tmp/jtd-journal-scroll-'+width+'-'+theme+'.png'});
    assert.deepEqual(errors,[]);await context.close();console.log('PASS home/navigation',width,theme);
   }
  }finally{await browser.close();server.close();}
