@@ -184,7 +184,15 @@
   window.renderJournal = render;
   const select = (name,options,value) => '<select id="journal-field-'+name+'" name="'+name+'">'+Object.entries(options).map(([key,label])=>
     '<option value="'+esc(key)+'"'+(key===value?' selected':'')+'>'+esc(label)+'</option>').join('')+'</select>';
-  const field = (label,content) => '<label class="field"><span>'+label+'</span>'+content+'</label>';
+  const field = (label,content) => {
+    const control=content.match(/<(?:input|select|textarea)\b[^>]*>/);
+    const id=control?.[0].match(/\bid="([^"]+)"/)?.[1]||
+      'journal-field-'+control?.[0].match(/\bname="([^"]+)"/)?.[1];
+    if(control&&!control[0].includes(' id="')){
+      content=content.replace(control[0],control[0].replace('>',' id="'+id+'">'));
+    }
+    return '<div class="field"><label for="'+id+'">'+label+'</label>'+content+'</div>';
+  };
   const input = (name,value='',attrs='') => '<input name="'+name+'" value="'+esc(value??'')+'" '+attrs+'>';
   let editorEvents;
   const close = () => { editorEvents?.abort(); JTDDialogs.close('journal-overlay'); };
@@ -202,6 +210,7 @@
     $('journal-save').classList.toggle('hidden',!editing);
     $('journal-save').textContent='Enregistrer';
     $('journal-save').disabled=false;
+    $('journal-close').textContent=editing?'Annuler':'Fermer';
     $('journal-delete').classList.toggle('hidden',!canDelete);
     $('journal-complete').classList.toggle('hidden',!canComplete);
     JTDDialogs.open('journal-overlay',{onDismiss:close});
@@ -242,7 +251,7 @@
         '<label><input type="radio" name="origin" value="collection"> Depuis la collection</label></fieldset>'+
         '<div id="journal-source-picker" class="hidden">'+field('Rechercher un jeu',input('lookup','','type="search" placeholder="Titre ou plateforme" autocomplete="off"'))+
         '<div id="journal-source-results" class="journal-source-results" aria-label="Jeux de la collection"></div></div>':'')+
-      '<div id="journal-manual-fields">'+field('Nom du jeu',input('name',entry.name,'required maxlength="500"'))+
+      '<div id="journal-manual-fields" class="game-identity-editor">'+field('Nom du jeu',input('name',entry.name,'required maxlength="500"'))+
       '<div class="field-row identity-core-row">'+field('Plateforme','<select id="journal-platform" name="platform">'+
         '<option value="">Choisir une plateforme…</option>'+platforms.map(name=>'<option value="'+esc(name)+'"'+(name===entry.platform?' selected':'')+'>'+esc(name)+'</option>').join('')+
         '<option value="'+customPlatform+'">Autre plateforme…</option></select>')+
@@ -250,7 +259,7 @@
       '<div id="journal-custom-platform" class="hidden">'+field('Nom de la plateforme',input('platformCustom','','maxlength="120"'))+'</div>'+
       '<div class="image-url-row">'+field('Image du jeu',input('image',entry.image,'id="j-image" maxlength="200000" placeholder="https://…"'))+
       '<div id="j-image-preview" class="image-preview image-preview-compact"><span>Aperçu de l’image</span></div></div>'+
-      field('Affichage de l’image',select('imageFit',{contain:'Image entière',cover:'Remplir le cadre'},entry.imageFit==='cover'?'cover':'contain'))+
+      '<div class="image-fit-field">'+field('Affichage de l’image',select('imageFit',{contain:'Image entière',cover:'Remplir le cadre'},entry.imageFit==='cover'?'cover':'contain'))+'</div>'+
       '<button type="button" class="btn btn-ghost'+(identityOnly?' hidden':'')+'" id="journal-apply-identity">Valider le jeu</button></div></div></section>'+
       '<section class="form-section'+(identityOnly||commentOnly?' hidden':'')+'">'+
       (done?'<div class="form-section-title">Complétion</div>'+
