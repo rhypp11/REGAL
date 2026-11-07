@@ -234,6 +234,22 @@
 #page-collection .card-source { padding-left:0; border-left:0; opacity:1; }
 #collection-sidebar .plat-item,
 #collection-sidebar .toggle-chip { border-radius:var(--ui-radius-sm); min-height:36px; }
+#collection-sidebar .plat-name {
+  min-width:0;
+  white-space:normal;
+  overflow:visible;
+  overflow-wrap:anywhere;
+  text-overflow:clip;
+  line-height:1.4;
+}
+#collection-sidebar .plat-count { flex-shrink:0; }
+#collection-sidebar .side-section-status .format-toggles { grid-template-columns:minmax(0,1fr); }
+#collection-sidebar .side-section-status .toggle-chip-label span:last-child {
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  line-height:1.4;
+}
 #collection-sidebar .plat-count { background:transparent; border:0; color:var(--ui-text-muted); }
 #collection-sidebar .plat-item.active { background:color-mix(in srgb,var(--ui-accent) 6%,transparent); }
 #collection-sidebar .plat-item.active::before { background:var(--ui-accent); }

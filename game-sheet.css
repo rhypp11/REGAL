@@ -173,6 +173,19 @@
 }
 .sheet-dialog .game-identity-summary { align-items:center; }
 .sheet-dialog .identity-copy > span { font-size:12px; }
+.sheet-dialog .game-sheet-status {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  max-width:100%;
+  padding:3px 7px;
+  border-radius:7px;
+  color:var(--status-color);
+  background:color-mix(in srgb,var(--status-fill) 25%,var(--ui-surface));
+  font-size:12px;
+  line-height:1.4;
+}
+.sheet-dialog .game-sheet-status svg { width:14px; height:14px; flex:none; }
 .sheet-dialog .sale-acquisition { margin:10px 0 0; color:var(--ui-text-muted); line-height:1.5; }
 .sheet-dialog #sale-identity .sale-acquisition + .game-identity-summary { margin-top:16px; }
 @media(max-width:640px) {

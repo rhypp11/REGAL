@@ -194,6 +194,32 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.locator('#f-prix').fill('12,34');await page.locator('#save-btn').click();
       assert.equal(await page.locator('#modal-overlay').isVisible(),false);
       assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='conversion').prix),12.34);
+      await page.evaluate(()=>{
+        applyRestoredData(JTDData.normalizeData({games:[
+          {id:'label-long',nom:'Aventure fictive au titre long pour vérifier la fiche',plateforme:'Nintendo Game Boy Advance',format:'Physique',status:'termine_ailleurs'},
+          {id:'label-old',nom:'Ancien état fictif',plateforme:'Nintendo Game Boy Advance',format:'Physique',status:'en_cours'},
+          {id:'label-none',nom:'Sans statut fictif',plateforme:'PC',format:'Physique'},
+          {id:'label-upgrade',nom:'Mise à niveau fictive',plateforme:'Switch 2',format:'Numérique',contentType:'upgrade'}
+        ]}));
+        applyNavigation({page:'collection',media:'physical'});
+      });
+      await drawer(page);
+      assert.ok(await page.locator('#platform-list .plat-name').evaluateAll(labels=>labels.every(label=>label.scrollWidth<=label.clientWidth+1&&label.scrollHeight<=label.clientHeight+1)),'Full platform labels fit without truncation');
+      assert.ok(await page.locator('#status-toggles .toggle-chip-label span:last-child').evaluateAll(labels=>labels.every(label=>label.scrollWidth<=label.clientWidth+1)),'Full status labels fit without truncation');
+      await page.keyboard.press('Escape');
+      for(const [id,label] of [['label-long','Terminé ailleurs'],['label-old','À faire'],['label-none','Sans statut']]){
+        await page.evaluate(id=>openModal(id),id);
+        const badge=page.locator('#f-identity-summary .game-sheet-status');
+        assert.equal(await badge.innerText(),label,'The sheet repeats the effective card status');
+        assert.ok(await badge.evaluate(element=>{
+          const bounds=element.getBoundingClientRect();
+          return bounds.left>=0&&bounds.right<=innerWidth+1;
+        }),'The status stays inside a narrow sheet');
+        await page.locator('#cancel-btn').click();
+      }
+      await page.evaluate(()=>openModal('label-upgrade'));
+      assert.equal(await page.locator('#f-identity-summary .game-sheet-status').count(),0,'An upgrade has no completion status');
+      await page.locator('#cancel-btn').click();
       assert.deepEqual(errors,[]);
       await context.close();console.log('PASS collection filters',width,theme);
     }
