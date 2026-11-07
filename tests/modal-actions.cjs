@@ -53,7 +53,12 @@ const server=createSandboxServer();
     const cancel=result.find(b=>b.role==='cancel'),save=result.find(b=>b.role==='save');
     assert.ok(Math.abs(cancel.y-save.y)<1,'Cancel and Save share the last row: '+scene);
     assert.ok(cancel.right<=save.x+1,'Cancel precedes Save');
-    for(const b of result){assert.ok(b.x>=0&&b.right<=width+1,'No horizontal overflow');assert.ok(b.height>=40,'Touch target');if(width<=820&&!['cancel','save'].includes(b.role))assert.ok(b.bottom<=cancel.y+1,'Context actions precede primary pair');}
+    const remove=result.find(b=>b.role==='delete');
+    if(remove){
+      assert.ok(Math.abs(remove.y-cancel.y)<1,'Delete shares the primary row');
+      assert.ok(remove.right<=cancel.x+1,'Delete precedes Cancel');
+    }
+    for(const b of result){assert.ok(b.x>=0&&b.right<=width+1,'No horizontal overflow');assert.ok(b.height>=40,'Touch target');if(width<=820&&!['delete','cancel','save'].includes(b.role))assert.ok(b.bottom<=cancel.y+1,'Context actions precede primary pair');}
     assert.ok(save.bottom<=801&&save.y>=0,'Save remains reachable');
     const footerBox=await footer.boundingBox();
     assert.ok(footerBox.height<=(width>820?70:125),'Footer stays compact');
