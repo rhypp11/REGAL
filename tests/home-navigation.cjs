@@ -229,6 +229,35 @@ const server=createSandboxServer();
    await page.locator('#journal-save').click();
    const after=await imported();
    assert.deepEqual(after,[{...before[0],name:'Import ancien ?'},...before.slice(1)]);
+   await page.evaluate(()=>{
+    LEGACY_JOURNAL.find(record=>record.regalJournal===2).entries=Array.from({length:4},(_,index)=>({
+     id:'layout-'+index,group:'completed',
+     name:index%2?'Une aventure au titre particulièrement long — édition complète avec son extension':'Un jeu fictif',
+     platform:'PC',date:'2026-05-0'+(index+1),format:'digital',
+     mode:index%2?'online':'solo',access:index%2?'subscription':'owned',service:'Abonnement fictif au nom très long',
+     replayed:index===3,completion:['finished','hundred','achievements','finished'][index],
+     feeling:index===2?'':index%2?'love':'gem',comment:index%2?'':'Commentaire fictif',
+     image:new URL('preview-assets/garden.svg',location.href).href
+    }));
+    renderJournal();
+    document.getElementById('journal-year').value='2026';
+    renderJournal();
+   });
+   const layout=await page.locator('#journal-completed .journal-row').evaluateAll(rows=>rows.map(row=>{
+    const box=selector=>{const element=row.querySelector(selector);if(!element)return null;const r=element.getBoundingClientRect();return {x:r.x,right:r.right,y:r.y,bottom:r.bottom};};
+    return {overflow:row.scrollWidth>row.clientWidth+1,title:box('.journal-title'),art:box('.board-thumb'),tags:box('.journal-tags'),status:box('.journal-row-status'),feeling:box('.journal-feeling'),comment:box('.journal-comment-mark')};
+   }));
+   assert.equal(layout.length,4);
+   assert.ok(layout.every(row=>!row.overflow),'Long completion titles and metadata stay within the row');
+   if(width<=820){
+    assert.ok(layout.every(row=>row.status.y>=Math.max(row.title.bottom,row.art.bottom)+5),'Status follows the game identity');
+    assert.ok(layout.every(row=>row.tags.y>=row.status.bottom+5),'Secondary metadata has its own line');
+    for(const key of ['feeling','comment']){
+     const positions=layout.flatMap(row=>row[key]?[row[key].x]:[]);
+     assert.ok(Math.max(...positions)-Math.min(...positions)<1,'Feeling and comment positions remain stable');
+    }
+   }
+   await page.screenshot({path:'/tmp/jtd-journal-density-'+width+'-'+theme+'.png'});
    assert.deepEqual(errors,[]);await context.close();console.log('PASS home/navigation',width,theme);
   }
  }finally{await browser.close();server.close();}

@@ -151,7 +151,7 @@ function decorateDigitalCard(card, game, options){
   }
   const body = card.querySelector('.card-body');
   if(!options.readOnly){
-    body.querySelector('.card-identity').insertAdjacentHTML('beforeend','<span class="card-media-mark">'+MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span></span>');
+    body.querySelector('.card-identity').insertAdjacentHTML('beforeend','<span class="card-media-mark"><span>'+(digital?'Numérique':'Physique')+'</span></span>');
   }
   const contents = gameContents(game);
   if(contents.length) body.insertAdjacentHTML('beforeend','<span class="card-dlc-count">'+MEDIA_ICONS.dlc+contents.length+(contents.some(g=>g.contentType === 'upgrade')?' contenu'+(contents.length>1?'s':''):' DLC')+'</span>');

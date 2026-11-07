@@ -69,8 +69,8 @@
   }
   function rowTags(entry){
     const tags=[];
-    if(formats[entry.format]) tags.push([formats[entry.format],MEDIA_ICONS[entry.format==='extension'?'dlc':entry.format]]);
-    if(modes[entry.mode]) tags.push([modes[entry.mode],modeIcons[entry.mode]]);
+    if(formats[entry.format]) tags.push([formats[entry.format],'']);
+    if(modes[entry.mode]) tags.push([modes[entry.mode],'']);
     if(accessLabel(entry)) tags.push([accessLabel(entry),accessIcons[entry.access]]);
     if(entry.replayed) tags.push(['Rejoué',replayIcon]);
     return tags.length?'<span class="journal-tags">'+tags.map(([label,icon])=>
@@ -84,9 +84,8 @@
       gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small class="journal-row-platform">'+
       (entry.platform?getPlatformOptionIconHtml(entry.platform)+esc(entry.platform):'')+
       (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+'</small>'+
-      (done?rowTags(entry):'')+
       (tracked&&validDay(entry.date)?'<small class="journal-release-date">'+esc(parseWishlistDate(entry.date).label)+'</small>':'')+
-      '</span>'+
+      '</span>'+(done?rowTags(entry):'')+
       (done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
         (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'')+'</button>';
   }
