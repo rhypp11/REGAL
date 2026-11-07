@@ -6,7 +6,7 @@ const server=createSandboxServer();
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const browser=await chromium.launch({headless:true,...(process.env.JTD_CHROME?{executablePath:process.env.JTD_CHROME}:{}),args:['--no-sandbox']});
  try{
-  for(const width of [320,390,820,821,900,901,1024,1100,1101,1440])for(const theme of ['light','dark']){
+  for(const width of [320,390,700,701,820,821,1024,1100,1101,1440])for(const theme of ['light','dark']){
    const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
@@ -24,9 +24,9 @@ const server=createSandboxServer();
     }),true,'Every navigation tab stays inside its band');
     assert.equal(await page.locator('.topnav #global-filter-toggle').count(),0);
     const filter=page.locator('#global-filter-toggle');
-    assert.equal(await filter.isVisible(),width<=820);
-    if(width<=820){
-     const target=view==='collection'?'.platform-banner-title':view==='home'?'#home-boards-switcher':'.cemetery-tabs';
+    assert.equal(await filter.isVisible(),width<=1100);
+    if(width<=1100){
+     const target=view==='collection'?'.platform-banner-title':view==='home'?'#home-view-controls':'.cemetery-tabs';
      const button=await filter.boundingBox(),title=await page.locator(target).boundingBox();
      assert.ok(Math.abs(button.y+button.height/2-title.y-title.height/2)<23,'Filter is alongside page controls');
      await filter.click();assert.equal(await filter.getAttribute('aria-expanded'),'true');
@@ -53,7 +53,7 @@ const server=createSandboxServer();
      assert.equal(await page.locator('.board.wishlist').isVisible(),true);
      assert.equal(await page.locator('#arrivals-board').isVisible(),true);
      const left=await page.locator('#arrivals-board').boundingBox(),right=await page.locator('.board.wishlist').boundingBox();
-     if(width>1200)assert.ok(left.x+left.width<=right.x && Math.abs(left.y-right.y)<1,'Arrivals lead the desktop layout');
+     if(width>1200||width<=1100)assert.ok(left.x+left.width<=right.x && Math.abs(left.y-right.y)<1,'Arrivals lead the desktop layout');
      else assert.ok(left.y+left.height<=right.y,'Arrivals precede wishlist on narrow desktop');
     }
     await page.screenshot({path:'/tmp/jtd-global-'+view+'-'+width+'-'+theme+'.png',fullPage:true});
@@ -126,7 +126,7 @@ const server=createSandboxServer();
     assert.equal(await band.evaluate(el=>getComputedStyle(el).backgroundColor),platformColor,'Compact context keeps the platform color');
     if(width>820)assert.ok(await page.evaluate(()=>scrollY>0 && document.querySelector('#page-collection .main').scrollTop===0),'Desktop collection uses one document scroll');
     const rect=await band.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1,'Compact context stays on screen');
-    if(width<=820){
+    if(width<=1100){
      await band.locator('button').click();
      assert.equal(await page.locator('#collection-sidebar').evaluate(el=>el.classList.contains('mobile-open')),true,'Compact context gives access to filters');
      await page.evaluate(()=>closeMobileDrawers());
@@ -141,12 +141,20 @@ const server=createSandboxServer();
     await page.waitForTimeout(50);
     assert.equal(await band.isVisible(),false,'Full heading replaces compact context on return to top');
    }
-   if(width>820){
+   if(width>1100){
     await page.evaluate(()=>{goToPage('collection');window.scrollTo(0,document.documentElement.scrollHeight);});
     await page.waitForTimeout(50);
     assert.equal(await page.locator('#collection-sidebar').evaluate(el=>getComputedStyle(el).overflowY),'visible','Desktop sidebar shares document scrolling');
     const reset=await page.locator('#reset-btn').boundingBox();
     assert.ok(reset.y+reset.height<=901,'Last filter is reachable by scrolling the page');
+   }
+   if(width===1024){
+    await page.evaluate(()=>{goToPage('collection');window.scrollTo(0,0);});
+    await page.locator('#global-filter-toggle').click();
+    await page.setViewportSize({width:1440,height:900});
+    await page.locator('#mobile-backdrop').waitFor({state:'hidden'});
+    assert.equal(await page.locator('#mobile-backdrop').isVisible(),false,'A desktop resize closes the drawer backdrop');
+    assert.equal(await page.locator('#global-filter-toggle').getAttribute('aria-expanded'),'false');
    }
    assert.deepEqual(errors,[]);
    await context.close();console.log('PASS global UI',width,theme);

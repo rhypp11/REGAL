@@ -1,6 +1,27 @@
 /* Collection — scoped presentation, shared JTD foundations. */
 #page-collection .main { min-width:0; padding-top:var(--ui-space-6); }
-#page-collection .top-row { gap:var(--ui-space-2); }
+#page-collection .top-row {
+  display:grid;
+  grid-template-columns:minmax(160px,1fr) minmax(140px,180px) auto auto;
+  grid-template-areas:'search sort add views';
+  align-items:center;
+  gap:var(--ui-space-2);
+}
+#page-collection .search-wrap { grid-area:search; width:100%; min-width:0; flex-basis:auto; }
+#page-collection .sort-select { grid-area:sort; width:100%; min-width:0; max-width:none; }
+#page-collection .add-btn-inline { grid-area:add; min-width:0; width:auto; }
+#page-collection .collection-view-switch { grid-area:views; }
+#page-collection .results-bar:empty { display:none; }
+#page-collection .results-bar { margin:0; }
+@media(max-width:700px) {
+  #page-collection .top-row {
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:'search add' 'sort views';
+  }
+}
+@media(max-width:1100px) {
+  #page-collection .collection-context-filters { display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex:0 0 36px; border:1px solid currentColor; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
+}
 #page-collection .search-wrap input,
 #page-collection .sort-select {
   min-height:var(--ui-control-height-lg);
@@ -235,17 +256,6 @@
   #page-collection .library-stat[data-stat="platforms"] .library-stat-icon { display:none; }
 }
 
-/* Intermediate desktop widths keep search separate from the action pair. */
-@media (min-width:821px) and (max-width:1100px) {
-  #page-collection .top-row {
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-  #page-collection .search-wrap { grid-column:1 / -1; min-width:0; width:100%; }
-  #page-collection .sort-select { min-width:0; width:100%; max-width:none; }
-  #page-collection .add-btn-inline { min-width:0; width:100%; }
-}
-
 /* Le bandeau garde la couleur de la plateforme ; les cartes restent discrètes. */
 #collection-sidebar .toggle-chip:not(.active) { color:var(--ui-text-muted); }
 #collection-sidebar .toggle-chip.active { box-shadow:none; background:color-mix(in srgb,var(--ui-accent) 6%,transparent); }
@@ -286,8 +296,6 @@
 #page-collection .card-console-account { overflow:hidden; text-overflow:ellipsis; }
 #page-collection .card-state-row .card-dlc-count { font-size:10px; white-space:nowrap; }
 #page-collection .card-body { gap:6px; }
-.collection-display-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 14px; }
-.collection-display-row .results-bar { margin:0; min-width:0; flex:1; }
 .collection-view-switch { display:flex; gap:2px; flex-shrink:0; }
 .collection-view-switch button { display:grid; place-items:center; width:36px; height:36px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--ui-text-muted); cursor:pointer; }
 .collection-view-switch button[aria-pressed="true"] { border-color:var(--ui-border); background:var(--ui-surface); color:var(--ui-text); }
@@ -304,11 +312,6 @@
 #page-collection #grid[data-view="gallery"] :is(.card-identity,.card-state-row) { display:none; }
 
 @media(max-width:820px){
-  .collection-display-row:has(.results-filters) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 12px; }
-  .collection-display-row:has(.results-filters) .results-bar { display:contents; }
-  .collection-display-row .results-count { grid-area:1 / 1; }
-  .collection-display-row .results-filters { grid-area:2 / 1 / auto / -1; }
-  .collection-display-row .collection-view-switch { grid-area:1 / 2; }
   .collection-view-switch button { width:44px; height:44px; }
   #page-collection .card-state-row .card-status-badge { min-height:26px; }
 }

@@ -17,17 +17,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;650;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=removable-filters-35">
 <link rel="stylesheet" href="cemetery.css?v=sale-cards-37">
-<link rel="stylesheet" href="home-boards-v2.css?v=removable-filters-35">
-<link rel="stylesheet" href="home-dashboard.css?v=journal-1">
+<link rel="stylesheet" href="home-boards-v2.css?v=wishlist-hover-1">
+<link rel="stylesheet" href="home-dashboard.css?v=responsive-layout-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
-<link rel="stylesheet" href="ui-foundations.css?v=journal-tags-2">
-<link rel="stylesheet" href="regal.css?v=profile-groups-1">
+<link rel="stylesheet" href="ui-foundations.css?v=responsive-layout-1">
+<link rel="stylesheet" href="regal.css?v=responsive-layout-2">
 <link rel="stylesheet" href="game-sheet.css?v=sheet-consistency-2">
-<link rel="stylesheet" href="collection.css?v=journal-tags-2">
+<link rel="stylesheet" href="collection.css?v=responsive-layout-1">
 <link rel="stylesheet" href="digital.css?v=compact-content-28">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=2">
-<link rel="stylesheet" href="journal.css?v=20">
+<link rel="stylesheet" href="journal.css?v=responsive-layout-1">
 </head>
 <body>
 
@@ -83,10 +83,10 @@
     </div>
 
     <div class="topnav-nav" aria-label="Navigation principale">
-      <button class="nav-tab active" data-page="home" title="Accueil"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path><path d="M10 20v-6h4v6"></path></svg><span class="nav-tab-label">Accueil</span></button>
-      <button type="button" class="nav-tab" data-page="journal" title="Journal"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h14v16H5zM9 8h6M9 12h6M9 16h4"/></svg><span class="nav-tab-label">Journal</span></button>
-      <button class="nav-tab" data-page="collection" title="Collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg><span class="nav-tab-label">Collection</span></button>
-      <button class="nav-tab" data-page="cemetery" title="Cimetière"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V10a6 6 0 0 1 12 0v11M4 21h16M9 10h6M12 7v6"/></svg><span class="nav-tab-label">Cimetière</span></button>
+      <button class="nav-tab active" data-page="home" title="Accueil"><span class="nav-tab-label">Accueil</span></button>
+      <button type="button" class="nav-tab" data-page="journal" title="Journal"><span class="nav-tab-label">Journal</span></button>
+      <button class="nav-tab" data-page="collection" title="Collection"><span class="nav-tab-label">Collection</span></button>
+      <button class="nav-tab" data-page="cemetery" title="Cimetière"><span class="nav-tab-label">Cimetière</span></button>
     </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
@@ -394,13 +394,14 @@
         <option value="date-desc">Date d'achat (récent)</option>
         <option value="date-asc">Date d'achat (ancien)</option>
       </select>
-      <button class="add-btn add-btn-inline" id="add-btn">+ Ajouter un jeu</button>
-    </div>
-
-    <div class="collection-display-row"><div class="results-bar" id="results-bar"></div><div id="collection-view-switch" class="collection-view-switch" role="group" aria-label="Affichage de la collection">
+      <button class="add-btn add-btn-inline" id="add-btn" aria-label="Ajouter un jeu">+ Ajouter</button>
+      <div id="collection-view-switch" class="collection-view-switch" role="group" aria-label="Affichage de la collection">
 <button type="button" data-view="cards" aria-pressed="true" title="Cartes" aria-label="Cartes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg></button>
 <button type="button" data-view="gallery" aria-pressed="false" title="Galerie" aria-label="Galerie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg></button>
-<button type="button" data-view="list" aria-pressed="false" title="Liste" aria-label="Liste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M3 5h2M3 12h2M3 19h2"/></svg></button></div></div>
+<button type="button" data-view="list" aria-pressed="false" title="Liste" aria-label="Liste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M3 5h2M3 12h2M3 19h2"/></svg></button></div>
+    </div>
+
+    <div class="results-bar" id="results-bar" role="status" aria-live="polite"></div>
     <div class="grid" id="grid"></div>
   </main>
 </div>
@@ -688,7 +689,7 @@
 <script src="jtd-data.js?v=journal-csv-1"></script>
 <script src="dialogs.js?v=context-error-25"></script>
 <script src="digital.js?v=removable-filters-35"></script>
-<script src="app.js?v=journal-5"></script>
+<script src="app.js?v=responsive-layout-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>

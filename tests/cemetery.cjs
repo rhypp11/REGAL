@@ -121,7 +121,9 @@ const server = createSandboxServer();
       await page.locator('[data-sale-view="sold"]').click();
       assert.equal(await page.locator('.sale-group-heading').filter({hasText:'27,50'}).count(),1);
       assert.match(await page.locator('.sale-group-heading').first().textContent(),/27,50/);
+      if(width<=1100)await page.locator('#global-filter-toggle').click();
       assert.equal(await page.locator('#cemetery-stat-sold-count').isVisible(),true);
+      if(width<=1100)await page.locator('#mobile-backdrop').click({position:{x:width-1,y:400}});
       await page.evaluate(()=>{delete CEMETERY.find(game=>game.id==='sale-sold-1').saleOrder;});
       await page.locator('.sale-game').filter({hasText:'Deathloop'}).click();
       await page.locator('#sale-channel').selectOption('store');
@@ -172,7 +174,7 @@ const server = createSandboxServer();
       const backup = await page.evaluate(()=>cleanBackupData(buildBackupPayload()));
       assert.equal(backup.cemetery.length,5);
       await page.evaluate(data=>applyRestoredData(data),backup);
-      if(width<=900){
+      if(width<=1100){
         assert.equal(await page.locator('#global-filter-toggle').isVisible(),true);
         await page.locator('#global-filter-toggle').click();
         assert.equal(await page.locator('#cemetery-sidebar').evaluate(el=>el.classList.contains('mobile-open')),true);

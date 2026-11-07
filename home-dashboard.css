@@ -34,8 +34,13 @@
 #page-home .home-boards-switcher { display:none; }
 #page-home #home-boards { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr); }
 #page-home #home-boards .board { display:block; }
-@media(min-width:821px) and (max-width:1200px) {
+@media(min-width:1101px) and (max-width:1200px) {
   #page-home #home-boards { grid-template-columns:minmax(0,1fr); }
+}
+@media(min-width:821px) and (max-width:1100px) {
+  #page-home .home-main { position:relative; }
+  #page-home .home-view-controls { display:flex; align-items:center; position:absolute; top:24px; left:var(--ui-page-gutter); }
+  #page-home #arrivals-board .board-head { padding-left:56px; }
 }
 @media(max-width:820px) {
   #page-home .home-app { display:block; min-height:0; }

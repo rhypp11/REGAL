@@ -31,8 +31,8 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       assert.equal(await page.locator('#grid .card').count(),2);
       assert.equal(await page.locator('[data-dialog-trigger="game:dlc"]').count(),0);
       assert.equal(await page.locator('.dlc-label').innerText(),'DLC');
-      assert.equal(await page.locator('#status-toggles').innerText().then(t=>t.includes('En cours')),false);
-      assert.equal(await page.locator('#platform-list').innerText().then(s=>s.includes('PlayStation 2')),false);
+      assert.equal(await page.locator('#status-toggles').textContent().then(t=>t.includes('En cours')),false);
+      assert.equal(await page.locator('#platform-list').textContent().then(s=>s.includes('PlayStation 2')),false);
       assert.equal(await page.locator('.collection-stat-toggle').getAttribute('aria-expanded'),'false','Statistics start collapsed');
       await page.locator('.collection-stat-toggle').click();
       assert.ok((await page.locator('[data-stat="spent"]').innerText()).includes('2 000'));
@@ -139,9 +139,9 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       });
       await chooseAccount(page,'eu');
       assert.equal(await page.evaluate(()=>state.platform),null);
-      assert.match(await page.locator('#platform-list').innerText(),/Nintendo Switch/);
-      assert.match(await page.locator('#platform-list').innerText(),/Switch 2/);
-      assert.doesNotMatch(await page.locator('#platform-list').innerText(),/PlayStation 4/);
+      assert.match(await page.locator('#platform-list').textContent(),/Nintendo Switch/);
+      assert.match(await page.locator('#platform-list').textContent(),/Switch 2/);
+      assert.doesNotMatch(await page.locator('#platform-list').textContent(),/PlayStation 4/);
       assert.equal(await page.evaluate(()=>ecosystemFor('Nintendo 3DS')),'Nintendo Network');
       assert.equal(await page.evaluate(()=>ecosystemFor('Wii U')),'Nintendo Network');
       assert.equal(await page.locator('#cemetery-import-trigger, #digital-accounts-btn').count(),0);

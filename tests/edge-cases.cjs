@@ -20,12 +20,12 @@ const server=createSandboxServer();
    await page.waitForFunction(()=>[...document.querySelectorAll('.page:not(.hidden) img')].every(i=>i.complete));
    const result=await page.evaluate(view=>{
     const root=document.getElementById('page-'+view);
-    const nav=[...document.querySelectorAll('.nav-tab')].map(el=>{const b=el.getBoundingClientRect(),i=el.querySelector('svg').getBoundingClientRect(),t=el.querySelector('span').getBoundingClientRect();return {left:b.left,right:b.right,iconLeft:i.left,iconRight:i.right,iconBottom:i.bottom,labelTop:t.top,labelLeft:t.left,labelRight:t.right};});
+    const nav=[...document.querySelectorAll('.nav-tab')].map(el=>{const b=el.getBoundingClientRect(),t=el.querySelector('span').getBoundingClientRect();return {left:b.left,right:b.right,labelLeft:t.left,labelRight:t.right};});
     return {overflow:document.documentElement.scrollWidth>innerWidth,broken:[...root.querySelectorAll('img')].filter(i=>i.getClientRects().length&&i.complete&&!i.naturalWidth).length,nav};
    },view);
    assert.equal(result.overflow,false,'Long lists stay within viewport');
    assert.equal(result.broken,0,'Unavailable artwork shows its fallback');
-   for(const n of result.nav){assert.ok(n.iconLeft>=n.left-.5&&n.labelRight<=n.right+.5,'Navigation contents stay in their own tab '+width+'px '+JSON.stringify(n));assert.ok(n.iconBottom<=n.labelTop+.5||n.iconRight<=n.labelLeft+.5,'Icon and label never overlap');}
+   for(const n of result.nav){assert.ok(n.labelLeft>=n.left-.5&&n.labelRight<=n.right+.5,'Navigation contents stay in their own tab '+width+'px '+JSON.stringify(n));}
   }
   await page.evaluate(()=>{goToPage('collection');state.search='RechercheSansEspace'.repeat(40);state.collector=true;state.japanese=true;state.status='termine_ailleurs';render();});
   assert.match(await page.locator('.empty-state').textContent(),/Aucun jeu ne correspond/);
