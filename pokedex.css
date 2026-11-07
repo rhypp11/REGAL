@@ -37,6 +37,10 @@
 .dex-empty { border:1px dashed var(--ui-border); border-radius:8px; min-height:80px; opacity:.45; }
 .dex-attribution { margin:24px 0 0; color:var(--ui-text-muted); font-size:12px; }
 .dex-attribution a { color:var(--ui-accent); }
+@media(max-width:700px) {
+  body.dex-prototype-enabled .topnav .topnav-nav { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  body.dex-prototype-enabled .topnav .topnav-nav .nav-tab-label { margin:0; font-size:11px; }
+}
 @media(max-width:1000px) { #dex-boxes { grid-template-columns:1fr; } #page-pokedex { max-width:760px; padding:20px; } }
 @media(hover:none) { .dex-info { opacity:1; } }
 @media(max-width:480px) { #page-pokedex { padding:16px 10px; } .dex-heading { align-items:flex-start; gap:8px; } .dex-heading h1 { font-size:22px; } .dex-prototype { font-size:10px; padding:5px 8px; } .dex-grid { gap:3px; padding:6px; } .dex-name { font-size:9px; } .dex-number { font-size:9px; } .dex-pokemon { padding:5px 2px 7px; } .dex-info { width:22px; height:22px; top:18px; right:1px; } .dex-empty { min-height:70px; } .dex-legend { gap:10px; font-size:12px; } }

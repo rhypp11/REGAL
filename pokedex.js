@@ -1,6 +1,7 @@
 /* Interactive preview only; intentionally separate from account/cloud data. */
 (() => {
   if(!IS_PREVIEW_MODE) return;
+  document.body.classList.add('dex-prototype-enabled');
   document.getElementById('pokedex-nav').classList.remove('hidden');
   const entries=window.REGAL_DEX_KANTO;
   const key='jtd:sandbox-pokedex-prototype:kanto:v1';
