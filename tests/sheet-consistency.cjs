@@ -21,6 +21,11 @@ const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
     ]}];
    });
    const before=await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST,cemetery:CEMETERY,journal:LEGACY_JOURNAL}));
+   await page.evaluate(()=>openModal(GAMES[0].id));
+   const summaryType=await page.locator('#f-context-summary .context-summary-values strong').first().evaluate(element=>({
+    font:getComputedStyle(element).fontFamily,size:getComputedStyle(element).fontSize
+   }));
+   await page.locator('#cancel-btn').click();
    const samples=[];
    for(const scene of ['collection','arrival','wishlist','journal-new','journal-game','journal-completion','journal-comment','backlog','release','sale']){
     await page.evaluate(scene=>{
@@ -38,6 +43,9 @@ const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
     else if(scene.startsWith('journal-')){
      await page.locator('#journal-completed .journal-row').click();
      assert.equal(await page.locator('#journal-close').innerText(),'Fermer');
+     assert.deepEqual(await page.locator('.journal-context-fields dd').first().evaluate(element=>({
+      font:getComputedStyle(element).fontFamily,size:getComputedStyle(element).fontSize
+     })),summaryType,'Summary values match the Collection');
      if(scene==='journal-game')await page.locator('#journal-game-summary .identity-edit-btn, #journal-dialog-body .identity-edit-btn').first().click();
      if(scene==='journal-completion')await page.locator('#journal-edit-completion').click();
      if(scene==='journal-comment')await page.locator('#journal-edit-comment').click();

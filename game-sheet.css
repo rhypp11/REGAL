@@ -128,7 +128,13 @@
 .sheet-dialog .identity-copy strong { align-items:baseline; font-size:17px; }
 .sheet-dialog .identity-copy > span { flex-wrap:wrap; line-height:1.5; }
 .sheet-dialog .context-summary-values { gap:14px 12px; }
-.sheet-dialog .context-summary-values small { color:var(--ui-text-muted); font-size:11px; line-height:1.4; }
+.sheet-dialog :is(.context-summary-values small,.journal-context-fields dt) { color:var(--ui-text-muted); font-size:11px; line-height:1.4; }
+.sheet-dialog :is(.context-summary-values strong,.journal-context-fields dd) {
+  font-family:var(--ui-font-sans);
+  font-size:var(--ui-text-md);
+  font-weight:650;
+  line-height:var(--ui-leading-normal);
+}
 .sheet-dialog :is(.identity-edit-btn,.context-edit-btn) {
   width:40px;
   height:40px;
