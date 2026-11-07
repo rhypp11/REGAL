@@ -175,7 +175,8 @@
   transition:background var(--ui-transition-fast);
 }
 
-#home-boards .board-row:hover {
+#home-boards .board-row:hover,
+#home-boards .calendar-items .board-row:hover {
   background:rgba(var(--ui-rgb),.035);
 }
 

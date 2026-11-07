@@ -72,6 +72,25 @@ const server=createSandboxServer();
    }
    await page.screenshot({path:'/tmp/jtd-home-'+width+'-'+theme+'.png',fullPage:true});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   const wishlistBeforeHover=await page.evaluate(()=>WISHLIST);
+   await page.evaluate(()=>{
+    WISHLIST=Array.from({length:6},(_,index)=>({
+     id:'hover-'+index,nom:'Jeu de survol '+index,plateforme:'PC',
+     date:index<3?'':'2027-02-'+String(index-2).padStart(2,'0')
+    }));
+    renderWishlist();
+   });
+   if(width<=820)await page.locator('[data-target="wishlist"]').click();
+   assert.equal(await page.locator('#wishlist-rows .calendar-group').count(),2);
+   const hoverRows=page.locator('#wishlist-rows .board-row');
+   for(let index=0;index<6;index++){
+    const row=hoverRows.nth(index);
+    await page.mouse.move(1,1);
+    await page.waitForFunction(element=>getComputedStyle(element).backgroundColor==='rgba(0, 0, 0, 0)',await row.elementHandle());
+    await row.hover();
+    await page.waitForFunction(element=>getComputedStyle(element).backgroundColor!=='rgba(0, 0, 0, 0)',await row.elementHandle(),{timeout:1000});
+   }
+   await page.evaluate(items=>{WISHLIST=items;renderWishlist();},wishlistBeforeHover);
    await page.evaluate(()=>{GAMES=[];renderHomeStats();});assert.equal(await page.locator('#home-total-games').textContent(),'0');
    await page.evaluate(()=>{
     GAMES=[{id:'report-zero',nom:'Étoile de test',plateforme:'Switch 2',date:'2023-04-02',prix:0}];
