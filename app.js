@@ -1600,6 +1600,15 @@ function openModal(id, collection = 'games'){
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
   openDigitalFields(identityItem);
   setIdentityEditor('f', identityItem, !!editingId);
+  if(identityItem && editingCollection==='games' && identityItem.contentType!=='upgrade'){
+    const status=STATUS_OPTIONS.find(option=>option.key===getEffectiveStatus(identityItem));
+    const badge=document.createElement('span');
+    badge.className='game-sheet-status';
+    badge.style.setProperty('--status-color',status?.color||'var(--ui-text-muted)');
+    badge.style.setProperty('--status-fill',status?.fill||'var(--ui-border)');
+    badge.innerHTML=(status?.icon||'')+escapeHTML(status?.label||'Sans statut');
+    document.querySelector('#f-identity-summary .identity-copy > span').appendChild(badge);
+  }
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
   setGameSheetViewing(!!editingId && editingCollection === 'games');

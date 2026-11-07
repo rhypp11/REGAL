@@ -142,7 +142,7 @@
 @media(min-width:1240px){
   #page-journal { grid-template-columns:minmax(156px,.78fr) minmax(0,3fr) minmax(235px,1.35fr); grid-template-areas:'stats toolbar side' 'stats completed side'; gap:0 18px; }
   #page-journal #global-filter-toggle { display:none; }
-  #page-journal .journal-sidebar { grid-area:stats; position:sticky; top:calc(var(--topnav-h) + 12px); left:auto; bottom:auto; z-index:auto; width:auto; max-height:calc(100dvh - var(--topnav-h) - 24px); padding:0; background:transparent; transform:none; visibility:visible; }
+  #page-journal .journal-sidebar { grid-area:stats; position:sticky; top:calc(var(--topnav-h) + 12px); left:auto; bottom:auto; z-index:auto; width:auto; max-height:calc(100dvh - var(--topnav-h) - 24px); padding:0 16px 0 0; background:transparent; transform:none; visibility:visible; }
 }
 @media(max-width:820px){
   .journal-side { display:contents; }

@@ -4858,7 +4858,7 @@ input[type="date"] {
 @media (max-width:820px) {
   html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
   body.mobile-drawer-open {
     overflow: hidden;
