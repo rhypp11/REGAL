@@ -24,6 +24,7 @@
     if(active && !Array.isArray(active.entries)) return [];
     return active?.entries ?? (IS_PREVIEW_MODE ? previewEntries : []);
   }
+  window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit,date:entry.date}));
   function commit(next){
     const active = LEGACY_JOURNAL.find(marker);
     if(active && !Array.isArray(active.entries)) throw Error('Le journal enregistré est illisible.');
@@ -199,7 +200,7 @@
   function identityCard(entry,editable=false){
     return '<div class="game-identity-summary'+(editable?'':' journal-identity-read')+'">'+
       identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),imageFit:entry.imageFit},
-        formats[entry.format]||'')+'</div>';
+        entry.group==='release'?'':formats[entry.format]||'')+'</div>';
   }
   function show(title,html,{editing=false,canComplete=false,canDelete=false}={}){
     editorEvents?.abort();
@@ -233,7 +234,7 @@
     const date=entry.date ?? (done?today():'');
     const existing=records().some(record=>record?.id===entry.id);
     const generation=window.JTDAccountGeneration;
-    const sources=GAMES;
+    const sources=release?WISHLIST:GAMES;
     const identityOnly=section==='identity', commentOnly=section==='comment', completionOnly=section==='completion'||section==='release';
     const chooseSource=!existing||identityOnly;
     const platforms=[...new Set([...allPlatformNames(),'PC',entry.platform].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
@@ -247,14 +248,14 @@
       '<div id="journal-game-editor"'+(existing&&!identityOnly?' class="hidden"':'')+'>'+
       (chooseSource?'<fieldset class="journal-source-choice"><legend>Origine du jeu</legend>'+
         '<label><input type="radio" name="origin" value="manual" checked> Saisie manuelle</label>'+
-        '<label><input type="radio" name="origin" value="collection"> Depuis la collection</label></fieldset>'+
+        '<label><input type="radio" name="origin" value="collection"> Depuis la '+(release?'wishlist':'collection')+'</label></fieldset>'+
         '<div id="journal-source-picker" class="hidden">'+field('Rechercher un jeu',input('lookup','','type="search" placeholder="Titre ou plateforme" autocomplete="off"'))+
-        '<div id="journal-source-results" class="journal-source-results" aria-label="Jeux de la collection"></div></div>':'')+
+        '<div id="journal-source-results" class="journal-source-results" aria-label="Jeux de la '+(release?'wishlist':'collection')+'"></div></div>':'')+
       '<div id="journal-manual-fields" class="game-identity-editor">'+field('Nom du jeu',input('name',entry.name,'required maxlength="500"'))+
       '<div class="field-row identity-core-row">'+field('Plateforme','<select id="journal-platform" name="platform">'+
         '<option value="">Choisir une plateforme…</option>'+platforms.map(name=>'<option value="'+esc(name)+'"'+(name===entry.platform?' selected':'')+'>'+esc(name)+'</option>').join('')+
         '<option value="'+customPlatform+'">Autre plateforme…</option></select>')+
-      field('Support',select('format',{'':'Non renseigné',...formats},entry.format??'digital'))+'</div>'+
+      (release?'<input type="hidden" name="format" value="">':field('Support',select('format',{'':'Non renseigné',...formats},entry.format??'digital')))+'</div>'+
       '<div id="journal-custom-platform" class="hidden">'+field('Nom de la plateforme',input('platformCustom','','maxlength="120"'))+'</div>'+
       '<div class="image-url-row">'+field('Image du jeu',input('image',entry.image,'id="j-image" maxlength="200000" placeholder="https://…"'))+
       '<div id="j-image-preview" class="image-preview image-preview-compact"><span>Aperçu de l’image</span></div></div>'+
@@ -306,7 +307,7 @@
         return;
       }
       $('journal-error').textContent='';
-      summary.innerHTML=identityCard({name:elements.name.value,platform:platformValue(),image:elements.image.value,format:elements.format.value,imageFit:elements.imageFit.value},true);
+      summary.innerHTML=identityCard({group,name:elements.name.value,platform:platformValue(),image:elements.image.value,format:elements.format.value,imageFit:elements.imageFit.value},true);
       summary.classList.remove('hidden');
       editor.classList.add('hidden');
       (identityOnly?$('journal-save'):elements.date||elements.precision).focus();
@@ -336,7 +337,7 @@
       const fill=()=>{
         const query=fold(elements.lookup.value.trim());
         const choices=query?sources.filter(item=>fold(item.nom+' '+item.plateforme).includes(query)).slice(0,12):[];
-        results.innerHTML=choices.map(item=>'<button type="button" data-journal-source="'+esc(item.id)+'"><strong>'+esc(item.nom)+'</strong><small>'+esc(item.plateforme)+'</small></button>').join('')+
+        results.innerHTML=choices.map(item=>'<button type="button" data-journal-source="'+esc(item.id)+'"><strong>'+esc(item.nom)+'</strong><small>'+esc([item.plateforme,...(release?[]:[JTDData.isAddon(item)?'Extension':'',JTDData.isDigital(item)?'Numérique':'Physique'])].filter(Boolean).join(' · '))+'</small></button>').join('')+
           (query&&!choices.length?'<p class="journal-empty">Aucun jeu trouvé.</p>':'');
       };
       const mode=()=>{
@@ -363,7 +364,8 @@
         updatePlatform();
         elements.image.value=item.image||'';
         elements.imageFit.value=item.imageFit==='cover'?'cover':'contain';
-        elements.format.value=JTDData.isAddon(item)?'extension':JTDData.isDigital(item)?'digital':'physical';
+        elements.format.value=release?'':JTDData.isAddon(item)?'extension':JTDData.isDigital(item)?'digital':'physical';
+        if(release){setFlexibleDate('journal-release',item.date||'TBD');setReleaseDateInputs();releaseDateChanged=true;}
         updatePreview();
         compactIdentity();
         if(!identityOnly) elements.precision.focus();
@@ -377,9 +379,11 @@
       });
     }
     let releaseDateChanged=false;
+    let setReleaseDateInputs=()=>{};
     if(release){
       const wrap=form.querySelector('[data-date-mode="journal-release"]');
       const setDateInputs=()=>{ $('journal-release-date').disabled=wrap.dataset.currentMode!=='date'; $('journal-release-year').disabled=wrap.dataset.currentMode!=='year'; };
+      setReleaseDateInputs=setDateInputs;
       setFlexibleDate('journal-release',date);
       setDateInputs();
       wrap.addEventListener('click',event=>{

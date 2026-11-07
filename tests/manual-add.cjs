@@ -66,8 +66,55 @@ const server=createSandboxServer();
    await page.locator('#close-platform-modal-btn').click();
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(id=>GAMES.some(g=>g.id===id),created.id),true,'Manual add survives reload');
+   await checkJournalSources(page);
    assert.deepEqual(errors,[]);await context.close();console.log('PASS manual entry and module actions',width,theme);
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+
+async function checkJournalSources(page){
+ await page.evaluate(()=>{
+  GAMES.push(...['Physique','Numérique','Extension'].map((format,index)=>({id:'source-'+index,nom:'Source fictive',plateforme:'Switch 2',format:index?'Numérique':'Physique',contentType:index===2?'dlc':'game'})));
+  WISHLIST.push({id:'wish-source',nom:'Sortie fictive',plateforme:'Switch 2',date:'2028-04-12',image:'',imageFit:'cover'});
+ });
+ await page.locator('.nav-tab[data-page="journal"]').click();
+ for(const group of ['playing','backlog','completed']){
+  await page.locator(`[data-journal-add="${group}"]`).evaluate(el=>el.click());
+  await page.locator('[name="origin"][value="collection"]').check();
+  await page.locator('[name="lookup"]').fill('Source fictive');
+  const results=page.locator('#journal-source-results');
+  assert.match(await results.innerText(),/Physique/);
+  assert.match(await results.innerText(),/Numérique/);
+  assert.match(await results.innerText(),/Extension/);
+  assert.equal(await results.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);
+  if(group==='backlog') await page.screenshot({path:`/tmp/jtd-journal-sources-${page.viewportSize().width}-${await page.evaluate(()=>document.documentElement.dataset.theme||'theme')}.png`});
+  await results.locator('[data-journal-source="source-1"]').click();
+  assert.match(await page.locator('#journal-game-summary').innerText(),/Numérique/);
+  await page.locator('#journal-close').click();
+ }
+ await page.locator('[data-journal-add="release"]').evaluate(el=>el.click());
+ assert.match(await page.locator('#journal-form .journal-source-choice').innerText(),/Depuis la wishlist/);
+ assert.equal(await page.locator('select[name="format"]').count(),0);
+ await page.locator('[name="origin"][value="collection"]').check();
+ await page.locator('[name="lookup"]').fill('Sortie fictive');
+ await page.locator('[data-journal-source="wish-source"]').click();
+ assert.equal(await page.locator('#journal-release-date').inputValue(),'2028-04-12');
+ assert.doesNotMatch(await page.locator('#journal-game-summary').innerText(),/Physique|Numérique/);
+ await page.locator('#journal-save').click();
+ const original=await page.evaluate(()=>({wishlist:JSON.stringify(WISHLIST),release:getJournalReleases().find(item=>item.nom==='Sortie fictive')}));
+ assert.equal(original.release.date,'2028-04-12');
+ assert.equal(await page.evaluate(()=>JSON.stringify(WISHLIST)),original.wishlist,'Recovery leaves the source wishlist intact');
+ await page.evaluate(()=>openWishlistModal(null));
+ await page.locator('[name="w-origin"][value="release"]').check();
+ await page.locator('#w-release-search').fill('Sortie fictive');
+ await page.locator('[data-w-release]').click();
+ assert.equal(await page.locator('#w-nom').inputValue(),'Sortie fictive');
+ assert.equal(await page.locator('#w-date').inputValue(),'2028-04-12');
+ await page.screenshot({path:`/tmp/jtd-wishlist-source-${page.viewportSize().width}.png`});
+ await page.locator('#w-save-btn').click();
+ assert.equal(await page.evaluate(()=>WISHLIST.filter(item=>item.nom==='Sortie fictive').length),2);
+ assert.equal(await page.evaluate(()=>getJournalReleases().filter(item=>item.nom==='Sortie fictive').length),1);
+ await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
+ assert.equal(await page.evaluate(()=>getJournalReleases().find(item=>item.nom==='Sortie fictive').date),'2028-04-12');
+}
 
