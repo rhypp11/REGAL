@@ -740,7 +740,7 @@ function setStatus(id, statusKey){
 // A long desktop sidebar follows the document, then pins when its last filter is visible.
 function updateCollectionSidebarPosition(){
   const sidebar=document.getElementById('collection-sidebar');
-  if(!sidebar || matchMedia('(max-width:820px)').matches)return;
+  if(!sidebar || matchMedia('(max-width:1100px)').matches)return;
   const navHeight=document.querySelector('.topnav').getBoundingClientRect().height;
   const top=Math.min(navHeight,innerHeight-sidebar.getBoundingClientRect().height-12);
   sidebar.style.setProperty('--collection-sidebar-top',top+'px');
@@ -808,7 +808,7 @@ function setFilterAccessibility(element, active){
     element.click();
     const replacement = parent.children[index];
     const sidebar = parent.closest('.sidebar');
-    const closedDrawer = matchMedia('(max-width:820px)').matches && sidebar && !sidebar.classList.contains('mobile-open');
+    const closedDrawer = matchMedia('(max-width:1100px)').matches && sidebar && !sidebar.classList.contains('mobile-open');
     if(!closedDrawer && replacement?.getClientRects().length) replacement.focus({preventScroll:true});
   });
 }
@@ -1165,7 +1165,7 @@ function renderCard(g, options = {}){
   return card;
 }
 
-function renderResultsBar(count){
+function renderResultsBar(){
   const bar = document.getElementById('results-bar');
   if(!bar) return;
 
@@ -1181,7 +1181,7 @@ function renderResultsBar(count){
   }
   if(state.search.trim()) filters.push(['search',`« ${state.search.trim()} »`]);
 
-  let html = `<span class="results-count">${count} ${state.media && state.media !== 'physical' ? 'élément'+(count > 1 ? 's' : '') : 'jeu'+(count > 1 ? 'x' : '')}</span>`;
+  let html = '';
   if(filters.length){
     const chips = filters.map(([key,label,type]) => `
       <button type="button" class="results-filter" data-filter="${key}"${type ? ` data-filter-value="${type}"` : ''}
@@ -1239,7 +1239,7 @@ function render(){
   persistNavigation();
   const games = sortGames(filteredGames());
   renderPlatformBanner(games);
-  renderResultsBar(collectionPurchases(games).length);
+  renderResultsBar();
 
   const grid = document.getElementById('grid');
   grid.innerHTML = "";
@@ -2886,7 +2886,8 @@ if(topnavEl && window.ResizeObserver){
   window.addEventListener('load', updateTopnavHeightVar);
 }
 window.addEventListener('resize', () => {
-  if(window.innerWidth > 820) closeMobileDrawers();
+  const drawer=document.querySelector('.sidebar.mobile-open');
+  if(drawer && getComputedStyle(drawer).position!=='fixed') closeMobileDrawers();
 });
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') closeMobileDrawers();

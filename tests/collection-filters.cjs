@@ -34,7 +34,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await stat(page,'termine'),2);
       assert.equal(await stat(page,'digital'),2);
       assert.match(await page.locator('[data-stat="spent"]').innerText(),/40/);
-      assert.match(await page.locator('#results-bar .results-count').innerText(),/^2 /);
+      assert.match(await page.locator('.collection-stat-toggle').innerText(),/^2 /);
       assert.match(await page.locator('#platform-list .active .plat-count').innerText(),/^2$/);
       const currentView=await page.evaluate(()=>navigationSnapshot());
       await page.evaluate(view=>applyNavigation({...view,search:'Jardin',sort:'name-desc'}),currentView);
