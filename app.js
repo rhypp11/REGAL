@@ -2211,11 +2211,49 @@ function addArrivalToCollection(id){
 
 /* ----- Modal Wishlist ----- */
 
+function resetWishlistOriginPicker(visible){
+  const picker=document.getElementById('w-origin-picker');
+  picker.classList.toggle('hidden',!visible);
+  picker.querySelector('[value="manual"]').checked=true;
+  document.getElementById('w-release-picker').classList.add('hidden');
+  document.getElementById('w-release-search').value='';
+  document.getElementById('w-release-results').replaceChildren();
+}
+function renderWishlistReleaseResults(){
+  const query=document.getElementById('w-release-search').value.trim().normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr');
+  const releases=window.getJournalReleases?.()||[];
+  const matches=query?releases.filter(item=>(item.nom+' '+item.plateforme).normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr').includes(query)).slice(0,12):[];
+  document.getElementById('w-release-results').innerHTML=matches.map(item=>'<button type="button" data-w-release="'+escapeHTML(item.id)+'"><strong>'+escapeHTML(item.nom)+'</strong><small>'+escapeHTML(item.plateforme)+'</small></button>').join('')+(query&&!matches.length?'<p class="journal-empty">Aucun jeu trouvé.</p>':'');
+}
+document.getElementById('w-origin-picker').addEventListener('change',()=>{
+  const fromRelease=document.querySelector('[name="w-origin"]:checked').value==='release';
+  document.getElementById('w-release-picker').classList.toggle('hidden',!fromRelease);
+  if(fromRelease) document.getElementById('w-release-search').focus();
+});
+document.getElementById('w-release-search').addEventListener('input',renderWishlistReleaseResults);
+document.getElementById('w-release-search').addEventListener('keydown',event=>{
+  if(event.key==='Enter'&&!event.isComposing){event.preventDefault();document.querySelector('#w-release-results button')?.click();}
+});
+document.getElementById('w-release-results').addEventListener('click',event=>{
+  const button=event.target.closest('[data-w-release]');
+  const item=button&&(window.getJournalReleases?.()||[]).find(item=>item.id===button.dataset.wRelease);
+  if(!item) return;
+  fillIdentityFields('w',item);
+  const platform=document.getElementById('w-plateforme');
+  if(item.plateforme&&![...platform.options].some(option=>option.value===item.plateforme)) platform.add(new Option(item.plateforme,item.plateforme));
+  setSelectValueAndSync('w-plateforme',item.plateforme||'');
+  setFlexibleDate('w',item.date||'TBD');
+  setIdentityEditor('w',item,true);
+  resetWishlistOriginPicker(false);
+  document.getElementById('w-save-btn').focus();
+});
+
 function openWishlistModal(id){
   editingWishlistId = id || null;
   convertingArrivalToWishlistId = null; // ouverture normale (pas une bascule depuis les arrivages)
   const identityItem = editingWishlistId ? WISHLIST.find(x => x.id === editingWishlistId) : null;
   if(editingWishlistId && !identityItem) return;
+  resetWishlistOriginPicker(!editingWishlistId);
   fillIdentityFields('w', identityItem || {});
   document.getElementById('w-save-btn').textContent = editingWishlistId ? 'Enregistrer' : 'Ajouter';
   const title = document.getElementById('wishlist-modal-title');
@@ -2243,6 +2281,7 @@ function openWishlistModal(id){
 }
 
 function closeWishlistModal(){
+  resetWishlistOriginPicker(false);
   window.JTDDialogs.close('wishlist-modal-overlay');
   editingWishlistId = null;
   convertingArrivalToWishlistId = null; // annuler = l'arrivage reste où il était

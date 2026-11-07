@@ -129,7 +129,7 @@
 .journal-source-choice label:has(input:checked) { border-color:var(--ui-accent); background:var(--ui-surface-raised); }
 .journal-source-choice input { accent-color:var(--ui-accent); }
 .journal-source-results { display:grid; gap:4px; max-height:210px; overflow:auto; }
-.journal-source-results button { display:flex; align-items:baseline; justify-content:space-between; gap:8px; min-height:40px; padding:7px 9px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-surface); color:var(--ui-text); text-align:left; cursor:pointer; }
+.journal-source-results button { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 8px; min-height:40px; padding:7px 9px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-surface); color:var(--ui-text); text-align:left; overflow-wrap:anywhere; cursor:pointer; }
 .journal-source-results small { color:var(--ui-text-muted); }
 #journal-precision-field { margin-top:10px; }
 @media(min-width:821px){
