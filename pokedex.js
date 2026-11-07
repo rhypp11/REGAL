@@ -39,6 +39,21 @@
   }
  }catch {loadError=true;$('dex-library-error').textContent='Impossible de charger les Pokédex enregistrés. Les données ont été conservées.';$('dex-new').disabled=true;}
  const pad=n=>String(n).padStart(4,'0');
+ const pencil='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20h9M4 20l1-5L16 4l4 4L9 19z"/></svg>';
+ function iconHtml(catalogId,choiceId){
+  const isHome=['home','home-shiny'].includes(catalogId),gameId=Number(catalogId.slice(5));
+  const choice=choices.find(c=>c.id===choiceId),name=choice?.name.split(' · ')[0];
+  let file=isHome?'Icône Pokémon HOME HOME.png':gameId===30?'Icône Légendes Pokémon Arceus HOME.png':gameId>=34?'Icône Légendes Pokémon Z-A HOME.png':gameId>=12&&name?'Icône Pokémon '+name+' HOME.png':gameId===2&&name?'Icône Pokémon '+name+' (3DS).png':gameId===3&&name?'Icône Pokémon '+name+' (3DS).png':gameId===4&&name?'Icône Pokémon '+name+'.png':'';
+  if(gameId===26) file="Icône Pokémon Let's Go, "+(name?.includes('Évoli')?'Évoli':'Pikachu')+' HOME.png';
+  const mascot=gameId===4?(name==='Rubis'?383:name==='Saphir'?382:384):gameId===5?(name==='Perle'?484:483):gameId===6?487:gameId===7?(name==='SoulSilver'?249:250):gameId===8?(name==='Blanc'?644:643):gameId===9?646:0;
+  if(mascot) file='';
+  const source=file?'https://www.pokepedia.fr/Spécial:FilePath/'+encodeURIComponent(file):mascot?'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/'+mascot+'.png':'';
+  const svg='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+(isHome?'<path d="m5 15 11-9 11 9v12H5zM12 27V16h8v11"/>':'<circle cx="16" cy="16" r="11"/><path d="M5 16h7m8 0h7"/><circle cx="16" cy="16" r="4"/>')+'</svg>';
+  return '<span class="dex-game-icon" aria-hidden="true">'+svg+(source?'<img class="dex-icon-image" src="'+source+'" alt="" loading="lazy" decoding="async">':'')+'</span>';
+ }
+ document.addEventListener('error',event=>{if(event.target.matches?.('.dex-icon-image')) event.target.remove();},true);
+ document.addEventListener('load',event=>{if(event.target.matches?.('.dex-icon-image')) event.target.classList.add('ready');},true);
+ function badges(total,pending,done){return '<span class="dex-count-badge" data-state="0"><b>'+(total-pending-done)+'</b> À obtenir</span><span class="dex-count-badge" data-state="1"><b>'+pending+'</b> À ranger</span><span class="dex-count-badge" data-state="2"><b>'+done+'</b> Rangés</span>';}
  function renderLibrary(){
   $('dex-detail').classList.add('hidden');$('dex-library').classList.remove('hidden');current=null;
   $('dex-tracker-list').innerHTML=trackers.length?trackers.map(tracker=>{
@@ -46,30 +61,62 @@
    const ids=new Set(isHome?[...catalog.species,...catalog.forms].map(e=>String(e.id)):dex.entries.map(e=>String(e.id)));
    const values=Object.entries(tracker.states).filter(([id])=>ids.has(id)).map(([,state])=>state),done=values.filter(s=>s===2).length,pending=values.filter(s=>s===1).length,total=ids.size;
    const title=isHome?'Pokémon HOME'+(tracker.catalogId==='home-shiny'?' · Shiny':''):(choices.find(c=>c.id===tracker.choice)?.name||dex.name.split(' — ')[0])+' — '+dex.name.split(' — ')[1];
-   return '<button type="button" class="dex-tracker-card" data-tracker="'+esc(tracker.id)+'"><strong>'+esc(tracker.name)+'</strong><span class="dex-tracker-catalog">'+esc(title)+'</span><span class="dex-tracker-count">'+done+' / '+total+' rangés · '+pending+' à ranger</span><span class="dex-progress-track" aria-hidden="true"><span class="dex-progress-home" style="width:'+done/total*100+'%"></span><span class="dex-progress-pending" style="width:'+pending/total*100+'%"></span></span></button>';
+   return '<article class="dex-tracker-card"><button type="button" class="dex-tracker-open" data-tracker="'+esc(tracker.id)+'"><span class="dex-card-heading">'+iconHtml(tracker.catalogId,tracker.choice)+'<strong>'+esc(tracker.name)+'</strong></span><span class="dex-tracker-catalog">'+esc(title)+'</span><strong class="dex-tracker-total">'+(done+pending)+' / '+total+'</strong><span class="dex-card-legend">'+badges(total,pending,done)+'</span><span class="dex-progress-track" aria-hidden="true"><span class="dex-progress-home" style="width:'+done/total*100+'%"></span><span class="dex-progress-pending" style="width:'+pending/total*100+'%"></span></span></button><button type="button" class="identity-edit-btn dex-tracker-edit" data-edit-tracker="'+esc(tracker.id)+'" aria-label="Modifier '+esc(tracker.name)+'">'+pencil+'</button></article>';
   }).join(''):'<p class="dex-empty-library">Aucun Pokédex pour le moment.</p>';
  }
- $('dex-tracker-list').addEventListener('click',event=>{const button=event.target.closest('[data-tracker]');if(!button) return;current=trackers.find(t=>t.id===button.dataset.tracker);if(!current) return;active=current.catalogId;states={...current.states};$('dex-library').classList.add('hidden');$('dex-detail').classList.remove('hidden');loadDex();window.scrollTo(0,0);$('dex-back').focus({preventScroll:true});});
+ $('dex-tracker-list').addEventListener('click',event=>{const edit=event.target.closest('[data-edit-tracker]');if(edit){openEditor(trackers.find(t=>t.id===edit.dataset.editTracker));return;}const button=event.target.closest('[data-tracker]');if(!button) return;current=trackers.find(t=>t.id===button.dataset.tracker);if(!current) return;active=current.catalogId;states={...current.states};$('dex-library').classList.add('hidden');$('dex-detail').classList.remove('hidden');loadDex();window.scrollTo(0,0);$('dex-back').focus({preventScroll:true});});
  $('dex-back').onclick=()=>{renderLibrary();window.scrollTo(0,0);$('dex-new').focus({preventScroll:true});};
- $('dex-game').innerHTML=choices.map(choice=>'<option value="'+choice.id+'">'+esc(choice.name)+'</option>').join('');
- let proposedName='';
- function syncCreate(){
-  const isHome=$('dex-kind').value==='home';$('dex-game-field').classList.toggle('hidden',isHome);$('dex-shiny-field').classList.toggle('hidden',!isHome);
-  const next=isHome?($('dex-shiny').value==='shiny'?'HOME shiny':'HOME'):choices.find(c=>c.id===$('dex-game').value).name;
+ let editingId=null,selectedChoice='home',proposedName='';
+ const templates=[{id:'home',catalogId:'home',name:'HOME'},{id:'home-shiny',catalogId:'home-shiny',name:'HOME shiny'},...choices];
+ function closeEditor(){JTDDialogs.close('dex-editor-overlay');editingId=null;}
+ function renderChoices(){
+  const fold=value=>value.normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr');
+  const query=fold($('dex-choice-search').value.trim());
+  const list=templates.filter(t=>fold(t.name).includes(query));
+  $('dex-choices').innerHTML=list.map(t=>'<button type="button" class="dex-choice" data-dex-choice="'+t.id+'" aria-pressed="'+String(t.id===selectedChoice)+'">'+iconHtml(t.catalogId,t.id)+'<span>'+esc(t.name)+'</span></button>').join('')||'<p>Aucun Pokédex trouvé.</p>';
+ }
+ function openEditor(tracker=null){
+  editingId=tracker?.id||null;selectedChoice=tracker?.choice||tracker?.catalogId||'home';
+  $('dex-create').reset();$('dex-picker').classList.toggle('hidden',!!tracker);
+  $('dex-editor-title').textContent=tracker?'Modifier le Pokédex':'Créer un Pokédex';
+  $('dex-editor-save').textContent=tracker?'Enregistrer':'Créer';
+  $('dex-delete').classList.toggle('hidden',!tracker);
+  proposedName=tracker?.name||'HOME';$('dex-name').value=proposedName;$('dex-editor-error').textContent='';
+  renderChoices();JTDDialogs.open('dex-editor-overlay',{onDismiss:closeEditor,initialFocus:tracker?'#dex-name':'#dex-choice-search'});
+ }
+ $('dex-new').onclick=()=>openEditor();
+ $('dex-edit-current').innerHTML=pencil;
+ $('dex-edit-current').onclick=()=>{if(current) openEditor(current);};
+ $('dex-create-cancel').onclick=closeEditor;
+ $('dex-choice-search').addEventListener('input',renderChoices);
+ $('dex-choices').addEventListener('click',event=>{
+  const button=event.target.closest('[data-dex-choice]');if(!button) return;
+  selectedChoice=button.dataset.dexChoice;
+  const next=templates.find(t=>t.id===selectedChoice).name;
   if(!$('dex-name').value||$('dex-name').value===proposedName) $('dex-name').value=next;
   proposedName=next;
- }
- for(const id of ['dex-kind','dex-game','dex-shiny']) $(id).addEventListener('change',syncCreate);
- $('dex-new').onclick=()=>{$('dex-create').reset();proposedName='';syncCreate();$('dex-create').classList.remove('hidden');$('dex-kind').focus();};
- $('dex-create-cancel').onclick=()=>{$('dex-create').classList.add('hidden');$('dex-new').focus();};
+  for(const option of $('dex-choices').querySelectorAll('[data-dex-choice]')) option.setAttribute('aria-pressed',String(option.dataset.dexChoice===selectedChoice));
+ });
+ $('dex-delete').onclick=()=>{
+  const id=editingId,tracker=trackers.find(t=>t.id===id);if(!tracker) return;
+  confirmAction('Supprimer « '+tracker.name+' » et sa progression ?',()=>{
+   try {persist(trackers.filter(t=>t.id!==id));closeEditor();renderLibrary();$('dex-new').focus();}
+   catch {$('dex-editor-error').textContent='Le Pokédex n’a pas pu être supprimé.';}
+  });
+ };
  $('dex-create').addEventListener('submit',event=>{
   event.preventDefault();if(loadError) return;
   const name=$('dex-name').value.trim();if(!name){$('dex-name').focus();return;}
-  const choice=choices.find(c=>c.id===$('dex-game').value);
-  const catalogId=$('dex-kind').value==='home'?($('dex-shiny').value==='shiny'?'home-shiny':'home'):choice.catalogId;
-  const tracker={id:crypto.randomUUID(),catalogId,name:name.slice(0,100),states:{},choice:choice.id};
-  try {persist([...trackers,tracker]);$('dex-create').classList.add('hidden');$('dex-library-error').textContent='';renderLibrary();$('dex-tracker-list').querySelector('[data-tracker="'+tracker.id+'"]').click();}
-  catch {$('dex-library-error').textContent='Le Pokédex n’a pas pu être enregistré dans ce navigateur.';}
+  const existing=editingId&&trackers.find(t=>t.id===editingId);
+  if(editingId&&!existing){$('dex-editor-error').textContent='Ce Pokédex n’existe plus.';return;}
+  const template=templates.find(t=>t.id===selectedChoice);
+  const tracker=existing?{...existing,name:name.slice(0,100)}:{id:crypto.randomUUID(),catalogId:template.catalogId,name:name.slice(0,100),states:{},choice:template.id};
+  try {
+   persist(existing?trackers.map(t=>t.id===tracker.id?tracker:t):[...trackers,tracker]);
+   closeEditor();$('dex-library-error').textContent='';
+   if(existing&&current?.id===tracker.id){current=tracker;loadDex();$('dex-edit-current').focus();}
+   else {renderLibrary();const button=$('dex-tracker-list').querySelector('[data-tracker="'+tracker.id+'"]');if(existing) button.focus();else button.click();}
+  }catch {$('dex-editor-error').textContent='Le Pokédex n’a pas pu être enregistré dans ce navigateur.';}
  });
  function count(list){
   let pending=0,done=0;
@@ -109,13 +156,7 @@
   entries=[...base,...forms];
   $('pokedex-title').textContent=current.name;
   $('dex-subtitle').textContent=home?'Pokémon HOME'+(shiny?' · Shiny':'')+' · National · '+base.length+' espèces · '+forms.length+' formes régionales':(choices.find(c=>c.id===current.choice)?.name||dex.name.split(' — ')[0])+' · '+dex.name.split(' — ')[1]+' · '+base.length+' Pokémon';
-  $('dex-identity-icon').innerHTML='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+(home?'<path d="m5 15 11-9 11 9v12H5zM12 27V16h8v11"/>':'<circle cx="16" cy="16" r="11"/><path d="M5 16h7m8 0h7"/><circle cx="16" cy="16" r="4"/>')+'</svg>';
-  const gameId=Number(active.slice(5));
-  const iconFile=home?'Icône Pokémon HOME HOME.png':gameId===2?'Icône Pokémon Jaune (3DS).png':[3,7].includes(gameId)?'Icône Pokémon Cristal (3DS).png':gameId>=12&&gameId<=14?'Icône Pokémon X HOME.png':gameId===15?'Icône Pokémon Rubis Oméga HOME.png':gameId>=16&&gameId<=20?'Icône Pokémon Soleil HOME.png':gameId>=21&&gameId<=25?'Icône Pokémon Ultra-Soleil HOME.png':gameId===26?"Icône Pokémon Let's Go, Pikachu HOME.png":gameId>=27&&gameId<=29?'Icône Pokémon Épée HOME.png':gameId===30?'Icône Légendes Pokémon Arceus HOME.png':gameId>=31&&gameId<=33?'Icône Pokémon Écarlate HOME.png':gameId>=34?'Icône Légendes Pokémon Z-A HOME.png':'';
-  if(iconFile){
-   const image=new Image();image.alt='';image.src='https://www.pokepedia.fr/Spécial:FilePath/'+encodeURIComponent(iconFile);
-   image.addEventListener('error',()=>image.remove(),{once:true});$('dex-identity-icon').append(image);
-  }
+  $('dex-identity-icon').innerHTML=iconHtml(active,current.choice);
   boxes.replaceChildren();addBoxes(base);
   for(const region of Object.keys(regionNames)) if(home) addBoxes(forms.filter(entry=>entry.region===region),region);
   $('dex-generations').classList.toggle('hidden',!home);
@@ -129,10 +170,11 @@
    button.querySelector('.dex-state-mark').textContent=['','•','✓'][state];
   }
   const overall=count(entries);
-  $('dex-progress').innerHTML='<strong>'+overall.done+' <small>/ '+overall.total+' rangés</small></strong><span>'+overall.pending+' à ranger</span>'+progress(entries);
+  $('dex-progress').innerHTML='<strong>'+(overall.done+overall.pending)+' <small>/ '+overall.total+'</small></strong>'+progress(entries);
+  $('dex-legend').innerHTML=badges(overall.total,overall.pending,overall.done);
   $('dex-generations').innerHTML=home?[...new Set(catalog.species.map(entry=>entry.generation))].sort((a,b)=>a-b).map(generation=>{
    const list=entries.filter(entry=>!entry.region&&entry.generation===generation),totals=count(list);
-   return '<div class="dex-generation"><div><strong>Gén. '+generation+(generationNames[generation-1]?' · '+generationNames[generation-1]:'')+'</strong><span>'+totals.done+' / '+totals.total+'</span></div>'+progress(list)+'</div>';
+   return '<div class="dex-generation"><div><strong>Gén. '+generation+(generationNames[generation-1]?' · '+generationNames[generation-1]:'')+'</strong><span>'+(totals.done+totals.pending)+' / '+totals.total+'</span></div>'+progress(list)+'</div>';
   }).join(''):'';
  }
  boxes.addEventListener('click',event=>{

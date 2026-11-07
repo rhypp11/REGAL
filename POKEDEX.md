@@ -2,6 +2,10 @@
 
 Le module reste réservé à `IS_PREVIEW_MODE`. Il n’est ni synchronisé avec Firebase, ni intégré aux sauvegardes utilisateur. L’écran Mes Pokédex contient seulement les suivis créés et nommés. Plusieurs suivis peuvent utiliser le même catalogue HOME ou jeu/DLC, avec des progressions indépendantes.
 
+La création utilise une modale partagée avec le cycle de focus/clavier du site. Le catalogue se choisit dans une grille de vignettes recherchable. Le crayon de chaque suivi permet de le renommer sans changer son catalogue ou ses cases, ou de le supprimer après confirmation. Les icônes sont communes à la grille, à la liste et à l’en-tête ; les jeux anciens sans icône disponible utilisent leur Pokémon emblématique.
+
+Les grands compteurs affichent le nombre total obtenu (à ranger + rangés), sans sous-texte. La légende présente les effectifs des trois états en badges gris, jaune et vert. Les compteurs de génération suivent le même calcul et les barres conservent leurs segments par état.
+
 ## Catalogue
 
 `pokedex-data.js` est généré par `node scripts/build-pokedex.cjs`, à partir d’une révision identifiée des CSV publics de PokéAPI. Les noms français, générations et numéros régionaux proviennent de ces CSV. Pour une actualisation, changer la révision dans le générateur et relancer celui-ci. Le générateur accepte aussi `POKEDEX_SOURCE_DIR` pour lire un dossier de CSV déjà téléchargés.

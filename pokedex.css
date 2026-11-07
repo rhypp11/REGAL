@@ -3,39 +3,49 @@
 .dex-heading h1 { margin:0 0 5px; font-size:26px; }
 .dex-subtitle { color:var(--ui-text-muted); font-size:14px; }
 .dex-toolbar { margin-top:24px; padding:18px 0; border-block:1px solid var(--ui-border); flex-wrap:wrap; }
-#dex-progress { min-width:240px; display:grid; grid-template-columns:auto auto; align-items:baseline; gap:8px 20px; }
+#dex-progress { min-width:220px; display:grid; gap:8px; }
 #dex-progress strong { font-size:23px; }
-#dex-progress small,#dex-progress>span { font-size:13px; color:var(--ui-text-muted); font-weight:400; }
+#dex-progress small { font-size:18px; color:var(--ui-text-muted); font-weight:400; }
 .dex-progress-track { grid-column:1/-1; display:flex; height:6px; background:var(--ui-border); border-radius:4px; overflow:hidden; }
 .dex-progress-track span { display:block; height:100%; }
 .dex-progress-home { background:#33946b; }
 .dex-progress-pending { background:#e3b83f; }
 .dex-identity { display:flex; gap:14px; align-items:center; min-width:0; }
-#dex-identity-icon { flex:none; position:relative; display:grid; place-items:center; width:54px; height:54px; border-radius:12px; background:var(--ui-surface-raised); border:1px solid var(--ui-border); color:var(--ui-accent); overflow:hidden; }
-#dex-identity-icon img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:var(--ui-surface); }
-#dex-identity-icon svg { width:32px; height:32px; }
-.dex-create { max-width:600px; padding:20px; margin:20px 0; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-surface); }
-.dex-create select,.dex-create input { width:100%; min-width:0; font:inherit; font-size:14px; }
+.dex-game-icon { flex:none; position:relative; display:grid; place-items:center; width:48px; height:48px; border-radius:10px; background:var(--ui-surface-raised); border:1px solid var(--ui-border); color:var(--ui-accent); overflow:hidden; }
+.dex-game-icon img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:var(--ui-surface); opacity:0; }
+.dex-game-icon img.ready { opacity:1; }
+.dex-game-icon svg { width:30px; height:30px; }
+#dex-identity-icon .dex-game-icon { width:54px; height:54px; }
+.dex-editor-modal { width:min(680px,calc(100vw - 24px)); }
+#dex-choices { display:grid; grid-template-columns:repeat(auto-fill,minmax(108px,1fr)); gap:8px; max-height:310px; overflow:auto; margin-bottom:20px; padding:3px; }
+.dex-choice { display:flex; align-items:center; flex-direction:column; gap:9px; min-height:114px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-surface); color:var(--ui-text); padding:12px 8px; font:inherit; font-size:12px; cursor:pointer; }
+.dex-choice[aria-pressed="true"] { border-color:var(--ui-accent); background:var(--ui-surface-raised); box-shadow:inset 0 0 0 1px var(--ui-accent); }
+.dex-choice:hover { border-color:var(--ui-accent); }
+.dex-choice:focus-visible { outline:3px solid var(--ui-accent); outline-offset:1px; }
+.dex-detail-actions { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
 #dex-tracker-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr)); gap:16px; margin-top:24px; }
-.dex-tracker-card { display:flex; flex-direction:column; gap:10px; min-width:0; padding:20px; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-surface); color:var(--ui-text); font:inherit; text-align:left; cursor:pointer; }
+.dex-tracker-card { position:relative; min-width:0; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-surface); color:var(--ui-text); }
+.dex-tracker-open { display:flex; flex-direction:column; gap:12px; width:100%; height:100%; padding:20px; border:0; border-radius:11px; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.dex-card-heading { display:flex; gap:12px; align-items:center; padding-right:30px; }
+.dex-tracker-edit { position:absolute; top:12px; right:12px; }
+.dex-tracker-card .dex-tracker-total { font-size:23px; }
+.dex-card-legend { display:flex; flex-wrap:wrap; gap:6px; }
 .dex-tracker-card:hover { border-color:var(--ui-accent); }
 .dex-tracker-card strong { font-size:18px; overflow-wrap:anywhere; }
 .dex-tracker-catalog { font-size:13px; color:var(--ui-text-muted); overflow-wrap:anywhere; }
-.dex-tracker-count { font-size:12px; }
 .dex-tracker-card .dex-progress-track { width:100%; }
-.dex-tracker-card:focus-visible { outline:3px solid var(--ui-accent); outline-offset:2px; }
+.dex-tracker-open:focus-visible { outline:3px solid var(--ui-accent); outline-offset:2px; }
 .dex-empty-library { color:var(--ui-text-muted); font-size:14px; }
-#dex-back { margin-bottom:20px; }
 #dex-generations { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 24px; margin-top:18px; }
 .dex-generation>div:first-child { display:flex; justify-content:space-between; gap:6px; margin-bottom:6px; font-size:12px; }
 .dex-generation strong { font-weight:500; }
 .dex-generation>div>span { color:var(--ui-text-muted); font-variant-numeric:tabular-nums; }
 @media(max-width:700px) { #dex-generations { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .dex-heading { flex-wrap:wrap; } }
-.dex-legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; }
-.dex-legend>span { display:flex; align-items:center; gap:7px; }
-.dex-legend i { width:12px; height:12px; border:1px solid var(--ui-border); border-radius:4px; background:var(--ui-surface); }
-.dex-legend [data-state="1"] { background:#f0c657; border-color:#b58a26; }
-.dex-legend [data-state="2"] { background:#70bb92; border-color:#33946b; }
+.dex-legend { display:flex; gap:8px; flex-wrap:wrap; }
+.dex-count-badge { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--ui-border); border-radius:7px; padding:6px 8px; background:var(--ui-surface-raised); color:var(--ui-text-muted); font-size:12px; }
+.dex-count-badge b { font-variant-numeric:tabular-nums; }
+.dex-count-badge[data-state="1"] { background:#f6dfa0; border-color:#c5a348; color:#554015; }
+.dex-count-badge[data-state="2"] { background:#b4dec5; border-color:#65a982; color:#234d35; }
 #dex-boxes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
 .dex-box { min-width:0; border:1px solid var(--ui-border); border-radius:14px; overflow:hidden; background:var(--ui-surface); }
 .dex-box header { padding:14px 16px; border-bottom:1px solid var(--ui-border); background:var(--ui-surface-raised); }
