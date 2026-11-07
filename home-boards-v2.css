@@ -120,9 +120,10 @@
   min-height:38px;
   margin:0 0 5px;
   padding:7px 10px 7px 12px;
-  border:1px solid var(--calendar-accent,var(--ui-border));
+  border:0;
+  border-left:3px solid var(--calendar-accent,var(--ui-border));
   border-radius:0;
-  background:var(--calendar-accent,var(--ui-surface));
+  background:color-mix(in srgb,var(--calendar-accent,var(--ui-border)) 12%,var(--ui-surface));
 }
 
 #home-boards .calendar-group-head-loose {
@@ -135,7 +136,7 @@
 }
 
 #home-boards .calendar-group-title strong {
-  color:var(--calendar-ink,var(--ui-text));
+  color:var(--ui-text);
   font-family:var(--ui-font-sans);
   font-size:12.5px;
   font-weight:750;
@@ -147,7 +148,7 @@
 }
 
 #home-boards .calendar-group-title span {
-  color:var(--calendar-ink,var(--ui-text-muted));
+  color:var(--ui-text);
   font-family:var(--ui-font-sans);
   font-size:9.5px;
   font-weight:500;
@@ -487,10 +488,10 @@
 /* Wishlist : un panneau compact, secondaire au calendrier des arrivages. */
 #home-boards .board.wishlist {
   padding:14px;
-  border:1px solid var(--ui-border);
+  border:0;
   border-radius:var(--ui-radius-lg);
   background:var(--ui-surface);
-  box-shadow:var(--ui-edge-highlight),var(--ui-panel-shadow);
+  box-shadow:none;
 }
 #home-boards .wishlist .board-head { min-height:44px; padding:0 0 12px; }
 #home-boards .wishlist .board-empty { margin:0; }

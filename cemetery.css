@@ -33,7 +33,7 @@
   align-items:flex-start;
   gap:10px;
   padding:16px;
-  border:1px solid color-mix(in srgb,var(--stat-accent) 12%,var(--ui-border));
+  border:0;
   border-radius:14px;
   background:color-mix(in srgb,var(--stat-accent) 5%,var(--ui-surface));
 }
