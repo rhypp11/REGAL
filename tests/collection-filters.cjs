@@ -34,8 +34,8 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await stat(page,'termine'),2);
       assert.equal(await stat(page,'digital'),2);
       assert.match(await page.locator('[data-stat="spent"]').innerText(),/40/);
-      assert.match(await page.locator('.collection-stat-toggle').innerText(),/^2 /);
-      assert.match(await page.locator('#platform-list .active .plat-count').innerText(),/^2$/);
+      assert.match(await page.locator('.collection-stat-toggle').innerText(),/^2(?:\s|$)/);
+      assert.match(await page.locator('#platform-list .active .plat-count').textContent(),/^2$/);
       const currentView=await page.evaluate(()=>navigationSnapshot());
       await page.evaluate(view=>applyNavigation({...view,search:'Jardin',sort:'name-desc'}),currentView);
       const searchChip=page.getByRole('button',{name:'Retirer « Jardin »'});
@@ -55,7 +55,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.evaluate(view=>applyNavigation({...view,accountId:'eu'}),currentView);
       await page.getByRole('button',{name:'Retirer Jeux',exact:true}).click();
       assert.deepEqual(await cards(page),[]);
-      assert.equal(await page.locator('#platform-list .active .plat-name').innerText(),'Switch 2');
+      assert.equal(await page.locator('#platform-list .active .plat-name').textContent(),'Switch 2');
       assert.equal(await page.evaluate(()=>state.platform),'Switch 2');
       await page.evaluate(view=>applyNavigation(view),currentView);
       await types(page,'game');
@@ -159,7 +159,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await page.locator('#collection-account-picker, #collection-account').count(),0);
       assert.equal(await page.locator('[data-account=""] .account-all-icon svg circle').count(),1);
       assert.equal(await page.locator('[data-account="jp"]').getAttribute('aria-pressed'),'true');
-      assert.match(await page.locator('[data-account="jp"] .plat-count').innerText(),/^2$/);
+      assert.match(await page.locator('[data-account="jp"] .plat-count').textContent(),/^2$/);
       await page.screenshot({path:'/tmp/jtd-account-filters-'+width+'-'+theme+'.png'});
       await page.locator('[data-account="eu"]').click();
       assert.deepEqual(await cards(page),['game:other']);
