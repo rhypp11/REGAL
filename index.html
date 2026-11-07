@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="digital.css?v=compact-content-28">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=2">
-<link rel="stylesheet" href="pokedex.css?v=catalogs-2">
+<link rel="stylesheet" href="pokedex.css?v=trackers-3">
 <link rel="stylesheet" href="journal.css?v=journal-sources-1">
 </head>
 <body>
@@ -619,14 +619,17 @@
 
 
 
-<section class="page hidden" id="page-pokedex" aria-labelledby="pokedex-title">
-  <div class="dex-heading"><div class="dex-identity"><div id="dex-identity-icon" aria-hidden="true"></div><div><h1 id="pokedex-title">Pokédex</h1><span class="dex-subtitle" id="dex-subtitle"></span></div></div><span class="dex-prototype">Maquette interactive</span></div>
-  <div class="dex-selection"><label for="dex-select">Mon Pokédex</label><select id="dex-select"></select></div>
-  <div class="dex-toolbar"><div id="dex-progress" aria-live="polite"></div><div class="dex-legend"><span><i></i>À obtenir</span><span><i data-state="1"></i>À transférer</span><span><i data-state="2"></i>Dans HOME</span></div></div>
+<section class="page hidden" id="page-pokedex" aria-label="Pokédex">
+ <div id="dex-library"><div class="dex-heading"><h1>Mes Pokédex</h1><button type="button" id="dex-new" class="btn btn-primary">Créer un Pokédex</button></div>
+ <form id="dex-create" class="dex-create hidden"><div class="field"><label for="dex-kind">Type de Pokédex</label><select id="dex-kind"><option value="game">Jeu ou DLC</option><option value="home">Pokémon HOME</option></select></div><div class="field" id="dex-game-field"><label for="dex-game">Jeu ou DLC</label><select id="dex-game"></select></div><div class="field hidden" id="dex-shiny-field"><label for="dex-shiny">Version</label><select id="dex-shiny"><option value="normal">Normal</option><option value="shiny">Shiny</option></select></div><div class="field"><label for="dex-name">Nom du Pokédex</label><input id="dex-name" required maxlength="100" autocomplete="off"></div><div class="modal-actions"><button type="button" id="dex-create-cancel" class="btn btn-ghost">Annuler</button><button type="submit" class="btn btn-primary">Créer</button></div></form>
+ <p id="dex-library-error" role="alert"></p><div id="dex-tracker-list"></div></div>
+ <div id="dex-detail" class="hidden"><button type="button" id="dex-back" class="btn btn-ghost">← Mes Pokédex</button>
+  <div class="dex-heading"><div class="dex-identity"><div id="dex-identity-icon" aria-hidden="true"></div><div><h1 id="pokedex-title">Pokédex</h1><span class="dex-subtitle" id="dex-subtitle"></span></div></div></div>
+<div class="dex-toolbar"><div id="dex-progress" aria-live="polite"></div><div class="dex-legend"><span><i></i>À obtenir</span><span><i data-state="1"></i>À ranger</span><span><i data-state="2"></i>Rangé</span></div></div>
   <div id="dex-generations" aria-label="Progression par génération"></div>
-  <p class="dex-notice">Un clic : obtenu · Deux clics : dans HOME · Trois clics : à obtenir</p>
-  <p id="dex-error" role="status"></p><div id="dex-boxes"></div>
+<p id="dex-error" role="status"></p><div id="dex-boxes"></div>
   <footer class="dex-attribution">Données et visuels : <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> · Informations : Poképédia</footer>
+</div>
 </section>
 <section class="page hidden" id="page-journal">
   <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien d’abord</option><option value="desc">Plus récent d’abord</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter</button></div></div>
@@ -720,8 +723,8 @@
 <script src="overview.js?v=1"></script>
 <script src="journal-import.js?v=1"></script>
 <script src="journal.js?v=journal-sources-1"></script>
-<script src="pokedex-data.js?v=catalogs-2"></script>
-<script src="pokedex.js?v=catalogs-2"></script>
+<script src="pokedex-data.js?v=trackers-3"></script>
+<script src="pokedex.js?v=trackers-3"></script>
 <script src="lifecycle.js?v=soft-materials-22"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
