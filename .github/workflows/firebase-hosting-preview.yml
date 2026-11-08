@@ -21,6 +21,8 @@ jobs:
 
       - name: Validate JavaScript syntax
         run: |
+          node scripts/build-release.cjs --check
+          node --test tests/release.test.cjs
           node --check pokedex.js
           node --check jtd-data.js
           node --check app.js
