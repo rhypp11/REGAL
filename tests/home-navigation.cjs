@@ -18,7 +18,7 @@ const server=createSandboxServer();
    assert.equal(await page.evaluate(()=>navigationBoard),'arrivals','Arrivals open by default');
    assert.equal(await page.locator('#home-total-games').textContent(),'1');
    assert.match(await page.locator('#home-summary-meta').textContent(),/Valeur d’achat0,00/);
-   assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','journal','collection','cemetery']);
+   assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','journal','pokedex','collection','cemetery']);
    assert.equal(await page.locator('#page-lists').count(),0);
    assert.match(await page.locator('[data-home-progress="physical"] .home-completion-legend').textContent(),/Terminés0Multi0À faire1/);
    assert.doesNotMatch(await page.locator('#home-summary-meta').textContent(),/Terminés|À faire/);
