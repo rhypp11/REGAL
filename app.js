@@ -91,15 +91,19 @@ function decoratePreviewData(data){
 }
 const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1' + (HAS_PREVIEW_COLLECTION_DEMO ? ':collection-demo-v1' : '');
 let previewData;
+function hasPreviewSnapshot(){try {const raw=localStorage.getItem(PREVIEW_STORAGE_KEY);return raw!==null;}catch{return true;}}
 function loadPreviewData(){
   if(previewData) return previewData;
   try {
     const raw = localStorage.getItem(PREVIEW_STORAGE_KEY);
     if(raw){
-      const parsed = JTDData.normalizeData(JSON.parse(raw));
+      const source = JSON.parse(raw);
+      window.JTDMigratePreviewPokedex = !Object.hasOwn(source,'pokedex');
+      const parsed = JTDData.normalizeData(source);
       return previewData = HAS_PREVIEW_COLLECTION_DEMO ? decoratePreviewData(parsed) : parsed;
     }
   } catch(error){ console.error('Lecture sandbox impossible', error); }
+  window.JTDMigratePreviewPokedex = !hasPreviewSnapshot();
   const initial = JTDData.normalizeData({...PREVIEW_SEED,
     games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo(),...digitalPreviewGames()] : PREVIEW_SEED.games,
     digitalAccounts:HAS_PREVIEW_COLLECTION_DEMO ? digitalPreviewAccounts() : [],
@@ -107,7 +111,7 @@ function loadPreviewData(){
   return previewData = HAS_PREVIEW_COLLECTION_DEMO ? decoratePreviewData(initial) : initial;
 }
 function savePreviewData(overrides = {}){
-  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:LEGACY_JOURNAL, digitalAccounts:DIGITAL_ACCOUNTS, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
+  const data = {...{games:GAMES, arrivals:ARRIVALS, wishlist:WISHLIST, cemetery:CEMETERY, journal:LEGACY_JOURNAL, pokedex:POKEDEX_TRACKERS, digitalAccounts:DIGITAL_ACCOUNTS, platformMeta, platformOrder, profileName:PROFILE_NAME, profileAvatar:PROFILE_AVATAR}, ...overrides};
   localStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(data));
   previewData = data;
 }
@@ -118,6 +122,7 @@ function restoredStorageEntries(data){
     [WISHLIST_KEY, JSON.stringify(data.wishlist)],
     [CEMETERY_KEY, JSON.stringify(data.cemetery || [])],
     [LEGACY_JOURNAL_KEY, JSON.stringify(data.journal || [])],
+    [POKEDEX_KEY, JSON.stringify(data.pokedex || [])],
     [DIGITAL_ACCOUNTS_KEY, JSON.stringify(data.digitalAccounts || [])],
     [PLATFORM_META_KEY, JSON.stringify(data.platformMeta)],
     [PLATFORM_ORDER_KEY, JSON.stringify(data.platformOrder)],
@@ -130,6 +135,7 @@ function replaceAppData(data){
   WISHLIST = data.wishlist;
   CEMETERY = data.cemetery || [];
   LEGACY_JOURNAL = data.journal || [];
+  POKEDEX_TRACKERS = data.pokedex || [];
   DIGITAL_ACCOUNTS = data.digitalAccounts || [];
   window.renderCemetery?.();
   platformMeta = data.platformMeta;
@@ -137,6 +143,7 @@ function replaceAppData(data){
   PROFILE_NAME = data.profileName;
   PROFILE_AVATAR = data.profileAvatar;
   window.refreshJournal?.();
+  window.refreshPokedex?.();
 }
 window.replaceAppData = replaceAppData;
 window.persistAppData = data => {
@@ -441,6 +448,8 @@ let CEMETERY = [];
 // Inert private archive: preserve old backups and account data without collection links.
 let LEGACY_JOURNAL = [];
 const LEGACY_JOURNAL_KEY = 'ludotheque:journal-v1';
+let POKEDEX_TRACKERS = [];
+const POKEDEX_KEY = 'ludotheque:pokedex-v1';
 const CEMETERY_KEY = 'ludotheque:cemetery-v1';
 let editingId = null; // null = ajout, sinon id du jeu en édition
 let editingCollection = 'games';
@@ -596,7 +605,7 @@ function saveWishlist(){
   return writeStoredValue(WISHLIST_KEY, JSON.stringify(WISHLIST));
 }
 
-const BACKUP_VERSION = 4;
+const BACKUP_VERSION = 5;
 const LAST_BACKUP_KEY = 'ludotheque:last-backup-v2';
 const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
 
@@ -623,6 +632,7 @@ function buildBackupPayload(){
       wishlist: WISHLIST,
       cemetery: CEMETERY,
       journal: LEGACY_JOURNAL,
+      pokedex: POKEDEX_TRACKERS,
       digitalAccounts: DIGITAL_ACCOUNTS,
       platformMeta,
       platformOrder,
@@ -704,7 +714,8 @@ function restoreBackup(file){
         data.games.length + ' jeu(x)',
         data.wishlist.length + ' souhait(s)',
         data.arrivals.length + ' arrivage(s)',
-        data.cemetery.length + ' entrée(s) au cimetière'
+        data.cemetery.length + ' entrée(s) au cimetière',
+        data.pokedex.length + ' Pokédex'
       ].join(' • ');
       confirmAction(
         'Cette restauration remplacera toutes les listes, le profil et les plateformes par le contenu du fichier : ' + summary + '. Les sections absentes d’une ancienne sauvegarde seront vidées. Tu peux annuler et télécharger une sauvegarde complète avant de continuer.',
@@ -2805,7 +2816,7 @@ function setHomeBoard(board){
 }
 function applyNavigation(view = {}){
   restoringNavigation = true;
-  navigationPage = ['collection','cemetery','journal',...(IS_PREVIEW_MODE?['pokedex']:[])].includes(view.page) ? view.page : 'home';
+  navigationPage = ['collection','cemetery','journal','pokedex'].includes(view.page) ? view.page : 'home';
   state = {
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
     contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
@@ -2841,7 +2852,7 @@ function goToPage(page, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
-  navigationPage = ['collection','cemetery','journal',...(IS_PREVIEW_MODE?['pokedex']:[])].includes(page) ? page : 'home';
+  navigationPage = ['collection','cemetery','journal','pokedex'].includes(page) ? page : 'home';
   document.querySelectorAll('.nav-tab').forEach(b => {
     const active = b.dataset.page === navigationPage;
     b.classList.toggle('active', active);
@@ -2963,6 +2974,7 @@ async function initApp(isCurrent = () => true){
   await loadWishlist();
   CEMETERY = IS_PREVIEW_MODE ? loadPreviewData().cemetery : JSON.parse(accountStorage.getItem(CEMETERY_KEY) || '[]');
   LEGACY_JOURNAL = IS_PREVIEW_MODE ? loadPreviewData().journal : JSON.parse(accountStorage.getItem(LEGACY_JOURNAL_KEY) || '[]');
+  POKEDEX_TRACKERS = IS_PREVIEW_MODE ? loadPreviewData().pokedex : JTDData.normalizePokedex(JSON.parse(accountStorage.getItem(POKEDEX_KEY) || '[]'));
   DIGITAL_ACCOUNTS = IS_PREVIEW_MODE ? loadPreviewData().digitalAccounts : JSON.parse(accountStorage.getItem(DIGITAL_ACCOUNTS_KEY) || '[]');
   window.renderCemetery?.();
   if(!isCurrent()) return;
@@ -2979,6 +2991,7 @@ async function initApp(isCurrent = () => true){
   renderArrivals();
   renderWishlist();
   updateBackupNote();
+  window.refreshPokedex?.();
 }
 
 /* ---------- Bootstrap totalement isolé de la preview ---------- */

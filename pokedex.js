@@ -1,7 +1,6 @@
-/* Interactive preview only; intentionally separate from account/cloud data. */
+/* Private Pokédex trackers: shared account, cloud and backup data boundary. */
 (() => {
- if(!IS_PREVIEW_MODE) return;
- document.body.classList.add('dex-prototype-enabled');
+ document.body.classList.add('dex-enabled');
  document.getElementById('pokedex-nav').classList.remove('hidden');
  const $=id=>document.getElementById(id),esc=escapeHTML;
  const catalog=window.REGAL_POKEDEX_CATALOG;
@@ -11,33 +10,43 @@
  const generationNames=['Kanto','Johto','Hoenn','Sinnoh','Unys','Kalos','Alola','Galar','Paldea'];
  const boxes=$('dex-boxes'),storagePrefix='jtd:sandbox-pokedex-prototype:';
  const libraryKey=storagePrefix+'trackers:v2';
- let trackers=[],current=null,active='',states={},entries=[],home=false,shiny=false,loadError=false;
+ let trackers=POKEDEX_TRACKERS,current=null,active='',states={},entries=[],home=false,shiny=false,loadError=false;
+ let revision=0;
  const choices=[];
  const versions=[[2,'Rouge','Bleu','Jaune'],[3,'Or','Argent','Cristal'],[4,'Rubis','Saphir','Émeraude'],['frlg','Rouge Feu','Vert Feuille'],[5,'Diamant','Perle'],[6,'Platine'],[7,'HeartGold','SoulSilver'],[8,'Noir','Blanc'],[9,'Noir 2','Blanc 2'],[12,'X','Y'],[15,'Rubis Oméga','Saphir Alpha'],[16,'Soleil','Lune'],[21,'Ultra-Soleil','Ultra-Lune'],[26,'Let’s Go Pikachu','Let’s Go Évoli'],[27,'Épée','Bouclier'],[28,'Épée · Isolarmure (DLC)','Bouclier · Isolarmure (DLC)'],[29,'Épée · Couronneige (DLC)','Bouclier · Couronneige (DLC)'],[30,'Légendes Arceus'],[31,'Écarlate','Violet'],[32,'Écarlate · Septentria (DLC)','Violet · Septentria (DLC)'],[33,'Écarlate · Myrtille (DLC)','Violet · Myrtille (DLC)'],[34,'Légendes Z-A'],[35,'Légendes Z-A · Méga-Dimension (DLC)']];
  for(const [number,...names] of versions) names.forEach((name,index)=>choices.push({id:'game-'+number+':'+index,catalogId:'game-'+number,name}));
  const validCatalog=id=>['home','home-shiny'].includes(id)||catalog.dexes.some(d=>d.id===id);
  const cleanStates=value=>Object.fromEntries(Object.entries(value&&typeof value==='object'&&!Array.isArray(value)?value:{}).filter(([id,state])=>/^\d+$/.test(id)&&[1,2].includes(state)));
- function persist(next){localStorage.setItem(libraryKey,JSON.stringify({version:2,trackers:next}));trackers=next;}
- try {
+ function persist(next,generation=window.JTDAccountGeneration){
+  if(generation!==window.JTDAccountGeneration || (!IS_PREVIEW_MODE&&window.JTDCanWriteData?.()!==true)) throw Error('Le compte doit être chargé avant de modifier le Pokédex.');
+  const normalized=JTDData.normalizePokedex(next);
+  JTDData.assertCloudSize({...buildBackupPayload().data,pokedex:normalized,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
+  if(IS_PREVIEW_MODE) savePreviewData({pokedex:normalized});
+  else accountStorage.atomicWrite([[POKEDEX_KEY,JSON.stringify(normalized)]]);
+  POKEDEX_TRACKERS=normalized;trackers=normalized;window.JTDDataChanged?.();
+ }
+ function migratePreviewPrototype(){
+  if(!IS_PREVIEW_MODE||!window.JTDMigratePreviewPokedex) return;
+  window.JTDMigratePreviewPokedex=false;
+  if(trackers.length) return;
   const raw=localStorage.getItem(libraryKey);
   if(raw!==null){
    const saved=JSON.parse(raw);
-   if(saved?.version!==2||!Array.isArray(saved.trackers)||saved.trackers.some(t=>!t||typeof t.id!=='string'||typeof t.name!=='string'||!validCatalog(t.catalogId))||new Set(saved.trackers.map(t=>t.id)).size!==saved.trackers.length) throw Error('invalid');
-   trackers=saved.trackers.map(t=>({...t,name:t.name.slice(0,100),states:cleanStates(t.states)}));
-  }else{
-   const migrated=new Map();
-   for(const id of ['home','home-shiny',...Array.from({length:34},(_,i)=>'game-'+(i+2))]){
-    const raw=localStorage.getItem(storagePrefix+id+':v1')??(id==='game-2'?localStorage.getItem(storagePrefix+'kanto:v1'):null);
-    if(raw===null) continue;
-    const number=+id.slice(5),catalogId=[13,14].includes(number)?'game-12':[17,18,19,20].includes(number)?'game-16':[22,23,24,25].includes(number)?'game-21':id;
-    if(!validCatalog(catalogId)) continue;
-    const previous=migrated.get(catalogId)||{id:crypto.randomUUID(),catalogId,name:catalogId==='home'?'HOME':catalogId==='home-shiny'?'HOME shiny':catalog.dexes.find(d=>d.id===catalogId).name.split(' — ')[0],states:{}};
-    for(const [id,state] of Object.entries(cleanStates(JSON.parse(raw)))) previous.states[id]=Math.max(previous.states[id]||0,state);
-    migrated.set(catalogId,previous);
-   }
-   if(migrated.size) persist([...migrated.values()]);
+   if(saved?.version!==2||!Array.isArray(saved.trackers)) throw Error('Ancien Pokédex illisible.');
+   persist(saved.trackers);return;
   }
- }catch {loadError=true;$('dex-library-error').textContent='Impossible de charger les Pokédex enregistrés. Les données ont été conservées.';$('dex-new').disabled=true;}
+  const migrated=new Map();
+  for(const id of ['home','home-shiny',...Array.from({length:34},(_,i)=>'game-'+(i+2))]){
+   const raw=localStorage.getItem(storagePrefix+id+':v1')??(id==='game-2'?localStorage.getItem(storagePrefix+'kanto:v1'):null);
+   if(raw===null) continue;
+   const number=+id.slice(5),catalogId=[13,14].includes(number)?'game-12':[17,18,19,20].includes(number)?'game-16':[22,23,24,25].includes(number)?'game-21':id;
+   if(!validCatalog(catalogId)) continue;
+   const previous=migrated.get(catalogId)||{id:crypto.randomUUID(),catalogId,name:catalogId==='home'?'HOME':catalogId==='home-shiny'?'HOME shiny':catalog.dexes.find(d=>d.id===catalogId).name.split(' — ')[0],states:{}};
+   for(const [id,state] of Object.entries(cleanStates(JSON.parse(raw)))) previous.states[id]=Math.max(previous.states[id]||0,state);
+   migrated.set(catalogId,previous);
+  }
+  if(migrated.size) persist([...migrated.values()]);
+ }
  const pad=n=>String(n).padStart(4,'0');
  const sparkle='<svg class="dex-shiny-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/><path d="M20 2v4m-2-2h4"/></svg>';
  const pencil='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20h9M4 20l1-5L16 4l4 4L9 19z"/></svg>';
@@ -66,14 +75,15 @@
   $('dex-detail').classList.add('hidden');$('dex-library').classList.remove('hidden');current=null;
   $('dex-tracker-list').innerHTML=trackers.length?trackers.map(tracker=>{
    const isHome=['home','home-shiny'].includes(tracker.catalogId),dex=catalog.dexes.find(d=>d.id===tracker.catalogId);
-   const ids=new Set(isHome?[...catalog.species,...catalog.forms].map(e=>String(e.id)):dex.entries.map(e=>String(e.id)));
+   const ids=new Set(isHome?[...catalog.species,...catalog.forms].map(e=>String(e.id)):(dex?.entries||[]).map(e=>String(e.id)));
    const values=Object.entries(tracker.states).filter(([id])=>ids.has(id)).map(([,state])=>state),done=values.filter(s=>s===2).length,pending=values.filter(s=>s===1).length,total=ids.size;
-   const title=isHome?'Pokémon HOME'+(tracker.catalogId==='home-shiny'?' · Shiny':''):(choices.find(c=>c.id===tracker.choice)?.name||dex.name.split(' — ')[0])+' — '+dex.name.split(' — ')[1];
+   const title=isHome?'Pokémon HOME'+(tracker.catalogId==='home-shiny'?' · Shiny':''):(choices.find(c=>c.id===tracker.choice)?.name||dex?.name.split(' — ')[0]||'Catalogue indisponible')+' — '+(dex?.name.split(' — ')[1]||tracker.catalogId);
    return '<article class="dex-tracker-card"><button type="button" class="dex-tracker-open" data-tracker="'+esc(tracker.id)+'"><span class="dex-card-heading">'+iconHtml(tracker.catalogId,tracker.choice)+'<strong>'+esc(tracker.name)+'</strong></span><span class="dex-tracker-catalog">'+esc(title)+'</span><strong class="dex-tracker-total">'+(done+pending)+' / '+total+'</strong><span class="dex-card-legend">'+badges(total,pending,done)+'</span><span class="dex-progress-track" aria-hidden="true"><span class="dex-progress-home" style="width:'+done/total*100+'%"></span><span class="dex-progress-pending" style="width:'+pending/total*100+'%"></span></span></button><button type="button" class="identity-edit-btn dex-tracker-edit" data-edit-tracker="'+esc(tracker.id)+'" aria-label="Modifier '+esc(tracker.name)+'">'+pencil+'</button></article>';
   }).join(''):'<p class="dex-empty-library">Aucun Pokédex pour le moment.</p>';
  }
- $('dex-tracker-list').addEventListener('click',event=>{const edit=event.target.closest('[data-edit-tracker]');if(edit){openEditor(trackers.find(t=>t.id===edit.dataset.editTracker));return;}const button=event.target.closest('[data-tracker]');if(!button) return;current=trackers.find(t=>t.id===button.dataset.tracker);if(!current) return;active=current.catalogId;states={...current.states};$('dex-library').classList.add('hidden');$('dex-detail').classList.remove('hidden');loadDex();window.scrollTo(0,0);$('dex-back').focus({preventScroll:true});});
+ $('dex-tracker-list').addEventListener('click',event=>{const edit=event.target.closest('[data-edit-tracker]');if(edit){openEditor(trackers.find(t=>t.id===edit.dataset.editTracker));return;}const button=event.target.closest('[data-tracker]');if(!button) return;current=trackers.find(t=>t.id===button.dataset.tracker);if(!current) return;if(!validCatalog(current.catalogId)){$('dex-library-error').textContent='Le catalogue de ce Pokédex n’est pas disponible dans cette version. Sa progression est conservée.';current=null;return;}active=current.catalogId;states={...current.states};$('dex-library').classList.add('hidden');$('dex-detail').classList.remove('hidden');loadDex();window.scrollTo(0,0);$('dex-back').focus({preventScroll:true});});
  $('dex-back').onclick=()=>{renderLibrary();window.scrollTo(0,0);$('dex-new').focus({preventScroll:true});};
+ let editorGeneration,editorRevision;
  let editingId=null,selectedChoice='home',proposedName='';
  const templates=[{id:'home',catalogId:'home',name:'HOME'},{id:'home-shiny',catalogId:'home-shiny',name:'HOME shiny'},...choices];
  function closeEditor(){JTDDialogs.close('dex-editor-overlay');editingId=null;}
@@ -84,6 +94,7 @@
   $('dex-choices').innerHTML=list.map(t=>'<button type="button" class="dex-choice" data-dex-choice="'+t.id+'" aria-pressed="'+String(t.id===selectedChoice)+'">'+iconHtml(t.catalogId,t.id)+'<span>'+esc(t.name)+'</span></button>').join('')||'<p>Aucun Pokédex trouvé.</p>';
  }
  function openEditor(tracker=null){
+  editorGeneration=window.JTDAccountGeneration;editorRevision=revision;
   editingId=tracker?.id||null;selectedChoice=tracker?.choice||tracker?.catalogId||'home';
   $('dex-create').reset();$('dex-picker').classList.toggle('hidden',!!tracker);
   $('dex-editor-title').textContent=tracker?'Modifier le Pokédex':'Créer un Pokédex';
@@ -106,21 +117,22 @@
   for(const option of $('dex-choices').querySelectorAll('[data-dex-choice]')) option.setAttribute('aria-pressed',String(option.dataset.dexChoice===selectedChoice));
  });
  $('dex-delete').onclick=()=>{
-  const id=editingId,tracker=trackers.find(t=>t.id===id);if(!tracker) return;
+  const id=editingId,tracker=trackers.find(t=>t.id===id),generation=editorGeneration,view=editorRevision;if(!tracker) return;
   confirmAction('Supprimer « '+tracker.name+' » et sa progression ?',()=>{
-   try {persist(trackers.filter(t=>t.id!==id));closeEditor();renderLibrary();$('dex-new').focus();}
+   if(generation!==window.JTDAccountGeneration||view!==revision) return;
+   try {persist(trackers.filter(t=>t.id!==id),generation);closeEditor();renderLibrary();$('dex-new').focus();}
    catch {$('dex-editor-error').textContent='Le Pokédex n’a pas pu être supprimé.';}
   });
  };
  $('dex-create').addEventListener('submit',event=>{
-  event.preventDefault();if(loadError) return;
+  event.preventDefault();if(loadError||editorGeneration!==window.JTDAccountGeneration||editorRevision!==revision){closeEditor();return;}
   const name=$('dex-name').value.trim();if(!name){$('dex-name').focus();return;}
   const existing=editingId&&trackers.find(t=>t.id===editingId);
   if(editingId&&!existing){$('dex-editor-error').textContent='Ce Pokédex n’existe plus.';return;}
   const template=templates.find(t=>t.id===selectedChoice);
   const tracker=existing?{...existing,name:name.slice(0,100)}:{id:crypto.randomUUID(),catalogId:template.catalogId,name:name.slice(0,100),states:{},choice:template.id};
   try {
-   persist(existing?trackers.map(t=>t.id===tracker.id?tracker:t):[...trackers,tracker]);
+   persist(existing?trackers.map(t=>t.id===tracker.id?tracker:t):[...trackers,tracker],editorGeneration);
    closeEditor();$('dex-library-error').textContent='';
    if(existing&&current?.id===tracker.id){current=tracker;loadDex();$('dex-edit-current').focus();}
    else {renderLibrary();const button=$('dex-tracker-list').querySelector('[data-tracker="'+tracker.id+'"]');if(existing) button.focus();else button.click();}
@@ -187,7 +199,7 @@
  }
  boxes.addEventListener('click',event=>{
   const bulk=event.target.closest('[data-box-state]');
-  const button=event.target.closest('.dex-pokemon');if(!button&&!bulk) return;
+  const button=event.target.closest('.dex-pokemon');if(!current||loadError||(!button&&!bulk)) return;
   const next={...states};
   if(bulk){
    const state=Number(bulk.dataset.boxState);
@@ -203,5 +215,17 @@
  },true);
  boxes.addEventListener('keydown',event=>{if(event.key!=='Escape') return;const menu=event.target.closest('.dex-box-actions[open]');if(menu){menu.open=false;menu.querySelector('summary').focus();event.preventDefault();}});
  document.addEventListener('pointerdown',event=>{if(event.target.closest('.dex-box-actions')) return;for(const menu of boxes.querySelectorAll('.dex-box-actions[open]')) menu.open=false;});
- renderLibrary();
+ window.refreshPokedex=()=>{
+  revision++;
+  if(!$('dex-editor-overlay').classList.contains('hidden')){window.cancelPendingConfirmation?.();closeEditor();}
+  boxes.replaceChildren();entries=[];states={};current=null;loadError=false;
+  $('pokedex-title').textContent='Pokédex';$('dex-subtitle').textContent='';$('dex-identity-icon').replaceChildren();
+  $('dex-progress').replaceChildren();$('dex-legend').replaceChildren();$('dex-generations').replaceChildren();$('dex-create').reset();
+  $('dex-library-error').textContent='';$('dex-new').disabled=false;
+  trackers=POKEDEX_TRACKERS;
+  try {migratePreviewPrototype();}
+  catch(error){loadError=true;$('dex-new').disabled=true;$('dex-library-error').textContent='Les anciens Pokédex n’ont pas pu être repris. Les données d’origine sont conservées.';}
+  renderLibrary();
+ };
+ window.refreshPokedex();
 })();

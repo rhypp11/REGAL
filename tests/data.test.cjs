@@ -4,6 +4,23 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const D = require('../jtd-data.js');
 const game = (extra = {}) => ({id:'g',nom:'Persona',plateforme:'PC',format:'Physique',...extra});
+const tracker = (extra = {}) => ({id:'dex-A',name:'Mon HOME',catalogId:'home',states:{1:1,4:2},...extra});
+
+test('v5 backups preserve independent Pokédex and older backups start empty',()=>{
+ const input={games:[],pokedex:[tracker(),tracker({id:'dex-B',name:'Autre HOME',states:{1:2,4:0}})]};
+ const saved=D.parseBackup({app:'Jeux Tout Doux',version:5,data:input});
+ assert.equal(saved.pokedex.length,2);assert.equal(saved.pokedex[0].states[1],1);assert.equal(saved.pokedex[1].states[1],2);assert.equal(saved.pokedex[1].states[4],undefined);
+ saved.pokedex[0].states[1]=2;assert.equal(input.pokedex[0].states[1],1,'Validation clones the private state');
+ for(const version of [1,2,3,4]) assert.deepEqual(D.parseBackup({app:'Jeux Tout Doux',version,data:{games:[]}}).pokedex,[]);
+ assert.equal(D.normalizePokedex([tracker({catalogId:'game-future'})])[0].catalogId,'game-future','Catalog updates do not discard unknown trackers');
+});
+
+test('malformed Pokédex data cannot overwrite a valid backup',()=>{
+ for(const value of [null,{},[null],[tracker({name:''})],[tracker({id:'bad"id'})],[tracker(),tracker()],[tracker({states:[]})],[tracker({states:{1:3}})],[tracker({states:{1:'1'}})],[tracker({states:{0:1}})],[tracker({choice:[]})]]) assert.throws(()=>D.parseBackup({games:[],pokedex:value}));
+ const privateData={games:[game()],pokedex:[tracker()]};
+ assert.equal(JSON.stringify(D.createPublicSharePayload(privateData)).includes('Mon HOME'),false);
+ assert.equal(JSON.stringify(D.createChatGPTPayload(privateData)).includes('Mon HOME'),false);
+});
 test('image modes survive backups and transfers, older data stays compatible',()=>{
   const parsed=D.parseBackup({app:'Jeux Tout Doux',version:3,data:{games:[game({imageFit:'cover'})],wishlist:[game({id:'w',imageFit:'contain'})],arrivals:[game({id:'a',imageFit:'unexpected'})],cemetery:[game({id:'c',imageFit:'cover',saleStatus:'pending'})]}});
   assert.equal(parsed.games[0].imageFit,'cover');
@@ -34,7 +51,7 @@ test('legacy arrays migrate collector and numeric, missing or duplicate ids', ()
 });
 test('malformed sections, profile, prices, metadata and future versions are rejected', () => {
   for(const data of [{games:[],wishlist:'bad'},{games:[game({nom:''})]},{games:[game({prix:'20'})]},{games:[game({date:{}})]},{games:[],platformMeta:{PC:'bad'}},{games:[],platformMeta:{PC:{color:'red;display:none'}}},{games:[],platformOrder:[{}]},{games:[],profile:[]}]) assert.throws(()=>D.parseBackup(data));
-  for(const version of [5,'3','2',null]) assert.throws(()=>D.parseBackup({app:'Jeux Tout Doux',version,data:{games:[]}}));
+  for(const version of [6,'3','2',null]) assert.throws(()=>D.parseBackup({app:'Jeux Tout Doux',version,data:{games:[]}}));
 });
 test('text and URLs do not become markup or script protocols', () => {
   assert.equal(D.escapeHTML('<img src=x onerror="x"> & \'x\''),'&lt;img src=x onerror=&quot;x&quot;&gt; &amp; &#39;x&#39;');
@@ -75,21 +92,46 @@ async function cloudHarness(){
     console,JSON,Date,Uint8Array,crypto:require('node:crypto').webcrypto,
     setTimeout,clearTimeout,URL,window:{JTD_PREVIEW_MODE:false,cancelPendingConfirmation(){}},state:{platform:null,search:''},JTDData:D,accountStorage:storage,
     document:{getElementById:()=>element},navigator:{clipboard:{writeText:async()=>{}}},
-    GAMES:[],ARRIVALS:[],WISHLIST:[],CEMETERY:[],LEGACY_JOURNAL:[],DIGITAL_ACCOUNTS:[],CEMETERY_KEY:'cemetery',platformMeta:{},platformOrder:[],PROFILE_NAME:'',PROFILE_AVATAR:null,SHARE_TOKEN:null,STORAGE_KEY:'games',
+    GAMES:[],ARRIVALS:[],WISHLIST:[],CEMETERY:[],LEGACY_JOURNAL:[],POKEDEX_TRACKERS:[],DIGITAL_ACCOUNTS:[],CEMETERY_KEY:'cemetery',platformMeta:{},platformOrder:[],PROFILE_NAME:'',PROFILE_AVATAR:null,SHARE_TOKEN:null,STORAGE_KEY:'games',
     initializeApp:()=>({}),getAuth:()=>({}),getFirestore:()=>({}),doc:(_db,collection,id)=>({collection,id}),
     getDoc:async()=>({exists:()=>false}),setDoc:async(ref,data)=>writes.push({ref,data}),deleteDoc:async()=>{},
     onAuthStateChanged:(_auth,callback)=>{ctx.authCallback=callback;},signInWithEmailAndPassword(){},createUserWithEmailAndPassword(){},signOut(){},
     initializeNavigation(){},resetNavigationSession(){},showToast(){},normalizeCollectionEditions(){},buildPlatformList(){},buildFormatToggles(){},buildStatusToggles(){},render(){},renderArrivals(){},renderWishlist(){},renderProfileAvatar(){},updateBackupNote(){},closeModal(){},closeArrivalModal(){},closeWishlistModal(){},closePlatformModal(){},closeMobileDrawers(){}
   };
-  ctx.replaceAppData = data => {for(const [key,value] of Object.entries(data)){const names={games:'GAMES',arrivals:'ARRIVALS',wishlist:'WISHLIST',cemetery:'CEMETERY',journal:'LEGACY_JOURNAL',digitalAccounts:'DIGITAL_ACCOUNTS',profileName:'PROFILE_NAME',profileAvatar:'PROFILE_AVATAR'};ctx[names[key]||key]=value;}};
-  ctx.persistAppData = data => storage.atomicWrite([['games',JSON.stringify(data.games)]]);
-  ctx.initApp = async () => {const games=storage.getItem('games');ctx.GAMES=games?JSON.parse(games):[];};
+  ctx.replaceAppData = data => {for(const [key,value] of Object.entries(data)){const names={games:'GAMES',arrivals:'ARRIVALS',wishlist:'WISHLIST',cemetery:'CEMETERY',journal:'LEGACY_JOURNAL',pokedex:'POKEDEX_TRACKERS',digitalAccounts:'DIGITAL_ACCOUNTS',profileName:'PROFILE_NAME',profileAvatar:'PROFILE_AVATAR'};ctx[names[key]||key]=value;}};
+  ctx.persistAppData = data => storage.atomicWrite([['games',JSON.stringify(data.games)],['pokedex',JSON.stringify(data.pokedex)]]);
+  ctx.initApp = async () => {const games=storage.getItem('games');ctx.GAMES=games?JSON.parse(games):[];ctx.POKEDEX_TRACKERS=D.normalizePokedex(JSON.parse(storage.getItem('pokedex')||'[]'));};
   vm.createContext(ctx);
   const file = fs.readFileSync(require.resolve('../firebase.js'),'utf8');
   const source = file.slice(file.indexOf('  const firebaseConfig'));
   await vm.runInContext('(async()=>{'+source+'\nwindow.testCloud={scheduleCloudSync,doCloudSync,sessions};})()',ctx);
   return {ctx,writes,storage};
 }
+
+test('Pokédex follow the cloud account, reload flush and authoritative empty data',async()=>{
+ const {ctx,writes,storage}=await cloudHarness();
+ ctx.getDoc=async ref=>({exists:()=>true,data:()=>({games:[],pokedex:ref.id==='A'?[tracker()]:[]})});
+ assert.equal(ctx.window.JTDCanWriteData(),false);
+ await ctx.authCallback({uid:'A'});assert.equal(ctx.window.JTDCanWriteData(),true);
+ assert.equal(ctx.POKEDEX_TRACKERS[0].states[1],1);
+ await ctx.window.JTDPrepareReload();assert.equal(writes.at(-1).data.pokedex[0].name,'Mon HOME');
+ await ctx.authCallback(null);assert.equal(ctx.POKEDEX_TRACKERS.length,0);assert.equal(ctx.window.JTDCanWriteData(),false);
+ storage.setAccount('B');storage.setItem('pokedex',JSON.stringify([tracker({name:'Stale cache'})]));
+ await ctx.authCallback({uid:'B'});assert.equal(ctx.POKEDEX_TRACKERS.length,0,'Empty cloud Pokédex wins over stale cache');
+ await ctx.window.JTDPrepareReload();assert.equal(writes.at(-1).ref.id,'B');assert.equal(writes.at(-1).data.pokedex.length,0);
+ await ctx.authCallback({uid:'A'});assert.equal(ctx.POKEDEX_TRACKERS[0].name,'Mon HOME');
+});
+
+test('slow reads and failed cloud loads cannot leak or write Pokédex',async()=>{
+ const {ctx,writes}=await cloudHarness();let release;
+ ctx.getDoc=ref=>ref.id==='A'?new Promise(resolve=>{release=resolve;}):Promise.resolve({exists:()=>true,data:()=>({games:[],pokedex:[tracker({id:'dex-B',name:'B uniquement'})]})});
+ const first=ctx.authCallback({uid:'A'});await new Promise(resolve=>setImmediate(resolve));
+ await ctx.authCallback({uid:'B'});release({exists:()=>true,data:()=>({games:[],pokedex:[tracker()]})});await first;
+ assert.equal(ctx.POKEDEX_TRACKERS[0].name,'B uniquement');
+ ctx.getDoc=async()=>{throw Error('offline');};ctx.console={error(){}};
+ await ctx.authCallback({uid:'C'});assert.equal(ctx.window.JTDCanWriteData(),false);assert.equal(ctx.POKEDEX_TRACKERS.length,0);
+ const before=writes.length;ctx.window.JTDDataChanged();await new Promise(resolve=>setTimeout(resolve,950));assert.equal(writes.length,before);
+});
 
 test('digital console accounts follow cloud sessions and are included in outgoing saves',async()=>{
   const {ctx,writes}=await cloudHarness();
@@ -292,3 +334,4 @@ test('live public collection preserves links and media without private purchase/
   assert.equal(payload.games[1].format,'Numérique');
   assert.doesNotMatch(JSON.stringify(payload),/private-account|private note|Secret|currency|prix/);
 });
+
