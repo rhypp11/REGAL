@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>REGAL | Accueil</title>
+<meta name="regal-version" content="3_08.11.26-1">
+<meta name="regal-build" content="9cc29d6a356516df3c20c263">
 <link rel="icon" type="image/svg+xml" href="logo-icon-light.svg?v=regal-1">
 <link rel="apple-touch-icon" href="logo-icon-apple.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -21,7 +23,7 @@
 <link rel="stylesheet" href="home-dashboard.css?v=density-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=density-1">
-<link rel="stylesheet" href="regal.css?v=responsive-layout-2">
+<link rel="stylesheet" href="regal.css?v=release-notice-1">
 <link rel="stylesheet" href="game-sheet.css?v=status-summary-1">
 <link rel="stylesheet" href="collection.css?v=filter-labels-1">
 <link rel="stylesheet" href="digital.css?v=compact-content-28">
@@ -135,6 +137,7 @@
           <label class="profile-menu-item" for="deku-import-input" id="deku-import-trigger"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg><span>Importer Deku Deals</span></span></label>
           <button type="button" class="profile-menu-item" id="journal-import-open"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg><span>Importer le journal (CSV)</span></span></button>
           </details>
+          <div class="profile-menu-version"><span id="site-version-label"></span><button type="button" id="site-update-btn" class="hidden">Actualiser</button></div>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path></svg><span>Se déconnecter</span></span>
@@ -725,7 +728,7 @@
 <script src="journal.js?v=journal-sources-1"></script>
 <script src="pokedex-data.js?v=account-pokedex-1"></script>
 <script src="pokedex.js?v=account-pokedex-1"></script>
-<script src="lifecycle.js?v=soft-materials-22"></script>
+<script src="lifecycle.js?v=release-notice-1"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
     const firebaseScript = document.createElement('script');

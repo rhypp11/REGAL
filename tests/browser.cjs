@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {createSandboxServer} = require('./sandbox.cjs');
 const server = createSandboxServer();
+const baseRelease=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'../site-version.json'),'utf8'));
 const payload = {
   app:'Jeux Tout Doux',version:2,data:{
     games:[{id:'g',nom:'<img src=x onerror="window.INJECTED=1"> & "Persona"',plateforme:'PC',format:'Physique',collector:true,japanese:true,prix:20,date:'2026-10-01',source:'L\'enseigne <b>test</b>',image:'http://127.0.0.1:1/broken.png'}],
@@ -29,14 +30,21 @@ async function restore(page, value, confirm=true){
     for(const {width,theme} of [{width:390,theme:'light'},{width:1440,theme:'light'},{width:390,theme:'dark'},{width:1440,theme:'dark'}]){
       const context = await browser.newContext({viewport:{width,height:900},colorScheme:theme,isMobile:width<500,hasTouch:width<500,serviceWorkers:'block'});
       const page = await context.newPage();
-      const errors=[],firebaseRequests=[];let pickers=0, headRequests=0, revision=1;
+      const errors=[],firebaseRequests=[];let pickers=0, versionRequests=0, revision=1, clientRelease=baseRelease;
       page.on('pageerror',error=>errors.push(error.message));
       page.on('filechooser',()=>pickers++);
-      await page.route('**/*',route=>{
+      await page.route('**/*',async route=>{
         const target=route.request().url();
         if(/gstatic\.com\/firebase|firestore\.googleapis|identitytoolkit|securetoken/.test(target)){firebaseRequests.push(target);return route.abort();}
         if(/fonts\.googleapis|fonts\.gstatic/.test(target))return route.abort();
-        if(route.request().method() === 'HEAD'){headRequests++;return route.fulfill({status:200,headers:{ETag:'"release-'+revision+'"'},body:''});}
+        const release=revision===1?baseRelease:{version:'3_08.11.26-'+revision,build:revision.toString(16).padStart(24,'0')};
+        const parsedURL=new URL(target);
+        if(parsedURL.pathname.endsWith('/site-version.json')){versionRequests++;return route.fulfill({json:release});}
+        if(parsedURL.hostname==='127.0.0.1'&&['/','/index.html'].includes(parsedURL.pathname)){
+          if(parsedURL.searchParams.get('_regal')===release.build) clientRelease=release;
+          const response=await route.fetch();const html=(await response.text()).replace(/(<meta name="regal-version" content=")[^"]*(">)/,'$1'+clientRelease.version+'$2').replace(/(<meta name="regal-build" content=")[^"]*(">)/,'$1'+clientRelease.build+'$2');
+          return route.fulfill({response,body:html});
+        }
         return route.continue();
       });
       await page.goto(url);
@@ -69,13 +77,20 @@ async function restore(page, value, confirm=true){
       await page.goto(url+'/#collection?platform=Unknown&sort=invalid&status=invalid');
       await page.locator('#app-shell').waitFor({state:'visible'});
       assert.deepEqual(await page.evaluate(()=>({platform:state.platform,sort:state.sort,status:state.status})),{platform:null,sort:'name-asc',status:null});
-      // Wake-up checks detect changed files; an editor or failed save blocks refresh.
+      // Wake-up checks compare explicit releases; an editor or failed save blocks refresh.
       await page.waitForTimeout(150);
-      assert.ok(headRequests>=7);
+      assert.ok(versionRequests>=1);
+      await page.locator('#profile-menu-btn').click();await page.screenshot({path:'/tmp/jtd-profile-version-'+width+'-'+theme+'.png'});await page.locator('#profile-menu-btn').click();
       revision++;
       await page.evaluate(()=>dispatchEvent(new Event('online')));
       await page.getByRole('button',{name:'Actualiser',exact:true}).waitFor();
+      await page.locator('#toast-stack .toast-close').click();await page.waitForTimeout(200);
+      await page.evaluate(()=>dispatchEvent(new Event('online')));await page.waitForTimeout(150);
+      assert.equal(await page.getByRole('button',{name:'Actualiser',exact:true}).count(),0,'A dismissed release is not announced on every wake-up');
+      assert.equal(await page.locator('#site-update-btn').evaluate(el=>el.classList.contains('hidden')),false,'Update stays available in the profile menu');
+      assert.equal(await page.locator('#site-version-label').innerText(),baseRelease.version,'Profile shows the loaded version, not a version not yet installed');
       await page.locator('#add-btn').click();
+      await page.locator('#site-update-btn').evaluate(el=>el.click());
       // Background controls are inert while a dialog is open. Invoke the
       // existing reload handler directly to keep testing its defensive guard.
       assert.equal(await page.locator('#toast-stack').evaluate(el=>el.inert),true);
@@ -89,6 +104,9 @@ async function restore(page, value, confirm=true){
       await page.evaluate(()=>{window.JTDPrepareReload=async()=>true;dispatchEvent(new Event('online'));});
       await page.getByRole('button',{name:'Actualiser',exact:true}).click();
       await navigation;await page.locator('#app-shell').waitFor({state:'visible'});
+      await page.evaluate(()=>dispatchEvent(new Event('online')));await page.waitForTimeout(150);
+      assert.equal(await page.getByRole('button',{name:'Actualiser',exact:true}).count(),0,'Successful action refresh must not announce the same update again');
+      assert.equal(await page.locator('#site-version-label').innerText(),clientRelease.version);
       await page.locator('#reset-btn').evaluate(el=>el.click());
       console.log('PASS navigation '+width+'px '+theme+': reload, saved root, Back/Forward, board, invalid URL; update guards');
       await restore(page,payload);
@@ -148,7 +166,7 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.locator('#confirm-modal-overlay').isVisible(),false);
       assert.equal(firebaseRequests.length,0,'sandbox must not load production Firebase');
       assert.deepEqual(errors,[]);
-      await page.screenshot({path:'/tmp/jtd-step1-'+width+'.png',fullPage:true});
+      await page.screenshot({path:'jtd-step1-'+width+'.png',fullPage:true});
       console.log('PASS browser '+width+'px: restore/cancel/same file, escaping, status, rename, ChatGPT export, backup, invalid backup, no Firebase');
       await context.close();
     }

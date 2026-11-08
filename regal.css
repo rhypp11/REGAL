@@ -111,3 +111,7 @@
 }
 
 .topnav .profile-menu { max-height:min(560px,calc(100dvh - var(--topnav-h,100px) - 10px)); overflow:auto; }
+/* Release identity stays secondary in the profile menu. */
+.profile-menu-version { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; color:var(--ui-text-muted); font-size:11px; }
+.profile-menu-version button { padding:0; border:0; background:none; color:var(--ui-accent); font:inherit; cursor:pointer; }
+.profile-menu-version button:focus-visible { outline:2px solid var(--ui-accent); outline-offset:3px; }
