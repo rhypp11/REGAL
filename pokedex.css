@@ -50,7 +50,19 @@
 .dex-box { min-width:0; border:1px solid var(--ui-border); border-radius:14px; overflow:hidden; background:var(--ui-surface); }
 .dex-box header { padding:14px 16px; border-bottom:1px solid var(--ui-border); background:var(--ui-surface-raised); }
 .dex-box h2 { font-size:16px; letter-spacing:.04em; margin:0; font-variant-numeric:tabular-nums; }
-.dex-box header>span { font-size:12px; color:var(--ui-text-muted); }
+.dex-box h2,#pokedex-title { display:flex; align-items:center; gap:7px; }
+.dex-shiny-star { flex:none; width:18px; height:18px; color:#b58a26; }
+.dex-shiny-badge { position:absolute; right:0; bottom:0; display:grid; place-items:center; background:var(--ui-surface); border-radius:5px; z-index:1; }
+.dex-game-icon .dex-shiny-badge svg { width:17px; height:17px; }
+.dex-box-tools { display:flex; align-items:center; gap:10px; }
+.dex-box-tools>span { font-size:12px; color:var(--ui-text-muted); }
+.dex-box-actions { position:relative; }
+.dex-box-actions summary { list-style:none; display:grid; place-items:center; width:30px; height:30px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-surface); color:var(--ui-text); cursor:pointer; }
+.dex-box-actions summary::-webkit-details-marker { display:none; }
+.dex-box-menu { position:absolute; top:34px; right:0; z-index:3; width:150px; padding:5px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-surface); box-shadow:0 5px 18px #0002; }
+.dex-box-menu button { display:block; width:100%; text-align:left; min-height:36px; padding:7px 9px; border:0; border-radius:5px; background:transparent; color:var(--ui-text); font:inherit; font-size:12px; cursor:pointer; }
+.dex-box-menu button:hover { background:var(--ui-surface-raised); }
+.dex-box-actions summary:focus-visible,.dex-box-menu button:focus-visible { outline:2px solid var(--ui-accent); outline-offset:1px; }
 .dex-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px; padding:10px; }
 .dex-slot { position:relative; min-width:0; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-surface); transition:background .12s,border-color .12s; }
 .dex-slot[data-state="1"] { background:#f6dfa0; border-color:#c5a348; }

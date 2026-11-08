@@ -6,6 +6,8 @@ La création utilise une modale partagée avec le cycle de focus/clavier du site
 
 Les grands compteurs affichent le nombre total obtenu (à ranger + rangés), sans sous-texte. La légende présente les effectifs des trois états en badges gris, jaune et vert. Les compteurs de génération suivent le même calcul et les barres conservent leurs segments par état.
 
+Le menu de chaque boîte applique À ranger, Rangé ou À obtenir uniquement à ses emplacements occupés, en une seule écriture. Les boîtes shiny utilisent un seul préfixe S (par exemple S 0001–0030), une étoile dans leur titre et un rappel sur l’icône HOME shiny.
+
 ## Catalogue
 
 `pokedex-data.js` est généré par `node scripts/build-pokedex.cjs`, à partir d’une révision identifiée des CSV publics de PokéAPI. Les noms français, générations et numéros régionaux proviennent de ces CSV. Pour une actualisation, changer la révision dans le générateur et relancer celui-ci. Le générateur accepte aussi `POKEDEX_SOURCE_DIR` pour lire un dossier de CSV déjà téléchargés.

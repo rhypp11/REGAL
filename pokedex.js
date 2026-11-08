@@ -39,6 +39,7 @@
   }
  }catch {loadError=true;$('dex-library-error').textContent='Impossible de charger les Pokédex enregistrés. Les données ont été conservées.';$('dex-new').disabled=true;}
  const pad=n=>String(n).padStart(4,'0');
+ const sparkle='<svg class="dex-shiny-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/><path d="M20 2v4m-2-2h4"/></svg>';
  const pencil='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20h9M4 20l1-5L16 4l4 4L9 19z"/></svg>';
  function iconHtml(catalogId,choiceId){
   const isHome=['home','home-shiny'].includes(catalogId),gameId=Number(catalogId.slice(5));
@@ -49,7 +50,7 @@
   if(mascot) file='';
   const source=file?'https://www.pokepedia.fr/Spécial:FilePath/'+encodeURIComponent(file):mascot?'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/'+mascot+'.png':'';
   const svg='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+(isHome?'<path d="m5 15 11-9 11 9v12H5zM12 27V16h8v11"/>':'<circle cx="16" cy="16" r="11"/><path d="M5 16h7m8 0h7"/><circle cx="16" cy="16" r="4"/>')+'</svg>';
-  return '<span class="dex-game-icon" aria-hidden="true">'+svg+(source?'<img class="dex-icon-image" src="'+source+'" alt="" loading="lazy" decoding="async">':'')+'</span>';
+  return '<span class="dex-game-icon" aria-hidden="true">'+svg+(source?'<img class="dex-icon-image" src="'+source+'" alt="" loading="lazy" decoding="async">':'')+(catalogId==='home-shiny'?'<span class="dex-shiny-badge">'+sparkle+'</span>':'')+'</span>';
  }
  document.addEventListener('error',event=>{if(event.target.matches?.('.dex-icon-image')) event.target.remove();},true);
  document.addEventListener('load',event=>{if(event.target.matches?.('.dex-icon-image')) event.target.classList.add('ready');},true);
@@ -135,11 +136,11 @@
  function addBoxes(list,region=''){
   for(let start=0;start<list.length;start+=30){
    const content=list.slice(start,start+30),section=document.createElement('section');
-   const title=region?'Formes '+(region==='alola'?"d’Alola":'de '+regionNames[region])+(list.length>30?' · '+(start/30+1):''):(shiny?'S ':'')+pad(start+1)+'–'+(shiny?'S ':'')+pad(start+30);
+   const title=region?'Formes '+(region==='alola'?"d’Alola":'de '+regionNames[region])+(list.length>30?' · '+(start/30+1):''):(shiny?'S ':'')+pad(start+1)+'–'+pad(start+30);
    section.className='dex-box';
    const heading='dex-box-'+(region||'base')+'-'+start;
    section.setAttribute('aria-labelledby',heading);
-   section.innerHTML='<header><h2 id="'+heading+'">'+title+'</h2><span>'+(region?content.length+' formes':'Boîte '+(start/30+1))+'</span></header><div class="dex-grid">'+content.map(slot).join('')+Array.from({length:30-content.length},()=>'<div class="dex-empty" aria-hidden="true"></div>').join('')+'</div>';
+   section.innerHTML='<header><h2 id="'+heading+'">'+(shiny?sparkle:'')+title+'</h2><div class="dex-box-tools"><span>'+(region?content.length+' formes':'Boîte '+(start/30+1))+'</span><details class="dex-box-actions"><summary aria-label="Modifier toute la boîte '+esc(title)+'" title="Modifier toute la boîte"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m7 12 3 3 7-7"/></svg></summary><div class="dex-box-menu" role="group" aria-label="Appliquer à toute la boîte"><button type="button" data-box-state="1">Tout à ranger</button><button type="button" data-box-state="2">Tout ranger</button><button type="button" data-box-state="0">Tout décocher</button></div></details></div></header><div class="dex-grid">'+content.map(slot).join('')+Array.from({length:30-content.length},()=>'<div class="dex-empty" aria-hidden="true"></div>').join('')+'</div>';
    boxes.append(section);
   }
  }
@@ -154,7 +155,7 @@
   });
   const forms=home?catalog.forms.map(form=>({id:form.id,sprite:form.id,number:form.speciesId,name:form.name,speciesName:species.get(form.speciesId).name,region:form.region})):[];
   entries=[...base,...forms];
-  $('pokedex-title').textContent=current.name;
+  $('pokedex-title').innerHTML=(shiny?sparkle:'')+esc(current.name);
   $('dex-subtitle').textContent=home?'Pokémon HOME'+(shiny?' · Shiny':'')+' · National · '+base.length+' espèces · '+forms.length+' formes régionales':(choices.find(c=>c.id===current.choice)?.name||dex.name.split(' — ')[0])+' · '+dex.name.split(' — ')[1]+' · '+base.length+' Pokémon';
   $('dex-identity-icon').innerHTML=iconHtml(active,current.choice);
   boxes.replaceChildren();addBoxes(base);
@@ -178,10 +179,22 @@
   }).join(''):'';
  }
  boxes.addEventListener('click',event=>{
-  const button=event.target.closest('.dex-pokemon');if(!button) return;
-  const id=button.dataset.id,next={...states,[id]:((states[id]||0)+1)%3};
+  const bulk=event.target.closest('[data-box-state]');
+  const button=event.target.closest('.dex-pokemon');if(!button&&!bulk) return;
+  const next={...states};
+  if(bulk){
+   const state=Number(bulk.dataset.boxState);
+   for(const item of bulk.closest('.dex-box').querySelectorAll('.dex-pokemon')) next[item.dataset.id]=state;
+  }else next[button.dataset.id]=((states[button.dataset.id]||0)+1)%3;
   try {const updated={...current,states:next};persist(trackers.map(t=>t.id===current.id?updated:t));current=updated;states=next;$('dex-error').textContent='';update();}
   catch {$('dex-error').textContent='La progression n’a pas pu être enregistrée dans ce navigateur.';}
+  if(bulk){const menu=bulk.closest('details');menu.open=false;menu.querySelector('summary').focus({preventScroll:true});}
  });
+ boxes.addEventListener('toggle',event=>{
+  const menu=event.target;if(!menu.matches('.dex-box-actions')||!menu.open) return;
+  for(const other of boxes.querySelectorAll('.dex-box-actions[open]')) if(other!==menu) other.open=false;
+ },true);
+ boxes.addEventListener('keydown',event=>{if(event.key!=='Escape') return;const menu=event.target.closest('.dex-box-actions[open]');if(menu){menu.open=false;menu.querySelector('summary').focus();event.preventDefault();}});
+ document.addEventListener('pointerdown',event=>{if(event.target.closest('.dex-box-actions')) return;for(const menu of boxes.querySelectorAll('.dex-box-actions[open]')) menu.open=false;});
  renderLibrary();
 })();
