@@ -13,7 +13,7 @@
  const libraryKey=storagePrefix+'trackers:v2';
  let trackers=[],current=null,active='',states={},entries=[],home=false,shiny=false,loadError=false;
  const choices=[];
- const versions=[[2,'Rouge','Bleu','Jaune'],[3,'Or','Argent','Cristal'],[4,'Rubis','Saphir','Émeraude'],[5,'Diamant','Perle'],[6,'Platine'],[7,'HeartGold','SoulSilver'],[8,'Noir','Blanc'],[9,'Noir 2','Blanc 2'],[12,'X','Y'],[15,'Rubis Oméga','Saphir Alpha'],[16,'Soleil','Lune'],[21,'Ultra-Soleil','Ultra-Lune'],[26,'Let’s Go Pikachu','Let’s Go Évoli'],[27,'Épée','Bouclier'],[28,'Épée · Isolarmure (DLC)','Bouclier · Isolarmure (DLC)'],[29,'Épée · Couronneige (DLC)','Bouclier · Couronneige (DLC)'],[30,'Légendes Arceus'],[31,'Écarlate','Violet'],[32,'Écarlate · Septentria (DLC)','Violet · Septentria (DLC)'],[33,'Écarlate · Myrtille (DLC)','Violet · Myrtille (DLC)'],[34,'Légendes Z-A'],[35,'Légendes Z-A · Méga-Dimension (DLC)']];
+ const versions=[[2,'Rouge','Bleu','Jaune'],[3,'Or','Argent','Cristal'],[4,'Rubis','Saphir','Émeraude'],['frlg','Rouge Feu','Vert Feuille'],[5,'Diamant','Perle'],[6,'Platine'],[7,'HeartGold','SoulSilver'],[8,'Noir','Blanc'],[9,'Noir 2','Blanc 2'],[12,'X','Y'],[15,'Rubis Oméga','Saphir Alpha'],[16,'Soleil','Lune'],[21,'Ultra-Soleil','Ultra-Lune'],[26,'Let’s Go Pikachu','Let’s Go Évoli'],[27,'Épée','Bouclier'],[28,'Épée · Isolarmure (DLC)','Bouclier · Isolarmure (DLC)'],[29,'Épée · Couronneige (DLC)','Bouclier · Couronneige (DLC)'],[30,'Légendes Arceus'],[31,'Écarlate','Violet'],[32,'Écarlate · Septentria (DLC)','Violet · Septentria (DLC)'],[33,'Écarlate · Myrtille (DLC)','Violet · Myrtille (DLC)'],[34,'Légendes Z-A'],[35,'Légendes Z-A · Méga-Dimension (DLC)']];
  for(const [number,...names] of versions) names.forEach((name,index)=>choices.push({id:'game-'+number+':'+index,catalogId:'game-'+number,name}));
  const validCatalog=id=>['home','home-shiny'].includes(id)||catalog.dexes.some(d=>d.id===id);
  const cleanStates=value=>Object.fromEntries(Object.entries(value&&typeof value==='object'&&!Array.isArray(value)?value:{}).filter(([id,state])=>/^\d+$/.test(id)&&[1,2].includes(state)));
@@ -43,14 +43,21 @@
  const pencil='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20h9M4 20l1-5L16 4l4 4L9 19z"/></svg>';
  function iconHtml(catalogId,choiceId){
   const isHome=['home','home-shiny'].includes(catalogId),gameId=Number(catalogId.slice(5));
-  const choice=choices.find(c=>c.id===choiceId),name=choice?.name.split(' · ')[0];
+  const choice=choices.find(c=>c.id===choiceId),name=choice?.name.split(' · ')[0]||({4:'Émeraude',5:'Diamant',6:'Platine',7:'HeartGold',8:'Noir',9:'Noir 2',frlg:'Rouge Feu'})[catalogId.slice(5)];
   let file=isHome?'Icône Pokémon HOME HOME.png':gameId===30?'Icône Légendes Pokémon Arceus HOME.png':gameId>=34?'Icône Légendes Pokémon Z-A HOME.png':gameId>=12&&name?'Icône Pokémon '+name+' HOME.png':gameId===2&&name?'Icône Pokémon '+name+' (3DS).png':gameId===3&&name?'Icône Pokémon '+name+' (3DS).png':gameId===4&&name?'Icône Pokémon '+name+'.png':'';
   if(gameId===26) file="Icône Pokémon Let's Go, "+(name?.includes('Évoli')?'Évoli':'Pikachu')+' HOME.png';
-  const mascot=gameId===4?(name==='Rubis'?383:name==='Saphir'?382:384):gameId===5?(name==='Perle'?484:483):gameId===6?487:gameId===7?(name==='SoulSilver'?249:250):gameId===8?(name==='Blanc'?644:643):gameId===9?646:0;
-  if(mascot) file='';
-  const source=file?'https://www.pokepedia.fr/Spécial:FilePath/'+encodeURIComponent(file):mascot?'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/'+mascot+'.png':'';
+  const dsFiles={
+   Diamant:'/images/6/63/Ic%C3%B4ne_Pok%C3%A9mon_Diamant.png',Perle:'/images/3/3f/Ic%C3%B4ne_Pok%C3%A9mon_Perle.png',Platine:'/images/3/33/Ic%C3%B4ne_Pok%C3%A9mon_Platine.png',
+   HeartGold:'/images/0/0d/Ic%C3%B4ne_Pok%C3%A9mon_Or_HeartGold.png',SoulSilver:'/images/3/37/Ic%C3%B4ne_Pok%C3%A9mon_Argent_SoulSilver.png',
+   Noir:'/images/1/16/Ic%C3%B4ne_Pok%C3%A9mon_Noir_%28DS%29.png',Blanc:'/images/d/d6/Ic%C3%B4ne_Pok%C3%A9mon_Blanc_%28DS%29.png',
+   'Noir 2':'/images/e/e0/Ic%C3%B4ne_Pok%C3%A9mon_Noir_2_%28DS%29.png','Blanc 2':'/images/1/1f/Ic%C3%B4ne_Pok%C3%A9mon_Blanc_2_%28DS%29.png'
+  };
+  const gbaFiles={Rubis:'d/df/Jaquette_de_Pok%C3%A9mon_Rubis.png',Saphir:'3/3e/Jaquette_de_Pok%C3%A9mon_Saphir.png','Émeraude':'0/0c/Jaquette_de_Pok%C3%A9mon_%C3%89meraude.png','Rouge Feu':'3/3b/Jaquette_de_Pok%C3%A9mon_Rouge_Feu.png','Vert Feuille':'9/9e/Jaquette_de_Pok%C3%A9mon_Vert_Feuille.png'};
+  const gba=gbaFiles[name],ds=dsFiles[name];
+  const source=gba?'https://www.pokepedia.fr/images/thumb/'+gba+'/200px-'+gba.split('/').at(-1):ds?'https://www.pokepedia.fr'+ds:file?'https://www.pokepedia.fr/Spécial:FilePath/'+encodeURIComponent(file):'';
+  const assetClass=gba?' dex-gba-cover':ds?' dex-ds-icon':'';
   const svg='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'+(isHome?'<path d="m5 15 11-9 11 9v12H5zM12 27V16h8v11"/>':'<circle cx="16" cy="16" r="11"/><path d="M5 16h7m8 0h7"/><circle cx="16" cy="16" r="4"/>')+'</svg>';
-  return '<span class="dex-game-icon" aria-hidden="true">'+svg+(source?'<img class="dex-icon-image" src="'+source+'" alt="" loading="lazy" decoding="async">':'')+(catalogId==='home-shiny'?'<span class="dex-shiny-badge">'+sparkle+'</span>':'')+'</span>';
+  return '<span class="dex-game-icon" aria-hidden="true">'+svg+(source?'<img class="dex-icon-image'+assetClass+'" src="'+source+'" alt="" loading="lazy" decoding="async">':'')+(catalogId==='home-shiny'?'<span class="dex-shiny-badge">'+sparkle+'</span>':'')+'</span>';
  }
  document.addEventListener('error',event=>{if(event.target.matches?.('.dex-icon-image')) event.target.remove();},true);
  document.addEventListener('load',event=>{if(event.target.matches?.('.dex-icon-image')) event.target.classList.add('ready');},true);

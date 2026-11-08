@@ -14,6 +14,8 @@
 .dex-game-icon { flex:none; position:relative; display:grid; place-items:center; width:48px; height:48px; border-radius:10px; background:var(--ui-surface-raised); border:1px solid var(--ui-border); color:var(--ui-accent); overflow:hidden; }
 .dex-game-icon img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:var(--ui-surface); opacity:0; }
 .dex-game-icon img.ready { opacity:1; }
+.dex-game-icon img.dex-ds-icon { width:32px; height:32px; left:50%; top:50%; transform:translate(-50%,-50%); image-rendering:pixelated; background:transparent; }
+.dex-game-icon img.dex-gba-cover { width:128.2%; left:-28.2%; max-width:none; object-fit:cover; object-position:right top; }
 .dex-game-icon svg { width:30px; height:30px; }
 #dex-identity-icon .dex-game-icon { width:54px; height:54px; }
 .dex-editor-modal { width:min(680px,calc(100vw - 24px)); }
