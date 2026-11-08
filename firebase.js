@@ -46,6 +46,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       wishlist: WISHLIST,
       cemetery: CEMETERY,
       journal: LEGACY_JOURNAL,
+      pokedex: POKEDEX_TRACKERS,
       digitalAccounts: DIGITAL_ACCOUNTS,
       platformMeta: platformMeta,
       platformOrder: platformOrder,
@@ -251,6 +252,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }, 900);
   }
   window.JTDDataChanged = scheduleCloudSync;
+  window.JTDCanWriteData = () => previewMode || (!!currentUser && !suppressSync && sessionIsCurrent(sessions.current()));
   window.JTDPrepareReload = async () => {
     if(!currentUser) return true;
     if(suppressSync) return false;

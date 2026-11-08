@@ -18,6 +18,29 @@
       return ['https:','http:'].includes(url.protocol) && !url.username && !url.password ? url.href : '';
     }catch(e){ return ''; }
   }
+  function normalizePokedex(value = []){
+    if(!Array.isArray(value)) throw new Error('Pokédex invalides');
+    const ids = new Set();
+    return value.map(tracker => {
+      if(!isRecord(tracker)) throw new Error('Pokédex invalide');
+      const id = text(tracker.id,'identifiant du Pokédex',false).trim();
+      const name = text(tracker.name,'nom du Pokédex',false).trim();
+      const catalogId = text(tracker.catalogId,'catalogue du Pokédex',false).trim();
+      if(!/^[a-zA-Z0-9_-]+$/.test(id) || id.length>200 || ids.has(id) || !name || name.length>100 || !catalogId || catalogId.length>120 || !isRecord(tracker.states)) throw new Error('Pokédex invalide ou dupliqué');
+      ids.add(id);
+      const states = Object.create(null);
+      for(const [key,state] of Object.entries(tracker.states)){
+        if(!/^[1-9]\d*$/.test(key) || !Number.isSafeInteger(Number(key)) || ![0,1,2].includes(state)) throw new Error('Progression de Pokédex invalide');
+        if(state) states[key]=state;
+      }
+      const result = {id,name,catalogId,states};
+      if(tracker.choice !== undefined){
+        result.choice = text(tracker.choice,'version du Pokédex',false);
+        if(result.choice.length>160) throw new Error('Version du Pokédex invalide');
+      }
+      return result;
+    });
+  }
   function normalizeData(data, defaults = {}){
     if(!isRecord(data) || !Array.isArray(data.games)) throw new Error('Collection invalide');
     const used = new Set();
@@ -102,14 +125,14 @@
       if(account.avatar !== undefined) result.avatar = safeURL(text(account.avatar,'avatar du compte'),true) || null;
       return result;
     });
-    return {games, arrivals, wishlist, cemetery, journal, digitalAccounts, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
+    return {games, arrivals, wishlist, cemetery, journal, pokedex:normalizePokedex(data.pokedex), digitalAccounts, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
   }
   function parseBackup(parsed, defaults){
     if(isRecord(parsed) && parsed.purpose) throw new Error('Cet export est destiné à ChatGPT. Choisis une sauvegarde complète pour restaurer JTD.');
     let data;
     if(Array.isArray(parsed)) data = {games:parsed};
     else if(isRecord(parsed) && parsed.app === 'Jeux Tout Doux'){
-      if(!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 4) throw new Error('Version de sauvegarde incompatible');
+      if(!Number.isInteger(parsed.version) || parsed.version < 1 || parsed.version > 5) throw new Error('Version de sauvegarde incompatible');
       data = parsed.data;
     }else data = parsed;
     return normalizeData(data, defaults);
@@ -303,7 +326,7 @@
     },data:{...shared,games:shared.games.map((game,i)=>({...game,format:normalized.games[i].format,contentType:normalized.games[i].contentType || 'game',parentId:normalized.games[i].parentId || null}))}};
   }
 
-  const api = {isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
