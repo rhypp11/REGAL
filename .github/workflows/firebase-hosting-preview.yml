@@ -150,8 +150,9 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
         run: |
-          npx --yes firebase-tools@15.32.0 hosting:channel:deploy pr-${{ github.event.pull_request.number }} --only pr-preview --expires 7d --project jeux-tout-doux --non-interactive --json > "$RUNNER_TEMP/preview-deploy.json"
-          node - <<'NODE' >> "$GITHUB_OUTPUT"
+          deploy_channel() {
+            npx --yes firebase-tools@15.32.0 hosting:channel:deploy "$1" --only pr-preview --expires 7d --project jeux-tout-doux --non-interactive --json > "$RUNNER_TEMP/preview-deploy.json" || return
+          node - <<'NODE'
           const fs = require('fs');
           const result = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/preview-deploy.json', 'utf8'));
           function findUrl(value) {
@@ -162,16 +163,25 @@ jobs:
           }
           const url = findUrl(result);
           if (!url) throw new Error('Missing sandbox channel URL');
-          console.log('url=' + url);
+          console.log(url);
           NODE
+          }
+          channel="pr-${{ github.event.pull_request.number }}"
+          url="$(deploy_channel "$channel")"
+          if ! curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 3 "$url/" -o /dev/null; then
+            echo "The original sandbox channel did not serve the site. Deploying to a fresh sandbox channel."
+            url="$(deploy_channel "$channel-${{ github.run_number }}-${{ github.run_attempt }}")"
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Smoke test deployed sandbox
         env:
           PREVIEW_URL: ${{ steps.deploy.outputs.url }}
         run: |
-          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$PREVIEW_URL/" > /tmp/preview.html
-          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$PREVIEW_URL/app.js" > /tmp/app.js
-          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$PREVIEW_URL/firebase.js" > /tmp/firebase.js
+          echo "Checking sandbox entry point"
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$PREVIEW_URL/" > /tmp/preview.html
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$PREVIEW_URL/app.js" > /tmp/app.js
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$PREVIEW_URL/firebase.js" > /tmp/firebase.js
           grep -q '<title>REGAL' /tmp/preview.html
           grep -q "jtd-sandbox-rhypp11.web.app" /tmp/preview.html
           grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
