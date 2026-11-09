@@ -373,3 +373,21 @@
 #page-collection:has([data-media="all"][aria-pressed="true"]) #grid[data-view="gallery"] .card-identity,
 #page-collection:has([data-media="all"][aria-pressed="true"]) #grid[data-view="gallery"] .card-state-row { display:flex; }
 #page-collection #grid[data-view="gallery"] :is(.card-platform-line,.card-console-account,.card-dlc-count) { display:none; }
+
+/* Keep the sheet controls outside the scrolling form at every viewport size. */
+#modal-overlay > .modal { overflow:hidden !important; }
+#modal-overlay > .modal > :is(#modal-title,.modal-actions) { flex-shrink:0; }
+#modal-overlay > .modal > .modal-actions { position:static; }
+#modal-overlay .collection-sheet-body {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:0;
+  min-width:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  scroll-padding-block:8px;
+}
+#modal-overlay .collection-sheet-body > * { flex-shrink:0; }
+#modal-overlay #f-parent-preview:not(.content-related-card) { font-size:var(--ui-text-sm); color:var(--ui-text-muted); }

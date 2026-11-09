@@ -1597,6 +1597,7 @@ function withBoardEditorChanges(id, prefix, action, transfer = false){
 function openBoardEditor(id, prefix, close){
   boardEditorSnapshots.set(id, boardEditorSnapshot(id, prefix));
   window.JTDDialogs.open(id, {onDismiss:() => withBoardEditorChanges(id, prefix, close)});
+  if(prefix === 'f') document.querySelector('#modal-overlay .collection-sheet-body').scrollTop = 0;
 }
 
 function setPurchaseDate(date = ''){

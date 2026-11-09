@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_09.11.26-2">
-<meta name="regal-build" content="8506b1456622c99ebb2046f8">
+<meta name="regal-version" content="3_09.11.26-3">
+<meta name="regal-build" content="1f8040a4e0051eeeb72a9297">
 <link rel="icon" type="image/svg+xml" href="logo-icon-light.svg?v=regal-1">
 <link rel="apple-touch-icon" href="logo-icon-apple.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -25,7 +25,7 @@
 <link rel="stylesheet" href="ui-foundations.css?v=density-1">
 <link rel="stylesheet" href="regal.css?v=release-notice-1">
 <link rel="stylesheet" href="game-sheet.css?v=status-summary-1">
-<link rel="stylesheet" href="collection.css?v=filter-labels-1">
+<link rel="stylesheet" href="collection.css?v=collection-sheet-scroll-1">
 <link rel="stylesheet" href="digital.css?v=compact-content-28">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=2">
@@ -427,6 +427,7 @@
 <div class="modal-overlay sheet-dialog hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <h2 id="modal-title">Ajouter un jeu</h2>
+    <div class="collection-sheet-body">
     <p id="receipt-status-note" class="hidden">Destination : Collection · Statut : À faire</p>
     <div class="form-section game-sheet-section">
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
@@ -470,7 +471,7 @@
           </label>
           <input type="hidden" id="f-parent">
           <div id="f-parent-editor" class="hidden">
-            <div id="f-parent-preview" class="hidden"></div>
+            <div id="f-parent-preview"></div>
             <button type="button" class="manage-link hidden" id="f-parent-clear">Choisir un autre jeu</button>
             <div class="field">
               <label for="f-parent-search">Rechercher le jeu de base</label>
@@ -515,6 +516,7 @@
       </div>
     </div>
     <div id="f-content-details"></div>
+    </div>
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
 
