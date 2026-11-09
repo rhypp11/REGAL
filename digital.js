@@ -14,6 +14,8 @@ function digitalPreviewGames(){ return [
   {id:'test-upgrade',nom:'Fire Emblem — Mise à niveau démo',plateforme:'Switch 2',format:'Numérique',contentType:'upgrade',parentId:'test-fe',accountId:'demo-nintendo-eu',currency:'EUR',prix:9.99}
 ]; }
 const MEDIA_ICONS = {
+  bundle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="10" width="13" height="11" rx="2"/><path d="M8 10V7a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-3M7 10v4h5v-4"/></svg>',
+  game:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 7h9a4 4 0 0 1 3.9 3.2l1.1 5a2.3 2.3 0 0 1-3.8 2.2l-2.6-2.4H8.9l-2.6 2.4a2.3 2.3 0 0 1-3.8-2.2l1.1-5A4 4 0 0 1 7.5 7Z"/><path d="M8 9.5v4m-2-2h4m6 0h.01m2-2h.01"/></svg>',
   all:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
   upgrade:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 17V7m-4 4 4-4 4 4"/></svg>',
   physical:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="m6 6 2 2m8 8 2 2"/></svg>',
@@ -44,7 +46,7 @@ function collectionPurchases(cards, {ignorePlatform = false, search = state.sear
     if(!JTDData.isDigital(game)) continue;
     for(const child of gameContents(game)){
       if(child.plateforme !== game.plateforme) continue;
-      if(state.accountId && child.accountId !== state.accountId) continue;
+      if(!matchesCollectionVersion(child)) continue;
       if(!ignorePlatform && state.platform && child.plateforme !== state.platform) continue;
       if(types.length && !types.includes(child.contentType)) continue;
       if(!matchesCollectionStatus(child)) continue;
@@ -63,18 +65,10 @@ function collectionScope(){
 function collectionCardsForFilters(search = ''){
   const types=selectedContentTypes();
   const source = types.length ? GAMES.filter(g=>types.includes(g.contentType || 'game')) : GAMES;
-  return JTDData.collectionCards(source.filter(matchesCollectionStatus),state.media || 'physical',state.media === 'physical' ? null : state.accountId,search,!types.length);
-}
-function accountName(id){ const account = DIGITAL_ACCOUNTS.find(a => a.id === id); return account?.nickname || account?.name || 'Compte non renseigné'; }
-function accountIdentityHtml(account, showName = true){
-  const name = account?.nickname || account?.name || 'Compte non renseigné';
-  const initials = name.split(/\s+/).map(word=>word[0]).join('').slice(0,2).toUpperCase();
-  const avatar = safeURL(account?.avatar,true);
-  return '<span class="console-account-identity" title="'+escapeHTML(name)+'"><span class="console-avatar" aria-hidden="true">'+escapeHTML(initials)+(avatar?'<img src="'+escapeHTML(avatar)+'" alt="" loading="lazy">':'')+'</span>'+(showName?'<span class="console-account-name">'+escapeHTML(name)+'</span>':'')+'</span>';
+  return JTDData.collectionCards(source.filter(game=>matchesCollectionStatus(game) && matchesCollectionVersion(game)),state.media || 'physical',null,search,!types.length);
 }
 function contentKind(game){ return game?.contentType === 'upgrade' ? 'Mise à niveau' : 'DLC'; }
 function contentIcon(game){ return MEDIA_ICONS[game?.contentType === 'upgrade' ? 'upgrade' : 'dlc']; }
-function bindAvatarFallbacks(root){root.querySelectorAll('.console-avatar img').forEach(img=>{img.onerror=()=>img.remove();});}
 function purchaseMoney(game){
   if(game.prix == null) return '—';
   return new Intl.NumberFormat('fr-FR',{style:'currency',currency:game.currency || 'EUR',maximumFractionDigits:(game.currency === 'JPY' ? 0 : 2)}).format(game.prix);
@@ -86,9 +80,6 @@ function collectionValueLabel(games, euroTotal){
   for(const game of purchases) if(game.prix != null) sums.set(game.currency || 'EUR',(sums.get(game.currency || 'EUR') || 0) + game.prix);
   return [...sums].map(([currency,prix])=>'<span class="currency-total">'+escapeHTML(purchaseMoney({prix,currency}))+'</span>').join('') || '—';
 }
-function accountEcosystemLabel(ecosystem){
-  return ({Nintendo:'Compte Nintendo · Switch / Switch 2','Nintendo Network':'Nintendo Network · Wii U / Nintendo 3DS',PlayStation:'PlayStation · PS4 / PS5',Xbox:'Xbox'})[ecosystem] || ecosystem;
-}
 function renderMediaControls(){
   const controls = document.getElementById('collection-media-tabs');
   for(const button of controls.querySelectorAll('[data-media]')){
@@ -97,28 +88,14 @@ function renderMediaControls(){
     button.setAttribute('aria-pressed',String((state.media || 'physical') === mode));
   }
   const digital = state.media !== 'physical';
-  document.getElementById('collection-account-field').classList.toggle('hidden',!digital);
   document.getElementById('content-filter-section').classList.toggle('hidden',!digital);
-  document.getElementById('collector-filter-section').classList.toggle('hidden',state.media === 'digital');
   if(!digital) state.contentType = null;
-  document.getElementById('content-type-options').innerHTML = [['game','Jeux'],['dlc','DLC'],['upgrade','Mises à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+selectedContentTypes().includes(value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
-  if(state.media === 'physical' || !DIGITAL_ACCOUNTS.some(a=>a.id === state.accountId)) state.accountId = null;
-  const types = selectedContentTypes();
-  const purchases = GAMES.filter(game => JTDData.isDigital(game)
-    && (!state.platform || game.plateforme === state.platform)
-    && (!types.length || types.includes(game.contentType || 'game'))
-    && matchesCollectionStatus(game));
-  const silhouette = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>';
-  const option = (id,identity,count) => '<button type="button" class="plat-item console-account-option'+(state.accountId === (id || null) ? ' active' : '')+'" data-account="'+escapeHTML(id)+'" aria-pressed="'+(state.accountId === (id || null))+'">'+identity+'<span class="plat-count">'+count+'</span></button>';
-  const list = document.getElementById('collection-account-options');
-  list.innerHTML = option('','<span class="account-all-icon">'+silhouette+'</span><span class="plat-name">Tous les comptes</span>',purchases.length)
-    + DIGITAL_ACCOUNTS.map(account => option(account.id,accountIdentityHtml(account),purchases.filter(game=>game.accountId === account.id).length)).join('');
-  bindAvatarFallbacks(list);
+  document.getElementById('content-type-options').innerHTML = [['game','Jeu'],['dlc','DLC'],['upgrade','Mise à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+selectedContentTypes().includes(value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
 }
 function collectionFilterLabel(){
   const media = state.media || 'physical';
-  const label = ({physical:'Physique',digital:'Numérique',all:'Physique et numérique'})[media];
-  return (MEDIA_ICONS[media] || '')+'<span>'+escapeHTML(label+(state.accountId ? ' · '+accountName(state.accountId) : '')+(state.contentType ? ' · '+contentFilterLabel() : ''))+'</span>';
+  const label = ({physical:'Physique',digital:'Numérique',all:'Tous les formats'})[media];
+  return (MEDIA_ICONS[media] || '')+'<span>'+escapeHTML(label+(state.contentType ? ' · '+contentFilterLabel() : ''))+'</span>';
 }
 function renderCollectionFilterContext(banner){
   const heading = banner.querySelector('.platform-banner-title')?.parentElement;
@@ -156,10 +133,8 @@ function decorateDigitalCard(card, game, options){
   const contents = gameContents(game);
   if(contents.length) body.insertAdjacentHTML('beforeend','<span class="card-dlc-count">'+MEDIA_ICONS.dlc+contents.length+(contents.some(g=>g.contentType === 'upgrade')?' contenu'+(contents.length>1?'s':''):' DLC')+'</span>');
   if(digital){
-    if(game.accountId) body.querySelector('.card-platform').insertAdjacentHTML('afterend','<span class="card-console-account">'+accountIdentityHtml(DIGITAL_ACCOUNTS.find(a=>a.id === game.accountId))+'</span>');
     const price = card.querySelector('.card-price');
     if(price) price.textContent = game.prix == null ? 'Non renseigné' : purchaseMoney(game);
-    bindAvatarFallbacks(body);
   }
 }
 function commitCollection(games, digitalAccounts = DIGITAL_ACCOUNTS){
@@ -171,20 +146,6 @@ function commitCollection(games, digitalAccounts = DIGITAL_ACCOUNTS){
     return true;
   }catch(error){ console.error('Achat non enregistré',error); showToast('Enregistrement impossible. '+error.message); return false; }
 }
-function ecosystemFor(platform){
-  if(/wii\s*u|3ds|2ds/i.test(platform)) return 'Nintendo Network';
-  if(/switch|nintendo|wii/i.test(platform)) return 'Nintendo';
-  if(/playstation|ps[1-5]|vita|psp/i.test(platform)) return 'PlayStation';
-  if(/xbox/i.test(platform)) return 'Xbox';
-  return 'Autre';
-}
-function populateDigitalAccounts(selected, chooseDefault = false){
-  const ecosystem = ecosystemFor(document.getElementById('f-plateforme').value);
-  const accounts = DIGITAL_ACCOUNTS.filter(a=>a.ecosystem === ecosystem || a.id === selected);
-  const select = document.getElementById('f-account');
-  select.innerHTML = '<option value="">Non renseigné</option>'+accounts.map(a=>'<option value="'+escapeHTML(a.id)+'">'+escapeHTML((a.nickname || a.name)+(a.region?' · '+a.region:''))+'</option>').join('');
-  select.value = selected && accounts.some(a=>a.id === selected) ? selected : chooseDefault ? (accounts.find(a=>a.preferred)?.id || accounts[0]?.id || '') : '';
-}
 function populateParentGames(selected){
   const value=document.getElementById('f-parent');
   if(selected!==undefined)value.value=GAMES.some(g=>g.id===selected && !JTDData.isAddon(g)) ? selected : '';
@@ -194,10 +155,9 @@ function populateParentGames(selected){
   document.getElementById('f-parent-search-status').textContent=!query ? (value.value ? '' : 'Recherche un jeu de ta collection, physique ou numérique. Tu peux aussi le rattacher plus tard.') : !candidates.length ? 'Aucun jeu trouvé. Essaie un autre mot du titre.' : candidates.length>30 ? '30 premiers résultats. Précise la recherche pour affiner.' : candidates.length+' jeu(x) trouvé(s).';
   for(const game of candidates.slice(0,30)){
     const button=document.createElement('button');button.type='button';button.className='parent-search-result';button.dataset.parentId=game.id;
-    button.innerHTML=relatedGameHtml(game)+(JTDData.isDigital(game)?'<span class="parent-result-account">'+accountIdentityHtml(DIGITAL_ACCOUNTS.find(a=>a.id===game.accountId))+'</span>':'');
+    button.innerHTML=relatedGameHtml(game);
     button.onclick=()=>{value.value=game.id;value.dispatchEvent(new Event('change'));document.getElementById('f-parent-search').value='';populateParentGames();document.getElementById('f-parent-clear').focus();};results.appendChild(button);
   }
-  bindAvatarFallbacks(results);
   renderParentPreview();
 }
 function updateParentAttachment(){
@@ -211,10 +171,31 @@ function relatedGameHtml(game){
 function renderParentPreview(){
   const parent = GAMES.find(g=>g.id === document.getElementById('f-parent').value);
   const container = document.getElementById('f-parent-preview');
-  container.innerHTML = parent ? relatedGameHtml(parent) : '';
-  container.classList.toggle('hidden',!parent);
+  container.innerHTML = parent ? relatedGameHtml(parent) : 'Aucun jeu associé';
+  container.classList.toggle('content-related-card',!!parent);
+  updatePurchaseChangeNote();
   document.getElementById('f-parent-clear').classList.toggle('hidden',!parent);
 }
+function updatePurchaseChangeNote(){
+  const owned = GAMES.find(game => game.id === editingId);
+  const digital = document.getElementById('f-media').value === 'digital';
+  const linked = digital && ['dlc','upgrade'].includes(document.getElementById('f-content-type').value)
+    && document.getElementById('f-parent-enabled').checked;
+  const parentId = linked ? document.getElementById('f-parent').value : '';
+  const changes = [];
+  if(owned?.parentId && parentId !== owned.parentId){
+    changes.push(parentId ? 'Le jeu de base sera remplacé.' : 'Le rattachement au jeu de base sera retiré.');
+  }
+  const parent = GAMES.find(game => game.id === parentId);
+  if(parent && !JTDData.canAttachContent({
+    id:editingId, format:'Numérique', contentType:document.getElementById('f-content-type').value,
+    plateforme:document.getElementById('f-plateforme').value
+  },parent)) changes.push('Le jeu de base est incompatible avec cette plateforme. Choisis un autre jeu ou retire le rattachement.');
+  const note = document.getElementById('f-purchase-change-note');
+  note.textContent = changes.join(' ');
+  note.classList.toggle('hidden',!changes.length);
+}
+
 function updateDigitalFields(){
   const digital = document.getElementById('f-media').value === 'digital';
   document.getElementById('f-format-title').innerHTML = MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span>';
@@ -225,10 +206,11 @@ function updateDigitalFields(){
   if(dlc) document.getElementById('modal-title').textContent = editingId ? (upgrade?'Mise à niveau':'Fiche du DLC') : (upgrade?'Ajouter une mise à niveau':'Ajouter un DLC');
   else if(!convertingArrivalId && editingCollection !== 'cemetery') document.getElementById('modal-title').textContent = editingId ? 'Fiche du jeu' : 'Ajouter un jeu';
   document.getElementById('f-content-type-field').classList.toggle('hidden',!digital);
-  document.getElementById('f-collector-field').classList.toggle('hidden',digital);
+  document.getElementById('f-edition-options').classList.toggle('hidden',digital);
   document.getElementById('f-digital-fields').classList.toggle('hidden',!dlc);
   document.getElementById('f-source-field').classList.toggle('hidden',digital);
   document.getElementById('f-purchase-digital-fields').classList.toggle('hidden',!digital);
+  document.getElementById('f-digital-version-options').classList.toggle('hidden',!digital);
   document.getElementById('f-parent-field').classList.toggle('hidden',!dlc);
   document.getElementById('f-content-status-field').classList.toggle('hidden',!digital || upgrade || !dlc);
   populateParentGames();
@@ -248,7 +230,9 @@ function openDigitalFields(game){
   document.getElementById('f-parent-search').value = '';
   document.getElementById('f-parent-enabled').checked=!!game?.parentId;
   updateParentAttachment();
-  populateDigitalAccounts(game?.accountId || '',!game);
+  document.getElementById('f-digital-version-options').open = false;
+  document.getElementById('f-japanese-account').checked = game?.japaneseAccount === true;
+  document.getElementById('f-bundle').checked = game?.bundle === true;
   populateParentGames(game?.parentId || '');
   renderContentDetails(game);
   updateDigitalFields();
@@ -258,7 +242,7 @@ function readDigitalFields(){
   if(!digital){
     const original = [...GAMES,...CEMETERY].find(g=>g.id === editingId);
     if(!original || !JTDData.isDigital(original)) return {format:original?.format || 'Physique'};
-    return {format:'Physique',contentType:'game',accountId:null,currency:'EUR',parentId:null};
+    return {format:'Physique',contentType:'game',accountId:null,currency:'EUR',parentId:null,japaneseAccount:false,bundle:false};
   }
   const kind = document.getElementById('f-content-type').value;
   const dlc = ['dlc','upgrade'].includes(kind);
@@ -272,7 +256,7 @@ function readDigitalFields(){
   if(raw && (!/^\d+(?:[.,]\d{1,2})?$/.test(raw) || !Number.isFinite(Number(raw.replace(',','.'))) || (currency === 'JPY' && !/^\d+$/.test(raw)))){
     throw {field:'f-prix',message:currency === 'JPY'?'Indique un prix en yens sans décimales.':'Indique un prix positif avec deux décimales maximum.'};
   }
-  return {format:'Numérique',contentType:dlc?kind:'game',parentId,accountId:document.getElementById('f-account').value || null,currency,collector:false,japanese:false,...(kind==='dlc'?{status:document.getElementById('f-content-status').value || null}:kind==='upgrade'?{status:null}:{})};
+  return {format:'Numérique',contentType:dlc?kind:'game',parentId,currency,collector:false,japanese:false,japaneseAccount:document.getElementById('f-japanese-account').checked,bundle:document.getElementById('f-bundle').checked,...(kind==='dlc'?{status:document.getElementById('f-content-status').value || null}:kind==='upgrade'?{status:null}:{})};
 }
 function renderContentDetails(game){
   const container = document.getElementById('f-content-details');
@@ -307,12 +291,11 @@ function renderContentDetails(game){
     for(const child of children){
       const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-addon-link content-type-'+child.contentType;
       const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;
-      const account=DIGITAL_ACCOUNTS.find(a=>a.id===child.accountId);
       const thumb='<span class="content-related-thumb'+gameImageClass(child)+'">'+(child.image?gameImageHtml(child):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
       button.innerHTML='<span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+thumb+
         '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
         '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
-        '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+(account?'<span class="content-related-account">'+accountIdentityHtml(account)+'</span>':'')+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
+        '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
       button.onclick=()=>openModal(child.id);section.appendChild(button);
     }
     const sums = new Map();
@@ -322,83 +305,7 @@ function renderContentDetails(game){
     section.appendChild(total);
   }
   if(section.childNodes.length) container.appendChild(section);
-  bindAvatarFallbacks(container);
 }
-function editDigitalAccountRow(account = {id:crypto.randomUUID(),name:'',ecosystem:'Nintendo',region:'',preferred:false}){
-  const row = document.createElement('div');row.className='digital-account-row platform-row';row.dataset.accountId=account.id;
-  row.dataset.avatar = safeURL(account.avatar,true);
-  const isNew = !DIGITAL_ACCOUNTS.some(a=>a.id === account.id);row.dataset.new=String(isNew);
-  row.innerHTML = '<div class="platform-row-main"><span class="digital-account-list-avatar">'+accountIdentityHtml(account,false)+'</span><div class="platform-row-info"><strong class="platform-row-name">'+escapeHTML(account.nickname || account.name || 'Nouveau compte')+'</strong></div><button type="button" class="platform-edit-btn digital-account-edit" aria-label="Modifier '+escapeHTML(account.nickname || account.name || 'le compte')+'" aria-expanded="false">'+contextEditIcon()+'</button></div><div class="platform-row-editor hidden"><div class="digital-account-heading"><span class="digital-account-avatar-preview">'+accountIdentityHtml(account,false)+'</span><label class="avatar-file-label">Changer l’avatar<input type="file" data-field="avatar-file" accept="image/*"></label><button type="button" class="manage-link" data-remove-avatar>Retirer</button></div><div class="field-row"><div class="field"><label>Pseudo<input data-field="nickname" maxlength="80" value="'+escapeHTML(account.nickname || '')+'" placeholder="Ton pseudo console"></label></div><div class="field"><label>Repère du compte<input data-field="name" maxlength="80" value="'+escapeHTML(account.name)+'" placeholder="Compte japonais"></label></div></div><div class="field-row"><div class="field"><label>Réseau<select data-field="ecosystem">'+['Nintendo','Nintendo Network','PlayStation','Xbox','Autre'].map(e=>'<option value="'+e+'"'+(e === account.ecosystem?' selected':'')+'>'+accountEcosystemLabel(e)+'</option>').join('')+'</select></label></div><div class="field"><label>Région <span class="optional-label">optionnel</span><input data-field="region" maxlength="80" value="'+escapeHTML(account.region)+'" placeholder="Japon"></label></div></div><div class="digital-account-actions"><label><input type="checkbox" data-field="preferred"'+(account.preferred?' checked':'')+'> Compte par défaut</label><button type="button" class="manage-link digital-account-delete">Supprimer</button></div><p class="digital-account-row-error" role="alert"></p><div class="platform-editor-actions"><div class="platform-editor-spacer"></div><button type="button" class="platform-cancel-btn digital-account-cancel">Annuler</button><button type="button" class="platform-save-btn digital-account-save">Enregistrer</button></div></div>';
-  let avatarBusy = false;
-  const refreshAvatar = ()=>{
-    row.querySelector('.digital-account-avatar-preview').innerHTML = accountIdentityHtml({name:row.querySelector('[data-field="name"]').value,nickname:row.querySelector('[data-field="nickname"]').value,avatar:row.dataset.avatar},false);
-    bindAvatarFallbacks(row);
-  };
-  row.querySelector('[data-field="avatar-file"]').onchange=async event=>{
-    const file=event.target.files[0];if(!file)return;
-    avatarBusy=true;row.dataset.avatarBusy='true';
-    try{const avatar=await resizeImageToDataUrl(file,96);if(row.isConnected){row.dataset.avatar=avatar;refreshAvatar();}}
-    catch(error){document.getElementById('digital-accounts-error').textContent='Impossible de lire cette image.';}
-    finally{avatarBusy=false;row.dataset.avatarBusy='false';event.target.value='';}
-  };
-  row.querySelector('[data-remove-avatar]').onclick=()=>{if(!avatarBusy){row.dataset.avatar='';refreshAvatar();}};
-  row.querySelector('[data-field="nickname"]').oninput=refreshAvatar;
-  bindAvatarFallbacks(row);
-  const error = message=>{row.querySelector('.digital-account-row-error').textContent=message;};
-  const editor = row.querySelector('.platform-row-editor');
-  const edit = row.querySelector('.digital-account-edit');
-  const showEditor = ()=>{
-    document.querySelectorAll('.digital-account-row.editing').forEach(other=>{
-      if(other !== row){
-        other.classList.remove('editing');other.querySelector('.platform-row-editor').classList.add('hidden');other.querySelector('.digital-account-edit').setAttribute('aria-expanded','false');
-      }
-    });
-    row.classList.add('editing');editor.classList.remove('hidden');edit.setAttribute('aria-expanded','true');
-    row.querySelector('[data-field="nickname"]').focus();
-  };
-  edit.onclick=showEditor;
-  row.querySelector('.digital-account-cancel').onclick=()=>{
-    if(avatarBusy)return;
-    if(isNew){row.remove();document.getElementById('digital-account-add').focus();return;}
-    for(const field of ['name','nickname','ecosystem','region']) row.querySelector('[data-field="'+field+'"]').value=account[field] || '';
-    row.querySelector('[data-field="preferred"]').checked=!!account.preferred;row.dataset.avatar=account.avatar || '';refreshAvatar();error('');
-    row.classList.remove('editing');editor.classList.add('hidden');edit.setAttribute('aria-expanded','false');edit.focus();
-  };
-  row.querySelector('.digital-account-save').onclick=()=>{
-    if(avatarBusy){error('L’avatar est en cours de préparation.');return;}
-    const next={id:account.id,name:row.querySelector('[data-field="name"]').value.trim() || row.querySelector('[data-field="nickname"]').value.trim(),nickname:row.querySelector('[data-field="nickname"]').value.trim(),avatar:row.dataset.avatar || null,ecosystem:row.querySelector('[data-field="ecosystem"]').value,region:row.querySelector('[data-field="region"]').value.trim(),preferred:row.querySelector('[data-field="preferred"]').checked};
-    if(!next.name){error('Renseigne un pseudo ou un repère pour ce compte.');row.querySelector('[data-field="nickname"]').focus();return;}
-    if(next.preferred && DIGITAL_ACCOUNTS.some(a=>a.id !== next.id && a.ecosystem === next.ecosystem && a.preferred)){error('Un compte par défaut existe déjà pour ce réseau.');return;}
-    const accounts=isNew ? [...DIGITAL_ACCOUNTS,next] : DIGITAL_ACCOUNTS.map(a=>a.id === next.id ? next : a);
-    if(!commitCollection(GAMES,accounts))return;
-    refreshDigitalAccountList();refreshAccountControls();
-    document.querySelector('.digital-account-row[data-account-id="'+CSS.escape(next.id)+'"] .digital-account-edit')?.focus();
-  };
-  row.querySelector('.digital-account-delete').onclick=()=>{
-    if(avatarBusy)return;
-    if([...GAMES,...CEMETERY].some(g=>g.accountId === account.id)){error('Ce compte possède des achats. Réaffecte-les avant de le supprimer.');return;}
-    if(!isNew && !commitCollection(GAMES,DIGITAL_ACCOUNTS.filter(a=>a.id !== account.id)))return;
-    row.remove();refreshAccountControls();document.getElementById('digital-account-add').focus();
-  };
-  document.getElementById('digital-account-rows').appendChild(row);
-  if(isNew) showEditor();
-}
-function refreshDigitalAccountList(){
-  document.getElementById('digital-account-rows').replaceChildren();
-  DIGITAL_ACCOUNTS.forEach(editDigitalAccountRow);
-}
-function refreshAccountControls(){
-  const selected=document.getElementById('f-account').value;
-  populateDigitalAccounts(selected);buildPlatformList();render();
-}
-function openDigitalAccounts(){
-  closeMobileDrawers();
-  refreshDigitalAccountList();
-  document.getElementById('digital-accounts-error').textContent='';
-  window.JTDDialogs.open('digital-accounts-overlay',{onDismiss:closeDigitalAccounts});
-}
-function closeDigitalAccounts(){window.JTDDialogs.close('digital-accounts-overlay');}
-window.closeDigitalAccounts = closeDigitalAccounts;
 function initDigitalControls(){
   document.querySelectorAll('[data-format-icon]').forEach(element=>{element.innerHTML=MEDIA_ICONS[element.dataset.formatIcon];});
   document.querySelectorAll('[name="f-media-choice"]').forEach(input=>input.addEventListener('change',()=>{
@@ -408,7 +315,11 @@ function initDigitalControls(){
   }));
   document.getElementById('collection-media-tabs').addEventListener('click',event=>{
     const button = event.target.closest('[data-media]');if(!button)return;
-    state.media=state.media === button.dataset.media ? 'all' : button.dataset.media;state.accountId=null;state.contentType=null;state.collector=false;state.japanese=false;state.status=null;
+    if(state.media === button.dataset.media){ closeMobileDrawers(); return; }
+    state.media = button.dataset.media;
+    if(state.media === 'physical'){ state.contentType = null; state.bundle = false; }
+    if(state.media === 'digital') state.collector = false;
+    persistNavigation(true);
     buildPlatformList();buildFormatToggles();buildStatusToggles();render();closeMobileDrawers();
   });
   document.getElementById('content-type-options').onclick=event=>{
@@ -417,20 +328,11 @@ function initDigitalControls(){
     const type=button.dataset.contentType;types.has(type) ? types.delete(type) : types.add(type);
     state.contentType=[...types].join(',') || null;buildPlatformList();render();
   };
-  document.getElementById('collection-account-options').onclick=event=>{
-    const button=event.target.closest('[data-account]');if(!button)return;
-    const id=button.dataset.account;
-    state.accountId=state.accountId === id ? null : id || null;
-    if(state.accountId && state.media === 'physical') state.media='digital';
-    buildPlatformList();render();closeMobileDrawers();
-    if(!matchMedia('(max-width:820px)').matches) document.querySelector('#collection-account-options [data-account="'+CSS.escape(id)+'"]')?.focus({preventScroll:true});
-  };
-  document.getElementById('collection-manage-accounts').onclick=openDigitalAccounts;
   for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
-  document.getElementById('f-account').addEventListener('change',()=>setGameSheetViewing(false));
   document.getElementById('f-parent-enabled').onchange=()=>{
     setGameSheetViewing(false);
     updateParentAttachment();
+    updatePurchaseChangeNote();
     if(document.getElementById('f-parent-enabled').checked)document.getElementById('f-parent-search').focus();
   };
   document.getElementById('f-parent-search').oninput=()=>populateParentGames();
@@ -442,12 +344,9 @@ function initDigitalControls(){
     const target = upgrade && /^(?:Nintendo )?Switch(?: 1)?$/i.test(parent.plateforme) ? allPlatformNames().find(p=>/^(?:Nintendo )?Switch 2$/i.test(p)) || 'Switch 2' : parent.plateforme;
     const platformSelect=document.getElementById('f-plateforme');if(![...platformSelect.options].some(o=>o.value===target))platformSelect.add(new Option(target,target));
     setSelectValueAndSync('f-plateforme',target);
-    const account=document.getElementById('f-account').value;populateDigitalAccounts(account || parent.accountId || '',!account);
     renderParentPreview();
   };
-  document.getElementById('f-plateforme').addEventListener('change',()=>{populateDigitalAccounts('',true);renderParentPreview();});
-  document.getElementById('digital-account-add').onclick=()=>{const draft=document.querySelector('.digital-account-row[data-new="true"]');if(draft)draft.querySelector('.digital-account-edit').click();else editDigitalAccountRow();};
-  document.getElementById('digital-accounts-save').onclick=closeDigitalAccounts;
+  document.getElementById('f-plateforme').addEventListener('change',renderParentPreview);
 }
 document.addEventListener('DOMContentLoaded',initDigitalControls);
 

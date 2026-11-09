@@ -462,7 +462,7 @@ let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascul
 let state = {
   media: 'physical',
   contentType: null,
-  accountId: null,
+  bundle: false,
   platform: null,
   collector: false,
   japanese: false,
@@ -535,6 +535,8 @@ function euros(n){
 function dateFR(iso){
   if(!iso) return "—";
   const [y,m,d] = iso.split("-");
+  if(!m) return y;
+  if(!d) return `${m}/${y}`;
   return `${d}/${m}/${y}`;
 }
 
@@ -833,14 +835,24 @@ function buildFormatToggles(){
   setFilterAccessibility(collectorChip, state.collector);
   collectorChip.innerHTML = `<span class="toggle-chip-label">${FORMAT_ICON_STAR}<span>Collector</span></span>`;
   collectorChip.onclick = () => { state.collector = !state.collector; buildFormatToggles(); render(); };
-  container.appendChild(collectorChip);
+  if(state.media !== 'digital') container.appendChild(collectorChip);
   const japaneseChip = document.createElement('div');
   japaneseChip.className = 'toggle-chip' + (state.japanese ? ' active' : '');
   japaneseChip.tabIndex = 0;
   setFilterAccessibility(japaneseChip, state.japanese);
-  japaneseChip.innerHTML = '<span class="toggle-chip-label"><span class="japanese-flag" aria-hidden="true"></span><span>Japonais</span></span>';
+  japaneseChip.innerHTML = '<span class="toggle-chip-label"><span class="japanese-flag" aria-hidden="true"></span><span>'+(state.media === 'digital' ? 'Compte japonais' : 'Japonais')+'</span></span>';
   japaneseChip.onclick = () => { state.japanese = !state.japanese; buildFormatToggles(); render(); };
   container.appendChild(japaneseChip);
+  document.getElementById('collection-version-label').textContent = state.media === 'physical' ? 'Édition' : 'Version';
+  if(state.media !== 'physical'){
+    const bundleChip = document.createElement('div');
+    bundleChip.className = 'toggle-chip' + (state.bundle ? ' active' : '');
+    bundleChip.tabIndex = 0;
+    setFilterAccessibility(bundleChip, state.bundle);
+    bundleChip.innerHTML = '<span class="toggle-chip-label">'+MEDIA_ICONS.bundle+'<span>Bundle</span></span>';
+    bundleChip.onclick = () => { state.bundle = !state.bundle; buildFormatToggles(); render(); };
+    container.appendChild(bundleChip);
+  }
 }
 
 function buildStatusToggles(){
@@ -879,12 +891,17 @@ function getEffectiveStatus(g){
   return g.status === 'en_cours' ? 'a_jouer' : g.status;
 }
 
+function matchesCollectionVersion(game){
+  const digital = JTDData.isDigital(game);
+  return (!state.collector || game.collector)
+    && (!state.japanese || (digital ? game.japaneseAccount : game.japanese))
+    && (!state.bundle || (digital && game.bundle));
+}
+
 function filteredGames(){
   const q = state.search.trim().toLowerCase();
   return collectionCardsForFilters(q).filter(g => {
       if(state.platform && g.plateforme !== state.platform) return false;
-      if(state.collector && !g.collector) return false;
-      if(state.japanese && !g.japanese) return false;
       if(q && !g.nom.toLowerCase().includes(q)) return false;
       if(state.status){
         if(state.status === '__none__'){
@@ -1116,7 +1133,7 @@ function renderCard(g, options = {}){
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
-      <div class="card-name" title="${escapeHTML(g.nom)}">${collectorTitleHtml}${japaneseEditionMark(g)}<span class="card-name-text">${escapeHTML(g.nom)}</span></div>
+      <div class="card-name" title="${escapeHTML(g.nom)}">${collectorTitleHtml}${japaneseEditionMark(g)}${bundleMark(g)}<span class="card-name-text">${escapeHTML(g.nom)}</span></div>
       <div class="card-summary card-identity">
         <span class="card-platform">${platformHtml}</span>
         ${statusBadgeHtml}
@@ -1149,7 +1166,7 @@ function renderCard(g, options = {}){
     const detail=(label,value)=>`<div><dt>${label}</dt><dd>${value}</dd></div>`;
     const digital=JTDData.isDigital(g);
     const details=document.createElement('dl');details.className='card-list-details';
-    details.innerHTML=detail('Support',digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+detail(digital ? 'Compte' : 'Enseigne',digital ? escapeHTML(accountName(g.accountId)) : escapeHTML(g.source || '—'));
+    details.innerHTML=detail('Support',digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+(digital ? '' : detail('Enseigne',escapeHTML(g.source || '—')));
     card.querySelector('.card-body').appendChild(details);
   }
   decorateDigitalCard(card, g, options);
@@ -1159,7 +1176,7 @@ function renderCard(g, options = {}){
     identity.querySelectorAll('.card-platform,.card-status-control').forEach(el=>platformLine.appendChild(el));
     identity.prepend(platformLine);
     const footer = document.createElement('div');footer.className='card-state-row';
-    for(const selector of ['.card-media-mark','.card-console-account','.card-dlc-count']){
+    for(const selector of ['.card-media-mark','.card-dlc-count']){
       const element=card.querySelector(selector);
       if(element) footer.appendChild(element);
     }
@@ -1182,10 +1199,10 @@ function renderResultsBar(){
 
   const filters = [];
   if(state.platform) filters.push(['platform',state.platform]);
-  if(state.accountId) filters.push(['accountId',accountName(state.accountId)]);
   for(const type of selectedContentTypes()) filters.push(['contentType',contentFilterLabel([type]),type]);
   if(state.collector) filters.push(['collector','Collector']);
-  if(state.japanese) filters.push(['japanese','Japonais']);
+  if(state.japanese) filters.push(['japanese',state.media === 'digital' ? 'Compte japonais' : 'Japonais']);
+  if(state.bundle) filters.push(['bundle','Bundle']);
   if(state.status){
     const status = STATUS_OPTIONS.find(option => option.key === state.status);
     filters.push(['status',state.status === '__none__' ? 'Sans statut' : (status?.label || state.status)]);
@@ -1296,9 +1313,14 @@ function getPlatformOptionIconHtml(name){
 }
 
 function japaneseEditionMark(item){
-  return item && item.japanese
-    ? '<span class="japanese-edition-mark japanese-flag" title="Édition japonaise" aria-label="Édition japonaise"></span>'
-    : '';
+  const digital = JTDData.isDigital(item);
+  if(!(digital ? item?.japaneseAccount : item?.japanese)) return '';
+  const label = digital ? 'Compte japonais' : 'Édition japonaise';
+  return '<span class="japanese-edition-mark japanese-flag" title="'+label+'" aria-label="'+label+'"></span>';
+}
+
+function bundleMark(item){
+  return JTDData.isDigital(item) && item.bundle ? '<span class="card-bundle-mark" role="img" title="Bundle" aria-label="Bundle">'+MEDIA_ICONS.bundle+'</span>' : '';
 }
 
 const ICON_EDITION_REGION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18Z"/></svg>`;
@@ -1434,7 +1456,7 @@ function identitySummaryHtml(item, detail = ''){
   return `
     <div class="identity-thumb${gameImageClass(item)}" style="${image ? '' : `background:${color}`}">${thumb}</div>
     <div class="identity-copy">
-      <strong>${collectorMark}${japaneseEditionMark(item)}<span>${escapeHTML(name)}</span></strong>
+      <strong>${collectorMark}${japaneseEditionMark(item)}${bundleMark(item)}<span>${escapeHTML(name)}</span></strong>
       <span>${platformIcon}${escapeHTML(platform)}</span>
       ${detail ? `<small class="identity-detail">${escapeHTML(detail)}</small>` : ''}
     </div>
@@ -1475,7 +1497,7 @@ function contextSummaryHtml(item, type){
     const bits = [
       `<span><small>Prix payé</small><strong>${item.prix != null ? purchaseMoney(item) : '—'}</strong></span>`,
       `<span><small>Date d'achat</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
-      JTDData.isDigital(item) ? `<span><small>Compte</small><strong>${escapeHTML(accountName(item.accountId))}</strong></span>` : `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
+      JTDData.isDigital(item) ? '' : `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
     return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>`;
   }
@@ -1595,6 +1617,17 @@ function withBoardEditorChanges(id, prefix, action, transfer = false){
 function openBoardEditor(id, prefix, close){
   boardEditorSnapshots.set(id, boardEditorSnapshot(id, prefix));
   window.JTDDialogs.open(id, {onDismiss:() => withBoardEditorChanges(id, prefix, close)});
+  if(prefix === 'f') document.querySelector('#modal-overlay .collection-sheet-body').scrollTop = 0;
+}
+
+function setPurchaseDate(date = ''){
+  const input = document.getElementById('f-date');
+  const partial = document.getElementById('f-partial-date');
+  const note = document.getElementById('f-partial-date-note');
+  input.value = date || '';
+  partial.value = !input.value && /^\d{4}(?:-\d{2})?$/.test(date) ? date : '';
+  note.querySelector('span').textContent = 'Date conservée : ' + dateFR(partial.value);
+  note.classList.toggle('hidden', !partial.value);
 }
 
 function openModal(id, collection = 'games'){
@@ -1619,7 +1652,7 @@ function openModal(id, collection = 'games'){
     document.getElementById('f-collector').checked = !!g.collector;
   document.getElementById('f-japanese').checked = !!g.japanese;
     document.getElementById('f-prix').value = g.prix != null ? Number(g.prix).toFixed(g.currency === 'JPY' ? 0 : 2).replace('.',',') : '';
-    document.getElementById('f-date').value = g.date || '';
+    setPurchaseDate(g.date);
     document.getElementById('f-source').value = g.source || '';
     document.getElementById('f-image').value = g.image || '';
   } else {
@@ -1636,13 +1669,15 @@ function openModal(id, collection = 'games'){
     document.getElementById('f-collector').checked = false;
   document.getElementById('f-japanese').checked = false;
     document.getElementById('f-prix').value = '';
-    document.getElementById('f-date').value = '';
+    setPurchaseDate();
     document.getElementById('f-source').value = '';
     document.getElementById('f-image').value = '';
   }
   document.getElementById('f-image-fit').value = editingId && items.find(x => x.id === editingId)?.imageFit === 'cover' ? 'cover' : 'contain';
   updateImagePreview();
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
+  document.getElementById('f-image-options').open = false;
+  document.getElementById('f-edition-options').open = false;
   openDigitalFields(identityItem);
   setIdentityEditor('f', identityItem, !!editingId);
   if(identityItem && editingCollection==='games' && identityItem.contentType!=='upgrade'){
@@ -1685,7 +1720,7 @@ function saveModal(){
   if(!nom){ window.JTDDialogs.error('f-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('f-plateforme','Choisis une plateforme.'); return; }
   const prix = parsePriceInput(document.getElementById('f-prix').value);
-  const date = document.getElementById('f-date').value || null;
+  const date = document.getElementById('f-date').value || document.getElementById('f-partial-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
   const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit};
   try { Object.assign(fields, readDigitalFields()); }
@@ -1719,7 +1754,7 @@ function saveModal(){
     goToPage('collection');
     state.platform = received.plateforme;
     state.search = ''; document.getElementById('search-input').value = '';
-    state.status = null; state.collector = false; state.japanese = false;
+    state.status = null; state.collector = false; state.japanese = false; state.bundle = false;
     buildPlatformList(); buildFormatToggles(); buildStatusToggles(); render();
   });
 }
@@ -2242,12 +2277,14 @@ function addArrivalToCollection(id, draft){
   editingId = null;
   editingCollection = 'games';
   fillIdentityFields('f', item);
+  document.getElementById('f-image-options').open = false;
+  document.getElementById('f-edition-options').open = false;
   openDigitalFields(item);
 
   document.getElementById('modal-title').textContent = 'Confirmer la réception';
   document.getElementById('delete-btn').classList.add('hidden');
   document.getElementById('f-prix').value = item.priceInput ?? (item.prix != null ? String(item.prix).replace('.',',') : '');
-  document.getElementById('f-date').value = '';
+  setPurchaseDate();
   document.getElementById('f-source').value = item.source || '';
   setIdentityEditor('f', item, true);
   setContextEditor('f', {...item, date:null}, 'purchase', true);
@@ -2786,6 +2823,13 @@ document.getElementById('cancel-btn').addEventListener('click', () => withBoardE
 document.getElementById('save-btn').addEventListener('click', saveModal);
 document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
+document.getElementById('f-date').addEventListener('change', event => {
+  if(event.target.value) setPurchaseDate(event.target.value);
+});
+document.querySelector('#f-partial-date-note button').addEventListener('click', () => {
+  setPurchaseDate();
+  document.getElementById('f-date').focus();
+});
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 
 document.getElementById('search-input').addEventListener('input', (e) => {
@@ -2799,7 +2843,7 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  state = { media:state.media || 'physical', accountId:null, contentType:null, platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
+  state = { media:state.media || 'physical', bundle:false, contentType:null, platform:null, collector:false, japanese:false, status:null, search:"", sort:"name-asc" };
   document.getElementById('search-input').value = "";
   document.getElementById('sort-select').value = "name-asc";
   buildPlatformList();
@@ -2820,9 +2864,9 @@ function navigationSnapshot(){
 }
 function navigationHash(view){
   const params = new URLSearchParams();
-  for(const key of ['platform','status','search','accountId','contentType']) if(view[key]) params.set(key, view[key]);
+  for(const key of ['platform','status','search','contentType']) if(view[key]) params.set(key, view[key]);
   if(view.media && view.media !== 'physical') params.set('media',view.media);
-  for(const key of ['collector','japanese']) if(view[key]) params.set(key, '1');
+  for(const key of ['collector','japanese','bundle']) if(view[key]) params.set(key, '1');
   if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
   if(['arrivals','wishlist'].includes(view.board)) params.set('board', view.board);
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
@@ -2831,7 +2875,7 @@ function navigationFromHash(){
   const match = location.hash.match(/^#(home|collection|cemetery|journal|pokedex)(?:\?(.*))?$/);
   if(!match) return null;
   const params = new URLSearchParams(match[2]);
-  return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1'};
+  return {page:match[1], ...Object.fromEntries(params), collector:params.get('collector') === '1', japanese:params.get('japanese') === '1', bundle:params.get('bundle') === '1'};
 }
 function saveNavigationView(view){
   try {
@@ -2865,9 +2909,9 @@ function applyNavigation(view = {}){
   state = {
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
     contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
-    accountId:DIGITAL_ACCOUNTS.some(a => a.id === view.accountId) ? view.accountId : null,
+    bundle:['all','digital'].includes(view.media) && view.bundle === true,
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,
-    collector:view.collector === true, japanese:view.japanese === true,
+    collector:view.media !== 'digital' && view.collector === true, japanese:view.japanese === true,
     status:STATUS_OPTIONS.some(s => s.key === view.status) || view.status === '__none__' ? view.status : null,
     search:typeof view.search === 'string' ? view.search.slice(0,200) : '',
     sort:['name-asc','name-desc','price-desc','price-asc','date-desc','date-asc'].includes(view.sort) ? view.sort : 'name-asc'

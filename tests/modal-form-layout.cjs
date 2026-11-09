@@ -22,6 +22,10 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
      document.getElementById(prefix+'-nom').value=longTitle;
     },{prefix,longTitle});
     const editor=page.locator('#'+prefix+'-identity-editor');
+    if(prefix==='f'){
+     await page.locator('#f-image-options summary').click();
+     await page.locator('#f-edition-options summary').click();
+    }
     const controls=(prefix==='f'?page.locator('#f-media-section #f-collector-field'):editor).locator('.identity-collector-control');
     await controls.first().click();await controls.last().click();
     assert.equal(await page.locator('#'+prefix+'-collector').isChecked(),true);
@@ -46,6 +50,24 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
     if([390,1440].includes(width))await page.screenshot({path:`/tmp/jtd-polish-${prefix}-${width}-${theme}.png`});
    }
    await page.keyboard.press('Escape');
+   await page.locator('#confirm-modal-confirm-btn').click();
+   // A tall DLC editor scrolls its fields without hiding the title or actions.
+   await page.evaluate(()=>openModal(null));
+   await page.locator('[name="f-media-choice"][value="digital"]').check();
+   await page.locator('#f-content-type').selectOption('dlc');
+   await page.locator('#f-parent-enabled').check();
+   const sheet=page.locator('#modal-overlay .collection-sheet-body');
+   await page.locator('#f-image-options summary').click();
+   await page.locator('#f-parent-search').scrollIntoViewIfNeeded();
+   assert.ok(await sheet.evaluate(el=>el.scrollHeight>el.clientHeight),'Long DLC editor has a scrollable body');
+   const title=page.locator('#modal-title'), actions=page.locator('#modal-overlay .modal-actions');
+   const initialTitle=await title.boundingBox(), initialActions=await actions.boundingBox();
+   await sheet.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+   assert.deepEqual(await title.boundingBox(),initialTitle,'Title remains fixed while the form scrolls');
+   assert.deepEqual(await actions.boundingBox(),initialActions,'Actions remain fixed while the form scrolls');
+   const bodyBox=await sheet.boundingBox();
+   assert.ok(initialTitle.y+initialTitle.height<=bodyBox.y && bodyBox.y+bodyBox.height<=initialActions.y,'Form cannot overlap the title or actions');
+   await page.locator('#cancel-btn').click();
    await page.locator('#confirm-modal-confirm-btn').click();
    const before=await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST,cemetery:CEMETERY}));
    await page.locator('#cemetery-import-input').setInputFiles({name:'long-list.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(Array.from({length:40},(_,i)=>({nom:longTitle+i,plateforme:'Nintendo Switch',saleStatus:'pending'}))))});

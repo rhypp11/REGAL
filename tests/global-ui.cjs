@@ -13,7 +13,7 @@ const server=createSandboxServer();
    let headerGeometry;
    for(const view of ['home','collection','cemetery']){
     await page.locator('[data-page="'+view+'"]').click();
-    const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#theme-toggle,#profile-menu-btn')].map(node=>{
+    const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>{
      const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
     }));
     if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');

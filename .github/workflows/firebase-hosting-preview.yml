@@ -31,7 +31,6 @@ jobs:
           node --check deku-import.js
           node --test tests/deku-data.test.cjs
           node --check firebase.js
-          node --check theme.js
           node --check lifecycle.js
           node --check cemetery.js
           node --check cemetery-import.js
@@ -40,13 +39,10 @@ jobs:
           node --test tests/digital-data.test.cjs
           node --test tests/import-export.test.cjs
 
-      - name: Check themes on desktop and mobile in local sandbox
+      - name: Check dark mode on desktop and mobile in local sandbox
         run: |
           npm install --prefix "$RUNNER_TEMP/jtd-browser" --no-package-lock playwright@1.58.2
-          python3 -m http.server 8765 > "$RUNNER_TEMP/theme-server.log" 2>&1 &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID"' EXIT
-          NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" node tests/theme-smoke.cjs
+          NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/theme-smoke.cjs
 
       - name: Check order and receipt flows
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/workflow.cjs
@@ -186,13 +182,32 @@ jobs:
           grep -q "jtd-sandbox-rhypp11.web.app" /tmp/preview.html
           grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
           grep -q "const fbApp = previewMode ? null : initializeApp(firebaseConfig)" /tmp/firebase.js
-          google-chrome --headless --disable-gpu --no-sandbox --virtual-time-budget=5000 --dump-dom "$PREVIEW_URL/" > /tmp/rendered.html 2> /tmp/chrome.log
-          grep -Eq 'class="auth-loading hidden"[^>]*id="auth-loading"|id="auth-loading"[^>]*class="auth-loading hidden"' /tmp/rendered.html || {
-            echo "Rendered sandbox did not leave loading state"
-            cat /tmp/chrome.log
-            grep -n "auth-loading" /tmp/rendered.html || true
-            exit 1
-          }
+          NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node - <<'NODE'
+          const assert = require('node:assert/strict');
+          const {chromium} = require('playwright');
+          (async () => {
+            const url = new URL(process.env.PREVIEW_URL);
+            assert.match(url.hostname, /^jtd-sandbox-rhypp11--.+\.web\.app$/);
+            const browser = await chromium.launch({executablePath:process.env.JTD_CHROME});
+            try {
+              const context = await browser.newContext({serviceWorkers:'block'});
+              const unexpected = [];
+              await context.route('**/*', route => {
+                const request = new URL(route.request().url());
+                if(request.origin === url.origin && request.pathname !== '/firebase.js') return route.continue();
+                if(!['fonts.googleapis.com','fonts.gstatic.com'].includes(request.hostname)) unexpected.push(request.hostname + request.pathname);
+                return route.abort();
+              });
+              const page = await context.newPage();
+              await page.goto(url.href);
+              await page.locator('#app-shell').waitFor({state:'visible'});
+              assert.equal(await page.locator('html').getAttribute('data-environment'),'sandbox');
+              assert.equal(await page.locator('#login-gate').isVisible(),false);
+              assert.equal(await page.locator('script[src*="firebase.js"]').count(),0);
+              assert.deepEqual(unexpected,[]);
+            } finally { await browser.close(); }
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
           echo "Sandbox preview verified: ${PREVIEW_URL}"
 
       - name: Preview summary

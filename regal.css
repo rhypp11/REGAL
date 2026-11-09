@@ -6,8 +6,8 @@
 .profile-menu .profile-menu-item { min-height:44px; padding:11px 10px; border-radius:12px; }
 .profile-menu .profile-menu-item:hover { background:var(--surface-raised); }
 .profile-menu .profile-menu-sub { line-height:1.45; }
-.topnav { padding:0; position:sticky; top:0; background:#195e70; background-image:linear-gradient(#ffffff08,#00000005); border-color:#195e70; color:#fff; box-shadow:inset 0 1px 0 #ffffff12,0 1px 12px #0000000c; }
-.topnav .brand-word.regal-logo { display:block; width:140px; height:42px; object-fit:contain; }
+.topnav { padding:0; position:sticky; top:0; background:#101010; border-color:#363636; color:#fff; box-shadow:inset 0 1px 0 #ffffff12,0 1px 12px #0000000c; }
+.topnav .brand-word.regal-logo { display:block; width:112px; height:42px; object-fit:contain; }
 .topnav .topnav-inner {
   display:flex;
   flex-wrap:nowrap;
@@ -46,7 +46,7 @@
   border:0;
   border-radius:0;
   background:transparent;
-  color:#d7e9ed;
+  color:#d6d6d6;
   box-shadow:none;
   font-size:13px;
 }
@@ -64,26 +64,25 @@
   border-radius:3px 3px 0 0;
   background:transparent;
 }
-.topnav .topnav-nav .nav-tab.active::after { background:#b7e3e9; }
+.topnav .topnav-nav .nav-tab.active::after { background:#fff; }
 .topnav .topnav-nav [data-page="collection"] { margin-left:12px; }
 .topnav .topnav-actions { margin-left:auto; }
 .topnav .topnav-break { display:none; }
-.topnav .theme-toggle,.topnav .profile-menu-btn { color:#fff; border-color:#ffffff38; background:transparent; }
-.topnav .theme-toggle:hover,.topnav .profile-menu-btn:hover { background:#ffffff20; border-color:#ffffff70; }
-/* Les états gardent leur sens sur le fond pétrole de l’en-tête. */
-.topnav .cloud-sync-status { color:#dff1f3; border-color:#ffffff38; }
+.topnav .topnav-search-btn,.topnav .profile-menu-btn { color:#fff; border-color:#ffffff38; background:transparent; }
+.topnav .topnav-search-btn:hover,.topnav .profile-menu-btn:hover { background:#ffffff20; border-color:#ffffff70; }
+/* Les états gardent leur sens sur le fond noir de l’en-tête. */
+.topnav .cloud-sync-status { color:#e5e5e5; border-color:#ffffff38; }
 .topnav .cloud-sync-status.ok { color:#b4d4a3; border-color:#b4d4a366; }
 .topnav .cloud-sync-status.syncing,.topnav .cloud-sync-status.pending { color:#f1d49f; border-color:#f1d49f66; }
 .topnav .cloud-sync-status.error { color:#ffbcc2; border-color:#ffbcc266; }
 .topnav .profile-menu { color:var(--text); }
-.topnav :focus-visible { outline-color:#63d0df; }
-.login-brand .eyebrow,.auth-loading .eyebrow { display:block; width:210px; height:68px; color:transparent; background:url('brand-light.svg') center/contain no-repeat; }
-[data-theme="dark"] :is(.login-brand,.auth-loading) .eyebrow { background-image:url('brand-dark.svg'); }
+.topnav :focus-visible { outline-color:#fff; }
+.login-brand .eyebrow,.auth-loading .eyebrow { display:block; width:210px; height:68px; color:transparent; background:url('brand-dark.svg') center/contain no-repeat; }
 @media(max-width:820px) {
-  .topnav .brand-word.regal-logo { width:122px; height:38px; }
+  .topnav .brand-word.regal-logo { width:104px; height:39px; }
 }
 @media(max-width:360px) {
-  .topnav .brand-word.regal-logo { width:108px; height:36px; }
+  .topnav .brand-word.regal-logo { width:96px; height:36px; }
 }
 /* Cartes plus compactes sur ordinateur ; largeur mobile conservée. */
 @media(min-width:1101px) { #page-collection .grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
@@ -91,7 +90,7 @@
 
 @media(min-width:701px) and (max-width:1100px) {
   .topnav .topnav-inner { gap:12px; padding:0 14px; }
-  .topnav .brand-word.regal-logo { width:122px; height:38px; }
+  .topnav .brand-word.regal-logo { width:104px; height:39px; }
   .topnav .topnav-nav .nav-tab { padding-inline:10px; }
   .topnav .topnav-nav [data-page="collection"] { margin-left:6px; }
 }

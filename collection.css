@@ -292,7 +292,6 @@
 @media(max-width:820px) {
   #page-collection .grid { gap:10px; }
 }
-:root:not([data-theme="dark"]) #page-collection .add-btn { color:var(--ui-accent); }
 
 /* Trois niveaux : titre, plateforme et statut, puis support et contenus. */
 #page-collection .card-identity { display:flex; flex-direction:column; align-items:stretch; gap:5px; }
@@ -363,3 +362,31 @@
   #page-collection .platform-banner-stats > .library-stat-group { grid-column:1; grid-row:auto; }
   #page-collection .library-stat-group:first-child { grid-row:auto; }
 }
+
+.purchase-options > summary { cursor:pointer; padding:10px 0; min-height:44px; }
+.purchase-options[open] > summary { margin-bottom:6px; }
+.purchase-options .image-url-row { margin-bottom:10px; }
+#modal-overlay > .modal #f-context-editor .purchase-price-row { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+#modal-overlay > .modal #f-context-editor .purchase-price-row:has(#f-purchase-digital-fields.hidden) { grid-template-columns:1fr !important; }
+#f-partial-date-note { margin-top:6px; font-size:12px; }
+#page-collection:has([data-media="all"][aria-pressed="true"]) #grid[data-view="gallery"] .card-identity,
+#page-collection:has([data-media="all"][aria-pressed="true"]) #grid[data-view="gallery"] .card-state-row { display:flex; }
+#page-collection #grid[data-view="gallery"] :is(.card-platform-line,.card-console-account,.card-dlc-count) { display:none; }
+
+/* Keep the sheet controls outside the scrolling form at every viewport size. */
+#modal-overlay > .modal { overflow:hidden !important; }
+#modal-overlay > .modal > :is(#modal-title,.modal-actions) { flex-shrink:0; }
+#modal-overlay > .modal > .modal-actions { position:static; }
+#modal-overlay .collection-sheet-body {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:0;
+  min-width:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  scroll-padding-block:8px;
+}
+#modal-overlay .collection-sheet-body > * { flex-shrink:0; }
+#modal-overlay #f-parent-preview:not(.content-related-card) { font-size:var(--ui-text-sm); color:var(--ui-text-muted); }

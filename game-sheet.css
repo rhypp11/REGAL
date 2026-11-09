@@ -216,7 +216,6 @@
 #platform-modal-overlay .platform-editor-actions { flex-wrap:wrap; gap:8px; }
 #platform-modal-overlay .platform-editor-actions button { min-height:40px; border-radius:10px; }
 #platform-modal-overlay .platform-save-btn { background:var(--ui-accent); color:var(--ink); }
-:root:not([data-theme="dark"]) #platform-modal-overlay .platform-save-btn { color:#fff; }
 #platform-modal-overlay .platform-modal-actions { justify-content:flex-end; }
 #platform-modal-overlay .add-platform-row { display:flex; flex-wrap:wrap; gap:8px; padding:12px; border-radius:12px; }
 #platform-modal-overlay .add-platform-row input { flex:1 1 100%; min-height:44px; border-radius:10px; }

@@ -440,7 +440,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     closeArrivalModal();
     closeWishlistModal();
     closePlatformModal();
-    window.closeDigitalAccounts?.();
     closeMobileDrawers();
     document.getElementById('confirm-modal-overlay').classList.add('hidden');
     document.getElementById('profile-menu').classList.add('hidden');

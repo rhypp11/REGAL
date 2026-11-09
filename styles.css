@@ -1,41 +1,6 @@
-/* Identité REGAL : clair par défaut, sombre selon le système ou le choix local. */
+/* Palette sombre de REGAL. */
 
 :root {
-  color-scheme: light;
-  --ink: #f4f4f7;
-  --sidebar-bg: #ececef;
-  --surface: #ffffff;
-  --surface-raised: #eceef2;
-  --text: #24272c;
-  --muted: #5e6870;
-  --amber: #966526;
-  --orange: #A14F38;
-  --teal: #176578;
-  --accent: #176578;
-  --wishlist: #8B3D11;
-  --wishlist-rgb: 238,151,62;
-  --arrival: #0B6257;
-  --arrival-rgb: 48,171,151;
-  --status-todo-fill: #E6AF38;
-  --status-multi-fill: #A47AD8;
-  --status-done-fill: #6DB653;
-  --status-elsewhere-fill: #5A9ED3;
-  --hairline: #dcdfe4;
-  --danger: #B63845;
-  --status-todo: #805211;
-  --status-done: #35582D;
-  --status-elsewhere: #325D84;
-  --status-multi: #594082;
-  --status-cyan: #327C7C;
-  --status-salmon: #A14F38;
-  --ui-rgb: 36,39,44;
-  --panel-rgb: 255,255,255;
-  --canvas-rgb: 244,244,247;
-  --accent-rgb: 23,101,120;
-  --warm-rgb: 187,98,72;
-}
-
-:root[data-theme="dark"] {
   color-scheme: dark;
   --ink: #151618;
   --sidebar-bg: #1c1d20;
@@ -51,6 +16,10 @@
   --wishlist-rgb: 238,151,62;
   --arrival: #78DCC6;
   --arrival-rgb: 48,171,151;
+  --status-todo-fill: #E6AF38;
+  --status-multi-fill: #A47AD8;
+  --status-done-fill: #6DB653;
+  --status-elsewhere-fill: #5A9ED3;
   --hairline: #393c42;
   --danger: #EA9199;
   --status-todo: #F1D49F;
@@ -7184,7 +7153,7 @@ input[type="date"] {
   color: var(--teal);
 }
 
-.theme-toggle {
+.topnav-search-btn {
   width: 42px;
   height: 42px;
   flex: 0 0 42px;
@@ -7198,26 +7167,14 @@ input[type="date"] {
   cursor: pointer;
 }
 
-.theme-toggle:hover {
+.topnav-search-btn:hover {
   background: rgba(var(--accent-rgb),.12);
   border-color: var(--teal);
 }
 
-.theme-toggle svg {
+.topnav-search-btn svg {
   width: 19px;
   height: 19px;
-}
-
-.theme-sun {
-  display: none;
-}
-
-[data-theme="dark"] .theme-sun {
-  display: block;
-}
-
-[data-theme="dark"] .theme-moon {
-  display: none;
 }
 
 .platform-banner:not(.neutral) {
@@ -7252,7 +7209,7 @@ input[type="date"] {
   .topnav-actions {
     gap: 6px;
   }
-  .theme-toggle {
+  .topnav-search-btn {
     width: 38px;
     height: 38px;
     flex-basis: 38px;
