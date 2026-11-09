@@ -132,6 +132,9 @@ const server=createSandboxServer();
     const toolbar=await page.locator('#journal-toolbar').boundingBox();
     assert.ok(burger.x+burger.width<=views.x && burger.y<views.y+views.height,'Menu is beside the selector');
     assert.ok(toolbar.y>=views.y+views.height,'Completion controls are below the selector');
+    const sort=await page.locator('#journal-sort').boundingBox();
+    const add=await page.locator('[data-journal-add=completed]').boundingBox();
+    assert.ok(sort.x+sort.width<=add.x,'Sort is before the add button');
     assert.equal(await page.locator('#journal-toolbar [data-import-file]').count(),0);
    }
    const journalStats=page.locator('#journal-sidebar');
