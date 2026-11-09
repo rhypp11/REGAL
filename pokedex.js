@@ -150,7 +150,7 @@
  function sprite(entry){return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/'+(shiny?'shiny/':'')+entry.sprite+'.png';}
  function slot(entry){
   const number=(shiny?'S ':'')+pad(entry.number);
-  return '<div class="dex-slot" data-pokemon="'+entry.id+'"><button type="button" class="dex-pokemon" title="'+esc(entry.name)+'" data-id="'+entry.id+'"><span class="dex-number">'+number+'</span><img src="'+sprite(entry)+'" alt="" loading="lazy" decoding="async" width="96" height="96"><span class="dex-name">'+esc(entry.name)+'</span><span class="dex-state-mark" aria-hidden="true"></span></button><a class="dex-info" href="https://www.pokepedia.fr/'+encodeURIComponent(entry.speciesName)+'#Localisations" target="_blank" rel="noopener noreferrer" aria-label="Où obtenir '+esc(entry.name)+' ? (nouvel onglet)" title="Lieux de capture sur Poképédia">i</a></div>';
+  return '<div class="dex-slot" data-pokemon="'+entry.id+'"><button type="button" class="dex-pokemon" title="'+esc(entry.name)+'" data-id="'+entry.id+'"><span class="dex-number">'+number+'</span><img src="'+sprite(entry)+'" alt="" loading="lazy" decoding="async" width="96" height="96"><span class="dex-name">'+esc(entry.name)+'</span><span class="dex-state-mark" aria-hidden="true"></span></button><a class="dex-info" href="https://www.pokepedia.fr/'+encodeURIComponent(entry.speciesName)+'#Localisations" target="_blank" rel="noopener noreferrer" aria-label="Où obtenir '+esc(entry.name)+' ? (nouvel onglet)" title="Lieux de capture sur Poképédia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg></a></div>';
  }
  function addBoxes(list,region=''){
   for(let start=0;start<list.length;start+=30){
@@ -190,22 +190,47 @@
    button.querySelector('.dex-state-mark').textContent=['','•','✓'][state];
   }
   const overall=count(entries);
-  $('dex-progress').innerHTML='<strong>'+(overall.done+overall.pending)+' <small>/ '+overall.total+'</small></strong>'+progress(entries);
+  $('dex-progress').innerHTML='<strong>'+(overall.done+overall.pending)+' <small>/ '+overall.total+' obtenus</small></strong>'+progress(entries);
   $('dex-legend').innerHTML=badges(overall.total,overall.pending,overall.done);
   $('dex-generations').innerHTML=home?[...new Set(catalog.species.map(entry=>entry.generation))].sort((a,b)=>a-b).map(generation=>{
    const list=entries.filter(entry=>!entry.region&&entry.generation===generation),totals=count(list);
    return '<div class="dex-generation"><div><strong>Gén. '+generation+(generationNames[generation-1]?' · '+generationNames[generation-1]:'')+'</strong><span>'+(totals.done+totals.pending)+' / '+totals.total+'</span></div>'+progress(list)+'</div>';
   }).join(''):'';
  }
+ function saveProgress(next){
+  const updated={...current,states:next};
+  persist(trackers.map(tracker=>tracker.id===updated.id?updated:tracker));
+  current=updated;
+  states=next;
+  $('dex-error').textContent='';
+  update();
+ }
  boxes.addEventListener('click',event=>{
   const bulk=event.target.closest('[data-box-state]');
   const button=event.target.closest('.dex-pokemon');if(!current||loadError||(!button&&!bulk)) return;
   const next={...states};
+  const previous=new Map();
+  const state=bulk ? Number(bulk.dataset.boxState) : ((states[button.dataset.id]||0)+1)%3;
   if(bulk){
-   const state=Number(bulk.dataset.boxState);
-   for(const item of bulk.closest('.dex-box').querySelectorAll('.dex-pokemon')) next[item.dataset.id]=state;
-  }else next[button.dataset.id]=((states[button.dataset.id]||0)+1)%3;
-  try {const updated={...current,states:next};persist(trackers.map(t=>t.id===current.id?updated:t));current=updated;states=next;$('dex-error').textContent='';update();}
+   for(const item of bulk.closest('.dex-box').querySelectorAll('.dex-pokemon')){
+    const id=item.dataset.id, before=states[id]||0;
+    if(before!==state) previous.set(id,before);
+    next[id]=state;
+   }
+  }else next[button.dataset.id]=state;
+  try {
+   if(!bulk || previous.size) saveProgress(next);
+   if(previous.size){
+    const id=current.id, account=window.JTDAccountGeneration, version=revision;
+    showToast('Boîte modifiée.','Annuler',()=>{
+     if(current?.id!==id || account!==window.JTDAccountGeneration || version!==revision) return;
+     const restored={...states};
+     for(const [key,before] of previous) if((restored[key]||0)===state) restored[key]=before;
+     try { saveProgress(restored); showToast('Modification de la boîte annulée.'); }
+     catch { $('dex-error').textContent='Impossible d’annuler la modification de la boîte.'; }
+    });
+   }
+  }
   catch {$('dex-error').textContent='La progression n’a pas pu être enregistrée dans ce navigateur.';}
   if(bulk){const menu=bulk.closest('details');menu.open=false;menu.querySelector('summary').focus({preventScroll:true});}
  });
