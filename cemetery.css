@@ -445,3 +445,9 @@
   #sale-modal-overlay .modal-secondary-actions { flex-wrap:nowrap; }
   #sale-modal-overlay .modal-edit-actions .btn { line-height:1.15; padding-block:4px; white-space:normal; }
 }
+
+@media(min-width:821px){
+  #sale-modal-overlay > .modal { max-width:680px; }
+  #sale-modal-overlay .modal-secondary-actions { flex-wrap:nowrap; }
+  #sale-modal-overlay .modal-edit-actions .btn { white-space:nowrap; }
+}
