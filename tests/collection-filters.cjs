@@ -106,7 +106,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
           return {physicalShadow:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).boxShadow,digitalShadow:getComputedStyle(card).boxShadow,physicalStyle:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderLeftStyle,radius:getComputedStyle(card).borderTopLeftRadius,physicalBorder:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderLeftWidth,digitalBorder:getComputedStyle(card).borderLeftWidth,physicalRadius:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderTopLeftRadius,borderStyle:getComputedStyle(card).borderTopStyle,background:rgb(background),physical:rgb(getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).backgroundColor),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
         });
         assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
-        assert.ok(theme==='dark'?appearance.physical.every(value=>value<40):appearance.physical.every(value=>value>240),'Physical cards retain the base surface');
+        assert.ok(appearance.physical.every(value=>value<40),'Physical cards retain the base surface');
         assert.deepEqual(appearance.background,appearance.physical,'Both formats share the same surface');
         assert.equal(appearance.radius,'12px','Cards share the original corners in every view');
         assert.equal(appearance.physicalRadius,appearance.radius);
