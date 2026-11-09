@@ -69,6 +69,25 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
    assert.ok(initialTitle.y+initialTitle.height<=bodyBox.y && bodyBox.y+bodyBox.height<=initialActions.y,'Form cannot overlap the title or actions');
    await page.locator('#cancel-btn').click();
    await page.locator('#confirm-modal-confirm-btn').click();
+   if(width<=820){
+    await page.evaluate(()=>openModal(null));
+    await page.locator('#f-source').focus();
+    await page.evaluate(()=>{
+     Object.defineProperty(visualViewport,'height',{configurable:true,value:390});
+     visualViewport.dispatchEvent(new Event('resize'));
+    });
+    await page.waitForFunction(()=>document.documentElement.hasAttribute('data-dialog-keyboard'));
+    const keyboardSave=await page.locator('#save-btn').boundingBox();
+    assert.ok(keyboardSave.y+keyboardSave.height<=391,'Save stays above the simulated keyboard');
+    await page.locator('#save-btn').click();
+    assert.equal(await page.locator('#f-nom-error').isVisible(),true);
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'f-nom');
+    await page.evaluate(()=>{
+     delete visualViewport.height;
+     visualViewport.dispatchEvent(new Event('resize'));
+    });
+    await page.locator('#cancel-btn').click();
+   }
    const before=await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST,cemetery:CEMETERY}));
    await page.locator('#cemetery-import-input').setInputFiles({name:'long-list.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(Array.from({length:40},(_,i)=>({nom:longTitle+i,plateforme:'Nintendo Switch',saleStatus:'pending'}))))});
    await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});

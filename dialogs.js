@@ -123,6 +123,35 @@
     const note=document.getElementById(event.target.id+'-error');if(note){note.hidden=true;note.textContent='';}
     event.target.removeAttribute('aria-invalid');event.target.removeAttribute('data-invalid-field');
   });
+  const viewport=window.visualViewport;
+  if(viewport){
+    const fitKeyboard=()=>{
+      const overlay=top()?.overlay;
+      const field=document.activeElement;
+      const bottom=Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop);
+      const root=document.documentElement;
+      const editing=field.matches('input:not([type="checkbox"],[type="radio"]),textarea,[contenteditable="true"]');
+      const keyboard=matchMedia('(max-width:820px)').matches && viewport.scale===1 && bottom>100
+        && overlay?.contains(field) && (editing || root.hasAttribute('data-dialog-keyboard'));
+      root.toggleAttribute('data-dialog-keyboard',!!keyboard);
+      if(keyboard){
+        root.style.setProperty('--dialog-keyboard-bottom',bottom+'px');
+        root.style.setProperty('--dialog-keyboard-height',viewport.height+'px');
+        requestAnimationFrame(()=>{
+          if(editing && field===document.activeElement && field.getBoundingClientRect().bottom>viewport.offsetTop+viewport.height-12){
+            field.scrollIntoView({block:'center',inline:'nearest'});
+          }
+        });
+      }else{
+        root.style.removeProperty('--dialog-keyboard-bottom');
+        root.style.removeProperty('--dialog-keyboard-height');
+      }
+    };
+    viewport.addEventListener('resize',fitKeyboard);
+    viewport.addEventListener('scroll',fitKeyboard);
+    document.addEventListener('focusin',fitKeyboard);
+    document.addEventListener('focusout',()=>requestAnimationFrame(fitKeyboard));
+  }
   const observer = new MutationObserver(()=>{
     if(stack.some(entry=>entry.overlay.classList.contains('hidden'))) sync();
   });
