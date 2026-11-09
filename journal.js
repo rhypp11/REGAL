@@ -105,6 +105,11 @@
     const month=Number(entry.date.slice(5,7))-1;
     return {key:entry.date.slice(0,7),label:MONTH_NAMES_FULL[month]||'Date inconnue',color:MONTH_COLORS[month]};
   }
+  function releaseSortKey(entry){
+    const date = String(entry.date || '');
+    if(/^\d{4}$/.test(date)) return date + '-99';
+    return /^\d{4}-(?:0[1-9]|1[0-2])(?:-\d{2})?$/.test(date) ? date : '\uffff';
+  }
   function releaseGroup(entry){
     const value=String(entry.date||'');
     const month=/^\d{4}-(?:0[1-9]|1[0-2])(?:-\d{2})?$/.test(value)?Number(value.slice(5,7))-1:-1;
@@ -177,7 +182,7 @@
     $('journal-completed').innerHTML = calendar(selected,completedGroup) || '<p class="journal-empty">Aucune complétion cette année.</p>';
     for(const group of ['playing','backlog','release']){
       const list = entries.filter(entry=>entry?.group===group);
-      if(group==='release') list.sort((a,b)=>String(a.date||'9999').localeCompare(String(b.date||'9999')));
+      if(group==='release') list.sort((a,b)=>releaseSortKey(a).localeCompare(releaseSortKey(b)));
       $('journal-'+group).innerHTML = (group==='release'?calendar(list,releaseGroup):list.map(row).join('')) || '<p class="journal-empty">Aucun jeu.</p>';
     }
   }
