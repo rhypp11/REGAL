@@ -152,6 +152,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await page.locator('#modal-overlay').getByRole('button',{name:/Gérer les comptes/}).count(),0);
       await page.screenshot({path:'/tmp/jtd-purchase-account-'+width+'-'+theme+'.png'});
       await page.locator('#cancel-btn').click();
+      await page.locator('#confirm-modal-confirm-btn').click();
       await types(page,'game','dlc');
       await drawer(page);
       await page.waitForFunction(()=>!matchMedia('(max-width:820px)').matches || Math.abs(document.getElementById('collection-sidebar').getBoundingClientRect().left)<1);

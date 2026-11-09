@@ -1481,7 +1481,7 @@ function contextSummaryHtml(item, type){
   }
   if(type === 'arrival'){
     const bits = [
-      `<span><small>Livraison</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
+      `<span><small>Livraison prévue</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
       `<span><small>Prix payé</small><strong>${item.prix != null ? euros(item.prix) : '—'}</strong></span>`,
       `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
@@ -1491,7 +1491,7 @@ function contextSummaryHtml(item, type){
   const dateLabel = parsed && parsed.label ? parsed.label : '—';
   const linkLabel = item.lien ? 'Lien renseigné' : 'Aucun lien';
   return `<div class="context-summary-values">
-    <span><small>Sortie</small><strong>${escapeHTML(dateLabel)}</strong></span>
+    <span><small>Date de sortie</small><strong>${escapeHTML(dateLabel)}</strong></span>
     <span><small>Lien</small><strong>${linkLabel}</strong></span>
   </div><button type="button" class="context-edit-btn" title="Modifier la wishlist" aria-label="Modifier la wishlist">${contextEditIcon()}</button>`;
 }
@@ -1563,6 +1563,40 @@ function setGameSheetViewing(viewing){
   document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
 }
 
+const boardEditorSnapshots = new Map();
+
+function boardEditorSnapshot(id, prefix){
+  const fields = document.getElementById(id).querySelectorAll(
+    'input[id^="' + prefix + '-"], select[id^="' + prefix + '-"]'
+  );
+  const values = [...fields]
+    .filter(field => !['f-parent-search', 'w-release-search', 'w-date', 'w-year'].includes(field.id))
+    .map(field => field.type === 'checkbox' ? field.checked : field.value);
+  if(prefix === 'w') values.push(getFlexibleDate('w'));
+  return JSON.stringify(values);
+}
+
+function withBoardEditorChanges(id, prefix, action, transfer = false){
+  if(boardEditorSnapshots.get(id) === boardEditorSnapshot(id, prefix)){
+    action();
+    return;
+  }
+  confirmAction(
+    transfer
+      ? 'Les champs communs seront repris. Le transfert sera enregistré à la validation du formulaire suivant.'
+      : 'Les modifications de ce formulaire seront perdues.',
+    action,
+    transfer
+      ? {title:'Continuer avec la saisie en cours ?', confirmLabel:'Continuer'}
+      : {title:'Abandonner la saisie ?', confirmLabel:'Abandonner'}
+  );
+}
+
+function openBoardEditor(id, prefix, close){
+  boardEditorSnapshots.set(id, boardEditorSnapshot(id, prefix));
+  window.JTDDialogs.open(id, {onDismiss:() => withBoardEditorChanges(id, prefix, close)});
+}
+
 function openModal(id, collection = 'games'){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
@@ -1624,11 +1658,12 @@ function openModal(id, collection = 'games'){
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
   setGameSheetViewing(!!editingId && editingCollection === 'games');
   document.getElementById('save-btn').textContent = editingId ? 'Enregistrer' : 'Ajouter';
-  window.JTDDialogs.open('modal-overlay', {onDismiss:closeModal});
+  openBoardEditor('modal-overlay', 'f', closeModal);
   if(!editingId) document.getElementById('f-nom').focus();
 }
 
 function closeModal(){
+  document.getElementById('receipt-status-note').classList.add('hidden');
   document.getElementById('f-sell-btn').classList.add('hidden');
   document.getElementById('save-btn').textContent = 'Enregistrer';
   window.JTDDialogs.close('modal-overlay');
@@ -2138,7 +2173,7 @@ function openArrivalModal(id){
   }
   setIdentityEditor('a', identityItem, !!editingArrivalId);
   setContextEditor('a', identityItem, 'arrival', !!editingArrivalId);
-  window.JTDDialogs.open('arrival-modal-overlay', {onDismiss:closeArrivalModal});
+  openBoardEditor('arrival-modal-overlay', 'a', closeArrivalModal);
   if(!editingArrivalId) document.getElementById('a-nom').focus();
 }
 
@@ -2196,13 +2231,14 @@ function deleteArrival(){
   });
 }
 
-function addArrivalToCollection(id){
-  const item = ARRIVALS.find(x => x.id === id);
+function addArrivalToCollection(id, draft){
+  const item = draft || ARRIVALS.find(x => x.id === id);
   if(!item) return;
 
   setGameSheetViewing(false);
 
   convertingArrivalId = id;
+  document.getElementById('receipt-status-note').classList.remove('hidden');
   editingId = null;
   editingCollection = 'games';
   fillIdentityFields('f', item);
@@ -2210,14 +2246,14 @@ function addArrivalToCollection(id){
 
   document.getElementById('modal-title').textContent = 'Confirmer la réception';
   document.getElementById('delete-btn').classList.add('hidden');
-  document.getElementById('f-prix').value = item.prix != null ? String(item.prix).replace('.',',') : '';
-  document.getElementById('f-date').value = item.date || '';
+  document.getElementById('f-prix').value = item.priceInput ?? (item.prix != null ? String(item.prix).replace('.',',') : '');
+  document.getElementById('f-date').value = '';
   document.getElementById('f-source').value = item.source || '';
   setIdentityEditor('f', item, true);
-  setContextEditor('f', item, 'purchase', true);
+  setContextEditor('f', {...item, date:null}, 'purchase', true);
   document.getElementById('f-quick-hide-fields').classList.remove('hidden');
-  document.getElementById('save-btn').textContent = 'Confirmer';
-  window.JTDDialogs.open('modal-overlay', {onDismiss:closeModal});
+  document.getElementById('save-btn').textContent = 'Ajouter à la collection';
+  openBoardEditor('modal-overlay', 'f', closeModal);
 }
 
 /* ----- Modal Wishlist ----- */
@@ -2287,7 +2323,7 @@ function openWishlistModal(id){
   }
   setIdentityEditor('w', identityItem, !!editingWishlistId);
   setContextEditor('w', identityItem, 'wishlist', !!editingWishlistId);
-  window.JTDDialogs.open('wishlist-modal-overlay', {onDismiss:closeWishlistModal});
+  openBoardEditor('wishlist-modal-overlay', 'w', closeWishlistModal);
   if(!editingWishlistId) document.getElementById('w-nom').focus();
 }
 
@@ -2344,8 +2380,8 @@ function deleteWishlist(){
   });
 }
 
-function moveWishlistToArrivals(id){
-  const item = WISHLIST.find(x => x.id === id);
+function moveWishlistToArrivals(id, draft){
+  const item = draft || WISHLIST.find(x => x.id === id);
   if(!item) return;
 
   convertingWishlistId = id;
@@ -2355,14 +2391,13 @@ function moveWishlistToArrivals(id){
   document.getElementById('arrival-modal-title').textContent = 'Confirmer la commande';
   document.getElementById('a-delete-btn').classList.add('hidden');
   document.getElementById('a-received-btn').classList.add('hidden');
-  document.getElementById('a-save-btn').textContent = 'Confirmer';
-  const parsed = parseWishlistDate(item.date);
-  document.getElementById('a-date').value = parsed.priority === 0 && !wishlistIsReleased(item.date) ? parsed.key : '';
+  document.getElementById('a-save-btn').textContent = 'Confirmer la commande';
+  document.getElementById('a-date').value = '';
   document.getElementById('a-prix').value = '';
   document.getElementById('a-source').value = '';
   setIdentityEditor('a', item, true);
   setContextEditor('a', item, 'arrival', false);
-  window.JTDDialogs.open('arrival-modal-overlay', {onDismiss:closeArrivalModal});
+  openBoardEditor('arrival-modal-overlay', 'a', closeArrivalModal);
 }
 
 function moveArrivalToWishlist(id){
@@ -2371,16 +2406,18 @@ function moveArrivalToWishlist(id){
 
   convertingArrivalToWishlistId = id;
   editingWishlistId = null;
+  resetWishlistOriginPicker(false);
   fillIdentityFields('w', item);
 
-  document.getElementById('wishlist-modal-title').textContent = 'Basculer vers la wishlist';
+  document.getElementById('wishlist-modal-title').textContent = 'Remettre en wishlist';
+  document.getElementById('w-save-btn').textContent = 'Remettre en wishlist';
   document.getElementById('w-delete-btn').classList.add('hidden');
   document.getElementById('w-order-btn').classList.add('hidden');
-  setFlexibleDate('w', item.date);
+  setFlexibleDate('w', '');
   document.getElementById('w-lien').value = '';
   setIdentityEditor('w', item, true);
   setContextEditor('w', item, 'wishlist', false);
-  window.JTDDialogs.open('wishlist-modal-overlay', {onDismiss:closeWishlistModal});
+  openBoardEditor('wishlist-modal-overlay', 'w', closeWishlistModal);
 }
 
 function updateImagePreviewFor(inputId, previewId){
@@ -2402,27 +2439,35 @@ for(const prefix of ['f','a','w']){
 }
 
 document.getElementById('add-arrival-btn').addEventListener('click', () => openArrivalModal(null));
-document.getElementById('a-cancel-btn').addEventListener('click', closeArrivalModal);
+document.getElementById('a-cancel-btn').addEventListener('click', () => withBoardEditorChanges('arrival-modal-overlay', 'a', closeArrivalModal));
 document.getElementById('a-save-btn').addEventListener('click', saveArrivalModal);
 document.getElementById('a-delete-btn').addEventListener('click', deleteArrival);
 document.getElementById('a-image').addEventListener('input', () => updateImagePreviewFor('a-image','a-image-preview'));
 document.getElementById('a-received-btn').addEventListener('click', () => {
   if(!editingArrivalId) return;
   const id = editingArrivalId;
-  closeArrivalModal();
-  addArrivalToCollection(id);
+  withBoardEditorChanges('arrival-modal-overlay', 'a', () => {
+    const priceInput = document.getElementById('a-prix').value;
+    const source = document.getElementById('a-source').value.trim();
+    const draft = {...readIdentityFields('a'), priceInput, prix:parsePriceInput(priceInput), source};
+    closeArrivalModal();
+    addArrivalToCollection(id, draft);
+  }, true);
 });
 /* Un clic en dehors de la fenêtre d'édition d'un arrivage ne la ferme plus (évite les pertes accidentelles) */
 
 document.getElementById('add-wishlist-btn').addEventListener('click', () => openWishlistModal(null));
-document.getElementById('w-cancel-btn').addEventListener('click', closeWishlistModal);
+document.getElementById('w-cancel-btn').addEventListener('click', () => withBoardEditorChanges('wishlist-modal-overlay', 'w', closeWishlistModal));
 document.getElementById('w-save-btn').addEventListener('click', saveWishlistModal);
 document.getElementById('w-delete-btn').addEventListener('click', deleteWishlist);
 document.getElementById('w-order-btn').addEventListener('click', () => {
   if(!editingWishlistId) return;
   const id = editingWishlistId;
-  closeWishlistModal();
-  moveWishlistToArrivals(id);
+  withBoardEditorChanges('wishlist-modal-overlay', 'w', () => {
+    const draft = readIdentityFields('w');
+    closeWishlistModal();
+    moveWishlistToArrivals(id, draft);
+  }, true);
 });
 document.getElementById('w-image').addEventListener('input', () => updateImagePreviewFor('w-image','w-image-preview'));
 /* Un clic en dehors de la fenêtre d'édition d'un élément wishlist ne la ferme plus (évite les pertes accidentelles) */
@@ -2737,7 +2782,7 @@ document.getElementById('profile-avatar-input').addEventListener('change', async
 });
 
 document.getElementById('add-btn').addEventListener('click', () => openModal(null));
-document.getElementById('cancel-btn').addEventListener('click', closeModal);
+document.getElementById('cancel-btn').addEventListener('click', () => withBoardEditorChanges('modal-overlay', 'f', closeModal));
 document.getElementById('save-btn').addEventListener('click', saveModal);
 document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);

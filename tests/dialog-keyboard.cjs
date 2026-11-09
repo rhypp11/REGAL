@@ -61,6 +61,7 @@ async function checkTrap(page,id){
    assert.equal(await page.evaluate(()=>document.activeElement.id),'f-nom');
    await page.locator('#f-nom').fill('Saisie fictive à conserver');assert.equal(await page.locator('#f-nom-error').isVisible(),false);
    await page.locator('#modal-overlay').click({position:{x:1,y:1}});assert.equal(await page.locator('#f-nom').inputValue(),'Saisie fictive à conserver');await page.keyboard.press('Escape');
+   await page.locator('#confirm-modal-confirm-btn').click();
    // Confirmations cancel only themselves, and never execute deletion on Escape.
    const count=await page.evaluate(()=>GAMES.length);
    await page.evaluate(()=>openModal(GAMES[0].id));
@@ -77,6 +78,7 @@ async function checkTrap(page,id){
     assert.equal(await page.locator('#'+prefix+'-plateforme-error').isVisible(),true);
     assert.equal(await page.evaluate(()=>document.activeElement.id),prefix+'-plateforme');
     await page.keyboard.press('Escape');
+    await page.locator('#confirm-modal-confirm-btn').click();
    }
    // Sale -> game editor: Escape closes the child, then the sale, one at a time.
    await page.evaluate(()=>openSaleModal('keyboard-sale'));await page.locator('#sale-identity .identity-edit-btn').click();

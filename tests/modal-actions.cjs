@@ -36,6 +36,7 @@ const server=createSandboxServer();
      assert.equal(await page.locator('#cancel-btn').innerText(),'Annuler');
      await page.locator('#f-source').fill('Modification à annuler');
      await page.locator('#cancel-btn').click();
+     await page.locator('#confirm-modal-confirm-btn').click();
      assert.equal(await page.evaluate(()=>JSON.stringify(GAMES)),before,'Cancel keeps the game unchanged');
      await page.evaluate(()=>openModal(GAMES[0].id));
      assert.equal(await page.locator('#save-btn').isVisible(),false,'Reopening returns to consultation');

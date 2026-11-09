@@ -46,6 +46,7 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
     if([390,1440].includes(width))await page.screenshot({path:`/tmp/jtd-polish-${prefix}-${width}-${theme}.png`});
    }
    await page.keyboard.press('Escape');
+   await page.locator('#confirm-modal-confirm-btn').click();
    const before=await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST,cemetery:CEMETERY}));
    await page.locator('#cemetery-import-input').setInputFiles({name:'long-list.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(Array.from({length:40},(_,i)=>({nom:longTitle+i,plateforme:'Nintendo Switch',saleStatus:'pending'}))))});
    await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});
