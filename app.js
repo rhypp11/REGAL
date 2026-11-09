@@ -849,7 +849,7 @@ function buildFormatToggles(){
     bundleChip.className = 'toggle-chip' + (state.bundle ? ' active' : '');
     bundleChip.tabIndex = 0;
     setFilterAccessibility(bundleChip, state.bundle);
-    bundleChip.innerHTML = '<span class="toggle-chip-label"><span>Bundle</span></span>';
+    bundleChip.innerHTML = '<span class="toggle-chip-label">'+MEDIA_ICONS.bundle+'<span>Bundle</span></span>';
     bundleChip.onclick = () => { state.bundle = !state.bundle; buildFormatToggles(); render(); };
     container.appendChild(bundleChip);
   }
@@ -1320,7 +1320,7 @@ function japaneseEditionMark(item){
 }
 
 function bundleMark(item){
-  return JTDData.isDigital(item) && item.bundle ? '<span class="card-bundle-mark">Bundle</span>' : '';
+  return JTDData.isDigital(item) && item.bundle ? '<span class="card-bundle-mark" role="img" title="Bundle" aria-label="Bundle">'+MEDIA_ICONS.bundle+'</span>' : '';
 }
 
 const ICON_EDITION_REGION = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a18 18 0 0 1 0 18 18 18 0 0 1 0-18Z"/></svg>`;

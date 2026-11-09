@@ -35,18 +35,14 @@ const server=createSandboxServer();
    await page.locator('#f-identity-summary .identity-edit-btn').click();
    await page.locator('#f-image-options summary').click();
    assert.equal(await page.locator('#f-image-fit').inputValue(),'contain');
-   // Native dropdowns need an explicit opaque option background, including when
-   // the chosen site theme differs from the operating system/browser theme.
-   for(const selectedTheme of ['light','dark']){
-    await page.evaluate(theme=>document.documentElement.dataset.theme=theme,selectedTheme);
+   // Native dropdowns must stay readable with either OS preference.
     const contrast=await page.locator('#f-image-fit option').evaluateAll(options=>{
      const rgb=color=>color.match(/[\d.]+/g).slice(0,3).map(Number);
      const luminance=color=>rgb(color).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
      return options.map(option=>{const style=getComputedStyle(option),fg=luminance(style.color),bg=luminance(style.backgroundColor);return {ratio:(Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05),background:style.backgroundColor};});
     });
-    for(const option of contrast){assert.ok(option.ratio>=4.5,'Dropdown text contrast in '+selectedTheme);assert.ok(!option.background.includes('rgba'),'Dropdown options have an opaque background');}
-   }
-   await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+    for(const option of contrast){assert.ok(option.ratio>=4.5,'Dropdown text contrast');assert.ok(!option.background.includes('rgba'),'Dropdown options have an opaque background');}
+
    await page.locator('#f-image-fit').selectOption('cover');
    assert.equal(await page.locator('#image-preview .game-art-image').evaluate(img=>getComputedStyle(img).objectFit),'cover');
    await page.locator('#f-image-fit').selectOption('contain');

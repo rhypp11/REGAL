@@ -135,7 +135,7 @@ async function openFilters(page){
       await page.getByRole('button',{name:'Bundle',exact:true}).click();
       assert.equal(await page.locator('#grid .card').count(),1,'The independent version filters intersect');
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
-      assert.equal(await page.locator('#grid .card .card-bundle-mark').innerText(),'Bundle');
+      assert.equal(await page.getByRole('img',{name:'Bundle',exact:true}).locator('svg').count(),1);
       assert.equal(await page.locator('#grid .card [aria-label="Compte japonais"]').count(),1);
       assert.equal(await page.locator('#grid .card').count(),1);
       await page.evaluate(()=>applyNavigation({page:'collection',media:'all'}));

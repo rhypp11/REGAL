@@ -1,20 +1,19 @@
 const {chromium}=require('playwright');
-const fs=require('fs');
+const path=require('node:path');
+const os=require('node:os');
+const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
+const server=createSandboxServer();
 (async()=>{
- const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH || '/usr/bin/google-chrome',args:['--no-sandbox']});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const url='http://127.0.0.1:'+server.address().port;
+ const browser=await chromium.launch({headless:true,executablePath:process.env.JTD_CHROME || process.env.CHROME_PATH,args:['--no-sandbox']});
  const results=[];
  for(const width of [1440,390,320]){
-  const context=await browser.newContext({viewport:{width,height:900},colorScheme:'light'});
-  await context.route('**/*',async route=>{
-   const url=new URL(route.request().url());
-   if(url.hostname!=='localhost')return route.abort();
-   if(url.pathname==='/')return route.fulfill({contentType:'text/html',body:fs.readFileSync('index.html','utf8').replace("location.hostname === 'jtd-preview-rhypp11.web.app'","location.hostname === 'localhost'")});
-   return route.continue();
-  });
+  const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:'light'});
+  await context.addInitScript(() => localStorage.setItem('jtd:theme','light'));
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('http://localhost:8765/');await page.waitForSelector('#app-shell:not(.hidden)');
-  for(const theme of ['light','dark']){
-   if(theme==='dark')await page.click('#theme-toggle');
+  await page.goto(url);await page.waitForSelector('#app-shell:not(.hidden)');
+  const theme='dark';
    for(const name of ['home','collection']){
     await page.click(`[data-page="${name}"]`);
     if(name === 'collection') {
@@ -57,18 +56,21 @@ const fs=require('fs');
       if(ratios.some(tag => tag.ratio < 4.5)) throw Error(JSON.stringify({theme,width,ratios}));
       console.log(JSON.stringify({theme,width,tagContrast:ratios}));
     }
-    await page.screenshot({path:`/tmp/jtd-${width}-${theme}-${name}.png`,fullPage:true});
-    const state=await page.evaluate(()=>({theme:document.documentElement.dataset.theme,overflow:document.documentElement.scrollWidth>innerWidth,body:getComputedStyle(document.body).backgroundColor,button:document.getElementById('theme-toggle').getBoundingClientRect().toJSON(),profile:document.getElementById('profile-menu-btn').getBoundingClientRect().toJSON(),brand:document.querySelector('.brand-word').getBoundingClientRect().toJSON()}));
+    await page.screenshot({path:path.join(os.tmpdir(),"jtd-"+width+"-dark-"+name+".png"),fullPage:true});
+    const state=await page.evaluate(()=>({theme:getComputedStyle(document.documentElement).colorScheme,overflow:document.documentElement.scrollWidth>innerWidth,body:getComputedStyle(document.body).backgroundColor,button:document.getElementById('global-search-open').getBoundingClientRect().toJSON(),profile:document.getElementById('profile-menu-btn').getBoundingClientRect().toJSON(),brand:document.querySelector('.brand-word').getBoundingClientRect().toJSON()}));
     if(state.overflow||state.theme!==theme||state.brand.right>state.button.x||state.profile.right>width)throw Error(JSON.stringify({width,name,state}));
    }
-   await page.click('#add-btn');await page.waitForSelector('#modal-overlay:not(.hidden)');await page.screenshot({path:`/tmp/jtd-${width}-${theme}-modal.png`,fullPage:true});await page.click('#cancel-btn');
+   await page.click('#add-btn');await page.waitForSelector('#modal-overlay:not(.hidden)');await page.screenshot({path:path.join(os.tmpdir(),'jtd-'+width+'-dark-modal.png'),fullPage:true});await page.click('#cancel-btn');
    await page.click('#profile-menu-btn');await page.waitForSelector('#profile-menu:not(.hidden)');await page.click('#profile-menu-btn');
+  if(await page.locator('#theme-toggle').count())throw Error('Unexpected theme control');
+  for(const colorScheme of ['dark','light']){
+   await page.emulateMedia({colorScheme});
+   if(await page.evaluate(()=>getComputedStyle(document.documentElement).colorScheme)!=='dark')throw Error('System theme changed the palette');
   }
   await page.reload();await page.waitForSelector('#app-shell:not(.hidden)');
-  if(await page.evaluate(()=>document.documentElement.dataset.theme)!=='dark')throw Error('Theme persistence');
+  if(await page.evaluate(()=>getComputedStyle(document.documentElement).colorScheme)!=='dark')throw Error('Legacy light preference changed the palette');
   if(errors.length) throw Error(errors.join('; '));
   results.push({width,errors,persistence:true});await context.close();
  }
- const context=await browser.newContext({colorScheme:'dark'});await context.route('**/*', route => { const url = new URL(route.request().url()); if(url.hostname !== 'localhost') return route.abort(); if(url.pathname === '/') return route.fulfill({contentType:'text/html',body:fs.readFileSync('index.html','utf8').replace("location.hostname === 'jtd-preview-rhypp11.web.app'","location.hostname === 'localhost'")}); return route.continue(); });const page=await context.newPage();await page.goto('http://localhost:8765/');if(await page.evaluate(()=>document.documentElement.dataset.theme)!=='dark')throw Error('system preference');await page.emulateMedia({colorScheme:'light'});await page.waitForFunction(() => document.documentElement.dataset.theme === 'light');if(await page.evaluate(()=>document.documentElement.dataset.theme)!=='light')throw Error('system update');results.push({systemPreference:true});
- console.log(JSON.stringify(results));await browser.close();
+ console.log(JSON.stringify(results));await browser.close();server.close();
 })().catch(e=>{console.error(e);process.exit(1)});

@@ -14,6 +14,8 @@ function digitalPreviewGames(){ return [
   {id:'test-upgrade',nom:'Fire Emblem — Mise à niveau démo',plateforme:'Switch 2',format:'Numérique',contentType:'upgrade',parentId:'test-fe',accountId:'demo-nintendo-eu',currency:'EUR',prix:9.99}
 ]; }
 const MEDIA_ICONS = {
+  bundle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="10" width="13" height="11" rx="2"/><path d="M8 10V7a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-3M7 10v4h5v-4"/></svg>',
+  game:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 7h9a4 4 0 0 1 3.9 3.2l1.1 5a2.3 2.3 0 0 1-3.8 2.2l-2.6-2.4H8.9l-2.6 2.4a2.3 2.3 0 0 1-3.8-2.2l1.1-5A4 4 0 0 1 7.5 7Z"/><path d="M8 9.5v4m-2-2h4m6 0h.01m2-2h.01"/></svg>',
   all:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
   upgrade:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 17V7m-4 4 4-4 4 4"/></svg>',
   physical:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="m6 6 2 2m8 8 2 2"/></svg>',

@@ -4,33 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_09.11.26-5">
-<meta name="regal-build" content="b8fd8b1ecb5e66a56be2a7aa">
-<link rel="icon" type="image/svg+xml" href="logo-icon-light.svg?v=regal-1">
-<link rel="apple-touch-icon" href="logo-icon-apple.png?v=regal-1">
+<meta name="regal-version" content="3_09.11.26-7">
+<meta name="regal-build" content="ca4e01b46a9e82daf78181b5">
+<link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
+<link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#195e70">
-<script src="theme.js?v=regal-1"></script>
+<meta name="theme-color" content="#101010">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="REGAL">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;650;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=journal-scroll-1">
+<link rel="stylesheet" href="styles.css?v=rgl-dark-1">
 <link rel="stylesheet" href="cemetery.css?v=density-1">
 <link rel="stylesheet" href="home-boards-v2.css?v=density-1">
 <link rel="stylesheet" href="home-dashboard.css?v=density-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
-<link rel="stylesheet" href="ui-foundations.css?v=density-1">
-<link rel="stylesheet" href="regal.css?v=release-notice-1">
-<link rel="stylesheet" href="game-sheet.css?v=status-summary-1">
-<link rel="stylesheet" href="collection.css?v=collection-sheet-scroll-1">
-<link rel="stylesheet" href="digital.css?v=digital-versions-1">
+<link rel="stylesheet" href="ui-foundations.css?v=rgl-dark-1">
+<link rel="stylesheet" href="regal.css?v=rgl-dark-1">
+<link rel="stylesheet" href="game-sheet.css?v=rgl-dark-1">
+<link rel="stylesheet" href="collection.css?v=rgl-dark-1">
+<link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=2">
 <link rel="stylesheet" href="pokedex.css?v=account-pokedex-1">
-<link rel="stylesheet" href="journal.css?v=journal-sources-1">
+<link rel="stylesheet" href="journal.css?v=rgl-dark-1">
 </head>
 <body>
 
@@ -81,7 +80,7 @@
   <div class="topnav-inner">
     <div class="topnav-brand">
       <h1 class="brand-logo" aria-label="REGAL">
-        <img class="brand-word regal-logo" src="brand-header.svg?v=regal-1" alt="REGAL" width="140" height="42">
+        <img class="brand-word regal-logo" src="brand-header.svg?v=rgl-1" alt="REGAL" width="112" height="42">
       </h1>
     </div>
 
@@ -94,11 +93,7 @@
     </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
-      <button type="button" class="theme-toggle" id="global-search-open" title="Recherche globale" aria-label="Recherche globale" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4.5 4.5"/></svg></button>
-      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Activer le thème sombre" title="Activer le thème sombre" aria-pressed="false">
-        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 13A9 9 0 0 1 11 3.2 9 9 0 1 0 20.8 13Z"/></svg>
-        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
-      </button>
+      <button type="button" class="topnav-search-btn" id="global-search-open" title="Recherche globale" aria-label="Recherche globale" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4.5 4.5"/></svg></button>
       <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
       <div class="profile-menu-wrap">
         <button class="profile-menu-btn" id="profile-menu-btn" title="Menu" aria-label="Menu du profil">
@@ -513,7 +508,7 @@
         <summary>Version numérique</summary>
         <div class="field edition-options" role="group" aria-label="Version numérique">
           <label class="identity-collector-control" for="f-japanese-account"><input type="checkbox" id="f-japanese-account"><span class="japanese-flag" aria-hidden="true"></span><span>Compte japonais</span></label>
-          <label class="identity-collector-control" for="f-bundle"><input type="checkbox" id="f-bundle"><span>Bundle</span></label>
+          <label class="identity-collector-control" for="f-bundle"><input type="checkbox" id="f-bundle"><span class="bundle-choice-icon" data-format-icon="bundle"></span><span>Bundle</span></label>
         </div>
       </details>
       <p id="f-purchase-change-note" class="content-parent-note hidden" role="status"></p>
