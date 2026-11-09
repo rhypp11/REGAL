@@ -33,6 +33,7 @@ const server=createSandboxServer();
    await page.evaluate(()=>goToPage('collection'));
    await page.evaluate(()=>openModal('art-wide'));
    await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#f-image-options summary').click();
    assert.equal(await page.locator('#f-image-fit').inputValue(),'contain');
    // Native dropdowns need an explicit opaque option background, including when
    // the chosen site theme differs from the operating system/browser theme.

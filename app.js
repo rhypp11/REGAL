@@ -535,6 +535,8 @@ function euros(n){
 function dateFR(iso){
   if(!iso) return "—";
   const [y,m,d] = iso.split("-");
+  if(!m) return y;
+  if(!d) return `${m}/${y}`;
   return `${d}/${m}/${y}`;
 }
 
@@ -1597,6 +1599,16 @@ function openBoardEditor(id, prefix, close){
   window.JTDDialogs.open(id, {onDismiss:() => withBoardEditorChanges(id, prefix, close)});
 }
 
+function setPurchaseDate(date = ''){
+  const input = document.getElementById('f-date');
+  const partial = document.getElementById('f-partial-date');
+  const note = document.getElementById('f-partial-date-note');
+  input.value = date || '';
+  partial.value = !input.value && /^\d{4}(?:-\d{2})?$/.test(date) ? date : '';
+  note.querySelector('span').textContent = 'Date conservée : ' + dateFR(partial.value);
+  note.classList.toggle('hidden', !partial.value);
+}
+
 function openModal(id, collection = 'games'){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
@@ -1619,7 +1631,7 @@ function openModal(id, collection = 'games'){
     document.getElementById('f-collector').checked = !!g.collector;
   document.getElementById('f-japanese').checked = !!g.japanese;
     document.getElementById('f-prix').value = g.prix != null ? Number(g.prix).toFixed(g.currency === 'JPY' ? 0 : 2).replace('.',',') : '';
-    document.getElementById('f-date').value = g.date || '';
+    setPurchaseDate(g.date);
     document.getElementById('f-source').value = g.source || '';
     document.getElementById('f-image').value = g.image || '';
   } else {
@@ -1636,13 +1648,15 @@ function openModal(id, collection = 'games'){
     document.getElementById('f-collector').checked = false;
   document.getElementById('f-japanese').checked = false;
     document.getElementById('f-prix').value = '';
-    document.getElementById('f-date').value = '';
+    setPurchaseDate();
     document.getElementById('f-source').value = '';
     document.getElementById('f-image').value = '';
   }
   document.getElementById('f-image-fit').value = editingId && items.find(x => x.id === editingId)?.imageFit === 'cover' ? 'cover' : 'contain';
   updateImagePreview();
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
+  document.getElementById('f-image-options').open = false;
+  document.getElementById('f-edition-options').open = false;
   openDigitalFields(identityItem);
   setIdentityEditor('f', identityItem, !!editingId);
   if(identityItem && editingCollection==='games' && identityItem.contentType!=='upgrade'){
@@ -1685,7 +1699,7 @@ function saveModal(){
   if(!nom){ window.JTDDialogs.error('f-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('f-plateforme','Choisis une plateforme.'); return; }
   const prix = parsePriceInput(document.getElementById('f-prix').value);
-  const date = document.getElementById('f-date').value || null;
+  const date = document.getElementById('f-date').value || document.getElementById('f-partial-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
   const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit};
   try { Object.assign(fields, readDigitalFields()); }
@@ -2242,12 +2256,14 @@ function addArrivalToCollection(id, draft){
   editingId = null;
   editingCollection = 'games';
   fillIdentityFields('f', item);
+  document.getElementById('f-image-options').open = false;
+  document.getElementById('f-edition-options').open = false;
   openDigitalFields(item);
 
   document.getElementById('modal-title').textContent = 'Confirmer la réception';
   document.getElementById('delete-btn').classList.add('hidden');
   document.getElementById('f-prix').value = item.priceInput ?? (item.prix != null ? String(item.prix).replace('.',',') : '');
-  document.getElementById('f-date').value = '';
+  setPurchaseDate();
   document.getElementById('f-source').value = item.source || '';
   setIdentityEditor('f', item, true);
   setContextEditor('f', {...item, date:null}, 'purchase', true);
@@ -2786,6 +2802,13 @@ document.getElementById('cancel-btn').addEventListener('click', () => withBoardE
 document.getElementById('save-btn').addEventListener('click', saveModal);
 document.getElementById('delete-btn').addEventListener('click', deleteGame);
 document.getElementById('f-image').addEventListener('input', updateImagePreview);
+document.getElementById('f-date').addEventListener('change', event => {
+  if(event.target.value) setPurchaseDate(event.target.value);
+});
+document.querySelector('#f-partial-date-note button').addEventListener('click', () => {
+  setPurchaseDate();
+  document.getElementById('f-date').focus();
+});
 /* Un clic en dehors de la fenêtre d'édition d'un jeu ne la ferme plus (évite les pertes accidentelles) */
 
 document.getElementById('search-input').addEventListener('input', (e) => {

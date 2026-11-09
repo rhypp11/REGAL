@@ -22,6 +22,10 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
      document.getElementById(prefix+'-nom').value=longTitle;
     },{prefix,longTitle});
     const editor=page.locator('#'+prefix+'-identity-editor');
+    if(prefix==='f'){
+     await page.locator('#f-image-options summary').click();
+     await page.locator('#f-edition-options summary').click();
+    }
     const controls=(prefix==='f'?page.locator('#f-media-section #f-collector-field'):editor).locator('.identity-collector-control');
     await controls.first().click();await controls.last().click();
     assert.equal(await page.locator('#'+prefix+'-collector').isChecked(),true);

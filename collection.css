@@ -363,3 +363,13 @@
   #page-collection .platform-banner-stats > .library-stat-group { grid-column:1; grid-row:auto; }
   #page-collection .library-stat-group:first-child { grid-row:auto; }
 }
+
+.purchase-options > summary { cursor:pointer; padding:10px 0; min-height:44px; }
+.purchase-options[open] > summary { margin-bottom:6px; }
+.purchase-options .image-url-row { margin-bottom:10px; }
+#modal-overlay > .modal #f-context-editor .purchase-price-row { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+#modal-overlay > .modal #f-context-editor .purchase-price-row:has(#f-purchase-digital-fields.hidden) { grid-template-columns:1fr !important; }
+#f-partial-date-note { margin-top:6px; font-size:12px; }
+#page-collection:has([data-media="all"][aria-pressed="true"]) #grid[data-view="gallery"] .card-identity,
+#page-collection:has([data-media="all"][aria-pressed="true"]) #grid[data-view="gallery"] .card-state-row { display:flex; }
+#page-collection #grid[data-view="gallery"] :is(.card-platform-line,.card-console-account,.card-dlc-count) { display:none; }

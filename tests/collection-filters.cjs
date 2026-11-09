@@ -136,6 +136,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
       assert.equal(await page.locator('#f-content-type-field').isVisible(),true);
       await page.locator('[name="f-media-choice"][value="physical"]').check();
+      await page.locator('#f-edition-options summary').click();
       assert.equal(await page.locator('#f-collector-field').isVisible(),true);
       assert.equal(await page.locator('#f-content-type-field').isVisible(),false);
       assert.equal(await page.locator('#f-media-section #f-collector-field').count(),1);
