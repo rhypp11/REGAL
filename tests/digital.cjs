@@ -14,7 +14,6 @@ async function openFilters(page){
   const closed = await page.evaluate(()=>matchMedia('(max-width:820px)').matches && !document.getElementById('collection-sidebar').classList.contains('mobile-open'));
   if(closed) await page.locator('#global-filter-toggle').click();
 }
-async function chooseAccount(page,value){await openFilters(page);await page.locator('[data-account="'+value+'"]').click();}
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const browser=await chromium.launch({headless:true,...(process.env.JTD_CHROME?{executablePath:process.env.JTD_CHROME}:{})});
@@ -37,32 +36,28 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       await page.locator('.collection-stat-toggle').click();
       assert.ok((await page.locator('[data-stat="spent"]').innerText()).includes('2 000'));
       assert.equal(await page.locator('#grid .card-price, #grid .card-digital-price').count(),0,'Digital prices follow the same default visibility as physical');
-      assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-identity .card-console-account').count(),1);
+      assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-identity .card-console-account').count(),0);
       assert.equal(await page.locator('#collection-media-tabs svg').count(),3);
-      assert.equal(await page.locator('#collection-manage-accounts svg').innerHTML(),await page.locator('#manage-platforms-btn svg').innerHTML());
       await page.locator('#sort-select').selectOption('price-asc');
       assert.ok(await page.locator('#grid .card-price').count()>0);
       await page.locator('#sort-select').selectOption('name-asc');
       await page.locator('[data-dialog-trigger="game:base"] .card-name').click();
       assert.ok((await page.locator('#f-content-details').innerText()).includes('Extension numérique'));
       assert.ok((await page.locator('#f-content-details').innerText()).includes('40,00'));
-      assert.match(await page.locator('#f-context-summary').innerText(),/Compte/);
+      assert.doesNotMatch(await page.locator('#f-context-summary').innerText(),/Compte/);
       assert.doesNotMatch(await page.locator('#f-context-summary').innerText(),/Source/);
       await page.locator('#f-context-summary .context-edit-btn').click();
       assert.equal(await page.locator('#f-source').isVisible(),false);
-      assert.equal(await page.locator('#f-account').isVisible(),true);
-      assert.equal(await page.locator('#f-context-editor #f-account').count(),1);
+      assert.equal(await page.locator('#f-digital-version-options').isVisible(),true);
+      assert.equal(await page.locator('#f-context-editor #f-account').count(),0);
       assert.equal(await page.locator('#f-sell-btn').isVisible(),false);
       await page.locator('#cancel-btn').click();
-      await chooseAccount(page,'jp');assert.equal(await page.locator('#grid .card').count(),1);
-      assert.equal(await page.locator('.collection-filter-context').innerText(),'Numérique · Nintendo japonais');
-      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
-      assert.equal(await page.evaluate(()=>state.accountId),'jp');
-      assert.equal(await page.evaluate(()=>state.media),'digital');
-      await chooseAccount(page,'');
       await page.locator('#add-btn').click();
       await page.locator('#f-nom').fill('Nouvel achat japonais');await page.selectOption('#f-plateforme','Switch 2');
-      await page.selectOption('#f-account','jp');await page.selectOption('#f-currency','JPY');
+      await page.locator('#f-digital-version-options summary').click();
+      await page.locator('#f-japanese-account').check();
+      await page.locator('#f-bundle').check();
+      await page.selectOption('#f-currency','JPY');
       await page.locator('#f-prix').fill('3980');await page.locator('#save-btn').click();
       assert.equal(await page.locator('#modal-overlay').isVisible(),false);
       const newId=await page.evaluate(()=>GAMES.find(g=>g.nom==='Nouvel achat japonais').id);
@@ -70,11 +65,6 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       await page.selectOption('#f-content-type','dlc');await page.locator('#f-parent-enabled').check();await page.locator('#f-parent-search').fill('Nouvel achat japonais');
       await page.locator('[data-parent-id="'+newId+'"]').click();await page.selectOption('#f-currency','JPY');await page.locator('#f-prix').fill('1000');await page.locator('#save-btn').click();
       assert.equal(await page.evaluate(()=>JTDData.collectionCards(GAMES,'digital').some(g=>g.nom==='Nouvelle extension')),false);
-      // The child remains discoverable when the selected account excludes its parent.
-      await page.evaluate(()=>{const child=GAMES.find(g=>g.nom==='Nouvelle extension');child.accountId='eu';saveGames();render();});
-      await chooseAccount(page,'eu');
-      assert.ok((await page.locator('#grid').innerText()).includes('Nouvelle extension'));
-      await chooseAccount(page,'');
       // A sale removes only the physical copy; its DLC stays digital and cannot be sold.
       await page.evaluate(()=>{const box=GAMES.find(g=>g.id==='box');commitBoardTransfer('games','cemetery',box.id,{...box,saleStatus:'pending'});buildPlatformList();render();});
       assert.equal(await page.evaluate(()=>GAMES.some(g=>g.id==='box-dlc')),true);
@@ -100,7 +90,6 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       assert.equal(await page.locator('#f-content-details .content-related-thumb').count(),1);
       await page.locator('#cancel-btn').click();
       // Content filters reveal attached DLC, persist, and stay specific to digital views.
-      await chooseAccount(page,'');
       await openFilters(page);await page.locator('[data-content-type="dlc"]').click();
       assert.equal(await page.locator('[data-dialog-trigger="game:dlc"]').count(),1,'A grouped DLC becomes discoverable by content type');
       assert.equal(await page.locator('#grid .card:not(.dlc-card)').count(),0);
@@ -139,52 +128,16 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       assert.equal(await page.locator('#collection-account-scope').count(),0);
       // A storage failure cannot mutate purchases in memory.
       const rollback=await page.evaluate(()=>{const before=JSON.stringify(GAMES);const original=window.persistAppData;window.persistAppData=()=>{throw Error('quota test');};const result=commitCollection([]);window.persistAppData=original;return !result && before===JSON.stringify(GAMES);});assert.equal(rollback,true);
-      await page.evaluate(()=>{
-        GAMES.push({id:'shared-switch',nom:'Autre console',plateforme:'Nintendo Switch',format:'Numérique',accountId:'eu'});
-        GAMES.push({id:'shared-ps4',nom:'Autre réseau',plateforme:'PlayStation 4',format:'Numérique',accountId:'jp'});
-        state.platform='PlayStation 4';state.accountId='jp';buildPlatformList();render();
-      });
-      await chooseAccount(page,'eu');
-      assert.equal(await page.evaluate(()=>state.platform),null);
-      assert.match(await page.locator('#platform-list').textContent(),/Nintendo Switch/);
-      assert.match(await page.locator('#platform-list').textContent(),/Switch 2/);
-      assert.doesNotMatch(await page.locator('#platform-list').textContent(),/PlayStation 4/);
-      assert.equal(await page.evaluate(()=>ecosystemFor('Nintendo 3DS')),'Nintendo Network');
-      assert.equal(await page.evaluate(()=>ecosystemFor('Wii U')),'Nintendo Network');
-      assert.equal(await page.locator('#cemetery-import-trigger, #digital-accounts-btn').count(),0);
-      // Accounts are managed as labels, never connected credentials.
-      await openFilters(page);await page.locator('#collection-manage-accounts').click();
-      assert.equal(await page.locator('#collection-sidebar').evaluate(el=>el.classList.contains('mobile-open')),false,'Management sheet is not covered by the mobile drawer');
-      assert.equal(await page.locator('#digital-accounts-overlay .modal').evaluate(el=>el.scrollWidth>el.clientWidth+1),false);
-      assert.equal(await page.locator('.digital-account-row.editing').count(),0);
-      assert.equal(await page.locator('.digital-account-row .platform-row-editor:visible').count(),0);
-      const usedAccount=page.locator('.digital-account-row').first();
-      await usedAccount.locator('.digital-account-edit').click();
-      await usedAccount.locator('.digital-account-delete').click();
-      assert.match(await usedAccount.locator('.digital-account-row-error').innerText(),/possède des achats/);
-      assert.equal(await page.evaluate(()=>DIGITAL_ACCOUNTS.length),2);
-      await usedAccount.locator('.digital-account-cancel').click();
-      await page.screenshot({path:`/tmp/regal-account-list-${width}-${theme}.png`});
-      await page.locator('#digital-account-add').click();const row=page.locator('.digital-account-row').last();
-      assert.equal(await page.locator('#digital-accounts-overlay .modal').evaluate(el=>el.scrollWidth>el.clientWidth+1),false,'Account editor stays inside the sheet');
-      await row.locator('[data-field="name"]').fill('Compte secondaire');await row.locator('[data-field="nickname"]').fill('Aster');
-      const avatar=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=8;canvas.height=8;canvas.getContext('2d').fillRect(0,0,8,8);return canvas.toDataURL('image/png').split(',')[1];});
-      await row.locator('[data-field="avatar-file"]').setInputFiles({name:'avatar.png',mimeType:'image/png',buffer:Buffer.from(avatar,'base64')});
-      await page.waitForFunction(()=>document.querySelector('.digital-account-row:last-child').dataset.avatarBusy === 'false');
-      await page.screenshot({path:`/tmp/regal-account-editor-${width}-${theme}.png`});
-      await row.locator('.digital-account-save').click();
-      assert.equal(await page.locator('.digital-account-row.editing').count(),0);
-      const existing=page.locator('.digital-account-row').last();
-      await existing.locator('.digital-account-edit').click();
-      await existing.locator('[data-field="nickname"]').fill('Brouillon annulé');
-      await existing.locator('.digital-account-cancel').click();
-      assert.equal(await page.evaluate(()=>DIGITAL_ACCOUNTS.at(-1).nickname),'Aster');
-      await page.locator('#digital-accounts-save').click();
-      assert.equal(await page.evaluate(()=>DIGITAL_ACCOUNTS.length),3);
-      assert.equal(await page.evaluate(()=>DIGITAL_ACCOUNTS.at(-1).nickname),'Aster');
-      assert.ok(await page.evaluate(()=>DIGITAL_ACCOUNTS.at(-1).avatar.startsWith('data:image/')));
+      await page.evaluate(()=>applyNavigation({page:'collection',media:'digital'}));
+      await openFilters(page);
+      await page.getByRole('button',{name:'Compte japonais',exact:true}).click();
+      assert.equal(await page.locator('#grid .card').count(),2,'Legacy Japanese account and the new bundle match');
+      await page.getByRole('button',{name:'Bundle',exact:true}).click();
+      assert.equal(await page.locator('#grid .card').count(),1,'The independent version filters intersect');
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
-      assert.equal(await page.evaluate(()=>DIGITAL_ACCOUNTS.length),3);
+      assert.equal(await page.locator('#grid .card .card-bundle-mark').innerText(),'Bundle');
+      assert.equal(await page.locator('#grid .card [aria-label="Compte japonais"]').count(),1);
+      assert.equal(await page.locator('#grid .card').count(),1);
       await page.evaluate(()=>applyNavigation({page:'collection',media:'all'}));
       await page.screenshot({path:`/tmp/jtd-digital-${width}-${theme}.png`,fullPage:true});
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -193,7 +146,7 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
         applyNavigation({page:'collection',media:'digital',accountId:'eu'});window.scrollTo(0,1200);
       });
       await page.locator('#collection-scroll-context').waitFor({state:'visible'});
-      assert.equal(await page.locator('.collection-context-media').innerText(),'Numérique · Nintendo principal');
+      assert.equal(await page.locator('.collection-context-media').innerText(),'Numérique');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
       await page.evaluate(()=>window.scrollTo(0,0));
       const count=await page.locator('#grid .card').count();
@@ -217,7 +170,7 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       await page.locator('#collection-view-switch [data-view="list"]').click();
       await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
       assert.equal(await page.locator('#grid').getAttribute('data-view'),'list','Display choice survives reload');
-      assert.deepEqual(errors,[]);await context.close();console.log(`PASS digital ${width}px ${theme}: purchases, DLC, accounts, reload, isolation and rollback`);
+      assert.deepEqual(errors,[]);await context.close();console.log(`PASS digital ${width}px ${theme}: purchases, DLC, versions, reload, isolation and rollback`);
     }
   }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});

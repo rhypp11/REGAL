@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_09.11.26-3">
-<meta name="regal-build" content="1f8040a4e0051eeeb72a9297">
+<meta name="regal-version" content="3_09.11.26-5">
+<meta name="regal-build" content="b8fd8b1ecb5e66a56be2a7aa">
 <link rel="icon" type="image/svg+xml" href="logo-icon-light.svg?v=regal-1">
 <link rel="apple-touch-icon" href="logo-icon-apple.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="regal.css?v=release-notice-1">
 <link rel="stylesheet" href="game-sheet.css?v=status-summary-1">
 <link rel="stylesheet" href="collection.css?v=collection-sheet-scroll-1">
-<link rel="stylesheet" href="digital.css?v=compact-content-28">
+<link rel="stylesheet" href="digital.css?v=digital-versions-1">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=2">
 <link rel="stylesheet" href="pokedex.css?v=account-pokedex-1">
@@ -380,11 +380,10 @@
     </div>
 
     <div class="side-section" id="collector-filter-section">
-      <div class="side-label">Édition</div>
+      <div class="side-label" id="collection-version-label">Édition</div>
       <div class="format-toggles" id="format-toggles"></div>
     </div>
 
-      <div class="side-section" id="collection-account-field"><div class="side-label-row"><span class="side-label">Compte</span><button type="button" class="icon-link-btn" id="collection-manage-accounts" title="Gérer les comptes" aria-label="Gérer les comptes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button></div><div id="collection-account-options" role="group" aria-label="Comptes numériques"></div></div>
     <div class="side-section" id="content-filter-section"><div class="side-label">Contenu</div><div class="content-type-options" id="content-type-options" role="group" aria-label="Type de contenu"></div></div>
 
     <div class="side-section side-section-status">
@@ -493,7 +492,6 @@
         <input type="hidden" id="f-partial-date">
         <div id="f-partial-date-note" class="hidden"><span></span> <button type="button" class="manage-link">Effacer cette date</button></div>
       </div>
-      <div id="f-account-field" class="hidden"><div class="field"><label for="f-account">Compte</label><select id="f-account"></select></div></div>
       <div class="field" id="f-source-field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
       <details id="f-edition-options" class="purchase-options">
         <summary>Options d’édition</summary>
@@ -509,6 +507,13 @@
             <span class="japanese-flag" aria-hidden="true"></span>
             <span>Japonais</span>
           </label>
+        </div>
+      </details>
+      <details id="f-digital-version-options" class="purchase-options hidden">
+        <summary>Version numérique</summary>
+        <div class="field edition-options" role="group" aria-label="Version numérique">
+          <label class="identity-collector-control" for="f-japanese-account"><input type="checkbox" id="f-japanese-account"><span class="japanese-flag" aria-hidden="true"></span><span>Compte japonais</span></label>
+          <label class="identity-collector-control" for="f-bundle"><input type="checkbox" id="f-bundle"><span>Bundle</span></label>
         </div>
       </details>
       <p id="f-purchase-change-note" class="content-parent-note hidden" role="status"></p>
@@ -678,13 +683,10 @@
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
 </script>
-<div class="modal-overlay sheet-dialog hidden" id="digital-accounts-overlay" role="dialog" aria-modal="true" aria-labelledby="digital-accounts-title">
-  <div class="modal platform-modal"><div class="platform-modal-heading"><h2 id="digital-accounts-title">Comptes consoles</h2><button type="button" class="platform-new-btn" id="digital-account-add">+ Ajouter</button></div><div id="digital-account-rows" class="platform-rows"></div><p id="digital-accounts-error" role="alert"></p><div class="modal-actions platform-modal-actions"><button type="button" class="btn btn-primary" id="digital-accounts-save">Terminé</button></div></div>
-</div>
 <div class="modal-overlay sheet-dialog hidden" id="deku-import-overlay" role="dialog" aria-modal="true" aria-labelledby="deku-import-title"><div class="modal deku-import-modal">
 <h2 id="deku-import-title">Importer Deku Deals</h2>
-<p class="deku-import-intro">Ajout uniquement. Les achats déjà présents ne seront pas modifiés. Vérifie les comptes et les types proposés ; les DLC pourront être rattachés plus tard.</p>
-<div class="deku-import-toolbar"><label>Achats à importer<select id="deku-import-format"><option value="digital">Numérique</option><option value="physical">Physique</option><option value="all">Physique et numérique</option></select></label><label>Compte pour tous les achats numériques<select id="deku-import-account"></select></label></div>
+<p class="deku-import-intro">Ajout uniquement. Les achats déjà présents ne seront pas modifiés. Vérifie les types proposés ; les DLC pourront être rattachés plus tard.</p>
+<div class="deku-import-toolbar"><label>Achats à importer<select id="deku-import-format"><option value="digital">Numérique</option><option value="physical">Physique</option><option value="all">Physique et numérique</option></select></label></div>
 <p id="deku-import-summary" role="status"></p><p id="deku-import-ignored"></p>
 <div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
 <div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>

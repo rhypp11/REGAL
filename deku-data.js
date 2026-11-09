@@ -20,16 +20,15 @@
     }
     return {rows,ignored,total:payload.items.length};
   }
-  function key(item){return data.importKey(item)+'|'+(data.isDigital(item)?'digital|'+(item.accountId || ''):'physical');}
+  function key(item){return data.importKey(item)+'|'+(data.isDigital(item)?'digital':'physical');}
   function plan(rows,games,cemetery=[]){
     const known=new Map(games.map(g=>[key(g),g]));const archived=new Set(cemetery.map(key));
     return rows.map(row=>{
-      const candidate={...row,accountId:row.accountChoice==='__none__'?null:row.accountChoice || null};
+      const candidate={...row};
       const signature=key(candidate);
       if(known.has(signature))return {row,candidate,status:'duplicate',match:known.get(signature)};
       if(archived.has(signature))return {row,candidate,status:'archived'};
       if(!row.selected)return {row,candidate,status:'excluded'};
-      if(data.isDigital(row) && !row.accountChoice)return {row,candidate,status:'account'};
       known.set(signature,candidate);return {row,candidate,status:'add'};
     });
   }

@@ -53,3 +53,14 @@ test('explicit content filters can show a base game and its DLC independently',(
   assert.deepEqual(D.collectionCards([base,dlc],'digital',null,'Jeu numérique',false).map(g=>g.id),['base']);
   assert.deepEqual(D.collectionCards([base,dlc],'physical',null,'',false),[]);
 });
+
+test('Legacy Japanese accounts seed an editable flag and preserve bundles',()=>{
+ const data={digitalAccounts:[{id:'jp',name:'Japon',ecosystem:'Nintendo',region:'Japon'}],games:[
+  {id:'legacy',nom:'Ancien achat',plateforme:'Switch',format:'Numérique',accountId:'jp',japanese:false},
+  {id:'explicit',nom:'Achat corrigé',plateforme:'Switch',format:'Numérique',accountId:'jp',japaneseAccount:false,bundle:true}
+ ]};
+ const {games}=require('../jtd-data.js').normalizeData(data);
+ assert.equal(games[0].japaneseAccount,true);
+ assert.equal(games[1].japaneseAccount,false);
+ assert.equal(games[1].bundle,true);
+});

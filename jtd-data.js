@@ -65,9 +65,9 @@
         for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId','journalPreviousStatus','contentType','parentId','accountId','currency','dekuNote','dekuAddedAt']){
           if(value[field] !== undefined) item[field] = text(value[field], field);
         }
-        for(const field of ['collector','japanese']){
+        for(const field of ['collector','japanese','japaneseAccount','bundle']){
           if(value[field] != null && typeof value[field] !== 'boolean') throw new Error('Édition invalide');
-          item[field] = value[field] === true;
+          if(field === 'collector' || field === 'japanese' || value[field] != null) item[field] = value[field] === true;
         }
         if(value.prix != null && (typeof value.prix !== 'number' || !Number.isFinite(value.prix))) throw new Error('Prix invalide');
         if(value.prix !== undefined) item.prix = value.prix;
@@ -125,6 +125,10 @@
       if(account.avatar !== undefined) result.avatar = safeURL(text(account.avatar,'avatar du compte'),true) || null;
       return result;
     });
+    const japaneseAccounts = new Set(digitalAccounts.filter(account => /^(?:japon|japan|jp|jpn|日本)$/i.test(account.region)).map(account => account.id));
+    for(const game of games){
+      if(isDigital(game) && game.japaneseAccount === undefined && japaneseAccounts.has(game.accountId)) game.japaneseAccount = true;
+    }
     return {games, arrivals, wishlist, cemetery, journal, pokedex:normalizePokedex(data.pokedex), digitalAccounts, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
   }
   function parseBackup(parsed, defaults){

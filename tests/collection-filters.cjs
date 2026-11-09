@@ -6,9 +6,9 @@ const fixture={games:[
   {id:'box',nom:'Exemplaire physique',plateforme:'Switch 2',format:'Physique',status:'termine',prix:40},
   {id:'base',nom:'Jardin des étoiles',plateforme:'Switch 2',format:'Numérique',accountId:'jp',status:'termine',prix:30},
   {id:'dlc',nom:'Extension du jardin',plateforme:'Switch 2',format:'Numérique',contentType:'dlc',parentId:'base',accountId:'jp',status:'termine',prix:10},
-  {id:'other',nom:'Autre jeu',plateforme:'Switch 2',format:'Numérique',accountId:'eu',status:'a_jouer',prix:20},
+  {id:'other',nom:'Autre jeu',plateforme:'Switch 2',format:'Numérique',accountId:'eu',bundle:true,status:'a_jouer',prix:20},
   {id:'upgrade',nom:'Mise à niveau du jardin',plateforme:'Switch 2',format:'Numérique',contentType:'upgrade',parentId:'base',accountId:'jp',prix:5}
-],digitalAccounts:[{id:'jp',name:'Japon',nickname:'Jardin JP',ecosystem:'Nintendo'},{id:'eu',name:'Europe',ecosystem:'Nintendo'}]};
+],digitalAccounts:[{id:'jp',name:'Japon',nickname:'Jardin JP',ecosystem:'Nintendo',region:'Japon'},{id:'eu',name:'Europe',ecosystem:'Nintendo'}]};
 async function drawer(page){if(await page.evaluate(()=>matchMedia('(max-width:820px)').matches&&!document.getElementById('collection-sidebar').classList.contains('mobile-open')))await page.locator('#global-filter-toggle').click();}
 async function types(page,...values){await page.evaluate(values=>{state.contentType=values.join(',')||null;buildPlatformList();render();},values);}
 async function cards(page){return page.locator('#grid .card').evaluateAll(cards=>cards.map(card=>card.dataset.dialogTrigger));}
@@ -27,7 +27,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.locator('#profile-menu-btn').click();await page.locator('#profile-share-group > summary').click();await page.locator('#share-preview-btn').click();
       assert.equal(await page.evaluate(()=>window.shareCalls),0,'Sandbox sharing never publishes');
       if(await page.locator('#profile-menu').isVisible())await page.locator('#profile-menu-btn').click();
-      await page.evaluate(data=>{applyRestoredData(JTDData.normalizeData(data));applyNavigation({page:'collection',media:'digital',platform:'Switch 2',accountId:'jp',contentType:'game,dlc'});},fixture);
+      await page.evaluate(data=>{applyRestoredData(JTDData.normalizeData(data));applyNavigation({page:'collection',media:'digital',platform:'Switch 2',japanese:true,contentType:'game,dlc'});},fixture);
       assert.deepEqual((await cards(page)).sort(),['game:base','game:dlc']);
       await page.locator('.collection-stat-toggle').click();
       assert.equal(await stat(page,'games'),2);
@@ -44,15 +44,15 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.getByRole('button',{name:'Retirer DLC',exact:true}).press('Enter');
       assert.equal(await page.getByRole('button',{name:'Retirer DLC',exact:true}).count(),0);
       assert.equal(await page.getByRole('button',{name:'Retirer Jeux',exact:true}).evaluate(el=>el===document.activeElement),true);
-      assert.deepEqual(await page.evaluate(()=>[state.platform,state.accountId,state.media,state.contentType,state.sort]),['Switch 2','jp','digital','game','name-desc']);
+      assert.deepEqual(await page.evaluate(()=>[state.platform,state.japanese,state.media,state.contentType,state.sort]),['Switch 2',true,'digital','game','name-desc']);
       assert.deepEqual(await cards(page),['game:base']);
       assert.equal(await page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]).get('contentType')),'game');
-      await page.getByRole('button',{name:'Retirer Jardin JP',exact:true}).click();
+      await page.getByRole('button',{name:'Retirer Compte japonais',exact:true}).click();
       assert.deepEqual((await cards(page)).sort(),['game:base','game:other']);
-      await page.evaluate(view=>applyNavigation({...view,collector:true}),currentView);
-      await page.getByRole('button',{name:'Retirer Collector',exact:true}).click();
+      await page.evaluate(view=>applyNavigation({...view,bundle:true}),currentView);
+      await page.getByRole('button',{name:'Retirer Bundle',exact:true}).click();
       assert.deepEqual((await cards(page)).sort(),['game:base','game:dlc']);
-      await page.evaluate(view=>applyNavigation({...view,accountId:'eu'}),currentView);
+      await page.evaluate(view=>applyNavigation({...view,japanese:false,bundle:true}),currentView);
       await page.getByRole('button',{name:'Retirer Jeux',exact:true}).click();
       assert.deepEqual(await cards(page),[]);
       assert.equal(await page.locator('#platform-list .active .plat-name').textContent(),'Switch 2');
@@ -88,7 +88,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.deepEqual(await cards(page),['game:base']);assert.equal(await stat(page,'games'),1,'Search excludes nonmatching explicit rows');
       await page.evaluate(()=>{state.search='';render();});
 
-      await page.evaluate(()=>{state.media='all';state.accountId=null;buildPlatformList();render();});
+      await page.evaluate(()=>{state.media='all';state.japanese=false;buildPlatformList();render();});
       await types(page,'game','dlc','upgrade');
       for(const view of ['cards','gallery','list']){
         await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
@@ -119,11 +119,11 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');
         assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-platform-line .card-status-control').count(),1);
-        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-console-account').count(),1);
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-console-account').count(),0);
         assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-media-mark').count(),1);
         await page.screenshot({path:'/tmp/jtd-card-surface-'+view+'-'+width+'-'+theme+'.png'});
       }
-      await page.evaluate(()=>{state.media='digital';state.accountId='jp';buildPlatformList();render();openModal('base');});
+      await page.evaluate(()=>{state.media='digital';state.japanese=true;buildPlatformList();render();openModal('base');});
       assert.equal(await page.locator('#f-content-details .content-addon-link').count(),2);
       assert.equal(await page.locator('#f-content-details .content-type-dlc .content-kind-icon').count(),1);
       assert.equal(await page.locator('#f-content-details .content-type-upgrade .content-kind-icon').count(),1);
@@ -132,7 +132,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await page.locator('#f-format-title').innerText(),'Numérique');
       assert.equal(await page.evaluate(()=>document.getElementById('f-media-section').compareDocumentPosition(document.getElementById('f-identity-summary')) & Node.DOCUMENT_POSITION_PRECEDING),2);
       await page.locator('#f-context-summary .context-edit-btn').click();
-      assert.equal(await page.locator('#f-account').isVisible(),true);
+      assert.equal(await page.locator('#f-digital-version-options').isVisible(),true);
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
       assert.equal(await page.locator('#f-content-type-field').isVisible(),true);
       await page.locator('[name="f-media-choice"][value="physical"]').check();
@@ -156,21 +156,9 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.locator('#confirm-modal-confirm-btn').click();
       await types(page,'game','dlc');
       await drawer(page);
-      await page.waitForFunction(()=>!matchMedia('(max-width:820px)').matches || Math.abs(document.getElementById('collection-sidebar').getBoundingClientRect().left)<1);
-      assert.equal(await page.locator('#collection-account-options button').count(),3);
-      assert.equal(await page.locator('#collection-account-picker, #collection-account').count(),0);
-      assert.equal(await page.locator('[data-account=""] .account-all-icon svg circle').count(),1);
-      assert.equal(await page.locator('[data-account="jp"]').getAttribute('aria-pressed'),'true');
-      assert.match(await page.locator('[data-account="jp"] .plat-count').textContent(),/^2$/);
-      await page.screenshot({path:'/tmp/jtd-account-filters-'+width+'-'+theme+'.png'});
-      await page.locator('[data-account="eu"]').click();
-      assert.deepEqual(await cards(page),['game:other']);
-      await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
-      assert.equal(await page.evaluate(()=>state.accountId),'eu');
-      await drawer(page);await page.locator('[data-account="eu"]').click();
-      assert.equal(await page.evaluate(()=>state.accountId),null,'Reclick clears account filter');
-      await drawer(page);await page.locator('[data-account="jp"]').press('Enter');
-      assert.deepEqual((await cards(page)).sort(),['game:base','game:dlc']);
+      const contentRows = await page.locator('#content-type-options button').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().top));
+      assert.equal(new Set(contentRows).size,3,'Each content filter occupies its own row');
+      assert.equal(await page.locator('#collection-account-options').count(),0);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 
       // Reproduce the hosted demo collector conversion with its floating-point price.

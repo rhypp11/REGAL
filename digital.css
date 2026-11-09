@@ -77,8 +77,8 @@
   .dlc-placeholder svg { width:20px; height:20px; }
 }
 
-.content-type-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
-.content-type-options button { display:flex; justify-content:flex-start; align-items:center; gap:7px; width:100%; min-height:38px; padding:7px 5px; text-align:left; font:inherit; font-size:12px; cursor:pointer; }
+.content-type-options { display:grid; grid-template-columns:1fr; gap:4px; }
+.content-type-options button { display:flex; justify-content:flex-start; align-items:center; gap:7px; width:100%; min-height:44px; padding:7px 10px; text-align:left; font:inherit; font-size:12px; cursor:pointer; }
 .content-type-options svg { width:15px; height:15px; }
 .content-type-options [aria-pressed="true"] { color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,transparent); }
 
@@ -152,3 +152,6 @@
   .content-addon-link .content-kind-icon svg { width:18px; height:18px; }
   .content-addon-link .content-related-copy strong { font-size:12px; }
 }
+
+.card-bundle-mark { flex:none; padding:2px 5px; border:1px solid var(--hairline); border-radius:5px; color:var(--muted); font-size:10px; }
+#f-digital-version-options .edition-options { grid-template-columns:repeat(auto-fit,minmax(min(100%, 155px),1fr)); }
