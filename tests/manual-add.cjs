@@ -97,7 +97,25 @@ async function checkJournalSources(page){
   await results.locator('[data-journal-source="source-1"]').click();
   assert.match(await page.locator('#journal-game-summary').innerText(),/Numérique/);
   await page.locator('#journal-close').click();
+  await page.locator('#confirm-modal-cancel-btn').click();
+  assert.equal(await page.locator('#journal-form [name="name"]').inputValue(),'Source fictive');
+  await page.keyboard.press('Escape');
+  await page.locator('#confirm-modal-confirm-btn').click();
  }
+ await page.locator('[data-journal-add="completed"]').evaluate(el=>el.click());
+ await page.locator('#journal-form [name="name"]').fill('Complétion à l’année');
+ await page.locator('#journal-platform').selectOption('Switch 2');
+ await page.locator('#journal-form [name="estimated"]').selectOption('year');
+ assert.equal(await page.locator('#journal-form [name="date"]').isVisible(),false);
+ await page.locator('#journal-form [name="completionYear"]').fill('2012');
+ await page.locator('#journal-save').click();
+ assert.equal(await page.locator('#journal-year').inputValue(),'2012');
+ await page.locator('.journal-row').filter({hasText:'Complétion à l’année'}).click();
+ assert.match(await page.locator('#journal-dialog-body').innerText(),/≈ 2012/);
+ await page.locator('#journal-edit-completion').click();
+ assert.equal(await page.locator('#journal-form [name="completionYear"]').inputValue(),'2012');
+ await page.locator('#journal-save').click();
+ await page.locator('#journal-close').click();
  await page.locator('[data-journal-add="release"]').evaluate(el=>el.click());
  assert.match(await page.locator('#journal-form .journal-source-choice').innerText(),/Depuis la wishlist/);
  assert.equal(await page.locator('select[name="format"]').count(),0);
