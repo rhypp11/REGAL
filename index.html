@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_09.11.26-13">
-<meta name="regal-build" content="e9ca55501a640ae34603b753">
+<meta name="regal-version" content="3_09.11.26-14">
+<meta name="regal-build" content="2059c978be117fee44b988f6">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="collection.css?v=rgl-dark-1">
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
 <link rel="stylesheet" href="deku-import.css?v=1">
-<link rel="stylesheet" href="overview.css?v=2">
+<link rel="stylesheet" href="overview.css?v=listes-1">
 <link rel="stylesheet" href="pokedex.css?v=account-pokedex-1">
 <link rel="stylesheet" href="journal.css?v=journal-entry-1">
 </head>
@@ -93,7 +93,7 @@
     </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
-      <button type="button" class="topnav-search-btn" id="global-search-open" title="Recherche globale" aria-label="Recherche globale" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4.5 4.5"/></svg></button>
+      <button type="button" class="topnav-search-btn" id="global-search-open" title="Rechercher dans les listes" aria-label="Rechercher dans les listes" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4.5 4.5"/></svg></button>
       <span class="cloud-sync-status hidden" id="cloud-sync-status" title=""></span>
       <div class="profile-menu-wrap">
         <button class="profile-menu-btn" id="profile-menu-btn" title="Menu" aria-label="Menu du profil">
@@ -412,6 +412,7 @@
 <button type="button" data-view="list" aria-pressed="false" title="Liste" aria-label="Liste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M3 5h2M3 12h2M3 19h2"/></svg></button></div>
     </div>
 
+    <div class="module-import-actions hidden" id="collection-import-actions"><button type="button" class="btn btn-ghost" data-import-file="deku-import-input">Importer Deku Deals</button></div>
     <div class="results-bar" id="results-bar" role="status" aria-live="polite"></div>
     <div class="grid" id="grid"></div>
   </main>
@@ -560,6 +561,7 @@
       <input type="search" id="cemetery-search" placeholder="Chercher un jeu…" aria-label="Chercher dans le cimetière">
       <select id="cemetery-platform" aria-label="Plateforme"><option value="">Toutes les plateformes</option></select>
     </div>
+    <div class="module-import-actions"><button type="button" class="btn btn-ghost" data-import-file="cemetery-import-input">Importer des ventes</button></div>
     <div class="cemetery-order-tools hidden" id="cemetery-order-tools">
       <p class="cemetery-order-hint hidden" id="cemetery-order-hint">Glisse la poignée. Au clavier, utilise les flèches haut et bas.</p>
       <button type="button" class="btn btn-ghost" id="cemetery-order-toggle" aria-pressed="false">Réordonner</button>
@@ -623,9 +625,9 @@
 <div class="modal-overlay hidden" id="cemetery-import-overlay" role="dialog" aria-modal="true" aria-labelledby="cemetery-import-title">
   <div class="modal cemetery-import-modal">
     <h2 id="cemetery-import-title">Importer au cimetière</h2>
-    <p id="cemetery-import-summary" class="cemetery-note"></p>
     <p class="cemetery-import-help">Vérifie les exemplaires avant l’ajout. « Gain » est le prix encaissé ; « Valeur » reste une estimation. Les autres listes ne sont pas remplacées.</p>
     <div id="cemetery-import-list" class="cemetery-import-list"></div>
+    <p id="cemetery-import-summary" class="cemetery-note" role="status"></p>
     <p id="cemetery-import-error" class="cemetery-import-error" role="alert"></p>
     <div class="modal-actions">
       <div style="flex:1;"></div>
@@ -649,7 +651,7 @@
 </div>
 </section>
 <section class="page hidden" id="page-journal">
-  <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien d’abord</option><option value="desc">Plus récent d’abord</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter une complétion</button></div></div>
+  <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien d’abord</option><option value="desc">Plus récent d’abord</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter une complétion</button><button type="button" class="btn btn-ghost" data-import-file="journal-import-file">Importer CSV</button></div></div>
   <aside class="sidebar journal-sidebar" id="journal-sidebar" aria-label="Statistiques du journal">
     <div class="journal-panel"><h3>Statistiques</h3><div id="journal-stats"></div></div>
   </aside>
@@ -686,8 +688,9 @@
 <h2 id="deku-import-title">Importer Deku Deals</h2>
 <p class="deku-import-intro">Ajout uniquement. Les achats déjà présents ne seront pas modifiés. Vérifie les types proposés ; les DLC pourront être rattachés plus tard.</p>
 <div class="deku-import-toolbar"><label>Achats à importer<select id="deku-import-format"><option value="digital">Numérique</option><option value="physical">Physique</option><option value="all">Physique et numérique</option></select></label></div>
-<p id="deku-import-summary" role="status"></p><p id="deku-import-ignored"></p>
+<p id="deku-import-ignored"></p>
 <div id="deku-import-rows"></div><p id="deku-import-error" role="alert"></p>
+<p id="deku-import-summary" role="status"></p>
 <div class="modal-actions"><button type="button" class="btn btn-ghost" id="deku-import-cancel">Annuler</button><button type="button" class="btn btn-primary" id="deku-import-apply">Ajouter les achats sélectionnés</button></div>
 </div></div>
 <div class="modal-overlay sheet-dialog hidden" id="dex-editor-overlay" role="dialog" aria-modal="true" aria-labelledby="dex-editor-title"><div class="modal dex-editor-modal"><h2 id="dex-editor-title">Créer un Pokédex</h2><form id="dex-create"><div id="dex-picker"><div class="field"><label for="dex-choice-search">Choisir un Pokédex</label><input type="search" id="dex-choice-search" placeholder="HOME, Émeraude, Violet…" autocomplete="off"></div><div id="dex-choices" role="group" aria-label="Catalogue du Pokédex"></div></div><div class="field"><label for="dex-name">Nom du Pokédex</label><input id="dex-name" required maxlength="100" autocomplete="off"></div><p id="dex-editor-error" role="alert"></p><div class="modal-actions modal-edit-actions"><button type="button" id="dex-delete" data-modal-action="delete" class="btn btn-danger hidden">Supprimer</button><button type="button" id="dex-create-cancel" data-modal-action="cancel" class="btn btn-ghost">Annuler</button><button type="submit" id="dex-editor-save" data-modal-action="save" class="btn btn-primary">Créer</button></div></form></div></div>
@@ -709,10 +712,14 @@
 </div>
 <div class="modal-overlay sheet-dialog hidden" id="global-search-overlay" role="dialog" aria-modal="true" aria-labelledby="global-search-title">
   <div class="modal overview-modal">
-    <h2 id="global-search-title">Recherche globale</h2>
+    <h2 id="global-search-title">Rechercher dans les listes</h2>
     <div class="field">
       <label for="global-search-input">Titre du jeu</label>
       <input type="search" id="global-search-input" placeholder="Chercher un jeu…" autocomplete="off">
+    </div>
+    <div class="overview-board-links" aria-label="Accès direct">
+      <button type="button" class="btn btn-ghost" data-open-board="arrivals">Arrivages</button>
+      <button type="button" class="btn btn-ghost" data-open-board="wishlist">Wishlist</button>
     </div>
     <p class="overview-note" id="global-search-status" role="status"></p>
     <ul id="global-search-results" class="overview-list"></ul>
@@ -723,6 +730,7 @@
   <div class="modal overview-modal">
     <h2 id="purchase-report-title">Bilan des achats</h2>
     <div class="field"><label for="purchase-report-year">Année</label><select id="purchase-report-year"></select></div>
+    <p class="overview-note">Achats de la Collection et du Cimetière, par devise.</p>
     <div id="purchase-report-results"></div>
     <div class="modal-actions"><button type="button" class="btn btn-ghost" id="purchase-report-close">Fermer</button></div>
   </div>
@@ -735,7 +743,7 @@
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>
 <script src="cemetery-import.js?v=account-pokedex-1"></script>
-<script src="overview.js?v=1"></script>
+<script src="overview.js?v=listes-1"></script>
 <script src="journal-import.js?v=1"></script>
 <script src="journal.js?v=journal-sources-1"></script>
 <script src="pokedex-data.js?v=account-pokedex-1"></script>

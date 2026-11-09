@@ -36,11 +36,10 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'overview-search-result';
-      button.innerHTML = `<strong>${escapeHTML(item.nom)}</strong><small>${escapeHTML(item.plateforme)} · ${escapeHTML(location(item))}</small>`;
-      button.addEventListener('click',()=>{
-        closeSearch();
-        open(item.id);
-      });
+      const support = JTDData.isDigital(item) ? 'Numérique' : 'Physique';
+      const type = JTDData.isAddon(item) ? ' · '+contentKind(item) : '';
+      button.innerHTML = `<strong>${escapeHTML(item.nom)}</strong><small>${escapeHTML(item.plateforme)} · ${support}${type} · ${escapeHTML(location(item))}</small>`;
+      button.addEventListener('click',()=>open(item.id));
       row.append(button);
       results.append(row);
     }
@@ -56,8 +55,25 @@
   searchInput.addEventListener('keydown',event=>{
     if(event.key !== 'Enter' || event.isComposing) return;
     event.preventDefault();
-    results.querySelector('button')?.click();
+    const choices = results.querySelectorAll('button');
+    if(choices.length === 1) choices[0].click();
+    else choices[0]?.focus();
   });
+
+  for(const button of document.querySelectorAll('[data-open-board]')){
+    button.addEventListener('click',()=>{
+      const board = button.dataset.openBoard;
+      closeSearch();
+      setHomeBoard(board);
+      goToPage('home');
+      persistNavigation(true);
+      byId(board === 'wishlist' ? 'add-wishlist-btn' : 'add-arrival-btn').focus();
+    });
+  }
+  for(const button of document.querySelectorAll('[data-import-file]')){
+    button.addEventListener('click',()=>byId(button.dataset.importFile).click());
+  }
+  window.closeListSearch = closeSearch;
 
   const reportDialog = 'purchase-report-overlay';
   const year = byId('purchase-report-year');
@@ -77,8 +93,11 @@
   };
   const quantity = count => `${count} achat${count > 1 ? 's' : ''}`;
   function renderReport(){
-    const items = purchases().filter(item => purchaseYear(item) === year.value);
-    if(!items.length){ report.innerHTML = '<p class="overview-note">Aucun achat daté pour cette année.</p>'; return; }
+    const all = purchases();
+    const undated = all.filter(item=>!purchaseYear(item)).length;
+    const excluded = undated ? '<p class="overview-note">'+quantity(undated)+' sans date, hors bilan annuel.</p>' : '';
+    const items = all.filter(item => purchaseYear(item) === year.value);
+    if(!items.length){ report.innerHTML = '<p class="overview-note">Aucun achat daté pour cette année.</p>'+excluded; return; }
     const platforms = new Map();
     for(const item of items){
       if(!platforms.has(item.plateforme)) platforms.set(item.plateforme,[]);
@@ -88,7 +107,7 @@
     report.innerHTML = `<div class="purchase-report-total"><span>${quantity(items.length)}</span><strong>${totals(items)}</strong></div>
       <ul class="overview-list">${[...platforms].sort(([a],[b])=>a.localeCompare(b,'fr')).map(([platform,games])=>
         `<li class="purchase-report-platform"><span><strong>${escapeHTML(platform)}</strong><small>${quantity(games.length)}</small></span><span>${totals(games)}</span></li>`
-      ).join('')}</ul>${missing ? `<p class="overview-note">${quantity(missing)} sans prix renseigné.</p>` : ''}`;
+      ).join('')}</ul>${missing ? `<p class="overview-note">${quantity(missing)} sans prix renseigné.</p>` : ''}${excluded}`;
   }
   byId('home-summary-meta').addEventListener('click',event=>{
     if(!event.target.closest('#purchase-report-open')) return;

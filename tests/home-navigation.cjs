@@ -93,7 +93,7 @@ const server=createSandboxServer();
    await page.evaluate(items=>{WISHLIST=items;renderWishlist();},wishlistBeforeHover);
    await page.evaluate(()=>{GAMES=[];renderHomeStats();});assert.equal(await page.locator('#home-total-games').textContent(),'0');
    await page.evaluate(()=>{
-    GAMES=[{id:'report-zero',nom:'Étoile de test',plateforme:'Switch 2',date:'2023-04-02',prix:0}];
+    GAMES=[{id:'report-zero',nom:'Étoile de test',plateforme:'Switch 2',date:'2023-04-02',prix:0},{id:'report-undated',nom:'Achat sans date',plateforme:'Switch 2',prix:20}];
     CEMETERY=[
      {id:'report-sold',nom:'Étoile vendue',plateforme:'PS5',date:'2023-05',prix:30,saleStatus:'sold',salePrice:12},
      {id:'report-pending',nom:'Jeu sans prix',plateforme:'PS5',date:'2023',saleStatus:'pending'}
@@ -103,10 +103,17 @@ const server=createSandboxServer();
    await page.locator('#global-search-open').click();
    await page.locator('#global-search-input').fill('etoile');
    assert.equal(await page.locator('#global-search-results li').count(),2);
+   await page.locator('#global-search-input').press('Enter');
+   assert.equal(await page.locator('#global-search-results button').first().evaluate(el=>el===document.activeElement),true);
+   assert.equal(await page.locator('#sale-modal-overlay').isVisible(),false);
    await page.getByRole('button',{name:/Étoile vendue.*Cimetière/}).click();
    assert.equal(await page.locator('#sale-modal-overlay').isVisible(),true);
    await page.keyboard.press('Escape');
-   await page.locator('[data-page="home"]').click();
+   assert.equal(await page.locator('#global-search-input').inputValue(),'etoile');
+   assert.equal(await page.locator('#global-search-overlay').isVisible(),true);
+   await page.locator('[data-open-board="wishlist"]').click();
+   assert.equal(await page.evaluate(()=>navigationBoard),'wishlist');
+   assert.match(new URL(page.url()).hash,/board=wishlist/);
    if(width<=820) await page.locator('#global-filter-toggle').click();
    await page.locator('#purchase-report-open').click();
    if(width<=820) assert.ok(await page.evaluate(()=>Number(getComputedStyle(document.getElementById('purchase-report-overlay')).zIndex)>Number(getComputedStyle(document.getElementById('home-sidebar')).zIndex)),'Report appears over the statistics drawer');
@@ -114,6 +121,7 @@ const server=createSandboxServer();
    assert.match(await page.locator('.purchase-report-total').innerText(),/3 achats[\s\S]*30,00/);
    assert.match(await page.locator('.purchase-report-platform').filter({hasText:'PS5'}).innerText(),/2 achats[\s\S]*30,00/);
    assert.match(await page.locator('#purchase-report-results').innerText(),/1 achat sans prix/);
+   assert.match(await page.locator('#purchase-report-results').innerText(),/1 achat sans date, hors bilan annuel/);
    await page.locator('#purchase-report-close').click();
    await page.keyboard.press('Escape');
    await page.locator('[data-page="journal"]').click();
@@ -188,10 +196,9 @@ const server=createSandboxServer();
    ].join('\n'))};
    const input=page.locator('#journal-import-file');
    await page.locator('[data-page="home"]').click();
-   await page.locator('#profile-menu-btn').click();
-   await page.locator('#profile-import-group > summary').click();
+   await page.locator('[data-page="journal"]').click();
    const chooser=page.waitForEvent('filechooser');
-   await page.locator('#journal-import-open').click();
+   await page.locator('[data-import-file="journal-import-file"]').click();
    await (await chooser).setFiles(csv);
    await page.locator('#journal-import-count').waitFor();
    assert.match(await page.locator('#journal-import-count').innerText(),/3 sélectionnées/);

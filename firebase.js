@@ -436,6 +436,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     replaceAppData(emptyData());
     SHARE_TOKEN = null;
     closeModal();
+    window.closeListSearch?.();
     window.closeSaleModal?.();
     closeArrivalModal();
     closeWishlistModal();

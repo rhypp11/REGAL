@@ -556,9 +556,9 @@
     };
     show('Importer les complétions',
       '<form id="journal-form" class="journal-import-preview">'+
-      '<p id="journal-import-count" role="status"></p>'+
       '<p class="journal-empty">Une correspondance reprend le nom et l’image du jeu. Pour une entrée déjà importée, coche la ligne pour actualiser uniquement ces deux éléments.</p>'+
       '<ol class="journal-import-list">'+rows.map(line).join('')+'</ol>'+
+      '<p id="journal-import-count" role="status"></p>'+
       '<p id="journal-error" role="alert" class="journal-error"></p></form>',{editing:true});
     const form=$('journal-form');
     const selected=()=>[...form.querySelectorAll('[name="include"]:checked')];
