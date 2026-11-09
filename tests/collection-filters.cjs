@@ -43,7 +43,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await page.locator('#search-input').inputValue(),'');
       await page.getByRole('button',{name:'Retirer DLC',exact:true}).press('Enter');
       assert.equal(await page.getByRole('button',{name:'Retirer DLC',exact:true}).count(),0);
-      assert.equal(await page.getByRole('button',{name:'Retirer Jeux',exact:true}).evaluate(el=>el===document.activeElement),true);
+      assert.equal(await page.getByRole('button',{name:'Retirer Compte japonais',exact:true}).evaluate(el=>el===document.activeElement),true);
       assert.deepEqual(await page.evaluate(()=>[state.platform,state.japanese,state.media,state.contentType,state.sort]),['Switch 2',true,'digital','game','name-desc']);
       assert.deepEqual(await cards(page),['game:base']);
       assert.equal(await page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]).get('contentType')),'game');
