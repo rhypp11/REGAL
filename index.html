@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_09.11.26-12">
-<meta name="regal-build" content="f1df4b56e9555592d50a3032">
+<meta name="regal-version" content="3_09.11.26-13">
+<meta name="regal-build" content="e9ca55501a640ae34603b753">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -29,7 +29,7 @@
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=2">
 <link rel="stylesheet" href="pokedex.css?v=account-pokedex-1">
-<link rel="stylesheet" href="journal.css?v=rgl-dark-1">
+<link rel="stylesheet" href="journal.css?v=journal-entry-1">
 </head>
 <body>
 
@@ -649,7 +649,7 @@
 </div>
 </section>
 <section class="page hidden" id="page-journal">
-  <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien d’abord</option><option value="desc">Plus récent d’abord</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter</button></div></div>
+  <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien d’abord</option><option value="desc">Plus récent d’abord</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter une complétion</button></div></div>
   <aside class="sidebar journal-sidebar" id="journal-sidebar" aria-label="Statistiques du journal">
     <div class="journal-panel"><h3>Statistiques</h3><div id="journal-stats"></div></div>
   </aside>
@@ -664,11 +664,11 @@
       <button type="button" class="btn btn-ghost" data-journal-tab="release" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M8 4v4m8-4v4M4 10h16"/></svg>Sorties</button>
     </div>
     <section data-journal-panel="backlog">
-      <div class="journal-panel journal-backlog-group"><header><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>En cours</h3><button type="button" class="btn btn-ghost journal-add-small" data-journal-add="playing" aria-label="Ajouter un jeu en cours">+</button></header><div id="journal-playing"></div></div>
-      <div class="journal-panel journal-backlog-group"><header><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="5" y="4" width="14" height="9" rx="2"/><path d="M6 16h12M7 20h10"/></svg>À faire</h3><button type="button" class="btn btn-ghost journal-add-small" data-journal-add="backlog" aria-label="Ajouter un jeu à faire">+</button></header><div id="journal-backlog"></div></div>
+      <div class="journal-panel journal-backlog-group"><header><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>En cours</h3><button type="button" class="btn btn-ghost journal-add-small" data-journal-add="playing" aria-label="Ajouter un jeu en cours">Ajouter un jeu</button></header><div id="journal-playing"></div></div>
+      <div class="journal-panel journal-backlog-group"><header><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="5" y="4" width="14" height="9" rx="2"/><path d="M6 16h12M7 20h10"/></svg>À faire</h3><button type="button" class="btn btn-ghost journal-add-small" data-journal-add="backlog" aria-label="Ajouter un jeu à faire">Ajouter un jeu</button></header><div id="journal-backlog"></div></div>
     </section>
     <section class="journal-panel" data-journal-panel="release">
-      <header><h3>Calendrier</h3><button type="button" class="btn btn-ghost journal-add-small" data-journal-add="release" aria-label="Ajouter une sortie">+</button></header>
+      <header><h3>Calendrier</h3><button type="button" class="btn btn-ghost journal-add-small" data-journal-add="release" aria-label="Ajouter une sortie">Ajouter une sortie</button></header>
       <div id="journal-release"></div>
     </section>
     </aside>

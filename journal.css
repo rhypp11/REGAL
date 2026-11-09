@@ -84,7 +84,7 @@
 .journal-tabs svg,.journal-comment-mark svg { width:15px; height:15px; flex-shrink:0; }
 .journal-backlog-group > header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
 .journal-backlog-group + .journal-backlog-group { margin-top:10px; }
-.journal-panel .journal-add-small { width:36px; padding:0; font-size:19px; }
+.journal-panel .journal-add-small { min-height:40px; padding:4px 8px; font-size:12px; }
 .journal-calendar { overflow:hidden; border:1px solid var(--ui-border); border-radius:var(--ui-radius-md); }
 .journal-calendar + .journal-calendar { margin-top:10px; }
 #page-journal .calendar-group-head {
@@ -202,7 +202,7 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
 .journal-import-fields label,.journal-import-flag { font-size:11px; color:var(--ui-text-muted); }
 .journal-import-fields :is(input,select) { width:100%; min-width:0; padding:3px 5px; }
 @media(max-width:820px){
-  #page-journal:has(.journal-layout[data-tab]:not([data-tab="completed"])) :is(.journal-toolbar-actions,#journal-sort) { display:none; }
+  #page-journal:has(.journal-layout[data-tab]:not([data-tab="completed"])) :is(.journal-toolbar-actions,#journal-sort,#journal-year) { display:none; }
 }
 @media(max-width:720px){
   .journal-toolbar { flex-wrap:wrap; }
@@ -261,3 +261,9 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
   .journal-completion-row .journal-feeling { grid-column:2; }
   .journal-completion-row .journal-comment-mark { grid-column:3; }
 }
+
+.journal-optional { min-width:0; }
+.journal-optional > summary { cursor:pointer; min-height:44px; padding:10px 0; }
+.journal-optional[open] > summary { margin-bottom:8px; }
+.journal-optional-fields { display:grid; gap:12px; }
+.journal-entry-note { font-size:var(--ui-text-sm); color:var(--ui-text-muted); }
