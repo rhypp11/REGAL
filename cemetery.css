@@ -415,3 +415,39 @@
 
 .cemetery-stat-group { display:grid; gap:10px; }
 .cemetery-stat-group + .cemetery-stat-group { margin-top:14px; }
+
+#sale-modal-overlay > .modal { overflow:hidden !important; }
+#sale-modal-overlay > .modal > :is(h2,.modal-actions) { flex-shrink:0; }
+#sale-modal-overlay > .modal > .modal-actions { position:static; }
+.sale-sheet-body {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.sale-sheet-body > * { flex-shrink:0; }
+#sale-modal-overlay .sale-sheet-body > .form-section { border-bottom:0; }
+#sale-modal-overlay .field-row:has(> .field.hidden) { grid-template-columns:1fr; }
+
+.sale-lot-total { color:var(--muted); font-size:10px; }
+.sale-lot-summary .sale-heading-main { flex-wrap:wrap; }
+
+#sale-modal-overlay .modal-primary-actions { align-items:stretch; }
+
+@media(max-width:820px){
+  #sale-modal-overlay > .modal > .modal-actions {
+    gap:6px !important;
+    padding-block:8px max(8px,env(safe-area-inset-bottom)) !important;
+  }
+  #sale-modal-overlay .modal-secondary-actions { flex-wrap:nowrap; }
+  #sale-modal-overlay .modal-edit-actions .btn { line-height:1.15; padding-block:4px; white-space:normal; }
+}
+
+@media(min-width:821px){
+  #sale-modal-overlay > .modal { max-width:680px; }
+  #sale-modal-overlay .modal-secondary-actions { flex-wrap:nowrap; }
+  #sale-modal-overlay .modal-edit-actions .btn { white-space:nowrap; }
+}

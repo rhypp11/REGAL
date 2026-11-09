@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_09.11.26-7">
-<meta name="regal-build" content="ca4e01b46a9e82daf78181b5">
+<meta name="regal-version" content="3_09.11.26-12">
+<meta name="regal-build" content="f1df4b56e9555592d50a3032">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;650;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=rgl-dark-1">
-<link rel="stylesheet" href="cemetery.css?v=density-1">
+<link rel="stylesheet" href="cemetery.css?v=sale-steps-4">
 <link rel="stylesheet" href="home-boards-v2.css?v=density-1">
 <link rel="stylesheet" href="home-dashboard.css?v=density-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
@@ -571,6 +571,7 @@
 <div class="modal-overlay sheet-dialog hidden" id="sale-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="sale-modal-title">
   <div class="modal">
     <h2 id="sale-modal-title">Mettre en vente</h2>
+    <div class="sale-sheet-body">
     <div id="sale-identity" class="game-sheet-hero"></div>
     <div id="sale-lot-section">
       <label class="sale-lot-switch" for="sale-lot-toggle"><span>Faire un lot</span><input type="checkbox" role="switch" id="sale-lot-toggle" aria-controls="sale-lot-options" aria-expanded="false"><span class="sale-switch-track" aria-hidden="true"></span></label>
@@ -579,13 +580,16 @@
     <div class="form-section">
       <div class="field"><label for="sale-channel">Canal de vente</label><select id="sale-channel"><option value="">À définir</option><option value="online">En ligne</option><option value="store">En boutique</option></select></div>
       <div class="field-row">
-        <div class="field"><label for="sale-estimate">Prix estimé (€)</label><input id="sale-estimate" type="text" inputmode="decimal" placeholder="—"></div>
-        <div class="field"><label for="sale-price" id="sale-price-label">Prix réel (€)</label><input id="sale-price" type="text" inputmode="decimal" placeholder="—"></div>
+        <div class="field" id="sale-estimate-field"><label for="sale-estimate">Prix estimé (€)</label><input id="sale-estimate" type="text" inputmode="decimal" placeholder="—"></div>
+        <div class="field" id="sale-price-field"><label for="sale-price" id="sale-price-label">Prix réel (€)</label><input id="sale-price" type="text" inputmode="decimal" placeholder="—"></div>
       </div>
+      <p id="sale-lot-count" class="sale-acquisition hidden" role="status"></p>
       <p id="sale-error" role="alert" class="sale-error"></p>
+    </div>
     </div>
     <div class="modal-actions modal-edit-actions">
       <div class="modal-secondary-actions">
+      <button type="button" class="btn btn-ghost hidden" data-modal-action="context" id="sale-complete">Marquer vendu</button>
       <button type="button" class="btn btn-ghost" data-modal-action="context" id="sale-rollback">Remettre en collection</button>
       </div>
       <div class="modal-primary-actions">
