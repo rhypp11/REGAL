@@ -37,10 +37,10 @@ function updateCemeteryStats(){
   saleEl('cemetery-stat-sold-count').textContent = String(sold.length);
   saleEl('cemetery-stat-pending-count').textContent = String(pending.length);
 }
-function saleHeading(item){
+function saleHeading(item, lot = false){
   const venue = item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : 'Canal à définir';
   const amount = item.saleStatus === 'sold' ? item.salePrice : item.estimatedPrice;
-  return '<span class="sale-group-heading"><span class="sale-heading-main"><strong class="sale-amount">' + (amount != null ? euros(amount) : '—') + '</strong></span><span class="sale-venue">' + venue + '</span></span>';
+  return '<span class="sale-group-heading"><span class="sale-heading-main">' + (lot ? '<small class="sale-lot-total">Total du lot</small>' : '') + '<strong class="sale-amount">' + (amount != null ? euros(amount) : '—') + '</strong></span><span class="sale-venue">' + venue + '</span></span>';
 }
 function saleCards(group){
   const cards = document.createElement('div');
@@ -204,7 +204,7 @@ function renderCemetery(){
       lot.open = openLots.has(lot.dataset.saleKey);
       lot.innerHTML = `<summary class="sale-lot-summary">
         <span class="sale-lot-title"><strong>Lot · ${group.length} jeux</strong><span>${escapeHTML(lotLabel(group))}</span></span>
-        ${saleHeading(item)}
+        ${saleHeading(item,true)}
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </summary>`;
       lot.append(saleCards(group));
@@ -219,13 +219,14 @@ function renderCemetery(){
   });
 }
 window.renderCemetery = renderCemetery;
-function renderSaleIdentity(group){
+function renderSaleIdentity(group, editable = true){
   const identity = saleEl('sale-identity');
   identity.replaceChildren();
   for(const game of group){
     const summary = document.createElement('div');
     summary.className = 'game-identity-summary';
     summary.innerHTML = identitySummaryHtml(game);
+    if(!editable) summary.querySelector('.identity-edit-btn')?.remove();
     summary.querySelector('.identity-edit-btn')?.addEventListener('click', event => {
       event.stopPropagation();
       openModal(game.id, 'cemetery');
@@ -245,28 +246,36 @@ window.updateCemeteryGame = (id, fields) => {
   if(active) renderSaleIdentity(saleGroup(active));
   return true;
 };
-function openSaleModal(id){
-  const item = CEMETERY.find(g => g.id === id);
+let saleMode = 'pending';
+
+function openSaleModal(id, mode){
+  const item = (mode === 'new' ? GAMES : CEMETERY).find(g => g.id === id);
   if(!item) return;
   saleEditingId = id;
-  const sold = item.saleStatus === 'sold', group = saleGroup(item);
-  saleEl('sale-modal-title').textContent = sold ? (group.length > 1 ? 'Vente en lot' : 'Vente') : 'Préparer la vente';
-  renderSaleIdentity(group);
+  saleMode = mode === 'new' ? 'new' : item.saleStatus === 'sold' ? 'sold' : mode || 'pending';
+  const sold = saleMode === 'sold', group = sold ? saleGroup(item) : [item];
+  saleEl('sale-modal-title').textContent = sold ? (group.length > 1 ? 'Vente en lot' : 'Vente') : saleMode === 'complete' ? 'Marquer vendu' : 'Préparer la vente';
+  renderSaleIdentity(group, saleMode === 'pending' || sold);
   saleEl('sale-channel').value = item.saleChannel || '';
   saleEl('sale-estimate').value = item.estimatedPrice ?? '';
   saleEl('sale-price').value = item.salePrice ?? '';
   saleEl('sale-error').textContent = '';
-  saleEl('sale-rollback').textContent = sold ? 'Annuler la vente' : 'Remettre en collection';
-  saleEl('sale-lot-section').classList.toggle('hidden', sold);
+  saleEl('sale-rollback').textContent = sold ? 'Repasser à vendre' : 'Remettre en collection';
+  saleEl('sale-rollback').classList.toggle('hidden',saleMode !== 'pending' && !sold);
+  saleEl('sale-complete').classList.toggle('hidden',saleMode !== 'pending');
+  saleEl('sale-price-field').classList.toggle('hidden',saleMode !== 'complete' && !sold);
+  saleEl('sale-estimate-field').classList.toggle('hidden',saleMode === 'complete');
+  saleEl('sale-save').textContent = ({new:'Mettre en vente',pending:'Enregistrer la préparation',complete:'Confirmer la vente',sold:'Enregistrer'})[saleMode];
+  saleEl('sale-cancel').textContent = saleMode === 'complete' ? 'Retour' : 'Annuler';
   saleEl('sale-lot-toggle').checked = false;
   saleEl('sale-lot-toggle').setAttribute('aria-expanded','false');
   saleEl('sale-lot-options').classList.add('hidden');
   saleEl('sale-lot-options').replaceChildren();
-  for(const other of CEMETERY.filter(g => g.saleStatus === 'pending' && g.id !== id)){
+  for(const other of saleMode === 'complete' ? CEMETERY.filter(g => g.saleStatus === 'pending' && g.id !== id) : []){
     const label = document.createElement('label');
     label.className = 'sale-lot-option';
     const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox'; checkbox.value = other.id;
+    checkbox.type = 'checkbox'; checkbox.value = other.id; checkbox.id = 'sale-lot-item-' + other.id;
     const copy = document.createElement('span');
     const name = document.createElement('span'); name.textContent = other.nom;
     const platform = document.createElement('small'); platform.textContent = other.plateforme;
@@ -274,13 +283,24 @@ function openSaleModal(id){
     label.append(checkbox,copy);
     saleEl('sale-lot-options').appendChild(label);
   }
-  saleEl('sale-lot-section').classList.toggle('hidden', sold || !saleEl('sale-lot-options').children.length);
-  updateSaleAction();
-  window.JTDDialogs.open('sale-modal-overlay', {onDismiss:closeSaleModal,initialFocus:'#sale-channel'});
-  saleEl('sale-channel').focus();
+  saleEl('sale-lot-section').classList.toggle('hidden',!saleEl('sale-lot-options').children.length);
+  updateSaleLot();
+  openBoardEditor('sale-modal-overlay','sale',cancelSaleStep);
+  saleEl('sale-modal-overlay').querySelector('.sale-sheet-body').scrollTop = 0;
+  saleEl(saleMode === 'complete' ? 'sale-price' : 'sale-channel').focus();
 }
 function closeSaleModal(){ window.JTDDialogs.close('sale-modal-overlay'); saleEditingId = null; }
 window.closeSaleModal = closeSaleModal;
+function cancelSaleStep(){
+  const id = saleEditingId;
+  const returning = saleMode === 'complete';
+  closeSaleModal();
+  if(returning) openSaleModal(id);
+}
+
+function selectedSaleLot(){
+  return [...saleEl('sale-lot-options').querySelectorAll('input:checked')].map(input=>input.value);
+}
 function commitCemetery(next){
   try{
     if(IS_PREVIEW_MODE) savePreviewData({cemetery:next});
@@ -300,23 +320,42 @@ function readSalePrice(id){
   return price;
 }
 function saveSale(){
-  const item = CEMETERY.find(g => g.id === saleEditingId);
+  const item = (saleMode === 'new' ? GAMES : CEMETERY).find(g => g.id === saleEditingId);
   if(!item) return;
   try{
-    const estimatedPrice = readSalePrice('sale-estimate');
-    const salePrice = readSalePrice('sale-price');
-    const sold = item.saleStatus === 'sold' || salePrice !== null;
-    const completed = item.saleStatus !== 'sold' && sold;
-    if(sold && salePrice === null) throw new Error('Renseigne le prix réel de vente avant de valider.');
-    const selected = saleEl('sale-lot-toggle').checked ? [...saleEl('sale-lot-options').querySelectorAll('input:checked')].map(input => input.value) : [];
-    if(!sold && selected.length) throw new Error('Renseigne le prix réel du lot avant d’enregistrer.');
-    const ids = item.saleStatus === 'sold' ? saleGroup(item).map(g => g.id) : [item.id, ...(sold ? selected : [])];
-    const fields = {saleStatus:sold ? 'sold' : 'pending', saleChannel:saleEl('sale-channel').value || null};
-    if(sold){
-      Object.assign(fields, {salePrice, saleId:item.saleId || crypto.randomUUID(), saleOrder:completed ? CEMETERY.reduce((max,game)=>Math.max(max,game.saleOrder ?? 0),0) + 1 : (item.saleOrder ?? 0)});
+    const saleChannel = saleEl('sale-channel').value || null;
+    if(saleMode === 'new'){
+      const estimatedPrice = readSalePrice('sale-estimate');
+      if(!commitBoardTransfer('games','cemetery',item.id,{...item,saleStatus:'pending',saleChannel,estimatedPrice})) return;
+      closeSaleModal();
+      closeModal();
+      buildPlatformList();
+      render();
+      goToPage('cemetery');
+      setSaleView('pending');
+      showToast('« ' + item.nom + ' » mis en vente.');
+      return;
     }
-    const next = CEMETERY.map(g => ids.includes(g.id) ? {...g, ...fields, ...(g.id === item.id ? {estimatedPrice} : {})} : g);
-    if(commitCemetery(next)){ closeSaleModal(); if(completed) setSaleView('sold'); showToast(sold ? 'Vente enregistrée.' : 'Informations enregistrées.'); }
+    const completed = saleMode === 'complete';
+    const sold = completed || saleMode === 'sold';
+    const fields = {saleStatus:sold ? 'sold' : 'pending', saleChannel};
+    const estimatedPrice = completed ? null : readSalePrice('sale-estimate');
+    let ids = [item.id];
+    if(sold){
+      const salePrice = readSalePrice('sale-price');
+      if(salePrice === null) throw new Error('Renseigne le montant encaissé avant de valider.');
+      ids = completed ? [item.id, ...selectedSaleLot()] : saleGroup(item).map(g=>g.id);
+      if(completed && ids.some(id=>!CEMETERY.some(game=>game.id===id && game.saleStatus==='pending'))){
+        throw new Error('Le lot a changé. Retourne à la préparation et sélectionne les jeux à nouveau.');
+      }
+      Object.assign(fields,{salePrice,saleId:item.saleId || crypto.randomUUID(),saleOrder:completed ? CEMETERY.reduce((max,game)=>Math.max(max,game.saleOrder ?? 0),0) + 1 : (item.saleOrder ?? 0)});
+    }
+    const next = CEMETERY.map(g=>ids.includes(g.id) ? {...g,...fields,...(g.id === item.id && !completed ? {estimatedPrice} : {})} : g);
+    if(commitCemetery(next)){
+      closeSaleModal();
+      if(completed) setSaleView('sold');
+      showToast(sold ? 'Vente enregistrée.' : 'Préparation enregistrée.');
+    }
   }catch(error){ saleEl('sale-error').textContent = error.message; }
 }
 function setSaleView(view){
@@ -327,11 +366,22 @@ function setSaleView(view){
 saleEl('f-sell-btn').addEventListener('click', () => {
   const item = GAMES.find(g => g.id === editingId);
   if(!item || JTDData.isDigital(item)) return;
-  const moved = commitBoardTransfer('games', 'cemetery', item.id, {...item, saleStatus:'pending'});
-  if(!moved) return;
-  closeModal(); buildPlatformList(); render(); renderCemetery();
-  showToast('« ' + item.nom + ' » mis en vente.', 'Annuler', () => restoreFromCemetery(item.id));
-  goToPage('cemetery'); setSaleView('pending'); openSaleModal(item.id);
+  if(boardEditorSnapshots.get('modal-overlay') === boardEditorSnapshot('modal-overlay','f')){
+    openSaleModal(item.id,'new');
+    return;
+  }
+  withBoardEditorChanges('modal-overlay','f',() => {
+    closeModal();
+    openModal(item.id);
+    openSaleModal(item.id,'new');
+  });
+});
+saleEl('sale-complete').addEventListener('click', () => {
+  const id = saleEditingId;
+  withBoardEditorChanges('sale-modal-overlay','sale',() => {
+    closeSaleModal();
+    openSaleModal(id,'complete');
+  });
 });
 function restoreFromCemetery(id){
   const item = CEMETERY.find(g => g.id === id);
@@ -345,9 +395,12 @@ function restoreFromCemetery(id){
 saleEl('sale-rollback').addEventListener('click', () => {
   const item = CEMETERY.find(g => g.id === saleEditingId);
   if(!item) return;
-  if(item.saleStatus === 'pending'){ restoreFromCemetery(item.id); return; }
+  if(item.saleStatus === 'pending'){
+    confirmAction('Remettre « ' + item.nom + ' » dans la Collection ? Les informations de préparation seront retirées.', () => restoreFromCemetery(item.id), {title:'Remettre en collection ?',confirmLabel:'Remettre en collection'});
+    return;
+  }
   const ids = saleGroup(item).map(g => g.id);
-  confirmAction('Annuler cette vente' + (ids.length > 1 ? ' pour tout le lot' : '') + ' et remettre les jeux à vendre ?', () => {
+  confirmAction(ids.length > 1 ? 'Les ' + ids.length + ' jeux du lot repasseront dans À vendre.' : '« ' + item.nom + ' » repassera dans À vendre.', () => {
     const next = CEMETERY.map(g => {
       if(!ids.includes(g.id)) return g;
       const draft = {...g, saleStatus:'pending'};
@@ -355,24 +408,25 @@ saleEl('sale-rollback').addEventListener('click', () => {
       return draft;
     });
     if(commitCemetery(next)){ closeSaleModal(); setSaleView('pending'); }
-  });
+  }, {title:'Repasser à vendre ?',confirmLabel:'Repasser à vendre'});
 });
-function updateSaleAction(){
-  const item = CEMETERY.find(g => g.id === saleEditingId);
-  const isLot = item?.saleStatus === 'sold' ? saleGroup(item).length > 1 : saleEl('sale-lot-toggle').checked;
-  saleEl('sale-price-label').textContent = isLot ? 'Prix réel du lot (€)' : 'Prix réel (€)';
-  saleEl('sale-save').textContent = item?.saleStatus !== 'sold' && saleEl('sale-price').value.trim() ? 'Valider la vente' : 'Enregistrer';
+function updateSaleLot(){
+  const item = CEMETERY.find(g=>g.id === saleEditingId);
+  const count = saleMode === 'sold' && item ? saleGroup(item).length : 1 + selectedSaleLot().length;
+  saleEl('sale-price-label').textContent = count > 1 ? 'Total encaissé pour le lot (€)' : 'Montant encaissé (€)';
+  saleEl('sale-lot-count').textContent = 'Lot de ' + count + ' jeux';
+  saleEl('sale-lot-count').classList.toggle('hidden',count < 2);
 }
 saleEl('sale-lot-toggle').addEventListener('change', () => {
   const enabled = saleEl('sale-lot-toggle').checked;
   saleEl('sale-lot-options').classList.toggle('hidden', !enabled);
   saleEl('sale-lot-toggle').setAttribute('aria-expanded',String(enabled));
   if(!enabled) saleEl('sale-lot-options').querySelectorAll('input').forEach(input => { input.checked = false; });
-  updateSaleAction();
+  updateSaleLot();
 });
-saleEl('sale-price').addEventListener('input',updateSaleAction);
+saleEl('sale-lot-options').addEventListener('change',updateSaleLot);
 saleEl('sale-save').addEventListener('click', saveSale);
-saleEl('sale-cancel').addEventListener('click', closeSaleModal);
+saleEl('sale-cancel').addEventListener('click', () => withBoardEditorChanges('sale-modal-overlay','sale',cancelSaleStep));
 saleEl('cemetery-order-toggle').addEventListener('click',()=>{
   reorderingSales = !reorderingSales;
   renderCemetery();

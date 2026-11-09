@@ -43,7 +43,7 @@ const server=createSandboxServer();
      await page.locator('#f-identity-summary .identity-edit-btn').click();
      assert.equal(await page.locator('#save-btn').isVisible(),true,'Game pencil enters editing');
     }
-    const lastSection=page.locator('.modal-overlay:not(.hidden) :is(.modal,.collection-sheet-body) > .form-section').last();
+    const lastSection=page.locator('.modal-overlay:not(.hidden) :is(.modal,.collection-sheet-body,.sale-sheet-body) > .form-section').last();
     assert.equal(await lastSection.evaluate(el=>getComputedStyle(el).borderBottomWidth),'0px','Only one separator before the actions: '+scene);
     const footer=page.locator('.modal-overlay:not(.hidden) .modal-edit-actions');
     await footer.locator('[data-modal-action="save"]').scrollIntoViewIfNeeded();
