@@ -38,7 +38,7 @@ async function chooseAccount(page,value){await openFilters(page);await page.loca
       assert.ok((await page.locator('[data-stat="spent"]').innerText()).includes('2 000'));
       assert.equal(await page.locator('#grid .card-price, #grid .card-digital-price').count(),0,'Digital prices follow the same default visibility as physical');
       assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-identity .card-console-account').count(),1);
-      assert.equal(await page.locator('#collection-media-tabs svg').count(),2);
+      assert.equal(await page.locator('#collection-media-tabs svg').count(),3);
       assert.equal(await page.locator('#collection-manage-accounts svg').innerHTML(),await page.locator('#manage-platforms-btn svg').innerHTML());
       await page.locator('#sort-select').selectOption('price-asc');
       assert.ok(await page.locator('#grid .card-price').count()>0);
