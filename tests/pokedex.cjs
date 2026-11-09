@@ -53,7 +53,13 @@ const server=createSandboxServer();
    const applyBox=async(index,state)=>{const box=page.locator('.dex-box').nth(index);await box.locator('summary').click();await box.locator('[data-box-state="'+state+'"]').click();};
    const captureLink=await first.locator('.dex-info').boundingBox();
    const stateButton=await first.locator('.dex-pokemon').boundingBox();
+   const slotBox=await first.boundingBox();
    assert.ok(captureLink.y>=stateButton.y+stateButton.height-1,'Information target does not overlap the state button');
+   assert.ok(captureLink.y+captureLink.height<=slotBox.y+slotBox.height,'Information stays inside its own tile');
+   assert.ok(await first.locator('.dex-info').evaluate(link=>{
+    const r=link.getBoundingClientRect();
+    return link.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+   }),'The visible information icon can receive a tap');
    if(width<=820) assert.ok(captureLink.height>=44,'Information target is touch-sized');
    await applyBox(0,0);
    await page.locator('[data-id="4"]').click();

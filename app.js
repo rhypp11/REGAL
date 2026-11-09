@@ -2938,6 +2938,17 @@ function resetNavigationSession(){
     history.replaceState(null, '', location.pathname + location.search);
   }
 }
+const journalMobileControls = matchMedia('(max-width:820px)');
+function placeJournalControls(){
+  const page = document.getElementById('page-journal');
+  const toolbar = document.getElementById('journal-toolbar');
+  const views = document.getElementById('journal-view-controls');
+  if(journalMobileControls.matches) views.after(toolbar);
+  else page.prepend(toolbar);
+  if(navigationPage === 'journal') (journalMobileControls.matches ? views : toolbar).prepend(mobileFilterToggle);
+}
+journalMobileControls.addEventListener('change',placeJournalControls);
+
 function goToPage(page, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
@@ -2954,7 +2965,7 @@ function goToPage(page, push = true){
   if(navigationPage === 'cemetery'){ document.title = 'REGAL | Cimetière'; window.renderCemetery?.(); }
   if(navigationPage === 'cemetery') document.getElementById('cemetery-view-controls').prepend(mobileFilterToggle);
   if(navigationPage === 'home') document.getElementById('home-view-controls').prepend(mobileFilterToggle);
-  if(navigationPage === 'journal') document.getElementById('journal-toolbar').prepend(mobileFilterToggle);
+  if(navigationPage === 'journal') placeJournalControls();
   mobileFilterToggle.setAttribute('aria-label', navigationPage === 'collection' ? 'Afficher les filtres' : 'Afficher les statistiques');
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');

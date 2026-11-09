@@ -126,11 +126,19 @@ const server=createSandboxServer();
    await page.locator('#purchase-report-close').click();
    await page.keyboard.press('Escape');
    await page.locator('[data-page="journal"]').click();
+   if(width<=820){
+    const views=await page.locator('.journal-tabs').boundingBox();
+    const burger=await page.locator('#page-journal #global-filter-toggle').boundingBox();
+    const toolbar=await page.locator('#journal-toolbar').boundingBox();
+    assert.ok(burger.x+burger.width<=views.x && burger.y<views.y+views.height,'Menu is beside the selector');
+    assert.ok(toolbar.y>=views.y+views.height,'Completion controls are below the selector');
+    assert.equal(await page.locator('#journal-toolbar [data-import-file]').count(),0);
+   }
    const journalStats=page.locator('#journal-sidebar');
    if(width>=1240) assert.equal(await journalStats.isVisible(),true);
    else {
     assert.equal(await journalStats.isVisible(),false);
-    await page.locator('#journal-toolbar #global-filter-toggle').click();
+    await page.locator('#page-journal #global-filter-toggle').click();
     await journalStats.waitFor({state:'visible'});
     await page.keyboard.press('Escape');
     await journalStats.waitFor({state:'hidden'});
@@ -204,9 +212,10 @@ const server=createSandboxServer();
    ].join('\n'))};
    const input=page.locator('#journal-import-file');
    await page.locator('[data-page="home"]').click();
-   await page.locator('[data-page="journal"]').click();
+   await page.locator('#profile-menu-btn').click();
+   await page.locator('#profile-import-group > summary').click();
    const chooser=page.waitForEvent('filechooser');
-   await page.locator('[data-import-file="journal-import-file"]').click();
+   await page.locator('#journal-import-open').click();
    await (await chooser).setFiles(csv);
    await page.locator('#journal-import-count').waitFor();
    assert.match(await page.locator('#journal-import-count').innerText(),/3 sélectionnées/);

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_09.11.26-16">
-<meta name="regal-build" content="7008d22068d043d06860ea08">
+<meta name="regal-version" content="3_09.11.26-17">
+<meta name="regal-build" content="8bc7b42992082859af98504c">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -28,8 +28,8 @@
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=listes-2">
-<link rel="stylesheet" href="pokedex.css?v=touch-targets-1">
-<link rel="stylesheet" href="journal.css?v=journal-entry-1">
+<link rel="stylesheet" href="pokedex.css?v=touch-targets-2">
+<link rel="stylesheet" href="journal.css?v=journal-mobile-1">
 </head>
 <body>
 
@@ -651,7 +651,7 @@
 </div>
 </section>
 <section class="page hidden" id="page-journal">
-  <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien d’abord</option><option value="desc">Plus récent d’abord</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter une complétion</button><button type="button" class="btn btn-ghost" data-import-file="journal-import-file">Importer CSV</button></div></div>
+  <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien</option><option value="desc">Plus récent</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter une complétion</button></div></div>
   <aside class="sidebar journal-sidebar" id="journal-sidebar" aria-label="Statistiques du journal">
     <div class="journal-panel"><h3>Statistiques</h3><div id="journal-stats"></div></div>
   </aside>
@@ -660,10 +660,12 @@
       <div id="journal-completed"></div>
     </section>
     <aside class="journal-side" aria-label="Backlog et sorties">
+    <div class="journal-view-controls" id="journal-view-controls">
     <div class="journal-tabs" aria-label="Vue du journal">
       <button type="button" class="btn btn-ghost" data-journal-tab="completed" aria-pressed="true">Journal</button>
       <button type="button" class="btn btn-ghost" data-journal-tab="backlog" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 8h12a4 4 0 0 1 3 6l-1 2a2 2 0 0 1-3 1l-3-2h-4l-3 2a2 2 0 0 1-3-1l-1-2a4 4 0 0 1 3-6zM7 10v4m-2-2h4m7 0h.01m2-2h.01"/></svg>Backlog</button>
       <button type="button" class="btn btn-ghost" data-journal-tab="release" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M8 4v4m8-4v4M4 10h16"/></svg>Sorties</button>
+    </div>
     </div>
     <section data-journal-panel="backlog">
       <div class="journal-panel journal-backlog-group"><header><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>En cours</h3><button type="button" class="btn btn-ghost journal-add-small" data-journal-add="playing" aria-label="Ajouter un jeu en cours">Ajouter un jeu</button></header><div id="journal-playing"></div></div>
@@ -738,7 +740,7 @@
 <script src="jtd-data.js?v=account-pokedex-1"></script>
 <script src="dialogs.js?v=keyboard-viewport-1"></script>
 <script src="digital.js?v=density-1"></script>
-<script src="app.js?v=account-pokedex-1"></script>
+<script src="app.js?v=journal-mobile-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>
