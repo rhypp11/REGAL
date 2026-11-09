@@ -1848,7 +1848,7 @@ function calendarGroupHtml(label, year, color, loose = false){
   </div>`;
 }
 
-function arrivalRowHtml(item){
+function arrivalRowHtml(item, showSource){
   const color = getPlatformColor(item.plateforme);
   const logo = getPlatformLogo(item.plateforme);
   const platIconHtml = logo
@@ -1866,7 +1866,7 @@ function arrivalRowHtml(item){
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${escapeHTML(item.nom)}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${escapeHTML(item.nom)}</span></div>
-        <div class="board-plat">${platIconHtml}${escapeHTML(item.plateforme)}</div>
+        <div class="board-plat">${platIconHtml}${escapeHTML(item.plateforme)}${showSource && item.source ? `<span class="arrival-mobile-source"> · ${escapeHTML(item.source)}</span>` : ''}</div>
       </div>
       ${purchaseHtml}
     </div>`;
@@ -1909,10 +1909,13 @@ function renderArrivals(){
     groupMap.get(key).items.push(item);
   });
 
+  const orderKey = item => JSON.stringify([item.nom.trim().toLocaleLowerCase('fr'),item.plateforme]);
+  const orderCounts = new Map();
+  for(const item of ARRIVALS) orderCounts.set(orderKey(item),(orderCounts.get(orderKey(item)) || 0) + 1);
   container.innerHTML = groups.map(g => `
     <section class="calendar-group${g.loose ? ' calendar-group-loose' : ''}">
       ${calendarGroupHtml(g.label, g.year, g.color, g.loose)}
-      <div class="calendar-items">${g.items.map(arrivalRowHtml).join('')}</div>
+      <div class="calendar-items">${g.items.map(item=>arrivalRowHtml(item,orderCounts.get(orderKey(item)) > 1)).join('')}</div>
     </section>
   `).join('');
 
@@ -2003,7 +2006,7 @@ function parseWishlistDate(str){
   if(m) return { priority:2, key:m[1], label:m[1] };
 
   // Tout le reste (TBD, texte libre...)
-  return { priority:3, key:s.toLowerCase(), label:s };
+  return { priority:3, key:s.toLowerCase(), label:/^tbd$/i.test(s) ? 'À préciser' : s };
 }
 
 function wishlistGroupInfo(str){
@@ -2018,10 +2021,8 @@ function wishlistGroupInfo(str){
     const mi = parseInt(m, 10) - 1;
     return { key:`month-${m}`, label:MONTH_NAMES_FULL[mi], color: MONTH_COLORS[mi], order:1 };
   }
-  if(parsed.priority >= 2){
-    return { key:'__none__', label:'Sans date', color:null, order:2, loose:true };
-  }
-  return { key:'__none__', label:'Sans date', color:null, order:2, loose:true };
+  if(parsed.priority === 2) return {key:'__year__', label:'Année connue', color:null, order:2, loose:true};
+  return {key:'__none__', label:'Date à préciser', color:null, order:3, loose:true};
 }
 
 function wishlistIsReleased(str){

@@ -52,3 +52,12 @@
 @media(max-width:820px) {
   #purchase-report-overlay { z-index:65; }
 }
+
+.overview-board-links,.module-import-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.module-import-actions { margin-bottom:8px; }
+.module-import-actions .btn { min-height:40px; padding:5px 10px; font-size:12px; }
+.arrival-mobile-source { display:none; }
+@media(max-width:820px){ .arrival-mobile-source { display:inline; } }
+
+/* A result keeps the query open underneath its editor without covering it. */
+#global-search-overlay[inert] { visibility:hidden; }

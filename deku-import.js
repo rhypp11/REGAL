@@ -34,7 +34,7 @@
       ignored=parsed.ignored;generation=accountGeneration;snapshot=fingerprint();
       $('deku-import-format').value='digital';
       $('deku-import-error').textContent='';document.getElementById('profile-menu').classList.add('hidden');closeMobileDrawers();render();
-      window.JTDDialogs.open('deku-import-overlay',{onDismiss:close,initialFocus:'#deku-import-format',trigger:$('profile-menu-btn')});
+      window.JTDDialogs.open('deku-import-overlay',{onDismiss:close,initialFocus:'#deku-import-format'});
     }catch(error){showToast(error.message || 'Import Deku Deals impossible.');}
   });
   $('deku-import-rows').addEventListener('change',event=>{

@@ -88,6 +88,7 @@ function renderMediaControls(){
     button.setAttribute('aria-pressed',String((state.media || 'physical') === mode));
   }
   const digital = state.media !== 'physical';
+  document.getElementById('collection-import-actions').classList.toggle('hidden',!digital);
   document.getElementById('content-filter-section').classList.toggle('hidden',!digital);
   if(!digital) state.contentType = null;
   document.getElementById('content-type-options').innerHTML = [['game','Jeu'],['dlc','DLC'],['upgrade','Mise à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+selectedContentTypes().includes(value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
