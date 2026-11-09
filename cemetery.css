@@ -434,3 +434,5 @@
 
 .sale-lot-total { color:var(--muted); font-size:10px; }
 .sale-lot-summary .sale-heading-main { flex-wrap:wrap; }
+
+#sale-modal-overlay .modal-primary-actions { align-items:stretch; }
