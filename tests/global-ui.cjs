@@ -37,7 +37,7 @@ const server=createSandboxServer();
     if(view==='collection'&&width>=1101){
      assert.equal(await page.locator('#grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),4,'Compact desktop grid');
     }
-    assert.equal(await page.locator('.nav-tab[aria-current="page"]').getAttribute('data-page'),view);
+    assert.equal(await page.locator('#collection-views [aria-current="page"]').getAttribute('data-page'),view);
     const controls=view==='home'?'.board-add-btn':view==='collection'?'#search-input,#sort-select,#add-btn':'#cemetery-search,#cemetery-platform';
     for(const control of await page.locator(controls).all()){
      if(!await control.isVisible())continue;

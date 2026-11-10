@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_10.11.26-2">
-<meta name="regal-build" content="fbc9ebeb33bcec237b9e0817">
+<meta name="regal-version" content="3_10.11.26-3">
+<meta name="regal-build" content="db75434022bce7355eb69139">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -22,13 +22,13 @@
 <link rel="stylesheet" href="home-dashboard.css?v=density-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=keyboard-viewport-1">
-<link rel="stylesheet" href="regal.css?v=rgl-dark-1">
+<link rel="stylesheet" href="regal.css?v=collection-navigation-1">
 <link rel="stylesheet" href="game-sheet.css?v=rgl-dark-1">
 <link rel="stylesheet" href="collection.css?v=rgl-dark-1">
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=listes-2">
-<link rel="stylesheet" href="pokedex.css?v=touch-targets-2">
+<link rel="stylesheet" href="pokedex.css?v=collection-navigation-1">
 <link rel="stylesheet" href="journal.css?v=journal-mobile-3">
 </head>
 <body>
@@ -85,11 +85,9 @@
     </div>
 
     <div class="topnav-nav" aria-label="Navigation principale">
-      <button class="nav-tab active" data-page="home" title="Accueil"><span class="nav-tab-label">Accueil</span></button>
+      <button class="nav-tab active" type="button" data-page="library" aria-current="page"><span class="nav-tab-label">Collection</span></button>
       <button type="button" class="nav-tab" data-page="journal" title="Journal"><span class="nav-tab-label">Journal</span></button>
       <button type="button" class="nav-tab" id="pokedex-nav" data-page="pokedex"><span class="nav-tab-label">Pokédex</span></button>
-      <button class="nav-tab" data-page="collection" title="Collection"><span class="nav-tab-label">Collection</span></button>
-      <button class="nav-tab" data-page="cemetery" title="Cimetière"><span class="nav-tab-label">Cimetière</span></button>
     </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
@@ -148,6 +146,11 @@
   </div>
 </nav>
 
+<nav id="collection-views" aria-label="Vues de la collection">
+  <button type="button" data-page="home" aria-current="page">Vue d’ensemble</button>
+  <button type="button" data-page="collection">Mes jeux</button>
+  <button type="button" data-page="cemetery">Ventes</button>
+</nav>
 <div class="page" id="page-home">
   <div class="home-app">
     <aside class="sidebar home-sidebar" id="home-sidebar" aria-label="Statistiques">
@@ -740,7 +743,7 @@
 <script src="jtd-data.js?v=account-pokedex-1"></script>
 <script src="dialogs.js?v=keyboard-viewport-1"></script>
 <script src="digital.js?v=density-1"></script>
-<script src="app.js?v=journal-mobile-1"></script>
+<script src="app.js?v=collection-navigation-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>

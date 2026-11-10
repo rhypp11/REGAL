@@ -2857,11 +2857,13 @@ const NAVIGATION_KEY = 'navigation-v1';
 let navigationReady = false;
 let restoringNavigation = false;
 let navigationPage = 'home';
+const collectionPages = ['home','collection','cemetery'];
+let lastCollectionPage = 'home';
 let navigationBoard = 'arrivals';
 let firstNavigation = true;
 
 function navigationSnapshot(){
-  return {page:navigationPage, board:navigationBoard, ...state};
+  return {page:navigationPage, board:navigationBoard, collectionPage:lastCollectionPage, ...state};
 }
 function navigationHash(view){
   const params = new URLSearchParams();
@@ -2928,6 +2930,7 @@ function initializeNavigation(){
   let saved = null;
   try { saved = JSON.parse(IS_PREVIEW_MODE ? sessionStorage.getItem('jtd:sandbox-navigation') : accountStorage.getItem(NAVIGATION_KEY)); } catch {}
   const view = (firstNavigation && navigationFromHash()) || saved || {};
+  lastCollectionPage = collectionPages.includes(saved?.collectionPage) ? saved.collectionPage : collectionPages.includes(saved?.page) ? saved.page : 'home';
   firstNavigation = false;
   navigationReady = true;
   applyNavigation(view && typeof view === 'object' ? view : {});
@@ -2954,15 +2957,23 @@ function goToPage(page, push = true){
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
   navigationPage = ['collection','cemetery','journal','pokedex'].includes(page) ? page : 'home';
+  const inCollection = collectionPages.includes(navigationPage);
+  if(inCollection) lastCollectionPage = navigationPage;
+  const views = document.getElementById('collection-views');
+  views.classList.toggle('hidden', !inCollection);
+  for(const button of views.querySelectorAll('button')){
+    if(button.dataset.page === navigationPage) button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
+  }
   document.querySelectorAll('.nav-tab').forEach(b => {
-    const active = b.dataset.page === navigationPage;
+    const active = b.dataset.page === (inCollection ? 'library' : navigationPage);
     b.classList.toggle('active', active);
     if(active) b.setAttribute('aria-current', 'page');
     else b.removeAttribute('aria-current');
   });
-  document.title = 'REGAL | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
+  document.title = 'REGAL | ' + (navigationPage === 'collection' ? 'Mes jeux' : 'Vue d’ensemble');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
-  if(navigationPage === 'cemetery'){ document.title = 'REGAL | Cimetière'; window.renderCemetery?.(); }
+  if(navigationPage === 'cemetery'){ document.title = 'REGAL | Ventes'; window.renderCemetery?.(); }
   if(navigationPage === 'cemetery') document.getElementById('cemetery-view-controls').prepend(mobileFilterToggle);
   if(navigationPage === 'home') document.getElementById('home-view-controls').prepend(mobileFilterToggle);
   if(navigationPage === 'journal') placeJournalControls();
@@ -2995,9 +3006,9 @@ window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
 
-document.querySelectorAll('.nav-tab').forEach(btn => {
+document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
   btn.addEventListener('click', () => {
-    goToPage(btn.dataset.page);
+    goToPage(btn.dataset.page === 'library' ? lastCollectionPage : btn.dataset.page);
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
 });
@@ -3029,7 +3040,7 @@ document.getElementById('mobile-backdrop').addEventListener('click', closeMobile
 
 const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar', journal:'journal-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
-  const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
+  const activePage = navigationPage;
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));
 });
 

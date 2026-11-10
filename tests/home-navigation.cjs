@@ -18,7 +18,7 @@ const server=createSandboxServer();
    assert.equal(await page.evaluate(()=>navigationBoard),'arrivals','Arrivals open by default');
    assert.equal(await page.locator('#home-total-games').textContent(),'1');
    assert.match(await page.locator('#home-summary-meta').textContent(),/Valeur d’achat0,00/);
-   assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','journal','pokedex','collection','cemetery']);
+   assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['library','journal','pokedex']);
    assert.equal(await page.locator('#page-lists').count(),0);
    assert.match(await page.locator('[data-home-progress="physical"] .home-completion-legend').textContent(),/Terminés0Multi0À faire1/);
    assert.doesNotMatch(await page.locator('#home-summary-meta').textContent(),/Terminés|À faire/);
@@ -39,6 +39,10 @@ const server=createSandboxServer();
    assert.equal(await page.locator('.home-widget-title h2').textContent(),'Statistiques');
    await page.keyboard.press('Escape');
    await page.locator('[data-page="collection"]').click();await page.waitForFunction(()=>navigationPage==='collection');
+   await page.locator('[data-page="journal"]').click();
+   await page.locator('[data-page="library"]').click();
+   assert.equal(await page.evaluate(()=>navigationPage),'collection');
+   if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
    await page.locator('[data-page="home"]').click();
    assert.equal(await page.locator('#home-boards-switcher').isVisible(),width<=820);
    if(width<=820){await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('.board.wishlist').isVisible(),false)}
@@ -214,6 +218,7 @@ const server=createSandboxServer();
     'juil.,,NSW,Import au mois,🌐,📺,🏆,B,-,S,A,S+,🩷'
    ].join('\n'))};
    const input=page.locator('#journal-import-file');
+   if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
    await page.locator('[data-page="home"]').click();
    await page.locator('#profile-menu-btn').click();
    await page.locator('#profile-import-group > summary').click();
