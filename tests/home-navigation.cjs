@@ -104,6 +104,7 @@ const server=createSandboxServer();
     ];
     renderHomeStats();goToPage('cemetery');
    });
+   assert.equal(await page.locator('[data-import-file]').count(),0,'Imports are available from the profile menu');
    await page.locator('#global-search-open').click();
    await page.locator('#global-search-input').fill('etoile');
    assert.equal(await page.locator('#global-search-results li').count(),2);
