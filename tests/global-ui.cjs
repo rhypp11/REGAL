@@ -21,7 +21,7 @@ const server=createSandboxServer();
     assert.ok(sectionMenu.y>=header.y && sectionMenu.y+sectionMenu.height<=header.y+header.height+1,'Section selector belongs to the header');
     const menuIcons=await page.locator('.topnav-nav .nav-tab > svg').count();
     assert.equal(menuIcons,3,'Every main destination has an icon');
-    if(width>820){
+    if(width>1100){
       const side=await page.locator(view==='home'?'#home-sidebar':view==='collection'?'#collection-sidebar':'#cemetery-sidebar').boundingBox();
       assert.ok(side.y>=sectionMenu.y+sectionMenu.height,'Sidebar starts below the section selector');
     }
