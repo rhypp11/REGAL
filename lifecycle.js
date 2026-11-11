@@ -1,44 +1,18 @@
-/* Partage vivant : interface seulement ; le payload est défini dans jtd-data.js. */
+/* Existing public links can still be revoked from the profile. */
 (() => {
+  if(window.JTD_PREVIEW_MODE === true) return;
   const exportButton = document.getElementById('chatgpt-export-btn');
-  if(!exportButton || document.getElementById('share-btn') || document.getElementById('share-preview-btn')) return;
-
-  const preview = window.JTD_PREVIEW_MODE === true;
-  const shareButton = document.createElement('button');
-  shareButton.type = 'button';
-  shareButton.className = 'profile-menu-item';
-  shareButton.id = preview ? 'share-preview-btn' : 'share-btn';
-  shareButton.innerHTML = '<span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.5 6.8-4"></path><path d="m8.6 13.5 6.8 4"></path></svg><span id="share-label">Partager ma collection</span></span><span class="profile-menu-sub" id="share-note">Lien vivant en lecture seule · se met à jour automatiquement</span>';
-
-  if(preview){
-    exportButton.before(shareButton);
-    shareButton.addEventListener('click', () => showToast('Le partage vivant est désactivé dans la sandbox : aucune donnée réelle n’est publiée.'));
-    return;
-  }
-
-  const disableButton = document.createElement('button');
-  disableButton.type = 'button';
-  disableButton.className = 'profile-menu-item profile-menu-danger hidden';
-  disableButton.id = 'share-disable-btn';
-  disableButton.innerHTML = '<span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg><span>Désactiver le partage</span></span><span class="profile-menu-sub">Invalide immédiatement le lien actuel</span>';
-
-  exportButton.before(shareButton, disableButton);
-
-  shareButton.addEventListener('click', () => {
-    if(window.JTDShare && typeof window.JTDShare.createOrCopy === 'function'){
-      window.JTDShare.createOrCopy();
-      return;
-    }
-    showToast('Le partage est encore en cours d’initialisation.');
-  });
-
-  disableButton.addEventListener('click', () => {
-    if(!window.JTDShare || typeof window.JTDShare.disable !== 'function') return;
-    confirmAction(
-      'Le lien actuel cessera immédiatement de fonctionner.',
-      () => window.JTDShare.disable(),
-      {title:'Désactiver le partage ?', confirmLabel:'Désactiver'}
-    );
+  if(!exportButton) return;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.id = 'share-disable-btn';
+  button.className = 'profile-menu-item profile-menu-danger hidden';
+  button.textContent = 'Désactiver le partage existant';
+  exportButton.after(button);
+  button.addEventListener('click', () => {
+    if(!window.JTDShare?.disable) return;
+    confirmAction('Le lien actuel cessera de fonctionner.', () => window.JTDShare.disable(),
+      {title:'Désactiver le partage ?', confirmLabel:'Désactiver'});
   });
 })();
 

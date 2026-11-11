@@ -147,9 +147,9 @@ async function restore(page, value, confirm=true){
       const chatGPTDownloadEvent=page.waitForEvent('download');
       await page.locator('#profile-menu-btn').click();await page.locator('#profile-share-group > summary').click();await page.locator('#chatgpt-export-btn').click();
       const chatGPTDownload=await chatGPTDownloadEvent;
-      assert.match(chatGPTDownload.suggestedFilename(),/^jeux-tout-doux-chatgpt-\d{4}-\d{2}-\d{2}\.json$/);
+      assert.match(chatGPTDownload.suggestedFilename(),/^regal-export-collection-\d{4}-\d{2}-\d{2}\.json$/);
       const shared=JSON.parse(fs.readFileSync(await chatGPTDownload.path(),'utf8'));
-      assert.equal(shared.app,'Jeux Tout Doux');assert.equal(shared.purpose,'Conseils dans ChatGPT');
+      assert.equal(shared.app,'REGAL');assert.equal(shared.purpose,'Consultation de la collection');
       assert.deepEqual(Object.keys(shared.data).sort(),['arrivals','cemetery','games','publishedAt','version','wishlist']);
       assert.equal(Object.hasOwn(shared.data.games[0],'prix'),false);
       assert.equal(Object.hasOwn(shared.data.games[0],'source'),false);

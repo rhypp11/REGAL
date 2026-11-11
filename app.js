@@ -650,7 +650,7 @@ function downloadBackup(suffix){
   const a = document.createElement('a');
   const date = new Date().toISOString().slice(0,10);
   a.href = url;
-  a.download = 'jeux-tout-doux-' + (suffix ? suffix + '-' : '') + date + '.json';
+  a.download = 'regal-sauvegarde-' + (suffix && suffix !== 'sauvegarde' ? suffix + '-' : 'complete-') + date + '.json';
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -2765,15 +2765,15 @@ function downloadChatGPTSnapshot(){
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'jeux-tout-doux-chatgpt-' + new Date().toISOString().slice(0,10) + '.json';
+    link.download = 'regal-export-collection-' + new Date().toISOString().slice(0,10) + '.json';
     document.body.appendChild(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('Fichier prêt à joindre dans ChatGPT.');
+    showToast('Export JSON téléchargé.');
   }catch(error){
-    console.error('Export ChatGPT impossible', error);
-    showToast('Impossible de préparer le fichier pour ChatGPT.');
+    console.error('Export JSON impossible', error);
+    showToast('Impossible de préparer l’export JSON.');
   }
 }
 
@@ -3124,7 +3124,7 @@ if(IS_PREVIEW_MODE){
       const note = document.getElementById('share-note');
       const disableBtn = document.getElementById('share-disable-btn');
       if(label) label.textContent = 'Partager ma collection';
-      if(note) note.textContent = 'Crée un lien lecture seule à copier dans ChatGPT';
+      if(note) note.textContent = 'Lien de partage existant';
       if(disableBtn) disableBtn.classList.add('hidden');
       showToast('Partage test désactivé.');
     }
