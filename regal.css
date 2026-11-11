@@ -120,11 +120,11 @@
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:4px;
   width:min(100% - 24px,510px);
-  margin:12px auto 0;
+  margin:0 auto;
   padding:3px;
   border:1px solid var(--ui-border);
   border-radius:12px;
-  background:var(--ui-surface);
+  background:#1c1d1f;
 }
 #collection-views button {
   min-width:0;
@@ -143,3 +143,13 @@
   border-color:var(--ui-border);
   background:var(--ui-surface-raised);
 }
+
+.topnav #collection-views {
+  padding:3px;
+  margin-block:0;
+  border-color:#ffffff20;
+}
+.topnav:has(#collection-views:not(.hidden)) { padding-bottom:8px; }
+.topnav .nav-tab .nav-tab-icon { display:block; width:18px; height:18px; flex:none; }
+.topnav .nav-tab .nav-tab-label { margin-left:0; }
+.topnav .nav-tab { gap:7px; }

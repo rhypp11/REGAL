@@ -16,6 +16,15 @@ const server=createSandboxServer();
     const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>{
      const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
     }));
+    const sectionMenu=await page.locator('#collection-views').boundingBox();
+    const header=await page.locator('.topnav').boundingBox();
+    assert.ok(sectionMenu.y>=header.y && sectionMenu.y+sectionMenu.height<=header.y+header.height+1,'Section selector belongs to the header');
+    const menuIcons=await page.locator('.topnav-nav .nav-tab > svg').count();
+    assert.equal(menuIcons,3,'Every main destination has an icon');
+    if(width>820){
+      const side=await page.locator(view==='home'?'#home-sidebar':view==='collection'?'#collection-sidebar':'#cemetery-sidebar').boundingBox();
+      assert.ok(side.y>=sectionMenu.y+sectionMenu.height,'Sidebar starts below the section selector');
+    }
     if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
     else headerGeometry=geometry;
     assert.equal(await page.locator('.topnav-nav').evaluate(el=>{

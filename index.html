@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_10.11.26-3">
-<meta name="regal-build" content="db75434022bce7355eb69139">
+<meta name="regal-version" content="3_11.11.26-1">
+<meta name="regal-build" content="8dceb5fbfcad151d6992025a">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="home-dashboard.css?v=density-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=keyboard-viewport-1">
-<link rel="stylesheet" href="regal.css?v=collection-navigation-1">
+<link rel="stylesheet" href="regal.css?v=collection-navigation-2">
 <link rel="stylesheet" href="game-sheet.css?v=rgl-dark-1">
 <link rel="stylesheet" href="collection.css?v=rgl-dark-1">
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
@@ -85,9 +85,9 @@
     </div>
 
     <div class="topnav-nav" aria-label="Navigation principale">
-      <button class="nav-tab active" type="button" data-page="library" aria-current="page"><span class="nav-tab-label">Collection</span></button>
-      <button type="button" class="nav-tab" data-page="journal" title="Journal"><span class="nav-tab-label">Journal</span></button>
-      <button type="button" class="nav-tab" id="pokedex-nav" data-page="pokedex"><span class="nav-tab-label">Pokédex</span></button>
+      <button class="nav-tab active" type="button" data-page="library" aria-current="page"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><path d="m18 4 3 15-4 1-3-15"/></svg><span class="nav-tab-label">Collection</span></button>
+      <button type="button" class="nav-tab" data-page="journal" title="Journal"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v15M3 4h5a4 4 0 0 1 4 2 4 4 0 0 1 4-2h5v15h-5a4 4 0 0 0-4 2 4 4 0 0 0-4-2H3Z"/></svg><span class="nav-tab-label">Journal</span></button>
+      <button type="button" class="nav-tab" id="pokedex-nav" data-page="pokedex"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M3 12h6m6 0h6"/></svg><span class="nav-tab-label">Pokédex</span></button>
     </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
@@ -144,13 +144,14 @@
       <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
     </div>
   </div>
-</nav>
-
-<nav id="collection-views" aria-label="Vues de la collection">
+  <div role="navigation" id="collection-views" aria-label="Vues de la collection">
   <button type="button" data-page="home" aria-current="page">Vue d’ensemble</button>
   <button type="button" data-page="collection">Mes jeux</button>
   <button type="button" data-page="cemetery">Ventes</button>
+</div>
 </nav>
+
+
 <div class="page" id="page-home">
   <div class="home-app">
     <aside class="sidebar home-sidebar" id="home-sidebar" aria-label="Statistiques">
