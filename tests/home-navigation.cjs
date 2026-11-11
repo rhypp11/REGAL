@@ -1,3 +1,6 @@
+async function openCollectionMenu(page){
+ if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
+}
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
@@ -18,6 +21,13 @@ const server=createSandboxServer();
    assert.equal(await page.evaluate(()=>navigationBoard),'arrivals','Arrivals open by default');
    assert.equal(await page.locator('#home-total-games').textContent(),'1');
    assert.match(await page.locator('#home-summary-meta').textContent(),/Valeur d’achat0,00/);
+   assert.equal(await page.locator('#profile-menu details').count(),0);
+   assert.equal(await page.locator('#deku-import-trigger,#journal-import-open').count(),0);
+   assert.equal(await page.locator('#profile-menu #manage-platforms-btn').count(),1);
+   await page.locator('#profile-menu-btn').click();
+   await page.locator('#manage-platforms-btn').click();
+   assert.equal(await page.locator('#platform-modal-overlay').isVisible(),true);
+   await page.keyboard.press('Escape');
    assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['library','journal','pokedex']);
    assert.equal(await page.locator('#page-lists').count(),0);
    assert.match(await page.locator('[data-home-progress="physical"] .home-completion-legend').textContent(),/Terminés0Multi0À faire1/);
@@ -38,12 +48,12 @@ const server=createSandboxServer();
    assert.equal(await page.locator('.home-widget-title a').count(),0,'No duplicate collection shortcut');
    assert.equal(await page.locator('.home-widget-title h2').textContent(),'Statistiques');
    await page.keyboard.press('Escape');
-   await page.locator('[data-page="collection"]').click();await page.waitForFunction(()=>navigationPage==='collection');
+   await openCollectionMenu(page);await page.locator('[data-page="collection"]').click();await page.waitForFunction(()=>navigationPage==='collection');
    await page.locator('[data-page="journal"]').click();
    await page.locator('[data-page="library"]').click();
    assert.equal(await page.evaluate(()=>navigationPage),'collection');
    if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
-   await page.locator('[data-page="home"]').click();
+   await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
    assert.equal(await page.locator('#home-boards-switcher').isVisible(),width<=820);
    if(width<=820){await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('.board.wishlist').isVisible(),false)}
    else {assert.equal(await page.locator('.board.wishlist').isVisible(),true);const left=await page.locator('#arrivals-board').boundingBox(),right=await page.locator('.board.wishlist').boundingBox();assert.ok(left.x+left.width<=right.x);assert.ok(left.width>right.width*1.4)}
@@ -220,12 +230,8 @@ const server=createSandboxServer();
    ].join('\n'))};
    const input=page.locator('#journal-import-file');
    if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
-   await page.locator('[data-page="home"]').click();
-   await page.locator('#profile-menu-btn').click();
-   await page.locator('#profile-import-group > summary').click();
-   const chooser=page.waitForEvent('filechooser');
-   await page.locator('#journal-import-open').click();
-   await (await chooser).setFiles(csv);
+   await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
+   await input.setInputFiles(csv);
    await page.locator('#journal-import-count').waitFor();
    assert.match(await page.locator('#journal-import-count').innerText(),/3 sélectionnées/);
    assert.match(await page.locator('.journal-import-flag').last().innerText(),/Année proposée : 2017/);

@@ -2960,7 +2960,8 @@ function goToPage(page, push = true){
   const inCollection = collectionPages.includes(navigationPage);
   if(inCollection) lastCollectionPage = navigationPage;
   const views = document.getElementById('collection-views');
-  views.classList.toggle('hidden', !inCollection);
+  views.classList.add('hidden');
+  document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
   for(const button of views.querySelectorAll('button')){
     if(button.dataset.page === navigationPage) button.setAttribute('aria-current','page');
     else button.removeAttribute('aria-current');
@@ -3008,9 +3009,49 @@ window.addEventListener('hashchange', () => {
 
 document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
   btn.addEventListener('click', () => {
-    goToPage(btn.dataset.page === 'library' ? lastCollectionPage : btn.dataset.page);
+    if(btn.dataset.page === 'library'){
+      const menu = document.getElementById('collection-views');
+      const opening = menu.classList.contains('hidden');
+      goToPage(lastCollectionPage);
+      menu.classList.toggle('hidden', !opening);
+      btn.setAttribute('aria-expanded',String(opening));
+      return;
+    }
+    goToPage(btn.dataset.page);
+    if(btn.closest('#collection-views')) document.querySelector('[data-page="library"]').focus({preventScroll:true});
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
+});
+
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape' && !document.getElementById('collection-views').classList.contains('hidden')){
+    document.getElementById('collection-views').classList.add('hidden');
+    document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
+  }
+});
+document.addEventListener('click',event=>{
+  const menu=document.getElementById('collection-views');
+  if(!menu.contains(event.target) && !event.target.closest('[data-page="library"]')){
+    menu.classList.add('hidden');
+    document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
+  }
+});
+document.querySelector('[data-page="library"]').addEventListener('keydown',event=>{
+  if(event.key==='ArrowDown'){
+    event.preventDefault();
+    document.getElementById('collection-views').classList.remove('hidden');
+    event.currentTarget.setAttribute('aria-expanded','true');
+    document.querySelector('#collection-views [aria-current="page"]')?.focus();
+  }
+});
+document.getElementById('collection-views').addEventListener('keydown',event=>{
+  if(event.key==='Escape'){
+    event.stopPropagation();
+    event.currentTarget.classList.add('hidden');
+    const trigger=document.querySelector('[data-page="library"]');
+    trigger.setAttribute('aria-expanded','false');
+    trigger.focus();
+  }
 });
 
 /* ---------- Navigation mobile ---------- */

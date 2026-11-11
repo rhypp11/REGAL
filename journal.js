@@ -613,7 +613,7 @@
       }catch(error){$('journal-error').textContent=error.message;}
     });
   }
-  $('journal-import-open').addEventListener('click',()=>$('journal-import-file').click());
+  $('journal-import-open')?.addEventListener('click',()=>$('journal-import-file').click());
   $('journal-import-file').addEventListener('change',async event=>{
     const file=event.target.files[0];
     event.target.value='';

@@ -1,3 +1,6 @@
+async function openCollectionMenu(page){
+ if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
+}
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
@@ -12,19 +15,12 @@ const server=createSandboxServer();
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
    let headerGeometry;
    for(const view of ['home','collection','cemetery']){
-    await page.locator('[data-page="'+view+'"]').click();
+    await openCollectionMenu(page);await page.locator('[data-page="'+view+'"]').click();
     const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>{
      const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
     }));
-    const sectionMenu=await page.locator('#collection-views').boundingBox();
-    const header=await page.locator('.topnav').boundingBox();
-    assert.ok(sectionMenu.y>=header.y && sectionMenu.y+sectionMenu.height<=header.y+header.height+1,'Section selector belongs to the header');
-    const menuIcons=await page.locator('.topnav-nav .nav-tab > svg').count();
-    assert.equal(menuIcons,3,'Every main destination has an icon');
-    if(width>1100){
-      const side=await page.locator(view==='home'?'#home-sidebar':view==='collection'?'#collection-sidebar':'#cemetery-sidebar').boundingBox();
-      assert.ok(side.y>=sectionMenu.y+sectionMenu.height,'Sidebar starts below the section selector');
-    }
+    assert.equal(await page.locator('#collection-views').isVisible(),false,'Navigation collapses after selection');
+    assert.equal(await page.locator('.topnav-nav .nav-tab > svg').count(),3);
     if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
     else headerGeometry=geometry;
     assert.equal(await page.locator('.topnav-nav').evaluate(el=>{
@@ -67,13 +63,13 @@ const server=createSandboxServer();
     }
     await page.screenshot({path:'/tmp/jtd-global-'+view+'-'+width+'-'+theme+'.png',fullPage:true});
    }
-   await page.locator('[data-page="home"]').click();
+   await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
    if(width<=820){
     await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('[data-target="arrivals"]').getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#arrivals-board').isVisible(),true);
     await page.locator('[data-target="wishlist"]').click();assert.equal(await page.locator('[data-target="wishlist"]').getAttribute('aria-pressed'),'true');
    }
-   await page.locator('[data-page="collection"]').click();
+   await openCollectionMenu(page);await page.locator('[data-page="collection"]').click();
    if(await page.locator('#global-filter-toggle').isVisible())await page.locator('#global-filter-toggle').click();
    const chip=page.locator('#format-toggles [role="button"]').first();
    await chip.focus();await page.keyboard.press('Space');
