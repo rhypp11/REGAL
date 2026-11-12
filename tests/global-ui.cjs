@@ -20,7 +20,7 @@ const server=createSandboxServer();
      const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
     }));
     assert.equal(await page.locator('#collection-views').isVisible(),false,'Navigation collapses after selection');
-    assert.equal(await page.locator('.topnav-nav .nav-tab > svg').count(),3);
+    assert.equal(await page.locator('.topnav-nav .nav-tab > .nav-tab-icon').count(),3);
     if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
     else headerGeometry=geometry;
     assert.equal(await page.locator('.topnav-nav').evaluate(el=>{
