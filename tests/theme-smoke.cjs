@@ -1,3 +1,6 @@
+async function openCollectionMenu(page){
+ if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
+}
 const {chromium}=require('playwright');
 const path=require('node:path');
 const os=require('node:os');
@@ -15,7 +18,7 @@ const server=createSandboxServer();
   await page.goto(url);await page.waitForSelector('#app-shell:not(.hidden)');
   const theme='dark';
    for(const name of ['home','collection']){
-    await page.click(`[data-page="${name}"]`);
+    await openCollectionMenu(page);await page.click(`[data-page="${name}"]`);
     if(name === 'collection') {
       const ratios = await page.evaluate(() => {
         const parent = document.querySelector('.card');

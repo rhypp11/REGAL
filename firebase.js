@@ -104,16 +104,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   }
 
   function renderShareUI(){
-    const label = document.getElementById('share-label');
-    const note = document.getElementById('share-note');
     const disableBtn = document.getElementById('share-disable-btn');
-    if(!label || !note || !disableBtn) return;
-    const active = !!SHARE_TOKEN;
-    label.textContent = active ? 'Copier le lien de partage' : 'Partager ma collection';
-    note.textContent = active
-      ? 'Lien vivant en lecture seule • collection, wishlist, arrivages et ventes'
-      : 'Lien lecture seule à copier dans ChatGPT';
-    disableBtn.classList.toggle('hidden', !active);
+    if(disableBtn) disableBtn.classList.toggle('hidden', !SHARE_TOKEN);
   }
 
   async function copyText(text){

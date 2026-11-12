@@ -650,7 +650,7 @@ function downloadBackup(suffix){
   const a = document.createElement('a');
   const date = new Date().toISOString().slice(0,10);
   a.href = url;
-  a.download = 'jeux-tout-doux-' + (suffix ? suffix + '-' : '') + date + '.json';
+  a.download = 'regal-sauvegarde-' + (suffix && suffix !== 'sauvegarde' ? suffix + '-' : 'complete-') + date + '.json';
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -2765,15 +2765,15 @@ function downloadChatGPTSnapshot(){
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'jeux-tout-doux-chatgpt-' + new Date().toISOString().slice(0,10) + '.json';
+    link.download = 'regal-export-collection-' + new Date().toISOString().slice(0,10) + '.json';
     document.body.appendChild(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('Fichier prêt à joindre dans ChatGPT.');
+    showToast('Export JSON téléchargé.');
   }catch(error){
-    console.error('Export ChatGPT impossible', error);
-    showToast('Impossible de préparer le fichier pour ChatGPT.');
+    console.error('Export JSON impossible', error);
+    showToast('Impossible de préparer l’export JSON.');
   }
 }
 
@@ -2857,11 +2857,13 @@ const NAVIGATION_KEY = 'navigation-v1';
 let navigationReady = false;
 let restoringNavigation = false;
 let navigationPage = 'home';
+const collectionPages = ['home','collection','cemetery'];
+let lastCollectionPage = 'home';
 let navigationBoard = 'arrivals';
 let firstNavigation = true;
 
 function navigationSnapshot(){
-  return {page:navigationPage, board:navigationBoard, ...state};
+  return {page:navigationPage, board:navigationBoard, collectionPage:lastCollectionPage, ...state};
 }
 function navigationHash(view){
   const params = new URLSearchParams();
@@ -2928,6 +2930,7 @@ function initializeNavigation(){
   let saved = null;
   try { saved = JSON.parse(IS_PREVIEW_MODE ? sessionStorage.getItem('jtd:sandbox-navigation') : accountStorage.getItem(NAVIGATION_KEY)); } catch {}
   const view = (firstNavigation && navigationFromHash()) || saved || {};
+  lastCollectionPage = collectionPages.includes(saved?.collectionPage) ? saved.collectionPage : collectionPages.includes(saved?.page) ? saved.page : 'home';
   firstNavigation = false;
   navigationReady = true;
   applyNavigation(view && typeof view === 'object' ? view : {});
@@ -2954,15 +2957,24 @@ function goToPage(page, push = true){
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
   navigationPage = ['collection','cemetery','journal','pokedex'].includes(page) ? page : 'home';
+  const inCollection = collectionPages.includes(navigationPage);
+  if(inCollection) lastCollectionPage = navigationPage;
+  const views = document.getElementById('collection-views');
+  views.classList.add('hidden');
+  document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
+  for(const button of views.querySelectorAll('button')){
+    if(button.dataset.page === navigationPage) button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
+  }
   document.querySelectorAll('.nav-tab').forEach(b => {
-    const active = b.dataset.page === navigationPage;
+    const active = b.dataset.page === (inCollection ? 'library' : navigationPage);
     b.classList.toggle('active', active);
     if(active) b.setAttribute('aria-current', 'page');
     else b.removeAttribute('aria-current');
   });
-  document.title = 'REGAL | ' + (navigationPage === 'collection' ? 'Collection' : 'Accueil');
+  document.title = 'REGAL | ' + (navigationPage === 'collection' ? 'Mes jeux' : 'Vue d’ensemble');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
-  if(navigationPage === 'cemetery'){ document.title = 'REGAL | Cimetière'; window.renderCemetery?.(); }
+  if(navigationPage === 'cemetery'){ document.title = 'REGAL | Ventes'; window.renderCemetery?.(); }
   if(navigationPage === 'cemetery') document.getElementById('cemetery-view-controls').prepend(mobileFilterToggle);
   if(navigationPage === 'home') document.getElementById('home-view-controls').prepend(mobileFilterToggle);
   if(navigationPage === 'journal') placeJournalControls();
@@ -2995,11 +3007,89 @@ window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
 
-document.querySelectorAll('.nav-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
+let collectionHoverOpened = false;
+let collectionHoverTimer;
+let collectionOpenTimer;
+const collectionTrigger = document.querySelector('[data-page="library"]');
+const collectionMenu = document.getElementById('collection-views');
+const collectionGroup = document.querySelector('.collection-nav-group');
+const collectionHover = matchMedia('(hover:hover) and (pointer:fine)');
+function cancelCollectionHover(){
+  clearTimeout(collectionOpenTimer);
+  clearTimeout(collectionHoverTimer);
+}
+collectionGroup.addEventListener('pointerenter',()=>{
+  cancelCollectionHover();
+  if(!collectionHover.matches || !collectionMenu.classList.contains('hidden')) return;
+  collectionOpenTimer = setTimeout(()=>{
+    if(!collectionGroup.matches(':hover')) return;
+    collectionHoverOpened = true;
+    collectionMenu.classList.remove('hidden');
+    collectionTrigger.setAttribute('aria-expanded','true');
+  },180);
+});
+collectionGroup.addEventListener('pointerleave',()=>{
+  cancelCollectionHover();
+  if(!collectionHover.matches) return;
+  collectionHoverTimer = setTimeout(()=>{
+    if(collectionGroup.matches(':hover') || collectionMenu.contains(document.activeElement)) return;
+    collectionMenu.classList.add('hidden');
+    collectionTrigger.setAttribute('aria-expanded','false');
+    collectionHoverOpened = false;
+  },250);
+});
+
+document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
+  btn.addEventListener('click', event => {
+    if(btn.dataset.page === 'library'){
+      const menu = document.getElementById('collection-views');
+      const opening = menu.classList.contains('hidden') || (event.detail > 0 && collectionHoverOpened);
+      collectionHoverOpened = false;
+      cancelCollectionHover();
+      goToPage(lastCollectionPage);
+      menu.classList.toggle('hidden', !opening);
+      btn.setAttribute('aria-expanded',String(opening));
+      return;
+    }
     goToPage(btn.dataset.page);
+    if(btn.closest('#collection-views')) document.querySelector('[data-page="library"]').focus({preventScroll:true});
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
+});
+
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape') cancelCollectionHover();
+  if(event.key==='Escape' && !document.getElementById('collection-views').classList.contains('hidden')){
+    document.getElementById('collection-views').classList.add('hidden');
+    document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
+  }
+});
+document.addEventListener('click',event=>{
+  const menu=document.getElementById('collection-views');
+  if(!menu.contains(event.target) && !event.target.closest('[data-page="library"]')){
+    cancelCollectionHover();
+    menu.classList.add('hidden');
+    document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
+  }
+});
+document.querySelector('[data-page="library"]').addEventListener('keydown',event=>{
+  if(event.key==='ArrowDown'){
+    cancelCollectionHover();
+    event.preventDefault();
+    document.getElementById('collection-views').classList.remove('hidden');
+    event.currentTarget.setAttribute('aria-expanded','true');
+    document.querySelector('#collection-views [aria-current="page"]')?.focus();
+  }
+});
+document.getElementById('collection-views').addEventListener('keydown',event=>{
+  if(event.key==='Escape'){
+    event.stopPropagation();
+    cancelCollectionHover();
+    event.currentTarget.classList.add('hidden');
+    const trigger=document.querySelector('[data-page="library"]');
+    trigger.setAttribute('aria-expanded','false');
+    trigger.focus();
+  }
 });
 
 /* ---------- Navigation mobile ---------- */
@@ -3029,7 +3119,7 @@ document.getElementById('mobile-backdrop').addEventListener('click', closeMobile
 
 const PAGE_SIDEBAR_IDS = { home:'home-sidebar', collection: 'collection-sidebar', cemetery: 'cemetery-sidebar', journal:'journal-sidebar' };
 document.getElementById('global-filter-toggle')?.addEventListener('click', () => {
-  const activePage = document.querySelector('.nav-tab.active')?.dataset.page || 'home';
+  const activePage = navigationPage;
   toggleMobileDrawer(document.getElementById(PAGE_SIDEBAR_IDS[activePage]));
 });
 
@@ -3113,7 +3203,7 @@ if(IS_PREVIEW_MODE){
       const note = document.getElementById('share-note');
       const disableBtn = document.getElementById('share-disable-btn');
       if(label) label.textContent = 'Partager ma collection';
-      if(note) note.textContent = 'Crée un lien lecture seule à copier dans ChatGPT';
+      if(note) note.textContent = 'Lien de partage existant';
       if(disableBtn) disableBtn.classList.add('hidden');
       showToast('Partage test désactivé.');
     }

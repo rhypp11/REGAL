@@ -70,9 +70,6 @@
       byId(board === 'wishlist' ? 'add-wishlist-btn' : 'add-arrival-btn').focus();
     });
   }
-  for(const button of document.querySelectorAll('[data-import-file]')){
-    button.addEventListener('click',()=>byId(button.dataset.importFile).click());
-  }
   window.closeListSearch = closeSearch;
 
   const reportDialog = 'purchase-report-overlay';

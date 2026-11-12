@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_10.11.26-2">
-<meta name="regal-build" content="fbc9ebeb33bcec237b9e0817">
+<meta name="regal-version" content="3_12.11.26-7">
+<meta name="regal-build" content="706495b01bce06138e70be0a">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -22,13 +22,13 @@
 <link rel="stylesheet" href="home-dashboard.css?v=density-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=keyboard-viewport-1">
-<link rel="stylesheet" href="regal.css?v=rgl-dark-1">
+<link rel="stylesheet" href="regal.css?v=collection-chevron-1">
 <link rel="stylesheet" href="game-sheet.css?v=rgl-dark-1">
 <link rel="stylesheet" href="collection.css?v=rgl-dark-1">
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=listes-2">
-<link rel="stylesheet" href="pokedex.css?v=touch-targets-2">
+<link rel="stylesheet" href="pokedex.css?v=collection-navigation-1">
 <link rel="stylesheet" href="journal.css?v=journal-mobile-3">
 </head>
 <body>
@@ -85,11 +85,14 @@
     </div>
 
     <div class="topnav-nav" aria-label="Navigation principale">
-      <button class="nav-tab active" data-page="home" title="Accueil"><span class="nav-tab-label">Accueil</span></button>
-      <button type="button" class="nav-tab" data-page="journal" title="Journal"><span class="nav-tab-label">Journal</span></button>
-      <button type="button" class="nav-tab" id="pokedex-nav" data-page="pokedex"><span class="nav-tab-label">Pokédex</span></button>
-      <button class="nav-tab" data-page="collection" title="Collection"><span class="nav-tab-label">Collection</span></button>
-      <button class="nav-tab" data-page="cemetery" title="Cimetière"><span class="nav-tab-label">Cimetière</span></button>
+      <div class="collection-nav-group"><button class="nav-tab active" type="button" data-page="library" aria-current="page" aria-expanded="false" aria-controls="collection-views"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><path d="m18 4 3 15-4 1-3-15"/></svg><span class="nav-tab-label">Collection</span><svg class="collection-menu-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+      <div role="group" id="collection-views" class="hidden" aria-label="Vues de la collection">
+  <button type="button" data-page="home" aria-current="page">Vue d’ensemble</button>
+  <button type="button" data-page="collection">Mes jeux</button>
+  <button type="button" data-page="cemetery">Ventes</button>
+</div></div>
+      <button type="button" class="nav-tab" data-page="journal" title="Journal"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v15M3 4h5a4 4 0 0 1 4 2 4 4 0 0 1 4-2h5v15h-5a4 4 0 0 0-4 2 4 4 0 0 0-4-2H3Z"/></svg><span class="nav-tab-label">Journal</span></button>
+      <button type="button" class="nav-tab" id="pokedex-nav" data-page="pokedex"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M3 12h6m6 0h6"/></svg><span class="nav-tab-label">Pokédex</span></button>
     </div>
     <div class="topnav-break"></div>
     <div class="topnav-actions">
@@ -112,7 +115,7 @@
             <input type="text" class="profile-menu-name-input" id="profile-name-input" placeholder="Ton pseudo" maxlength="24">
           </div>
           <div class="profile-menu-divider"></div>
-          <details class="profile-maintenance"><summary>Sauvegarde et restauration</summary>
+          <section class="profile-maintenance"><h3>Sauvegarde et restauration</h3>
           <button class="profile-menu-item" id="backup-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg><span>Sauvegarde complète</span></span>
             <span class="profile-menu-sub" id="backup-note"></span>
@@ -121,17 +124,14 @@
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg><span>Restaurer une sauvegarde</span></span>
             <span class="profile-menu-sub">Remplacer toutes les données par celles du fichier</span>
           </label>
-          </details>
-          <details class="profile-group" id="profile-share-group"><summary>Partage</summary>
+          </section>
+          <section class="profile-group" id="profile-share-group"><h3>Export</h3>
           <button class="profile-menu-item" id="chatgpt-export-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Exporter en JSON</span></span>
-            <span class="profile-menu-sub">Collection et listes pour ChatGPT · sans restauration</span>
+            <span class="profile-menu-sub">Collection et listes · fichier de consultation</span>
           </button>
-          </details>
-          <details class="profile-group" id="profile-import-group"><summary>Imports</summary>
-          <label class="profile-menu-item" for="deku-import-input" id="deku-import-trigger"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg><span>Importer Deku Deals</span></span></label>
-          <button type="button" class="profile-menu-item" id="journal-import-open"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg><span>Importer le journal (CSV)</span></span></button>
-          </details>
+          </section>
+          <section class="profile-group"><h3>Gestion</h3><button type="button" class="profile-menu-item" id="manage-platforms-btn"><span>Plateformes</span></button></section>
           <div class="profile-menu-version"><span id="site-version-label"></span><button type="button" id="site-update-btn" class="hidden">Actualiser</button></div>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
@@ -146,7 +146,9 @@
       <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
     </div>
   </div>
+
 </nav>
+
 
 <div class="page" id="page-home">
   <div class="home-app">
@@ -368,7 +370,6 @@
         <span class="side-label" style="margin-bottom:0;padding:0;">Plateformes</span>
         <div style="display:flex;gap:2px;">
           <button class="icon-link-btn" id="sort-platforms-btn" title="Changer le tri des plateformes" aria-label="Changer le tri des plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12"></path><path d="M8 12h9"></path><path d="M8 18h6"></path><path d="m4 4-2 2 2 2"></path><path d="M2 6h4"></path></svg></button>
-          <button class="icon-link-btn" id="manage-platforms-btn" title="Plateformes" aria-label="Plateformes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button>
         </div>
       </div>
       <div id="platform-list"></div>
@@ -412,7 +413,6 @@
 <button type="button" data-view="list" aria-pressed="false" title="Liste" aria-label="Liste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M3 5h2M3 12h2M3 19h2"/></svg></button></div>
     </div>
 
-    <div class="module-import-actions hidden" id="collection-import-actions"><button type="button" class="btn btn-ghost" data-import-file="deku-import-input">Importer Deku Deals</button></div>
     <div class="results-bar" id="results-bar" role="status" aria-live="polite"></div>
     <div class="grid" id="grid"></div>
   </main>
@@ -561,7 +561,6 @@
       <input type="search" id="cemetery-search" placeholder="Chercher un jeu…" aria-label="Chercher dans le cimetière">
       <select id="cemetery-platform" aria-label="Plateforme"><option value="">Toutes les plateformes</option></select>
     </div>
-    <div class="module-import-actions"><button type="button" class="btn btn-ghost" data-import-file="cemetery-import-input">Importer des ventes</button></div>
     <div class="cemetery-order-tools hidden" id="cemetery-order-tools">
       <p class="cemetery-order-hint hidden" id="cemetery-order-hint">Glisse la poignée. Au clavier, utilise les flèches haut et bas.</p>
       <button type="button" class="btn btn-ghost" id="cemetery-order-toggle" aria-pressed="false">Réordonner</button>
@@ -740,7 +739,7 @@
 <script src="jtd-data.js?v=account-pokedex-1"></script>
 <script src="dialogs.js?v=keyboard-viewport-1"></script>
 <script src="digital.js?v=density-1"></script>
-<script src="app.js?v=journal-mobile-1"></script>
+<script src="app.js?v=collection-hover-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>
@@ -750,7 +749,7 @@
 <script src="journal.js?v=release-order-1"></script>
 <script src="pokedex-data.js?v=account-pokedex-1"></script>
 <script src="pokedex.js?v=box-undo-1"></script>
-<script src="lifecycle.js?v=release-notice-1"></script>
+<script src="lifecycle.js?v=json-exports-1"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){
     const firebaseScript = document.createElement('script');

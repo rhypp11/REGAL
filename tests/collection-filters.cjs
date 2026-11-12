@@ -22,9 +22,9 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
       await page.goto('http://127.0.0.1:'+server.address().port);
       await page.locator('#app-shell').waitFor({state:'visible'});
-      assert.equal(await page.locator('#share-preview-btn').count(),1);
+      assert.equal(await page.locator('#share-preview-btn').count(),0);
       await page.evaluate(()=>{window.shareCalls=0;window.JTDShare={createOrCopy(){window.shareCalls++;}};});
-      await page.locator('#profile-menu-btn').click();await page.locator('#profile-share-group > summary').click();await page.locator('#share-preview-btn').click();
+      await page.locator('#profile-menu-btn').click();
       assert.equal(await page.evaluate(()=>window.shareCalls),0,'Sandbox sharing never publishes');
       if(await page.locator('#profile-menu').isVisible())await page.locator('#profile-menu-btn').click();
       await page.evaluate(data=>{applyRestoredData(JTDData.normalizeData(data));applyNavigation({page:'collection',media:'digital',platform:'Switch 2',japanese:true,contentType:'game,dlc'});},fixture);

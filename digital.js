@@ -88,7 +88,6 @@ function renderMediaControls(){
     button.setAttribute('aria-pressed',String((state.media || 'physical') === mode));
   }
   const digital = state.media !== 'physical';
-  document.getElementById('collection-import-actions').classList.toggle('hidden',!digital);
   document.getElementById('content-filter-section').classList.toggle('hidden',!digital);
   if(!digital) state.contentType = null;
   document.getElementById('content-type-options').innerHTML = [['game','Jeu'],['dlc','DLC'],['upgrade','Mise à niveau']].map(([value,label])=>'<button type="button" class="toggle-chip" data-content-type="'+value+'" aria-pressed="'+selectedContentTypes().includes(value)+'">'+(MEDIA_ICONS[value] || '')+'<span>'+label+'</span></button>').join('');
@@ -268,7 +267,6 @@ function renderContentDetails(game){
   const section = document.createElement('section');
   section.className = 'form-section content-purchases';
   if(game.dekuNote){const note=document.createElement('p');note.className='content-parent-note';note.textContent='Note Deku Deals : '+game.dekuNote;section.appendChild(note);}
-  if(game.dekuAddedAt){const added=document.createElement('p');added.className='content-parent-note';added.textContent='Ajouté dans Deku Deals : '+game.dekuAddedAt.slice(0,10)+' (date d’achat non renseignée par cet export).';section.appendChild(added);}
   if(JTDData.isAddon(game)){
     const summary = document.createElement('div');
     summary.className = 'content-format-summary';

@@ -132,7 +132,7 @@
     return {games, arrivals, wishlist, cemetery, journal, pokedex:normalizePokedex(data.pokedex), digitalAccounts, platformMeta, platformOrder:[...new Set(data.platformOrder || [])], profileName, profileAvatar:safeURL(avatar, true) || null};
   }
   function parseBackup(parsed, defaults){
-    if(isRecord(parsed) && parsed.purpose) throw new Error('Cet export est destiné à ChatGPT. Choisis une sauvegarde complète pour restaurer JTD.');
+    if(isRecord(parsed) && parsed.purpose) throw new Error('Ce fichier est un export de consultation. Choisis une sauvegarde complète pour restaurer REGAL.');
     let data;
     if(Array.isArray(parsed)) data = {games:parsed};
     else if(isRecord(parsed) && parsed.app === 'Jeux Tout Doux'){
@@ -323,7 +323,7 @@
     const normalized=normalizeData(data), shared=createPublicSharePayload(normalized);
     for(const key of ['games','arrivals','wishlist','cemetery']) shared[key]=shared[key].map((item,i)=>({...item,id:normalized[key][i].id}));
     shared.cemetery=shared.cemetery.map((item,i)=>normalized.cemetery[i].saleId?{...item,saleId:normalized.cemetery[i].saleId}:item);
-    return {app:'Jeux Tout Doux',purpose:'Conseils dans ChatGPT',exportedAt,definitions:{
+    return {app:'REGAL',purpose:'Consultation de la collection',exportedAt,definitions:{
       games:'Jeux physiques et numériques, DLC et mises à niveau actuellement dans la collection ; parentId rattache un contenu à son jeu de base.',
       cemetery:'Exemplaires physiques à vendre (pending) ou vendus (sold).',
       salePrice:'Prix encaissé par vente ; un même saleId désigne un lot dont le prix ne doit être compté qu’une fois.'

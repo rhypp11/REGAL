@@ -11,7 +11,7 @@ test('ChatGPT export preserves exemplars and lot identity but excludes the retir
   for(const field of ['image','prix','source'])assert.equal(field in exported.data.games[0],false);
   assert.equal('profile' in exported.data,false);assert.equal(JSON.stringify(exported).includes('secret'),false);
   assert.equal('journal' in D.createPublicSharePayload(data),false);
-  assert.throws(()=>D.parseBackup(exported),/ChatGPT/);
+  assert.throws(()=>D.parseBackup(exported),/consultation/);
 });
 test('complete v4 backup round trip preserves links, former status, lot, profile and platform settings',()=>{
   const data={games:[game('g','Physique','PS5',{status:'multi'})],cemetery:[game('sold','Vendu','PS5',{saleStatus:'sold',salePrice:30,saleId:'lot'})],journal:[record('r','g'),record('old','sold')],profile:{name:'Test'},platformOrder:['PS5'],platformMeta:{PS5:{color:'#123456'}}};
