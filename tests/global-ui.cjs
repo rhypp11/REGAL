@@ -15,6 +15,14 @@ const server=createSandboxServer();
    const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
+   const initialPage=await page.evaluate(()=>navigationPage);
+   await page.locator('[data-page="library"]').hover();
+   await page.locator('#collection-views').waitFor({state:'visible'});
+   assert.equal(await page.evaluate(()=>navigationPage),initialPage,'Hover opens the menu without changing view');
+   await page.locator('#collection-views [data-page="collection"]').hover();
+   assert.equal(await page.locator('#collection-views').isVisible(),true);
+   await page.mouse.move(0,0);
+   await page.locator('#collection-views').waitFor({state:'hidden'});
    let headerGeometry;
    for(const view of ['home','collection','cemetery']){
     await openCollectionMenu(page);await page.locator('[data-page="'+view+'"]').click();

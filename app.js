@@ -3007,11 +3007,36 @@ window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
 
+let collectionHoverOpened = false;
+let collectionHoverTimer;
+const collectionTrigger = document.querySelector('[data-page="library"]');
+const collectionMenu = document.getElementById('collection-views');
+const collectionHover = matchMedia('(hover:hover) and (pointer:fine)');
+for(const element of [collectionTrigger, collectionMenu]){
+  element.addEventListener('pointerenter',()=>{
+    clearTimeout(collectionHoverTimer);
+    if(!collectionHover.matches) return;
+    if(collectionMenu.classList.contains('hidden')) collectionHoverOpened = true;
+    collectionMenu.classList.remove('hidden');
+    collectionTrigger.setAttribute('aria-expanded','true');
+  });
+  element.addEventListener('pointerleave',()=>{
+    if(!collectionHover.matches) return;
+    collectionHoverTimer = setTimeout(()=>{
+      if(collectionMenu.contains(document.activeElement)) return;
+      collectionMenu.classList.add('hidden');
+      collectionTrigger.setAttribute('aria-expanded','false');
+      collectionHoverOpened = false;
+    },180);
+  });
+}
 document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', event => {
     if(btn.dataset.page === 'library'){
       const menu = document.getElementById('collection-views');
-      const opening = menu.classList.contains('hidden');
+      const opening = menu.classList.contains('hidden') || (event.detail > 0 && collectionHoverOpened);
+      collectionHoverOpened = false;
+      clearTimeout(collectionHoverTimer);
       goToPage(lastCollectionPage);
       menu.classList.toggle('hidden', !opening);
       btn.setAttribute('aria-expanded',String(opening));
