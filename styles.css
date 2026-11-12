@@ -1985,6 +1985,7 @@ a {
 
 .toast-stack {
   position: fixed;
+  width: min(560px,calc(100vw - 24px));
   left: 50%;
   bottom: 24px;
   transform: translateX(-50%);
@@ -1998,7 +1999,9 @@ a {
 
 .toast {
   pointer-events: auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto auto;
+  width: fit-content;
   align-items: center;
   gap: 14px;
   background: var(--surface-raised);
@@ -2008,7 +2011,7 @@ a {
   box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   font-size: 13px;
   color: var(--text);
-  max-width: 90vw;
+  max-width: 100%;
   animation: toast-in .18s ease;
 }
 
@@ -2036,11 +2039,14 @@ a {
 
 .toast-message {
   min-width: 0;
+  max-height: min(45dvh,320px);
+  overflow-y: auto;
   white-space: normal;
   overflow-wrap: anywhere;
 }
 
 .toast-action {
+  grid-column: 2;
   font-family: var(--ui-font-sans);
   font-size: 12px;
   font-weight: 600;
@@ -2057,6 +2063,7 @@ a {
 }
 
 .toast-close {
+  grid-column: 3;
   min-width: 44px;
   min-height: 44px;
   color: var(--muted);
