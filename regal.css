@@ -75,7 +75,8 @@
 .topnav .cloud-sync-status.syncing,.topnav .cloud-sync-status.pending { color:#f1d49f; border-color:#f1d49f66; }
 .topnav .cloud-sync-status.error { color:#ffbcc2; border-color:#ffbcc266; }
 .topnav .profile-menu { color:var(--text); }
-.topnav :focus-visible { outline-color:#fff; }
+.topnav :is(.nav-tab,.topnav-search-btn,.profile-menu-btn):focus-visible { outline-color:#fff; }
+.topnav :is(.profile-menu,#collection-views) :focus-visible { outline-color:var(--ui-accent); }
 .login-brand .eyebrow,.auth-loading .eyebrow { display:block; width:210px; height:68px; color:transparent; background:url('brand-dark.svg') center/contain no-repeat; }
 @media(max-width:820px) {
   .topnav .brand-word.regal-logo { width:104px; height:39px; }

@@ -472,10 +472,15 @@ let state = {
 };
 
 /* ---------- Toasts & confirmation réutilisables ---------- */
-let toastTimer = null;
+let toastCleanup = null;
 function showToast(message, actionLabel, onAction, duration){
   const stack = document.getElementById('toast-stack');
   if(!stack) return;
+  toastCleanup?.();
+  let toastTimer;
+  let live = true;
+  toastCleanup = () => {live=false;clearTimeout(toastTimer);};
+  const trigger = document.activeElement;
   stack.innerHTML = '';
   const toast = document.createElement('div');
   toast.className = 'toast';
@@ -484,6 +489,13 @@ function showToast(message, actionLabel, onAction, duration){
   stack.appendChild(toast);
 
   const remove = () => {
+    if(!live) return;
+    toastCleanup();
+    clearTimeout(toastTimer);
+    if(toast.contains(document.activeElement)) {
+      const target = trigger?.isConnected && !trigger.closest('[inert],.hidden') ? trigger : document.querySelector('.nav-tab.active');
+      target?.focus({preventScroll:true});
+    }
     toast.classList.add('leaving');
     setTimeout(() => toast.remove(), 160);
   };
@@ -498,8 +510,28 @@ function showToast(message, actionLabel, onAction, duration){
     clearTimeout(toastTimer);
     remove();
   });
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(remove, duration || 6000);
+  let remaining = duration || 6000;
+  let started = performance.now();
+  let paused = true;
+  const resume = () => {
+    if(!live) return;
+    if(toast.matches(':hover') || toast.contains(document.activeElement)) return;
+    clearTimeout(toastTimer);
+    paused = false;
+    started = performance.now();
+    toastTimer = setTimeout(remove, remaining);
+  };
+  const pause = () => {
+    if(paused) return;
+    clearTimeout(toastTimer);
+    remaining = Math.max(0,remaining-(performance.now()-started));
+    paused = true;
+  };
+  toast.addEventListener('pointerenter',pause);
+  toast.addEventListener('pointerleave',resume);
+  toast.addEventListener('focusin',pause);
+  toast.addEventListener('focusout',()=>queueMicrotask(resume));
+  resume();
 }
 
 let activeConfirmationCleanup = null;
@@ -747,8 +779,32 @@ function setStatus(id, statusKey){
   if(!g || !isPlayablePurchase(g)) return;
   g.status = (getEffectiveStatus(g) === statusKey) ? null : statusKey;
   saveGames();
+  const cards = [...document.querySelectorAll('#grid .card')];
+  const index = cards.findIndex(card=>card.dataset.dialogTrigger==='game:'+id);
   render();
+  const updated = [...document.querySelectorAll('#grid .card')];
+  const same = updated.find(card=>card.dataset.dialogTrigger==='game:'+id);
+  const target = same?.querySelector('.card-status-badge') || updated[Math.min(index,updated.length-1)]?.querySelector('.card-open-control') || document.getElementById('search-input');
+  target?.focus({preventScroll:true});
 }
+
+function closeCardStatusMenus(restoreFocus = false){
+  document.querySelectorAll('.card-status-menu:not(.hidden)').forEach(menu=>{
+    const badge = menu.parentElement.querySelector('.card-status-badge');
+    menu.classList.add('hidden');
+    badge.setAttribute('aria-expanded','false');
+    if(restoreFocus) badge.focus({preventScroll:true});
+  });
+}
+document.addEventListener('click',event=>{
+  if(!event.target.closest('.card-status-control')) closeCardStatusMenus();
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape' && document.querySelector('.card-status-menu:not(.hidden)')){
+    event.preventDefault();
+    closeCardStatusMenus(true);
+  }
+});
 
 // A long desktop sidebar follows the document, then pins when its last filter is visible.
 function updateCollectionSidebarPosition(){
@@ -1084,7 +1140,7 @@ function renderCard(g, options = {}){
   const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';
   const statusFill = activeStatus ? activeStatus.fill : 'var(--muted)';
   const statusMenu = STATUS_OPTIONS.map(s => `
-    <button type="button" class="card-status-option${g.status === s.key ? ' active' : ''}" data-status="${s.key}" style="--option-color:${s.color};" title="${s.label}" aria-label="${s.label}">
+    <button type="button" class="card-status-option${g.status === s.key ? ' active' : ''}" data-status="${s.key}" aria-pressed="${getEffectiveStatus(g) === s.key}" style="--option-color:${s.color};" title="${s.label}" aria-label="${s.label}">
       ${s.icon}<span>${s.label}</span>
     </button>`).join('');
 
@@ -1133,7 +1189,7 @@ function renderCard(g, options = {}){
   card.innerHTML = `
     ${bannerHtml}
     <div class="card-body">
-      <div class="card-name" title="${escapeHTML(g.nom)}">${collectorTitleHtml}${japaneseEditionMark(g)}${bundleMark(g)}<span class="card-name-text">${escapeHTML(g.nom)}</span></div>
+      <button type="button" class="card-name card-open-control" aria-label="${options.onOpen ? 'Modifier la vente de ' : 'Ouvrir la fiche de '}${escapeHTML(g.nom)}" title="${escapeHTML(g.nom)}">${collectorTitleHtml}${japaneseEditionMark(g)}${bundleMark(g)}<span class="card-name-text">${escapeHTML(g.nom)}</span></button>
       <div class="card-summary card-identity">
         <span class="card-platform">${platformHtml}</span>
         ${statusBadgeHtml}
@@ -1152,8 +1208,10 @@ function renderCard(g, options = {}){
   badge.addEventListener('click', (e) => {
     e.stopPropagation();
     const willOpen = menu.classList.contains('hidden');
+    closeCardStatusMenus();
     menu.classList.toggle('hidden', !willOpen);
     badge.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if(willOpen && e.detail===0) (menu.querySelector('[aria-pressed="true"]') || menu.querySelector('button'))?.focus();
   });
   menu.querySelectorAll('.card-status-option').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -1184,12 +1242,8 @@ function renderCard(g, options = {}){
   }
   const onOpen = options.onOpen || (() => openModal(g.id));
   card.addEventListener('click', onOpen);
-  card.tabIndex = 0;
-  card.setAttribute('role', 'button');
-  card.setAttribute('aria-label', (options.onOpen ? 'Modifier la vente de ' : 'Ouvrir la fiche de ') + g.nom);
-  card.addEventListener('keydown', event => {
-    if(event.target===card && (event.key === 'Enter' || event.key === ' ')){ event.preventDefault(); onOpen(); }
-  });
+  card.setAttribute('role', 'group');
+  card.setAttribute('aria-label', g.nom);
   return card;
 }
 
@@ -3053,7 +3107,7 @@ document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
     }
     goToPage(btn.dataset.page);
     if(btn.closest('#collection-views')) document.querySelector('[data-page="library"]').focus({preventScroll:true});
-    window.scrollTo({top: 0, behavior: 'smooth'});
+    window.scrollTo({top: 0, behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth'});
   });
 });
 
@@ -3094,14 +3148,21 @@ document.getElementById('collection-views').addEventListener('keydown',event=>{
 
 /* ---------- Navigation mobile ---------- */
 function closeMobileDrawers(){
+  const drawers = [...document.querySelectorAll('.sidebar.mobile-open')];
   document.querySelector('.collection-context-filters')?.setAttribute('aria-expanded','false');
   mobileFilterToggle.setAttribute('aria-expanded', 'false');
   document.querySelectorAll('.sidebar.mobile-open').forEach(el => el.classList.remove('mobile-open'));
   document.getElementById('mobile-backdrop').classList.remove('visible');
   document.body.classList.remove('mobile-drawer-open');
+  drawers.forEach(el=>{
+    window.JTDDialogs.close(el.id);
+    el.removeAttribute('role');
+    el.removeAttribute('aria-modal');
+  });
 }
 function openMobileDrawer(el){
   if(!el) return;
+  const trigger = document.activeElement;
   closeMobileDrawers();
   el.classList.add('mobile-open');
   document.querySelector('.collection-context-filters')?.setAttribute('aria-expanded','true');
@@ -3109,6 +3170,17 @@ function openMobileDrawer(el){
   mobileFilterToggle.setAttribute('aria-controls', el.id);
   document.getElementById('mobile-backdrop').classList.add('visible');
   document.body.classList.add('mobile-drawer-open');
+  el.setAttribute('role','dialog');
+  el.setAttribute('aria-modal','true');
+  el.setAttribute('aria-label',el.id==='collection-sidebar' ? 'Filtres de collection' : el.id==='cemetery-sidebar' ? 'Filtres des ventes' : 'Statistiques');
+  window.JTDDialogs.open(el.id,{
+    trigger,
+    manageVisibility:false,
+    isOpen:()=>el.classList.contains('mobile-open'),
+    excludeInert:[document.getElementById('mobile-backdrop')],
+    fallbackFocus:()=>document.getElementById('global-filter-toggle'),
+    onDismiss:closeMobileDrawers
+  });
 }
 function toggleMobileDrawer(el){
   if(!el) return;

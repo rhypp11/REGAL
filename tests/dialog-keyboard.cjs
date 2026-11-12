@@ -6,7 +6,7 @@ async function checkTrap(page,id){
   const dialog=page.locator('#'+id);
   assert.match(await dialog.getAttribute('role'),/^(dialog|alertdialog)$/);
   assert.equal(await dialog.getAttribute('aria-modal'),'true');
-  const title=await dialog.getAttribute('aria-labelledby');assert.ok(await page.locator('#'+title).textContent());
+  const title=await dialog.getAttribute('aria-labelledby');assert.ok(title ? await page.locator('#'+title).textContent() : await dialog.getAttribute('aria-label'));
   assert.equal(await dialog.evaluate(el=>el.contains(document.activeElement)),true,'Focus starts inside '+id);
   for(const direction of ['forward','backward']){
     await dialog.evaluate((el,direction)=>{
@@ -48,11 +48,11 @@ async function checkTrap(page,id){
     assert.equal(await page.locator('.topnav').evaluate(el=>el.inert),false,'Background released');
    }
    // Keyboard entry and restoring a rebuilt card after saving.
-   const card=page.locator('#page-collection .card').first();await card.focus();await page.keyboard.press('Enter');
+   const card=page.locator('#page-collection .card-open-control').first();await card.focus();await page.keyboard.press('Enter');
    await checkTrap(page,'modal-overlay');
    await page.locator('#f-identity-summary .identity-edit-btn').click();
    await page.locator('#save-btn').click();
-   assert.equal(await page.evaluate(()=>document.activeElement.matches('#page-collection .card')),true,'Rebuilt card receives focus');
+   assert.equal(await page.evaluate(()=>document.activeElement.matches('#page-collection .card-open-control')),true,'Rebuilt card opening control receives focus');
    // Required-field error is linked, focused, announced, and cleared after correction.
    await page.locator('#add-btn').click();await page.locator('#save-btn').click();
    assert.equal(await page.locator('#f-nom').getAttribute('aria-invalid'),'true');
@@ -95,7 +95,81 @@ async function checkTrap(page,id){
    // Import has the same focus trap and explicit cancellation, without writes.
    await page.locator('#cemetery-import-input').setInputFiles({name:'keyboard.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify([{nom:'Import fictif',plateforme:'Nintendo Switch'}]))});
    await page.locator('#cemetery-import-overlay').waitFor({state:'visible'});await checkTrap(page,'cemetery-import-overlay');await page.keyboard.press('Escape');assert.equal(await page.locator('#cemetery-import-overlay').isVisible(),false);assert.equal(await page.evaluate(()=>CEMETERY.length),1);
-   assert.deepEqual(errors,[]);await context.close();console.log('PASS dialog keyboard',width,theme,': focus, Tab, Escape, nested dialogs, backdrop, validation, transfer/import cancellation');
+   // Drawers use the same focus lifecycle; rebuilding filters returns to a live trigger.
+   await page.evaluate(()=>goToPage('collection'));
+   if(width<=1100){
+    await page.locator('#global-filter-toggle').click();
+    await checkTrap(page,'collection-sidebar');
+    assert.equal(await page.locator('.topnav').evaluate(el=>el.inert),true);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'global-filter-toggle');
+    await page.locator('#global-filter-toggle').click();
+    await page.locator('#platform-list [role="button"]').nth(1).focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'global-filter-toggle');
+    assert.equal(await page.locator('.topnav').evaluate(el=>el.inert),false);
+    await page.locator('#global-filter-toggle').click();
+    await page.locator('#mobile-backdrop').click({position:{x:width-1,y:400}});
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'global-filter-toggle');
+   }
+   // Status controls are siblings of the native sheet button, with predictable focus.
+   await page.evaluate(()=>{
+    GAMES=[{id:'focus-a',nom:'Jeu fictif A',plateforme:'PC',format:'Physique',status:'a_jouer'},{id:'focus-b',nom:'Jeu fictif B',plateforme:'PC',format:'Physique',status:'a_jouer'}];
+    state.platform=null;state.status=null;state.search='';state.collector=false;state.japanese=false;state.bundle=false;state.media='physical';state.contentType=null;render();
+   });
+   assert.equal(await page.locator('#grid [role="button"] button').count(),0,'No nested buttons in a button role');
+   const badge=page.locator('#grid .card-status-badge').first();
+   await badge.focus();await page.keyboard.press('Enter');
+   assert.equal(await page.locator('#grid .card-status-menu').first().evaluate(el=>el.contains(document.activeElement)),true);
+   await page.keyboard.press('Escape');
+   assert.equal(await badge.evaluate(el=>el===document.activeElement),true);
+   await badge.click();await page.locator('#search-input').click();
+   assert.equal(await page.locator('#grid .card-status-menu:not(.hidden)').count(),0);
+   await badge.click();await page.locator('#grid .card-status-badge').nth(1).click();
+   assert.equal(await page.locator('#grid .card-status-menu:not(.hidden)').count(),1);
+   await page.keyboard.press('Escape');
+   await badge.click();await page.locator('#grid .card').first().locator('[data-status="termine"]').click();
+   assert.equal(await badge.evaluate(el=>el===document.activeElement),true,'Status redraw restores its control');
+   await page.evaluate(()=>{state.status='termine';render();});
+   await badge.click();await page.locator('#grid [data-status="a_jouer"]').click();
+   assert.equal(await page.evaluate(()=>document.activeElement.id),'search-input','Empty filtered grid has a focus fallback');
+   // Both dropdowns keep a theme-aware keyboard outline inside the black header.
+   for(const [trigger,item] of [['[data-page="library"]','#collection-views button'],['#profile-menu-btn','.profile-menu-item']]){
+    await page.locator(trigger).click();await page.keyboard.press('Tab');await page.locator(item).first().focus();
+    assert.equal(await page.locator(item).first().evaluate(el=>getComputedStyle(el).outlineColor),await page.evaluate(()=>{const probe=document.createElement('span');probe.style.color='var(--ui-accent)';document.body.append(probe);const c=getComputedStyle(probe).color;probe.remove();return c;}));
+    await page.keyboard.press('Escape');
+    await page.mouse.click(width-2,800);
+   }
+   await page.emulateMedia({reducedMotion:'reduce'});
+   await page.evaluate(()=>showToast('Une confirmation fictive suffisamment longue pour revenir à la ligne sur un écran mobile, sans masquer la fin du message.','Annuler',()=>{}));
+   assert.equal(await page.locator('#toast-stack').getAttribute('role'),'status');
+   assert.equal(await page.locator('.toast-message').evaluate(el=>el.scrollWidth<=el.clientWidth),true);
+   assert.equal(await page.locator('.toast').evaluate(el=>getComputedStyle(el).animationName),'none');
+   assert.equal(await page.locator('#auth-loading .eyebrow').evaluate(el=>getComputedStyle(el).animationName),'none');
+   // Capture the requested scroll behavior without depending on animation timing.
+   await page.evaluate(()=>{window.originalScrollTo=window.scrollTo;window.scrollTo=options=>{window.requestedScroll=options.behavior;};});
+   await page.locator('[data-page="journal"]').click();
+   assert.equal(await page.evaluate(()=>window.requestedScroll),'instant');
+   await page.evaluate(()=>{window.scrollTo=window.originalScrollTo;goToPage('collection');});
+   // A controllable clock proves timeout suspension for both pointer and keyboard.
+   await page.clock.install();
+   await page.mouse.move(0,0);
+   await page.evaluate(()=>{document.getElementById('search-input').focus();showToast('Confirmation fictive','Annuler',()=>{window.toastActionRan=true;},1000);});
+   await page.clock.runFor(200);
+   await page.locator('.toast-action').focus();
+   await page.clock.runFor(2000);
+   assert.equal(await page.locator('.toast.leaving').count(),0,'Keyboard focus pauses dismissal');
+   await page.locator('#search-input').focus();
+   await page.locator('.toast').hover();
+   await page.clock.runFor(2000);
+   assert.equal(await page.locator('.toast.leaving').count(),0,'Pointer hover pauses dismissal');
+   await page.mouse.move(0,0);
+   await page.clock.runFor(1100);
+   assert.equal(await page.locator('.toast').count(),0,'Dismissal resumes after leaving');
+   await page.evaluate(()=>showToast('Autre confirmation','Annuler',()=>{window.toastActionRan=true;}));
+   await page.locator('.toast-action').click();
+   assert.equal(await page.evaluate(()=>window.toastActionRan),true);
+   assert.deepEqual(errors,[]);await context.close();console.log('PASS dialog keyboard and UI polish',width,theme,': dialogs, drawers, status focus, toasts, reduced motion, menu outlines');
   }
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

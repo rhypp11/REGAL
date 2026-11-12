@@ -58,6 +58,16 @@
   --ui-edge-highlight:inset 0 1px 0 #ffffff0c;
 }
 button,input,select,textarea { font-family:var(--ui-font-sans); }
+.card-open-control {
+  width:100%;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font-family:inherit;
+  text-align:left;
+  cursor:pointer;
+}
 /* Native popup menus must use the dark site palette, including on Windows. */
 select { color-scheme:inherit; }
 select option,select optgroup { color:var(--text); background-color:var(--surface); }
