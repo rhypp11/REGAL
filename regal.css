@@ -65,7 +65,6 @@
   background:transparent;
 }
 .topnav .topnav-nav .nav-tab.active::after { background:#fff; }
-.topnav .topnav-nav [data-page="collection"] { margin-left:12px; }
 .topnav .topnav-actions { margin-left:auto; }
 .topnav .topnav-break { display:none; }
 .topnav .topnav-search-btn,.topnav .profile-menu-btn { color:#fff; border-color:#ffffff38; background:transparent; }
@@ -92,7 +91,6 @@
   .topnav .topnav-inner { gap:12px; padding:0 14px; }
   .topnav .brand-word.regal-logo { width:104px; height:39px; }
   .topnav .topnav-nav .nav-tab { padding-inline:10px; }
-  .topnav .topnav-nav [data-page="collection"] { margin-left:6px; }
 }
 @media(max-width:700px) {
   .topnav .topnav-inner { display:grid; grid-template-columns:1fr auto; grid-template-rows:52px 44px; gap:0; padding:0 12px; }
@@ -101,7 +99,6 @@
   .topnav .topnav-nav { grid-column:1 / -1; grid-row:2; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%; min-height:44px; height:44px; gap:0; }
   .topnav .topnav-nav .nav-tab { height:44px; padding:0 2px; margin:0; font-size:12px; letter-spacing:0; }
   .topnav .topnav-nav .nav-tab-label { font-size:12px; letter-spacing:0; }
-  .topnav .topnav-nav [data-page="collection"] { margin-left:0; }
   .topnav .topnav-nav .nav-tab + .nav-tab { border:0; }
 }
 

@@ -1,5 +1,7 @@
 async function openCollectionMenu(page){
  if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
+ const rows=await page.locator('#collection-views button').evaluateAll(buttons=>buttons.map(button=>{const r=button.getBoundingClientRect();return [r.left,r.width];}));
+ assert.ok(rows.every(row=>Math.abs(row[0]-rows[0][0])<1 && Math.abs(row[1]-rows[0][1])<1),'Collection views share the same left edge and width');
 }
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
