@@ -9,11 +9,11 @@
   align-self:stretch;
   display:grid;
   align-content:start;
-  gap:10px;
+  gap:var(--ui-space-3);
   margin:0;
-  padding:28px 18px 24px;
+  padding:var(--ui-space-6) var(--ui-space-4);
   border:0;
-  border-right:1px solid rgba(var(--ui-rgb),.05);
+  border-right:1px solid var(--ui-border);
   border-radius:0;
   background:var(--ui-sidebar);
 }
@@ -31,17 +31,17 @@
   display:flex;
   flex-direction:column;
   align-items:flex-start;
-  gap:10px;
-  padding:16px;
+  gap:var(--ui-space-2);
+  padding:var(--ui-space-4) var(--ui-space-2);
   border:0;
-  border-radius:14px;
-  background:color-mix(in srgb,var(--stat-accent) 5%,var(--ui-surface));
+  border-radius:0;
+  background:transparent;
 }
 .cemetery-stat:has(#cemetery-stat-sales),.cemetery-stat:has(#cemetery-stat-sold-count) { --stat-accent:var(--arrival); }
 .cemetery-stat:has(#cemetery-stat-estimated),.cemetery-stat:has(#cemetery-stat-pending-count) { --stat-accent:var(--wishlist); }
 .cemetery-stat span { display:flex; align-items:center; gap:8px; color:var(--ui-text-muted); font-size:11px; line-height:1.3; }
 .cemetery-stat svg { width:16px; height:16px; color:var(--stat-accent); flex-shrink:0; }
-.cemetery-stat strong { color:var(--ui-text); font:700 24px/1.1 var(--ui-font-sans); letter-spacing:-.035em; font-variant-numeric:tabular-nums; }
+.cemetery-stat strong { color:var(--ui-text); font:650 22px/1.2 var(--ui-font-sans); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
 
 .cemetery-main {
   min-width:0;
@@ -56,8 +56,8 @@
   display:grid;
   grid-template-columns:auto minmax(180px,1fr) minmax(180px,230px);
   align-items:center;
-  gap:10px;
-  margin:0 0 14px;
+  gap:var(--ui-space-3);
+  margin:0 0 var(--ui-space-5);
 }
 .cemetery-tabs {
   display:grid;
@@ -111,10 +111,10 @@
 #cemetery-list {
   position:relative;
   display:grid;
-  gap:10px;
+  gap:var(--ui-space-3);
 }
 #cemetery-list > :is(.sale-group,.sale-lot,.sale-order-row) {
-  border:1px solid var(--ui-border);
+  border:1px solid color-mix(in srgb,var(--ui-border) 65%,transparent);
   border-radius:var(--ui-radius-lg);
   background:var(--ui-surface);
 }
@@ -147,7 +147,7 @@
   min-width:0;
   padding:10px 12px;
   border-left:1px solid var(--ui-border);
-  background:rgba(var(--ui-rgb),.018);
+  background:transparent;
   text-align:left;
 }
 .sale-heading-main { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; min-width:0; }
@@ -165,8 +165,8 @@
   max-width:100%;
   overflow:hidden;
   color:var(--ui-text-muted);
-  font-size:11px;
-  line-height:1.35;
+  font-size:var(--ui-text-sm);
+  line-height:var(--ui-leading-normal);
   text-overflow:ellipsis;
 }
 
@@ -307,12 +307,13 @@
   flex-wrap:wrap;
   color:var(--ui-text-muted);
   font-family:var(--ui-font-sans);
-  font-size:10px;
-  opacity:.65;
-  line-height:1.25;
+  font-size:var(--ui-text-sm);
+  opacity:1;
+  line-height:var(--ui-leading-normal);
   text-align:left;
 }
-.sale-game.card .card-acquisition > * { margin:0; padding:0; border:0; color:inherit; font:inherit; opacity:1; }
+.sale-game.card .card-acquisition > *,
+.sale-game.card .card-acquisition :is(.card-purchase-date,.card-source,.card-price) { margin:0; padding:0; border:0; color:inherit; font:inherit; opacity:1; }
 .sale-game.card .card-acquisition > * + *::before {
   content:'·';
   margin:0 6px;
@@ -356,12 +357,12 @@
   .sale-group { grid-template-columns:minmax(0,1fr) 124px; }
   .sale-group-heading { padding:8px; }
   .sale-amount { font-size:12.5px; }
-  .sale-venue { font-size:8.8px; }
+  .sale-venue { font-size:var(--ui-text-sm); }
   .sale-game.card { grid-template-columns:68px minmax(0,1fr); min-height:58px; }
   .sale-game.card .card-banner { width:58px !important; height:38px !important; margin-left:6px; }
   .sale-game.card .card-body { padding:6px 8px; }
   .sale-game.card .card-summary { gap:4px 5px; }
-  .sale-game.card .card-acquisition { font-size:9px; }
+  .sale-game.card .card-acquisition { font-size:var(--ui-text-sm); }
   .sale-game.card .card-acquisition > * + *::before { margin:0 5px; }
 }
 
@@ -413,8 +414,8 @@
 #sale-modal-overlay .sale-error { margin:0; color:var(--danger); font-size:12px; }
 @media(prefers-reduced-motion:reduce) { .sale-switch-track,.sale-switch-track::after { transition:none; } }
 
-.cemetery-stat-group { display:grid; gap:10px; }
-.cemetery-stat-group + .cemetery-stat-group { margin-top:14px; }
+.cemetery-stat-group { display:grid; gap:0; }
+.cemetery-stat-group + .cemetery-stat-group { margin-top:var(--ui-space-3); padding-top:var(--ui-space-3); border-top:1px solid var(--ui-border); }
 
 #sale-modal-overlay > .modal { overflow:hidden !important; }
 #sale-modal-overlay > .modal > :is(h2,.modal-actions) { flex-shrink:0; }

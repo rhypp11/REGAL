@@ -2,8 +2,8 @@
 :is(.profile-maintenance,.profile-group) { border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); margin:6px 0; }
 :is(.profile-maintenance,.profile-group) summary { padding:12px; color:var(--muted); font-size:12px; cursor:pointer; }
 .profile-maintenance .profile-menu-sub { font-size:11px; }
-.topnav .profile-menu { width:min(330px,calc(100vw - 24px)); padding:10px; border:1px solid var(--hairline); border-radius:22px; background:var(--ui-material-fill); -webkit-backdrop-filter:blur(18px) saturate(115%); backdrop-filter:blur(18px) saturate(115%); box-shadow:var(--ui-edge-highlight),var(--ui-floating-shadow); }
-.profile-menu .profile-menu-item { min-height:44px; padding:11px 10px; border-radius:12px; }
+.topnav .profile-menu { width:min(330px,calc(100vw - 24px)); padding:var(--ui-space-2); border:1px solid var(--hairline); border-radius:var(--ui-radius-lg); background:var(--ui-material-fill); -webkit-backdrop-filter:blur(18px) saturate(115%); backdrop-filter:blur(18px) saturate(115%); box-shadow:var(--ui-edge-highlight),var(--ui-floating-shadow); }
+.profile-menu .profile-menu-item { min-height:44px; padding:var(--ui-space-3); border-radius:var(--ui-radius-sm); }
 .profile-menu .profile-menu-item:hover { background:var(--surface-raised); }
 .profile-menu .profile-menu-sub { line-height:1.45; }
 .topnav { padding:0; position:sticky; top:0; background:#101010; border-color:#363636; color:#fff; box-shadow:inset 0 1px 0 #ffffff12,0 1px 12px #0000000c; }

@@ -2277,9 +2277,10 @@ a {
 
 .btn {
   font-family: var(--ui-font-sans);
-  font-size: 12.5px;
+  font-size: var(--ui-text-sm);
+  min-height: var(--ui-control-height-lg);
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--ui-radius-md);
   cursor: pointer;
   border: 1px solid var(--hairline);
   background: none;

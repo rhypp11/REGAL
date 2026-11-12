@@ -1,10 +1,10 @@
 /* Shared sheets: game identity is the heading, context is a quiet panel. */
 .sheet-dialog > .modal {
-  border-radius:28px;
+  border-radius:var(--ui-radius-xl);
   background:var(--ui-surface);
   border:1px solid var(--ui-border);
   box-shadow:var(--ui-edge-highlight),var(--ui-floating-shadow);
-  gap:16px;
+  gap:var(--ui-space-5);
   font-family:var(--ui-font-sans);
   --sheet-accent:var(--ui-accent);
 }
@@ -22,8 +22,8 @@
 .sheet-dialog .field :is(input,select,textarea),.sheet-dialog .icon-select-trigger {
   font-size:var(--ui-text-md);
 }
-.sheet-dialog .field :is(input,select,textarea,.icon-select-trigger) { border-radius:12px; }
-.sheet-dialog .identity-detail { color:var(--ui-text-muted); font-size:11px; overflow-wrap:anywhere; }
+.sheet-dialog .field :is(input,select,textarea,.icon-select-trigger) { border-radius:var(--ui-radius-md); }
+.sheet-dialog .identity-detail { color:var(--ui-text-muted); font-size:var(--ui-text-sm); overflow-wrap:anywhere; }
 .sheet-dialog .field :is(input,select):focus {
   border-color:var(--sheet-accent);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--sheet-accent) 12%,transparent);

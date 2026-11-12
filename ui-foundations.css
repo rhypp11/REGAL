@@ -5,9 +5,9 @@
 
 :root {
   --ui-font-sans:'Open Sans',system-ui,'Segoe UI','Roboto',sans-serif;
-  --ui-text-xs:10.5px;
+  --ui-text-xs:12px;
   --ui-text-sm:12px;
-  --ui-text-md:13.5px;
+  --ui-text-md:14px;
   --ui-text-lg:15px;
   --ui-leading-tight:1.25;
   --ui-leading-normal:1.45;
@@ -20,10 +20,10 @@
   --ui-space-7:28px;
   --ui-space-8:32px;
   --ui-radius-xs:4px;
-  --ui-radius-sm:7px;
+  --ui-radius-sm:8px;
   --ui-radius-md:12px;
-  --ui-radius-lg:18px;
-  --ui-radius-xl:22px;
+  --ui-radius-lg:16px;
+  --ui-radius-xl:20px;
   --ui-radius-pill:999px;
   --ui-sidebar-width:260px;
   --ui-page-gutter:28px;
@@ -53,9 +53,9 @@
   --ui-text-muted:var(--muted);
   --ui-accent:var(--accent);
   --ui-material-fill:color-mix(in srgb,var(--surface) 94%,transparent);
-  --ui-panel-shadow:0 4px 18px #00000020;
-  --ui-floating-shadow:0 20px 64px #00000070;
-  --ui-edge-highlight:inset 0 1px 0 #ffffff0c;
+  --ui-panel-shadow:0 2px 8px #00000012;
+  --ui-floating-shadow:0 16px 48px #00000060;
+  --ui-edge-highlight:inset 0 1px 0 #ffffff06;
 }
 button,input,select,textarea { font-family:var(--ui-font-sans); }
 .card-open-control {
@@ -247,7 +247,7 @@ body.mobile-drawer-open { overflow:hidden; }
 
 
 /* Une surface stable pour le contenu, une matière légère pour les commandes flottantes. */
-:is(.ui-panel,.home-stat-section) { box-shadow:var(--ui-edge-highlight),var(--ui-panel-shadow); }
+.ui-panel { box-shadow:var(--ui-edge-highlight),var(--ui-panel-shadow); }
 :is(.profile-menu,.card-status-menu,.icon-select-menu) {
   background:var(--ui-material-fill);
   -webkit-backdrop-filter:blur(18px) saturate(115%);
