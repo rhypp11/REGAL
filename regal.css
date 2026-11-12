@@ -160,3 +160,6 @@
 @media(prefers-reduced-motion:reduce){ .topnav .collection-menu-chevron { transition:none; } }
 
 .topnav [data-page="library"] { gap:5px; }
+
+.topnav .collection-nav-group { position:relative; display:flex; min-width:0; }
+.topnav .collection-nav-group > .nav-tab { width:100%; }

@@ -3009,34 +3009,43 @@ window.addEventListener('hashchange', () => {
 
 let collectionHoverOpened = false;
 let collectionHoverTimer;
+let collectionOpenTimer;
 const collectionTrigger = document.querySelector('[data-page="library"]');
 const collectionMenu = document.getElementById('collection-views');
+const collectionGroup = document.querySelector('.collection-nav-group');
 const collectionHover = matchMedia('(hover:hover) and (pointer:fine)');
-for(const element of [collectionTrigger, collectionMenu]){
-  element.addEventListener('pointerenter',()=>{
-    clearTimeout(collectionHoverTimer);
-    if(!collectionHover.matches) return;
-    if(collectionMenu.classList.contains('hidden')) collectionHoverOpened = true;
+function cancelCollectionHover(){
+  clearTimeout(collectionOpenTimer);
+  clearTimeout(collectionHoverTimer);
+}
+collectionGroup.addEventListener('pointerenter',()=>{
+  cancelCollectionHover();
+  if(!collectionHover.matches || !collectionMenu.classList.contains('hidden')) return;
+  collectionOpenTimer = setTimeout(()=>{
+    if(!collectionGroup.matches(':hover')) return;
+    collectionHoverOpened = true;
     collectionMenu.classList.remove('hidden');
     collectionTrigger.setAttribute('aria-expanded','true');
-  });
-  element.addEventListener('pointerleave',()=>{
-    if(!collectionHover.matches) return;
-    collectionHoverTimer = setTimeout(()=>{
-      if(collectionMenu.contains(document.activeElement)) return;
-      collectionMenu.classList.add('hidden');
-      collectionTrigger.setAttribute('aria-expanded','false');
-      collectionHoverOpened = false;
-    },180);
-  });
-}
+  },180);
+});
+collectionGroup.addEventListener('pointerleave',()=>{
+  cancelCollectionHover();
+  if(!collectionHover.matches) return;
+  collectionHoverTimer = setTimeout(()=>{
+    if(collectionGroup.matches(':hover') || collectionMenu.contains(document.activeElement)) return;
+    collectionMenu.classList.add('hidden');
+    collectionTrigger.setAttribute('aria-expanded','false');
+    collectionHoverOpened = false;
+  },250);
+});
+
 document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
   btn.addEventListener('click', event => {
     if(btn.dataset.page === 'library'){
       const menu = document.getElementById('collection-views');
       const opening = menu.classList.contains('hidden') || (event.detail > 0 && collectionHoverOpened);
       collectionHoverOpened = false;
-      clearTimeout(collectionHoverTimer);
+      cancelCollectionHover();
       goToPage(lastCollectionPage);
       menu.classList.toggle('hidden', !opening);
       btn.setAttribute('aria-expanded',String(opening));
@@ -3049,6 +3058,7 @@ document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
 });
 
 document.addEventListener('keydown',event=>{
+  if(event.key==='Escape') cancelCollectionHover();
   if(event.key==='Escape' && !document.getElementById('collection-views').classList.contains('hidden')){
     document.getElementById('collection-views').classList.add('hidden');
     document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
@@ -3057,12 +3067,14 @@ document.addEventListener('keydown',event=>{
 document.addEventListener('click',event=>{
   const menu=document.getElementById('collection-views');
   if(!menu.contains(event.target) && !event.target.closest('[data-page="library"]')){
+    cancelCollectionHover();
     menu.classList.add('hidden');
     document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
   }
 });
 document.querySelector('[data-page="library"]').addEventListener('keydown',event=>{
   if(event.key==='ArrowDown'){
+    cancelCollectionHover();
     event.preventDefault();
     document.getElementById('collection-views').classList.remove('hidden');
     event.currentTarget.setAttribute('aria-expanded','true');
@@ -3072,6 +3084,7 @@ document.querySelector('[data-page="library"]').addEventListener('keydown',event
 document.getElementById('collection-views').addEventListener('keydown',event=>{
   if(event.key==='Escape'){
     event.stopPropagation();
+    cancelCollectionHover();
     event.currentTarget.classList.add('hidden');
     const trigger=document.querySelector('[data-page="library"]');
     trigger.setAttribute('aria-expanded','false');

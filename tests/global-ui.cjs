@@ -17,10 +17,19 @@ const server=createSandboxServer();
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
    const initialPage=await page.evaluate(()=>navigationPage);
    await page.locator('[data-page="library"]').hover();
+   await page.waitForTimeout(60);
+   assert.equal(await page.locator('#collection-views').isVisible(),false,'Brief hover does not open the menu');
+   await page.mouse.move(0,0);
+   await page.waitForTimeout(240);
+   assert.equal(await page.locator('#collection-views').isVisible(),false,'Leaving cancels delayed opening');
+   await page.locator('[data-page="library"]').hover();
    await page.locator('#collection-views').waitFor({state:'visible'});
    assert.equal(await page.evaluate(()=>navigationPage),initialPage,'Hover opens the menu without changing view');
-   await page.locator('#collection-views [data-page="collection"]').hover();
-   assert.equal(await page.locator('#collection-views').isVisible(),true);
+   for(const view of ['home','collection','cemetery']){
+    await page.locator('#collection-views [data-page="'+view+'"]').hover();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('#collection-views').isVisible(),true,'Submenu remains within the hover zone');
+   }
    await page.mouse.move(0,0);
    await page.locator('#collection-views').waitFor({state:'hidden'});
    let headerGeometry;
