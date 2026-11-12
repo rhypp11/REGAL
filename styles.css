@@ -2035,9 +2035,9 @@ a {
 }
 
 .toast-message {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .toast-action {
@@ -2057,6 +2057,8 @@ a {
 }
 
 .toast-close {
+  min-width: 44px;
+  min-height: 44px;
   color: var(--muted);
   background: none;
   border: none;
@@ -2543,8 +2545,10 @@ select:focus-visible,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,*::before,*::after {
     transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
   }
 }
 

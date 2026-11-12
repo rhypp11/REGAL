@@ -13,13 +13,13 @@
   }
   function sync(){
     resetInert();
-    for(let i=stack.length-1;i>=0;i--) if(stack[i].overlay.classList.contains('hidden')) stack.splice(i,1);
+    for(let i=stack.length-1;i>=0;i--) if(stack[i].isOpen ? !stack[i].isOpen() : stack[i].overlay.classList.contains('hidden')) stack.splice(i,1);
     const overlay = top()?.overlay;
     if(!overlay) return;
     // Inert siblings along the ancestor path, never an ancestor of the dialog.
     for(let node=overlay;node && node!==document.body;node=node.parentElement){
       for(const sibling of node.parentElement.children){
-        if(sibling===node || ['SCRIPT','STYLE','LINK'].includes(sibling.tagName)) continue;
+        if(sibling===node || top()?.excludeInert?.includes(sibling) || ['SCRIPT','STYLE','LINK'].includes(sibling.tagName)) continue;
         inerted.set(sibling,sibling.inert); sibling.inert = true;
       }
     }
@@ -34,7 +34,11 @@
     const current = top();
     let target = entry.trigger;
     if(!visible(target) && entry.triggerId) target = document.getElementById(entry.triggerId);
-    if(!visible(target) && entry.triggerKey) target = [...document.querySelectorAll('[data-dialog-trigger]')].find(el=>el.dataset.dialogTrigger===entry.triggerKey);
+    if(!visible(target) && entry.triggerKey) {
+      target = [...document.querySelectorAll('[data-dialog-trigger]')].find(el=>el.dataset.dialogTrigger===entry.triggerKey);
+      if(target?.matches('.card')) target = target.querySelector('.card-open-control');
+    }
+    if(!visible(target) && entry.fallbackFocus) target = entry.fallbackFocus();
     if(current){
       if(visible(target) && current.overlay.contains(target)) target.focus({preventScroll:true});
       else focusInside(current);
@@ -47,13 +51,14 @@
     const existing = stack.find(entry => entry.overlay===overlay);
     if(existing){focusInside(existing);return;}
     const pointer = lastPointer && performance.now()-lastPointer.time<1000 && visible(lastPointer.element) ? lastPointer.element : null;
-    let trigger = pointer || document.activeElement;
+    let trigger = options.trigger || pointer || document.activeElement;
+    if(trigger?.matches('.card')) trigger = trigger.querySelector('.card-open-control') || trigger;
     if(trigger===document.body || overlay.contains(trigger)) trigger = document.activeElement;
     lastPointer = null;
     if(trigger && !trigger.matches('button,input,select,textarea,a[href],[tabindex]')) trigger.tabIndex = -1;
     const entry = {overlay,trigger,triggerId:trigger?.id,triggerKey:trigger?.closest('[data-dialog-trigger]')?.dataset.dialogTrigger,...options};
     overlay.tabIndex = -1;
-    overlay.classList.remove('hidden');
+    if(options.manageVisibility!==false) overlay.classList.remove('hidden');
     stack.push(entry); sync();
     // A new form must not inherit errors from its previous opening.
     clearErrors(overlay);
@@ -63,7 +68,7 @@
     const overlay = document.getElementById(id);
     const entry = stack.find(item => item.overlay===overlay);
     const wasTop = top()===entry;
-    overlay.classList.add('hidden');
+    if(entry?.manageVisibility!==false) overlay.classList.add('hidden');
     if(entry && wasTop){
       restore(entry);
       // Save/delete handlers may rebuild the trigger immediately after closing.
