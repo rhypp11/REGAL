@@ -253,3 +253,5 @@
 .purchase-format-icon svg { width:16px; height:16px; flex-shrink:0; }
 #f-format-title > svg { width:18px; height:18px; flex-shrink:0; }
 
+
+.flexible-date-original { margin:6px 0 0; color:var(--ui-text-muted); font-size:12px; overflow-wrap:anywhere; }

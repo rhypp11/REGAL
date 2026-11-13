@@ -2044,6 +2044,10 @@ function parseWishlistDate(str){
     const iso = `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
     return { priority:0, key:iso, label:dateFR(iso) };
   }
+  // Mois connu, sans inventer de jour.
+  m = s.match(/^(\d{4})-(0[1-9]|1[0-2])$/);
+  if(m) return { priority:0.5, precision:'month', key:s, label:MONTH_NAMES_FULL[Number(m[2])-1]+' '+m[1] };
+
   // Date JJ/MM/AAAA
   m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m){
@@ -2066,7 +2070,7 @@ function parseWishlistDate(str){
 
 function wishlistGroupInfo(str){
   const parsed = parseWishlistDate(str);
-  if(parsed.priority === 0){
+  if(parsed.priority === 0 || parsed.precision === 'month'){
     const [y, m] = parsed.key.split('-');
     const mi = parseInt(m, 10) - 1;
     return { key:`${y}-${m}`, label:`${MONTH_NAMES_FULL[mi]} ${y}`, color: MONTH_COLORS[mi], order:0 };
@@ -2174,7 +2178,7 @@ function renderWishlist(){
     if(!pendingMap.has(info.key)){
       const parsed = parseWishlistDate(item.date);
       let year = '';
-      if(parsed.priority === 0) year = parsed.key.split('-')[0];
+      if(parsed.priority === 0 || parsed.precision === 'month') year = parsed.key.split('-')[0];
       const group = {...info, year, items:[]};
       pendingMap.set(info.key, group);
       pendingGroups.push(group);
@@ -2205,34 +2209,57 @@ function renderWishlist(){
 function flexibleDateMode(prefix, mode){
   const wrap = document.querySelector('[data-date-mode="'+prefix+'"]');
   if(!wrap) return;
-  wrap.querySelectorAll('.date-mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
-  document.getElementById(prefix+'-date').classList.toggle('hidden', mode !== 'date');
-  document.getElementById(prefix+'-year').classList.toggle('hidden', mode !== 'year');
+  wrap.querySelectorAll('.date-mode-btn').forEach(btn => {
+    const active=btn.dataset.mode===mode;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-pressed',String(active));
+  });
+  for(const kind of ['date','month','year']) document.getElementById(prefix+'-'+kind)?.classList.toggle('hidden',mode!==kind);
   wrap.dataset.currentMode = mode;
 }
+function markFlexibleDateChanged(prefix){
+  const wrap=document.querySelector('[data-date-mode="'+prefix+'"]');
+  if(!wrap) return;
+  delete wrap.dataset.originalDate;
+  wrap.parentElement.querySelector('.flexible-date-original')?.classList.add('hidden');
+}
 function setFlexibleDate(prefix, value){
-  const v = String(value || '').trim();
-  if(/^\d{4}-\d{2}-\d{2}$/.test(v)){
-    flexibleDateMode(prefix,'date'); document.getElementById(prefix+'-date').value=v; document.getElementById(prefix+'-year').value='';
-  }else if(/^\d{4}$/.test(v)){
-    flexibleDateMode(prefix,'year'); document.getElementById(prefix+'-year').value=v; document.getElementById(prefix+'-date').value='';
-  }else if(v.toUpperCase()==='TBD'){
-    flexibleDateMode(prefix,'tbd'); document.getElementById(prefix+'-date').value=''; document.getElementById(prefix+'-year').value='';
-  }else{
-    flexibleDateMode(prefix,'date'); document.getElementById(prefix+'-date').value=''; document.getElementById(prefix+'-year').value='';
+  const v=String(value||'').trim();
+  const wrap=document.querySelector('[data-date-mode="'+prefix+'"]');
+  if(!wrap) return;
+  markFlexibleDateChanged(prefix);
+  for(const kind of ['date','month','year']){const input=document.getElementById(prefix+'-'+kind);if(input) input.value='';}
+  const preserveOriginal=()=>{
+    wrap.dataset.originalDate=v;
+    let note=wrap.parentElement.querySelector('.flexible-date-original');
+    if(!note){note=document.createElement('p');note.className='flexible-date-original';wrap.parentElement.appendChild(note);}
+    note.textContent='Date conservée : '+v;note.classList.remove('hidden');
+  };
+  let mode='date';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)){const input=document.getElementById(prefix+'-date');input.value=v;if(input.value!==v) preserveOriginal();}
+  else if(/^\d{4}-(0[1-9]|1[0-2])$/.test(v)){mode='month';document.getElementById(prefix+'-month').value=v;}
+  else if(/^\d{4}$/.test(v)){mode='year';document.getElementById(prefix+'-year').value=v;}
+  else if(v.toUpperCase()==='TBD') mode='tbd';
+  else if(v) preserveOriginal();
+  flexibleDateMode(prefix,mode);
+  if(!wrap.dataset.dateInputBound){
+    wrap.parentElement.addEventListener('input',()=>markFlexibleDateChanged(prefix));
+    wrap.dataset.dateInputBound='true';
   }
 }
 function getFlexibleDate(prefix){
   const wrap=document.querySelector('[data-date-mode="'+prefix+'"]');
-  const mode=(wrap && wrap.dataset.currentMode) || 'date';
-  if(mode==='year') return document.getElementById(prefix+'-year').value.trim() || null;
+  if(wrap?.dataset.originalDate) return wrap.dataset.originalDate;
+  const mode=wrap?.dataset.currentMode||'date';
   if(mode==='tbd') return 'TBD';
-  return document.getElementById(prefix+'-date').value || null;
+  return document.getElementById(prefix+'-'+mode)?.value.trim()||null;
 }
+
 document.querySelectorAll('.date-mode').forEach(group => {
   group.addEventListener('click', e => {
     const btn=e.target.closest('.date-mode-btn'); if(!btn) return;
-    flexibleDateMode(group.dataset.dateMode, btn.dataset.mode);
+    if(btn.dataset.mode!==group.dataset.currentMode) markFlexibleDateChanged(group.dataset.dateMode);
+    flexibleDateMode(group.dataset.dateMode,btn.dataset.mode);
   });
 });
 
@@ -2437,6 +2464,7 @@ function saveWishlistModal(){
   if(!plateforme){ window.JTDDialogs.error('w-plateforme','Choisis une plateforme.'); return; }
 
   const date = getFlexibleDate('w');
+  if(document.querySelector('[data-date-mode="w"]').dataset.currentMode==='month' && date && !/^[0-9]{4}-(0[1-9]|1[0-2])$/.test(date)){window.JTDDialogs.error('w-month','Indique un mois valide.');return;}
   const lien = document.getElementById('w-lien').value.trim() || null;
 
   const fields = {nom, plateforme, date, lien, collector, japanese, image, imageFit};

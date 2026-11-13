@@ -7,7 +7,7 @@ const server=createSandboxServer();
  const browser=await chromium.launch({headless:true,...(process.env.JTD_CHROME?{executablePath:process.env.JTD_CHROME}:{}),args:['--no-sandbox']});
  try {
   for(const width of [320,390,1440]) for(const theme of ['light','dark']){
-   const context=await sandboxContext(browser,{viewport:{width,height:1000},colorScheme:theme});
+   const context=await sandboxContext(browser,{viewport:{width,height:1000},colorScheme:theme,reducedMotion:'reduce'});
    await context.route('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/**',route=>route.continue());
    await context.route('https://www.pokepedia.fr/**',route=>route.continue());
    await context.addInitScript(()=>{if(!localStorage.getItem('dex-test-seeded')){localStorage.setItem('jtd:sandbox-pokedex-prototype:kanto:v1',JSON.stringify({1:1}));localStorage.setItem('dex-test-seeded','1');}});
@@ -51,6 +51,12 @@ const server=createSandboxServer();
    assert.equal(await page.locator('#dex-legend [data-state="2"] b').innerText(),'1');
    assert.equal(await first.locator('a').getAttribute('href'),'https://www.pokepedia.fr/Bulbizarre#Localisations');
    const applyBox=async(index,state)=>{const box=page.locator('.dex-box').nth(index);await box.locator('summary').click();await box.locator('[data-box-state="'+state+'"]').click();};
+   assert.equal((await first.locator('.dex-info .dex-name').innerText()).trim(),'Bulbizarre','The name is the Poképédia link');
+   assert.equal(await first.locator('.dex-pokemon .dex-name').count(),0,'No duplicate name in the state button');
+   assert.match(await first.locator('.dex-info').getAttribute('aria-label'),/Bulbizarre.*Poképédia.*nouvel onglet/);
+   const beforeLink=await page.evaluate(()=>JSON.stringify(POKEDEX_TRACKERS));
+   await first.locator('.dex-info').evaluate(link=>{link.addEventListener('click',event=>event.preventDefault(),{once:true});link.click();});
+   assert.equal(await page.evaluate(()=>JSON.stringify(POKEDEX_TRACKERS)),beforeLink,'The name link does not change Pokémon progress');
    const captureLink=await first.locator('.dex-info').boundingBox();
    const stateButton=await first.locator('.dex-pokemon').boundingBox();
    const slotBox=await first.boundingBox();
@@ -61,6 +67,16 @@ const server=createSandboxServer();
     return link.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
    }),'The visible information icon can receive a tap');
    if(width<=820) assert.ok(captureLink.height>=44,'Information target is touch-sized');
+   for(let cycle=0;cycle<3;cycle++){
+    await first.locator('.dex-pokemon').click();
+    const contrast=await first.evaluate(slot=>{
+     const ctx=document.createElement('canvas').getContext('2d');
+     const rgb=color=>{ctx.clearRect(0,0,1,1);ctx.fillStyle=color;ctx.fillRect(0,0,1,1);return [...ctx.getImageData(0,0,1,1).data].slice(0,3);};
+     const lum=rgb=>rgb.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+     const a=lum(rgb(getComputedStyle(slot.querySelector('.dex-info')).color)),b=lum(rgb(getComputedStyle(slot).backgroundColor));return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+    });
+    assert.ok(contrast>=4.5,'Name link remains readable in every progress state: '+contrast);
+   }
    await applyBox(0,0);
    await page.locator('[data-id="4"]').click();
    await page.locator('#toast-stack').getByRole('button',{name:'Annuler',exact:true}).click();

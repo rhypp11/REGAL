@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_13.11.26-27">
-<meta name="regal-build" content="a7651a05a556c3a0a9af86e7">
+<meta name="regal-version" content="3_13.11.26-28">
+<meta name="regal-build" content="05a729e42381deea393b6ce0">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=2">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=2">
 <link rel="manifest" href="manifest.json">
@@ -332,12 +332,14 @@
       <div class="context-editor" id="w-context-editor">
     <div class="field flexible-date-field">
       <label>Date de sortie</label>
-      <div class="date-mode" data-date-mode="w">
+      <div class="date-mode" data-date-mode="w" role="group" aria-label="Précision de la date de sortie">
         <button type="button" class="date-mode-btn active" data-mode="date">Date</button>
+        <button type="button" class="date-mode-btn" data-mode="month">Mois</button>
         <button type="button" class="date-mode-btn" data-mode="year">Année</button>
-        <button type="button" class="date-mode-btn" data-mode="tbd">TBD</button>
+        <button type="button" class="date-mode-btn" data-mode="tbd">À préciser</button>
       </div>
-      <input type="date" id="w-date">
+      <input type="date" id="w-date" aria-label="Date de sortie">
+      <input type="month" id="w-month" class="hidden" min="1970-01" max="2100-12" aria-label="Mois de sortie">
       <input type="number" id="w-year" class="hidden" min="1970" max="2100" step="1" placeholder="2027">
     </div>
 

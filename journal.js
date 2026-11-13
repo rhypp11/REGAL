@@ -291,9 +291,9 @@
         '<label class="journal-checkbox"><input type="checkbox" name="replayed"'+(entry.replayed?' checked':'')+'> Rejoué</label>'+
         '<div class="journal-form-ratings">'+criteria.map((label,index)=>field(label,select('note'+index,Object.fromEntries(ratings.map(value=>[value,value||'–'])),entry.notes?.[index]||''))).join('')+
           field('Ressenti',select('feeling',{'':'–',...feelings},entry.feeling||''))+'</div></div></details>':
-      release?'<div class="journal-context-fields"><div class="field flexible-date-field"><span>Date de sortie</span><div class="date-mode" data-date-mode="journal-release">'+
-        ['date','year','tbd'].map((mode,index)=>'<button type="button" class="date-mode-btn" data-mode="'+mode+'">'+['Date','Année','À préciser'][index]+'</button>').join('')+
-        '</div><input type="date" id="journal-release-date" aria-label="Date de sortie"><input type="number" id="journal-release-year" min="1970" max="2100" step="1" placeholder="2027" aria-label="Année de sortie"></div>'+
+      release?'<div class="journal-context-fields"><div class="field flexible-date-field"><span>Date de sortie</span><div class="date-mode" data-date-mode="journal-release" role="group" aria-label="Précision de la date de sortie">'+
+        ['date','month','year','tbd'].map((mode,index)=>'<button type="button" class="date-mode-btn" data-mode="'+mode+'">'+['Date','Mois','Année','À préciser'][index]+'</button>').join('')+
+        '</div><input type="date" id="journal-release-date" aria-label="Date de sortie"><input type="month" id="journal-release-month" min="1970-01" max="2100-12" aria-label="Mois de sortie"><input type="number" id="journal-release-year" min="1970" max="2100" step="1" placeholder="2027" aria-label="Année de sortie"></div>'+
         precisionField+'</div>':
       '<div class="journal-context-fields">'+field('Statut',select('group',{backlog:'À faire',playing:'En cours'},group))+precisionField+'</div>')+
       '</section>'+
@@ -402,13 +402,13 @@
     let setReleaseDateInputs=()=>{};
     if(release){
       const wrap=form.querySelector('[data-date-mode="journal-release"]');
-      const setDateInputs=()=>{ $('journal-release-date').disabled=wrap.dataset.currentMode!=='date'; $('journal-release-year').disabled=wrap.dataset.currentMode!=='year'; };
+      const setDateInputs=()=>{for(const mode of ['date','month','year']) $('journal-release-'+mode).disabled=wrap.dataset.currentMode!==mode;};
       setReleaseDateInputs=setDateInputs;
       setFlexibleDate('journal-release',date);
       setDateInputs();
       wrap.addEventListener('click',event=>{
         const button=event.target.closest('[data-mode]');
-        if(button){ flexibleDateMode('journal-release',button.dataset.mode); setDateInputs(); releaseDateChanged=true; }
+        if(button){ if(button.dataset.mode!==wrap.dataset.currentMode) markFlexibleDateChanged('journal-release'); flexibleDateMode('journal-release',button.dataset.mode); setDateInputs(); releaseDateChanged=true; }
       });
       form.querySelector('.flexible-date-field').addEventListener('input',()=>{releaseDateChanged=true;});
     }
