@@ -197,8 +197,8 @@ function renderCemetery(){
   select.replaceChildren(new Option('Toutes les plateformes',''),...platforms.map(platform=>new Option(platform,platform)));
   const platform = platforms.includes(selectedPlatform) ? selectedPlatform : '';
   select.value = platform;
-  const search = saleEl('cemetery-search').value.trim().toLocaleLowerCase('fr');
-  const matches = game => (!platform || game.plateforme === platform) && (!search || game.nom.toLocaleLowerCase('fr').includes(search));
+  const search = JTDData.searchKey(saleEl('cemetery-search').value.trim());
+  const matches = game => (!platform || game.plateforme === platform) && (!search || JTDData.searchKey(game.nom).includes(search));
   const allGroups = orderedSaleGroups(saleView);
   const groups = allGroups.filter(group=>group.some(matches));
   const canReorder = saleView === 'sold' && allGroups.length > 1 && !platform && !search;

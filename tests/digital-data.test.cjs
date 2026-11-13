@@ -64,3 +64,13 @@ test('Legacy Japanese accounts seed an editable flag and preserve bundles',()=>{
  assert.equal(games[1].japaneseAccount,false);
  assert.equal(games[1].bundle,true);
 });
+
+test('accentless searches keep parent grouping and standalone DLC discovery consistent',()=>{
+ const parent={...base,nom:'Échos de cristal'};
+ const child={...dlc,nom:'À l’horizon — Extension'};
+ assert.equal(D.searchKey('E\u0301TOILE'),D.searchKey('étoile'));
+ assert.equal(D.searchKey('Pokémon: A+B'), 'pokemon: a+b');
+ assert.deepEqual(D.collectionCards([parent,child],'digital',null,'ECHOS').map(g=>g.id),[parent.id]);
+ assert.deepEqual(D.collectionCards([parent,child],'digital',null,'a l’horizon').map(g=>g.id),[child.id]);
+ assert.deepEqual(D.collectionCards([parent,child],'digital',null,'inconnu'),[]);
+});

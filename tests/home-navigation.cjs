@@ -123,7 +123,7 @@ const server=createSandboxServer();
    await page.locator('#global-search-input').press('Enter');
    assert.equal(await page.locator('#global-search-results button').first().evaluate(el=>el===document.activeElement),true);
    assert.equal(await page.locator('#sale-modal-overlay').isVisible(),false);
-   await page.getByRole('button',{name:/Étoile vendue.*Cimetière/}).click();
+   await page.getByRole('button',{name:/Étoile vendue.*Ventes/}).click();
    assert.equal(await page.locator('#sale-modal-overlay').isVisible(),true);
    assert.equal(await page.locator('#global-search-overlay').isVisible(),false);
    await page.locator('#sale-cancel').click();

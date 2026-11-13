@@ -5,7 +5,7 @@
   const searchInput = byId('global-search-input');
   const results = byId('global-search-results');
   const searchStatus = byId('global-search-status');
-  const searchKey = text => text.normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr');
+  const searchKey = JTDData.searchKey;
   const closeSearch = () => JTDDialogs.close(searchDialog);
 
   function search(){
@@ -16,7 +16,8 @@
       [GAMES, () => 'Collection', openModal],
       [ARRIVALS, () => 'Arrivages', openArrivalModal],
       [WISHLIST, () => 'Wishlist', openWishlistModal],
-      [CEMETERY, item => item.saleStatus === 'sold' ? 'Cimetière · Vendu' : 'Cimetière · À vendre', openSaleModal]
+      [CEMETERY, item => item.saleStatus === 'sold' ? 'Ventes · Vendu' : 'Ventes · À vendre', openSaleModal],
+      [window.getJournalSearchEntries(), item => 'Journal · '+item.location, window.openJournalEntry]
     ];
     const matches = [];
     for(const [items, location, open] of sources){
@@ -36,9 +37,9 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'overview-search-result';
-      const support = JTDData.isDigital(item) ? 'Numérique' : 'Physique';
+      const support = item.searchSupport ?? (JTDData.isDigital(item) ? 'Numérique' : 'Physique');
       const type = JTDData.isAddon(item) ? ' · '+contentKind(item) : '';
-      button.innerHTML = `<strong>${escapeHTML(item.nom)}</strong><small>${escapeHTML(item.plateforme)} · ${support}${type} · ${escapeHTML(location(item))}</small>`;
+      button.innerHTML = `<strong>${escapeHTML(item.nom)}</strong><small>${[item.plateforme,support+type,location(item)].filter(Boolean).map(escapeHTML).join(' · ')}</small>`;
       button.addEventListener('click',()=>open(item.id));
       row.append(button);
       results.append(row);

@@ -956,10 +956,10 @@ function matchesCollectionVersion(game){
 }
 
 function filteredGames(){
-  const q = state.search.trim().toLowerCase();
+  const q = JTDData.searchKey(state.search.trim());
   return collectionCardsForFilters(q).filter(g => {
       if(state.platform && g.plateforme !== state.platform) return false;
-      if(q && !g.nom.toLowerCase().includes(q)) return false;
+      if(q && !JTDData.searchKey(g.nom).includes(q)) return false;
       if(state.status){
         if(state.status === '__none__'){
           if(getEffectiveStatus(g)) return false;
@@ -2390,9 +2390,9 @@ function resetWishlistOriginPicker(visible){
   document.getElementById('w-release-results').replaceChildren();
 }
 function renderWishlistReleaseResults(){
-  const query=document.getElementById('w-release-search').value.trim().normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr');
+  const query=JTDData.searchKey(document.getElementById('w-release-search').value.trim());
   const releases=window.getJournalReleases?.()||[];
-  const matches=query?releases.filter(item=>(item.nom+' '+item.plateforme).normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr').includes(query)).slice(0,12):[];
+  const matches=query?releases.filter(item=>JTDData.searchKey(item.nom+' '+item.plateforme).includes(query)).slice(0,12):[];
   document.getElementById('w-release-results').innerHTML=matches.map(item=>'<button type="button" data-w-release="'+escapeHTML(item.id)+'"><strong>'+escapeHTML(item.nom)+'</strong><small>'+escapeHTML(item.plateforme)+'</small></button>').join('')+(query&&!matches.length?'<p class="journal-empty">Aucun jeu trouvé.</p>':'');
 }
 document.getElementById('w-origin-picker').addEventListener('change',()=>{
