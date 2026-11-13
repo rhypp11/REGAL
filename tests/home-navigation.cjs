@@ -104,6 +104,7 @@ const server=createSandboxServer();
     await row.hover();
     await page.waitForFunction(element=>getComputedStyle(element).backgroundColor!=='rgba(0, 0, 0, 0)',await row.elementHandle(),{timeout:1000});
    }
+   assert.equal(await page.locator('#wishlist-rows .wishlist-row-dated .calendar-day').count(),3,'Exact future wishlist dates get a calendar day');
    await page.evaluate(items=>{WISHLIST=items;renderWishlist();},wishlistBeforeHover);
    await page.evaluate(()=>{GAMES=[];renderHomeStats();});assert.equal(await page.locator('#home-total-games').textContent(),'0');
    await page.evaluate(()=>{
@@ -175,6 +176,8 @@ const server=createSandboxServer();
     renderJournal();
    });
    assert.deepEqual(await page.locator('#journal-release .journal-row .journal-title strong').allTextContents(),['2027-01-15','2027-12','2027','2028-01','TBD']);
+   assert.equal(await page.locator('#journal-release .calendar-day').count(),1,'Only exact upcoming dates get a calendar day');
+   assert.match(await page.locator('#journal-release .calendar-day').getAttribute('aria-label'),/15.*2027/);
    await page.evaluate(saved=>{LEGACY_JOURNAL=saved;renderJournal();},savedJournal);
    await page.locator(width>820?'[data-journal-tab="backlog"]':'[data-journal-tab="completed"]').click();
    await page.locator('[data-journal-add="completed"]').click();
@@ -198,6 +201,8 @@ const server=createSandboxServer();
    assert.equal(await page.locator('#journal-year').inputValue(),'2022');
    const completionRow=page.locator('.journal-row').filter({hasText:'Étoile de test'});
    assert.equal(await completionRow.locator('.journal-grade').count(),0);
+   assert.equal(await completionRow.locator('.calendar-day').count(),0,'Completed games use a textual date');
+   assert.match(await completionRow.locator('.journal-completion-date').innerText(),/≈.*2022/,'Approximate completion dates stay approximate');
    assert.equal(await completionRow.locator('.journal-completion-badge').innerText(),'Fini');
    await completionRow.click();
    assert.equal(await page.locator('.journal-detail-ratings .journal-grade[data-grade="S+"]').count(),1);

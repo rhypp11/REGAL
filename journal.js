@@ -66,7 +66,7 @@
   }
   function day(entry){
     if(entry.estimated) return '<span class="calendar-day calendar-day-loose" title="Date approximative" aria-label="Date approximative"><strong>≈</strong></span>';
-    return calendarDayHtml(entry.date);
+    return calendarDayHtml(entry.date).replace('<div ', '<div aria-label="'+esc(dateLabel(entry))+'" ');
   }
   function rowTags(entry){
     const tags=[];
@@ -80,12 +80,14 @@
   function row(entry){
     const done = entry.group === 'completed';
     const tracked = entry.group === 'release';
+    const scheduled = tracked && !entry.estimated && !entry.yearOnly && validDay(entry.date);
     return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'">'+
-      (done?day(entry):'')+
+      (scheduled?day(entry):'')+
       gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small class="journal-row-platform">'+
       (entry.platform?getPlatformOptionIconHtml(entry.platform)+esc(entry.platform):'')+
-      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+'</small>'+
-      (tracked&&validDay(entry.date)?'<small class="journal-release-date">'+esc(parseWishlistDate(entry.date).label)+'</small>':'')+
+      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+
+      (done?'<span class="journal-completion-date"'+(entry.estimated||entry.yearOnly?' title="Date approximative"':'')+'>'+esc(dateLabel(entry))+'</span>':'')+'</small>'+
+      (tracked&&!scheduled?'<small class="journal-release-date">'+esc(dateLabel(entry))+'</small>':'')+
       '</span>'+(done?rowTags(entry):'')+
       (done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
         (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'')+'</button>';
@@ -141,7 +143,7 @@
       return counts;
     };
     const stat=(label,count,graphic='')=>'<div class="journal-stat"><span>'+graphic+esc(label)+'</span><b>'+count+'</b></div>';
-    const section=(label,html)=>'<section class="journal-stat-section"><h4>'+label+'</h4>'+html+'</section>';
+    const section=(label,html)=>'<section class="journal-stat-section"><h3>'+label+'</h3>'+html+'</section>';
     const counts=countBy('completion'), total=entries.length;
     const colors=['var(--status-done)','var(--amber)','#8867bb'];
     let start=0;
@@ -153,7 +155,7 @@
     });
     const ring='<div class="home-completion-ring journal-stat-ring" style="background:'+
       (total?'conic-gradient('+gradient.join(',')+',var(--ui-border) '+start+'% 100%)':'var(--ui-border)')+
-      '"><span><strong>'+total+'</strong><small>Complétions</small></span></div>';
+      '"><span><strong>'+total+'</strong><small>Total</small></span></div>';
     const platforms=[...countBy('platform')].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'fr')).map(([name,count])=>{
       const logo=safeURL(getPlatformLogo(name),true);
       const graphic=logo?'<img src="'+esc(logo)+'" alt="">':'<i style="background:'+esc(getPlatformColor(name))+'"></i>';

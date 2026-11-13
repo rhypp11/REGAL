@@ -206,7 +206,7 @@
 }
 
 #home-boards .board.wishlist .board-row {
-  grid-template-columns:60px minmax(0,1fr) auto;
+  grid-template-columns:var(--wishlist-date-column,) 60px minmax(0,1fr) auto;
   gap:8px;
 }
 
@@ -530,6 +530,10 @@
   border-radius:0;
 }
 #home-boards .wishlist .board-thumb { width:60px; height:34px; grid-row:1; }
+#home-boards .wishlist .wishlist-row-dated { --wishlist-date-column:32px; --wishlist-art-column:2; --wishlist-info-column:3; --wishlist-link-column:4; }
+#home-boards .wishlist .calendar-day { width:32px; height:40px; grid-column:1; grid-row:1; align-self:center; }
+#home-boards .wishlist .calendar-day strong { font-size:14px; }
+#home-boards .wishlist .calendar-day span { font-size:8px; }
 #home-boards .wishlist .board-plat { flex-wrap:wrap; row-gap:3px; }
 #home-boards .wishlist .wishlist-release-date {
   margin:0;
@@ -554,7 +558,7 @@
   }
 
   #home-boards .board.wishlist .board-row {
-    grid-template-columns:var(--wishlist-thumb-width) minmax(0,1fr) auto;
+    grid-template-columns:var(--wishlist-date-column,) var(--wishlist-thumb-width) minmax(0,1fr) auto;
     gap:10px;
     padding:9px 0;
   }
@@ -583,13 +587,13 @@
   #home-boards .board.wishlist { padding:var(--ui-space-4); }
   #home-boards .wishlist .board-head { min-height:0; padding:0 0 12px; }
   #home-boards .board.wishlist .board-row {
-    grid-template-columns:60px minmax(0,1fr) auto !important;
+    grid-template-columns:var(--wishlist-date-column,) 60px minmax(0,1fr) auto !important;
     grid-template-rows:1fr !important;
     gap:8px !important;
     min-height:56px !important;
     padding:var(--ui-space-3) 0 !important;
   }
-  #home-boards .wishlist .board-thumb { grid-column:1 !important; }
-  #home-boards .wishlist .board-info { grid-column:2 !important; }
-  #home-boards .wishlist .board-link { grid-column:3 !important; grid-row:1 !important; position:static; transform:none; }
+  #home-boards .wishlist .board-thumb { grid-column:var(--wishlist-art-column,1) !important; }
+  #home-boards .wishlist .board-info { grid-column:var(--wishlist-info-column,2) !important; }
+  #home-boards .wishlist .board-link { grid-column:var(--wishlist-link-column,3) !important; grid-row:1 !important; position:static; transform:none; }
 }
