@@ -108,7 +108,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
         assert.ok(appearance.physical.every(value=>value<40),'Physical cards retain the base surface');
         assert.deepEqual(appearance.background,appearance.physical,'Both formats share the same surface');
-        assert.equal(appearance.radius,'12px','Cards share the original corners in every view');
+        assert.equal(appearance.radius,'16px','Pilot cards share the same corners in every view');
         assert.equal(appearance.physicalRadius,appearance.radius);
         assert.equal(appearance.physicalShadow,'none');
         assert.equal(appearance.digitalShadow,'none');

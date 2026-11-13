@@ -1105,7 +1105,7 @@ function renderPlatformBanner(cards){
   banner.innerHTML = `
     <div class="platform-banner-head">
       ${logoHtml}
-      <div class="platform-banner-label"><span class="platform-banner-title">${escapeHTML(title)}</span></div>
+      <div class="platform-banner-label"><h1 class="platform-banner-title">${escapeHTML(title)}</h1></div>
       <button type="button" class="collection-stat-toggle" aria-label="${total} ${countUnit}, statistiques" aria-expanded="${collectionStatsOpen}" aria-controls="collection-stats">
         <span>${total}<span class="collection-stat-unit"> ${countUnit}</span></span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>

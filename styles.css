@@ -5103,55 +5103,6 @@ input[type="date"] {
     flex-wrap: wrap;
     min-height: 20px;
   }
-  /* Cartes mobile : conserver les images horizontales */
-  .grid {
-    grid-template-columns: 1fr !important;
-    gap: 10px;
-  }
-  #page-collection .card {
-    display: grid;
-    grid-template-columns: 96px minmax(0,1fr);
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    min-height: 96px;
-    border-radius: 13px;
-    overflow: visible;
-  }
-  #page-collection .card-banner {
-    width: 96px !important;
-    height: 54px !important;
-    min-height: 0;
-    aspect-ratio: 16/9 !important;
-    border-radius: 8px;
-  }
-  #page-collection .card-banner img {
-    object-fit: contain;
-  }
-  #page-collection .card-body {
-    min-width: 0;
-    padding: 0 !important;
-    gap: 7px;
-    justify-content: center;
-  }
-  #page-collection .card-name {
-    white-space: normal;
-    display: flex;
-    overflow: hidden;
-  }
-  #page-collection .card-summary {
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  #page-collection .card-platform {
-    font-size: 12px;
-  }
-  #page-collection .card-purchase {
-    font-size: 12px;
-  }
-  #page-collection .card-status-menu {
-    z-index: 30;
-  }
   /* Modales : feuille mobile scrollable avec actions toujours atteignables */
   .modal-overlay {
     align-items: flex-end !important;
@@ -5245,15 +5196,6 @@ input[type="date"] {
   #home-boards .board-thumb {
     width: 80px;
     height: 45px;
-  }
-  #page-collection .card {
-    grid-template-columns: 80px minmax(0,1fr);
-    gap: 9px;
-    padding: 10px;
-  }
-  #page-collection .card-banner {
-    width: 80px !important;
-    height: 45px !important;
   }
   .topnav-brand .brand-word {
     font-size: 12px;
