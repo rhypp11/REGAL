@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_13.11.26-22">
-<meta name="regal-build" content="3cd321d496df879a5095480e">
+<meta name="regal-version" content="3_13.11.26-24">
+<meta name="regal-build" content="2f84e1e0518bc9933ac8b6a9">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -657,7 +657,8 @@
 </div>
 </section>
 <section class="page hidden" id="page-journal">
-  <div class="journal-toolbar" id="journal-toolbar"><h2>Journal</h2><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien</option><option value="desc">Plus récent</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed">Ajouter une complétion</button></div></div>
+  <header class="journal-heading"><h1>Journal</h1><div id="journal-heading-actions"></div></header>
+  <div class="journal-toolbar" id="journal-toolbar"><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien</option><option value="desc">Plus récent</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed" aria-label="Ajouter une complétion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="journal-add-label">Ajouter une complétion</span><span class="journal-add-mobile-label">Ajouter</span></button></div></div>
   <aside class="sidebar journal-sidebar" id="journal-sidebar" aria-label="Statistiques du journal">
     <div class="journal-panel"><h3>Statistiques</h3><div id="journal-stats"></div></div>
   </aside>

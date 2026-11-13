@@ -98,12 +98,12 @@
       groups.get(group.key).items.push(entry);
     }
     return [...groups.values()].map(group=>'<section class="journal-calendar">'+
-      calendarGroupHtml(group.label,'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('');
+      calendarGroupHtml(group.label,group.year||'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('');
   }
   function completedGroup(entry){
     if(entry.yearOnly) return {key:'year',label:'Année seule'};
     const month=Number(entry.date.slice(5,7))-1;
-    return {key:entry.date.slice(0,7),label:MONTH_NAMES_FULL[month]||'Date inconnue',color:MONTH_COLORS[month]};
+    return {key:entry.date.slice(0,7),label:MONTH_NAMES_FULL[month]||'Date inconnue',year:entry.date.slice(0,4),color:MONTH_COLORS[month]};
   }
   function releaseSortKey(entry){
     const date = String(entry.date || '');
@@ -113,7 +113,7 @@
   function releaseGroup(entry){
     const value=String(entry.date||'');
     const month=/^\d{4}-(?:0[1-9]|1[0-2])(?:-\d{2})?$/.test(value)?Number(value.slice(5,7))-1:-1;
-    if(month>=0) return {key:value.slice(0,7),label:MONTH_NAMES_FULL[month]+' '+value.slice(0,4),color:MONTH_COLORS[month]};
+    if(month>=0) return {key:value.slice(0,7),label:MONTH_NAMES_FULL[month],year:value.slice(0,4),color:MONTH_COLORS[month]};
     const label=/^\d{4}$/.test(value)?value:'TBD';
     return {key:label,label};
   }

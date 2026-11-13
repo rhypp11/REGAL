@@ -3002,8 +3002,8 @@ function placeJournalControls(){
   const toolbar = document.getElementById('journal-toolbar');
   const views = document.getElementById('journal-view-controls');
   if(journalMobileControls.matches) views.after(toolbar);
-  else page.prepend(toolbar);
-  if(navigationPage === 'journal') (journalMobileControls.matches ? views : toolbar).prepend(mobileFilterToggle);
+  else page.querySelector('.journal-heading').after(toolbar);
+  if(navigationPage === 'journal') document.getElementById('journal-heading-actions').append(mobileFilterToggle);
 }
 journalMobileControls.addEventListener('change',placeJournalControls);
 
@@ -3012,7 +3012,7 @@ function goToPage(page, push = true){
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
   navigationPage = ['collection','cemetery','journal','pokedex'].includes(page) ? page : 'home';
-  const statsControl = navigationPage === 'home' || navigationPage === 'cemetery';
+  const statsControl = navigationPage === 'home' || navigationPage === 'cemetery' || navigationPage === 'journal';
   mobileFilterToggle.classList.toggle('page-stats-toggle', statsControl);
   mobileFilterToggle.innerHTML = statsControl
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10m8 10V4m8 16v-7"/></svg><span>Statistiques</span>'
