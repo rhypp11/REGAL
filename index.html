@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_13.11.26-11">
-<meta name="regal-build" content="8c8a86d32d7bcbd20d7f380d">
+<meta name="regal-version" content="3_13.11.26-15">
+<meta name="regal-build" content="3853ce6d9988b2d9c4d490b3">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -547,7 +547,8 @@
       </section>
     </aside>
     <main class="cemetery-main">
-    <div class="cemetery-toolbar">
+    <header class="cemetery-heading">
+      <h1>Ventes</h1>
       <div class="cemetery-view-controls" id="cemetery-view-controls">
     <button type="button" class="mobile-filter-toggle page-filter-toggle" id="global-filter-toggle" aria-label="Afficher les filtres" aria-expanded="false">
       <svg class="menu-burger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
@@ -558,7 +559,9 @@
     </button>
       <div class="cemetery-tabs" role="group" aria-label="État de vente"><button type="button" class="btn active cemetery-tab" data-sale-view="pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18l-2 13H5L3 7Z"></path><path d="M8 7a4 4 0 0 1 8 0"></path><path d="M9 12h6"></path></svg>À vendre</button><button type="button" class="btn cemetery-tab" data-sale-view="sold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.5 2.5L16 9"></path></svg>Vendus</button></div>
       </div>
-      <input type="search" id="cemetery-search" placeholder="Chercher un jeu…" aria-label="Chercher dans le cimetière">
+    </header>
+    <div class="cemetery-toolbar">
+      <div class="cemetery-search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input type="search" id="cemetery-search" placeholder="Chercher un jeu…" aria-label="Chercher dans les ventes"></div>
       <select id="cemetery-platform" aria-label="Plateforme"><option value="">Toutes les plateformes</option></select>
     </div>
     <div class="cemetery-order-tools hidden" id="cemetery-order-tools">
