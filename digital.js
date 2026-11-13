@@ -127,7 +127,7 @@ function decorateDigitalCard(card, game, options){
     }
   }
   const body = card.querySelector('.card-body');
-  if(!options.readOnly){
+  if(state.media === 'all'){
     body.querySelector('.card-identity').insertAdjacentHTML('beforeend','<span class="card-media-mark"><span>'+(digital?'Numérique':'Physique')+'</span></span>');
   }
   const contents = gameContents(game);

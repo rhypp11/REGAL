@@ -88,6 +88,10 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.deepEqual(await cards(page),['game:base']);assert.equal(await stat(page,'games'),1,'Search excludes nonmatching explicit rows');
       await page.evaluate(()=>{state.search='';render();});
 
+      for(const media of ['physical','digital']){
+        await page.evaluate(media=>{state.media=media;render();},media);
+        assert.equal(await page.locator('#grid .card-media-mark').count(),0,'A selected format does not repeat its tag on cards');
+      }
       await page.evaluate(()=>{state.media='all';state.japanese=false;buildPlatformList();render();});
       await types(page,'game','dlc','upgrade');
       for(const view of ['cards','gallery','list']){

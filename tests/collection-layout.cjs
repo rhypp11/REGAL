@@ -39,6 +39,13 @@ const server=createSandboxServer();
       await statsToggle.click();
       assert.equal(await statsPanel.isVisible(),false);
       await page.selectOption('#sort-select','name-asc');
+      const headingShape=()=>page.locator('.platform-banner-head').evaluate(el=>{
+        const style=getComputedStyle(el);return {padding:style.padding,radius:style.borderRadius};
+      });
+      const neutralHeading=await headingShape();
+      await page.evaluate(()=>{state.platform=GAMES.find(g=>g.format==='Physique').plateforme;buildPlatformList();render();});
+      assert.deepEqual(await headingShape(),neutralHeading,'All platforms and a selected platform use the same header structure');
+      await page.evaluate(()=>{state.platform=null;buildPlatformList();render();});
       await page.locator('#grid .card-banner img').first().evaluate(img=>img.decode());
       const geometry=await page.locator('#grid .card').evaluateAll(cards=>cards.map(card=>{
         const box=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
