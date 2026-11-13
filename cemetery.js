@@ -40,7 +40,8 @@ function updateCemeteryStats(){
 function saleHeading(item, lot = false){
   const venue = item.saleChannel === 'online' ? 'En ligne' : item.saleChannel === 'store' ? 'En boutique' : 'Canal à définir';
   const amount = item.saleStatus === 'sold' ? item.salePrice : item.estimatedPrice;
-  return '<span class="sale-group-heading"><span class="sale-heading-main">' + (lot ? '<small class="sale-lot-total">Total du lot</small>' : '') + '<strong class="sale-amount">' + (amount != null ? euros(amount) : '—') + '</strong></span><span class="sale-venue">' + venue + '</span></span>';
+  const label = lot ? 'Total du lot' : item.saleStatus === 'sold' ? 'Encaissé' : 'Estimation';
+  return '<span class="sale-group-heading"><span class="sale-heading-main"><small class="sale-amount-label">' + label + '</small><strong class="sale-amount">' + (amount != null ? euros(amount) : '—') + '</strong></span><span class="sale-venue">' + venue + '</span></span>';
 }
 function saleCards(group){
   const cards = document.createElement('div');
@@ -50,6 +51,13 @@ function saleCards(group){
     card.classList.add('sale-game');
     const purchase = card.querySelector('.card-purchase');
     if(purchase) purchase.replaceWith(...purchase.childNodes);
+    const acquisition = card.querySelector('.card-acquisition');
+    if(acquisition){
+      const label = document.createElement('span');
+      label.className = 'sale-purchase-label';
+      label.textContent = 'Achat';
+      acquisition.prepend(label);
+    }
     cards.append(card);
   }
   return cards;
@@ -203,9 +211,10 @@ function renderCemetery(){
       lot.dataset.saleKey = saleKey(item);
       lot.open = openLots.has(lot.dataset.saleKey);
       lot.innerHTML = `<summary class="sale-lot-summary">
+        <span class="sale-lot-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg></span>
         <span class="sale-lot-title"><strong>Lot · ${group.length} jeux</strong><span>${escapeHTML(lotLabel(group))}</span></span>
         ${saleHeading(item,true)}
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        <svg class="sale-lot-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </summary>`;
       lot.append(saleCards(group));
       container.append(lot);
