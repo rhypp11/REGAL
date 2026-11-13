@@ -41,7 +41,7 @@ function collectionPurchases(cards, {ignorePlatform = false, search = state.sear
   const purchases = new Map(cards.map(game => [game.id,game]));
   const types = selectedContentTypes();
   if(types.length) return [...purchases.values()];
-  const query = search.trim().toLocaleLowerCase('fr');
+  const query = JTDData.searchKey(search.trim());
   for(const game of cards){
     if(!JTDData.isDigital(game)) continue;
     for(const child of gameContents(game)){
@@ -50,7 +50,7 @@ function collectionPurchases(cards, {ignorePlatform = false, search = state.sear
       if(!ignorePlatform && state.platform && child.plateforme !== state.platform) continue;
       if(types.length && !types.includes(child.contentType)) continue;
       if(!matchesCollectionStatus(child)) continue;
-      if(query && !game.nom.toLocaleLowerCase('fr').includes(query) && !child.nom.toLocaleLowerCase('fr').includes(query)) continue;
+      if(query && !JTDData.searchKey(game.nom).includes(query) && !JTDData.searchKey(child.nom).includes(query)) continue;
       purchases.set(child.id,child);
     }
   }

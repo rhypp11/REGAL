@@ -51,6 +51,9 @@ jobs:
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/home-navigation.cjs
 
 
+      - name: Check consistent search and Journal results
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/search.cjs
+
       - name: Check partial release dates
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/partial-dates.cjs
 

@@ -158,8 +158,11 @@
     if(!isAddon(game) || !game.parentId) return null;
     return games.find(parent => parent.id === game.parentId && canAttachContent(game,parent)) || null;
   }
+  function searchKey(value){
+    return String(value ?? '').normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr');
+  }
   function collectionCards(games, mode = 'physical', accountId = null, search = '', groupAddons = true){
-    const query = search.trim().toLocaleLowerCase('fr');
+    const query = searchKey(search.trim());
     return games.filter(game => {
       if(mode === 'physical' && isDigital(game)) return false;
       if(mode === 'digital' && !isDigital(game)) return false;
@@ -167,8 +170,8 @@
       const parent = contentParent(game,games);
       // Keep a child discoverable by its account or its own name when its parent is filtered out.
       if(groupAddons && isAddon(game) && parent && isDigital(parent) && parent.plateforme === game.plateforme && (!accountId || parent.accountId === accountId) &&
-        (!query || parent.nom.toLocaleLowerCase('fr').includes(query))) return false;
-      return !query || game.nom.toLocaleLowerCase('fr').includes(query);
+        (!query || searchKey(parent.nom).includes(query))) return false;
+      return !query || searchKey(game.nom).includes(query);
     });
   }
   function createStorage(storage){
@@ -330,7 +333,7 @@
     },data:{...shared,games:shared.games.map((game,i)=>({...game,format:normalized.games[i].format,contentType:normalized.games[i].contentType || 'game',parentId:normalized.games[i].parentId || null}))}};
   }
 
-  const api = {isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

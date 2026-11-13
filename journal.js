@@ -25,6 +25,14 @@
     return active?.entries ?? (IS_PREVIEW_MODE ? previewEntries : []);
   }
   window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit,date:entry.date}));
+  const searchLocations={completed:'Terminé',playing:'En cours',backlog:'À faire',release:'Sorties'};
+  window.getJournalSearchEntries=()=>records().filter(entry=>entry && Object.hasOwn(searchLocations,entry.group)).map(entry=>({
+    id:entry.id,nom:entry.name,plateforme:entry.platform,searchSupport:formats[entry.format]||'',location:searchLocations[entry.group]
+  }));
+  window.openJournalEntry=id=>{
+    const entry=records().find(item=>item?.id===id && Object.hasOwn(searchLocations,item.group));
+    if(entry) detail(entry);
+  };
   function commit(next){
     const active = LEGACY_JOURNAL.find(marker);
     if(active && !Array.isArray(active.entries)) throw Error('Le journal enregistré est illisible.');
@@ -353,7 +361,7 @@
     if(elements.lookup){
       const picker=$('journal-source-picker'), manual=$('journal-manual-fields'), results=$('journal-source-results');
       let sourcePending=false;
-      const fold=text=>text.normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr');
+      const fold=JTDData.searchKey;
       const fill=()=>{
         const query=fold(elements.lookup.value.trim());
         const choices=query?sources.filter(item=>fold(item.nom+' '+item.plateforme).includes(query)).slice(0,12):[];
