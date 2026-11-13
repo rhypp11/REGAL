@@ -1011,7 +1011,7 @@ function updateCollectionScrollContext(){
     context.setAttribute('role','region');
     context.setAttribute('aria-label','Collection filtrée');
     context.innerHTML = '<button type="button" class="collection-context-filters" aria-label="Ouvrir les filtres" aria-expanded="false" aria-controls="collection-sidebar"></button><span class="collection-context-icon" aria-hidden="true"></span><span class="collection-context-labels"><strong></strong><span class="collection-context-media"></span></span><span class="collection-context-count"></span>';
-    context.querySelector('button').innerHTML = mobileFilterToggle.innerHTML;
+    context.querySelector('button').innerHTML = filterToggleIcon;
     context.querySelector('button').addEventListener('click', () => mobileFilterToggle.click());
     document.getElementById('page-collection').appendChild(context);
   }

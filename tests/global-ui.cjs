@@ -151,6 +151,8 @@ const server=createSandboxServer();
     if(width>820)assert.ok(await page.evaluate(()=>scrollY>0 && document.querySelector('#page-collection .main').scrollTop===0),'Desktop collection uses one document scroll');
     const rect=await band.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1,'Compact context stays on screen');
     if(width<=1100){
+     assert.equal(await band.locator('button .menu-burger-icon').count(),1,'Scrolled collection always uses the filter icon, including after Home');
+     assert.equal(await band.locator('button').innerText(),'','Stats label must not leak into collection filters');
      await band.locator('button').click();
      assert.equal(await page.locator('#collection-sidebar').evaluate(el=>el.classList.contains('mobile-open')),true,'Compact context gives access to filters');
      await page.evaluate(()=>closeMobileDrawers());
