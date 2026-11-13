@@ -1,11 +1,12 @@
 /* Accueil : collection dans le volet, listes dans le contenu principal. */
 #page-home .home-app { display:grid; grid-template-columns:var(--ui-sidebar-width) minmax(0,1fr); width:100%; height:auto; min-height:calc(100dvh - var(--topnav-h,58px)); overflow:visible; }
-#page-home #home-sidebar { display:flex; flex-direction:column; align-self:start; position:sticky; top:var(--topnav-h,58px); height:calc(100dvh - var(--topnav-h,58px)); min-width:0; gap:18px; padding:26px 18px; border-right:1px solid rgba(var(--ui-rgb),.05); background:var(--ui-sidebar); }
+#page-home #home-sidebar { display:flex; flex-direction:column; align-self:start; position:sticky; top:var(--topnav-h,58px); height:calc(100dvh - var(--topnav-h,58px)); min-width:0; gap:var(--ui-space-5); padding:var(--ui-space-6) var(--ui-space-4); border-right:1px solid var(--ui-border); background:var(--ui-sidebar); }
 #page-home .home-main { min-width:0; width:100%; margin:0; overflow:visible; gap:16px; }
 #page-home .home-collection-summary { display:flex; flex-direction:column; gap:20px; padding:0; background:transparent; }
 .home-widget-title h2 { margin:0; font-size:16px; font-weight:650; }
 .home-widget-stats { display:flex; flex-direction:column; gap:20px; }
-.home-stat-section { padding:16px 12px; border:0; border-radius:18px; background:var(--ui-surface); box-shadow:none; }
+.home-stat-section { padding:var(--ui-space-4) 0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.home-stat-section + .home-stat-section { border-top:1px solid var(--ui-border); }
 .home-stat-section h3 { display:flex; align-items:center; margin:0 0 16px; font-size:13px; font-weight:650; color:var(--ui-text); }
 #page-home .home-summary-total { display:flex; flex-direction:row; align-items:baseline; gap:8px; padding:0 0 14px; margin:0; border:0; background:transparent; }
 #page-home .home-summary-total strong { font-size:30px; line-height:1; font-variant-numeric:tabular-nums; }
