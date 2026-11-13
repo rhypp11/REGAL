@@ -296,3 +296,8 @@ body.mobile-drawer-open { overflow:hidden; }
     max-height:min(92dvh,760px,var(--dialog-keyboard-height)) !important;
   }
 }
+
+/* Le fond du volet suit toute la page, même quand son contenu sticky arrive en bas. */
+@media(min-width:1101px) {
+  #page-home .home-app,#page-collection .app,#page-cemetery .cemetery-layout { background:linear-gradient(to right,var(--ui-sidebar) 0,var(--ui-sidebar) calc(var(--ui-sidebar-width) - 1px),var(--ui-border) calc(var(--ui-sidebar-width) - 1px),var(--ui-border) var(--ui-sidebar-width),transparent var(--ui-sidebar-width)); }
+}

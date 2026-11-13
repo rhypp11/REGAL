@@ -143,7 +143,7 @@
   .journal-side .journal-tabs { margin-bottom:10px; }
 }
 @media(min-width:1240px){
-  #page-journal { grid-template-columns:var(--ui-sidebar-width) minmax(0,2.2fr) minmax(280px,1fr); padding-left:0; grid-template-areas:'stats heading heading' 'stats toolbar side' 'stats completed side'; gap:0 var(--ui-space-6); }
+  #page-journal { grid-template-columns:var(--ui-sidebar-width) minmax(0,2.2fr) minmax(280px,1fr); padding-left:0; min-height:calc(100dvh - var(--topnav-h)); background:linear-gradient(to right,var(--ui-sidebar) 0,var(--ui-sidebar) calc(var(--ui-sidebar-width) - 1px),var(--ui-border) calc(var(--ui-sidebar-width) - 1px),var(--ui-border) var(--ui-sidebar-width),transparent var(--ui-sidebar-width)); grid-template-areas:'stats heading heading' 'stats toolbar side' 'stats completed side'; gap:0 var(--ui-space-6); }
   #page-journal #global-filter-toggle { display:none; }
   #page-journal .journal-sidebar { grid-area:stats; position:sticky; top:var(--topnav-h); left:auto; bottom:auto; z-index:auto; width:auto; margin-top:-24px; min-height:calc(100dvh - var(--topnav-h)); max-height:none; overflow:visible; padding:24px 16px; border-right:1px solid var(--ui-border); background:var(--ui-sidebar); transform:none; visibility:visible; }
 }
@@ -301,3 +301,10 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
 .journal-release-row > .calendar-day span { font-size:8px; }
 .journal-release-row > .board-thumb { grid-column:auto; }
 .journal-release-row > .journal-title { min-width:0; }
+
+.journal-add-small { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+.journal-add-icon { width:16px; height:16px; flex:none; }
+.journal-row[draggable="true"] { cursor:grab; }
+.journal-row.journal-dragging { opacity:.5; }
+.journal-drag-active [data-journal-drop] { outline:1px dashed var(--ui-border); outline-offset:4px; }
+.journal-drag-active [data-journal-drop].journal-drop-over { outline:2px solid var(--ui-accent); background:color-mix(in srgb,var(--ui-accent) 8%,var(--ui-surface)); }

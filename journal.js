@@ -81,7 +81,7 @@
     const done = entry.group === 'completed';
     const tracked = entry.group === 'release';
     const scheduled = tracked && !entry.estimated && !entry.yearOnly && validDay(entry.date);
-    return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'">'+
+    return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'"'+(['playing','backlog'].includes(entry.group)?' draggable="true" title="Glisser pour déplacer le jeu"':'')+'>'+
       (scheduled?day(entry):'')+
       gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small class="journal-row-platform">'+
       (entry.platform?getPlatformOptionIconHtml(entry.platform)+esc(entry.platform):'')+
@@ -640,7 +640,61 @@
   $('journal-year').addEventListener('change',render);
   $('journal-sort').addEventListener('change',event=>{sortByYear.set($('journal-year').value,event.target.value);render();});
   $('journal-close').addEventListener('click',dismiss);
+  const journalDragType='application/x-regal-journal-entry';
+  let journalDrag=null, suppressJournalClickUntil=0;
+  const journalPage=$('page-journal');
+  function clearJournalDrag(){
+    journalDrag=null;
+    journalPage.classList.remove('journal-drag-active');
+    journalPage.querySelectorAll('.journal-dragging,.journal-drop-over').forEach(element=>element.classList.remove('journal-dragging','journal-drop-over'));
+  }
+  function journalDropTarget(event){
+    const zone=event.target.closest?.('[data-journal-drop]');
+    if(!journalDrag||!zone||navigationPage!=='journal'||journalDrag.generation!==window.JTDAccountGeneration) return null;
+    if(!Array.from(event.dataTransfer?.types||[]).includes(journalDragType)) return null;
+    const target=zone.dataset.journalDrop;
+    const entry=records().find(item=>item?.id===journalDrag.id);
+    if(!entry||entry.group!==journalDrag.group) return null;
+    const allowed=target==='completed'?entry.group==='playing':['playing','backlog'].includes(target)&&target!==entry.group;
+    return allowed?{zone,target,entry}:null;
+  }
+  journalPage.addEventListener('dragstart',event=>{
+    const row=event.target.closest?.('[data-journal-entry][draggable="true"]');
+    const entry=records().find(item=>item?.id===row?.dataset.journalEntry);
+    if(!entry||!['playing','backlog'].includes(entry.group)||!event.dataTransfer) return;
+    journalDrag={id:entry.id,group:entry.group,generation:window.JTDAccountGeneration};
+    event.dataTransfer.setData(journalDragType,entry.id);
+    event.dataTransfer.effectAllowed='move';
+    row.classList.add('journal-dragging');journalPage.classList.add('journal-drag-active');
+  });
+  journalPage.addEventListener('dragover',event=>{
+    const drop=journalDropTarget(event);
+    journalPage.querySelectorAll('.journal-drop-over').forEach(element=>element.classList.remove('journal-drop-over'));
+    if(!drop) return;
+    event.preventDefault();event.dataTransfer.dropEffect='move';drop.zone.classList.add('journal-drop-over');
+  });
+  journalPage.addEventListener('dragleave',event=>{
+    const zone=event.target.closest?.('[data-journal-drop]');
+    if(zone&&(!(event.relatedTarget instanceof Node)||!zone.contains(event.relatedTarget))) zone.classList.remove('journal-drop-over');
+  });
+  journalPage.addEventListener('dragend',clearJournalDrag);
+  journalPage.addEventListener('drop',event=>{
+    const drop=journalDropTarget(event);
+    const valid=drop&&event.dataTransfer.getData(journalDragType)===journalDrag.id;
+    clearJournalDrag();
+    if(!valid) return;
+    event.preventDefault();suppressJournalClickUntil=performance.now()+250;
+    try{
+      if(drop.target==='completed') edit({...drop.entry,group:'completed'},true);
+      else{
+        commit(records().map(entry=>entry?.id===drop.entry.id?{...entry,group:drop.target}:entry));
+        render();
+        $('journal-'+drop.target).querySelector('[data-journal-entry="'+CSS.escape(drop.entry.id)+'"]')?.focus({preventScroll:true});
+      }
+    }catch(error){showToast(error.message);}
+  });
   $('page-journal').addEventListener('click',event=>{
+    if(performance.now()<suppressJournalClickUntil){event.preventDefault();return;}
     const add=event.target.closest('[data-journal-add]');
     if(add) edit({group:add.dataset.journalAdd});
     const row=event.target.closest('[data-journal-entry]');

@@ -331,6 +331,11 @@ const server=createSandboxServer();
     assert.ok(scrolled.statsGap>=0&&scrolled.statsGap<=24,'Statistics remain directly below the visible navigation');
     assert.ok(scrolled.gutter>=12,'Statistics counts keep a readable right gutter');
    }
+   if(width>=1240){
+    const painted=await page.locator('#page-journal').evaluate(el=>{const box=el.getBoundingClientRect();return {background:getComputedStyle(el).backgroundImage,bottom:box.bottom};});
+    assert.ok(painted.background.includes('linear-gradient'),'Sidebar background belongs to the whole Journal page');
+    assert.ok(painted.bottom>=899);
+   }
    await page.screenshot({path:'/tmp/jtd-journal-scroll-'+width+'-'+theme+'.png'});
    assert.deepEqual(errors,[]);await context.close();console.log('PASS home/navigation',width,theme);
   }

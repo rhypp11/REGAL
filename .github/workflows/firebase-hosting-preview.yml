@@ -51,6 +51,9 @@ jobs:
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/home-navigation.cjs
 
 
+      - name: Check Journal drag and drop
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/journal-drag.cjs
+
       - name: Check cemetery flows
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/cemetery.cjs
 
