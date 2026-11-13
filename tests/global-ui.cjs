@@ -17,7 +17,7 @@ const server=createSandboxServer();
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
    const initialPage=await page.evaluate(()=>navigationPage);
    await page.locator('[data-page="library"]').hover();
-   await page.waitForTimeout(60);
+   await page.waitForTimeout(220);
    assert.equal(await page.locator('#collection-views').isVisible(),false,'Brief hover does not open the menu');
    await page.mouse.move(0,0);
    await page.waitForTimeout(240);
@@ -32,6 +32,18 @@ const server=createSandboxServer();
    }
    await page.mouse.move(0,0);
    await page.locator('#collection-views').waitFor({state:'hidden'});
+   await page.evaluate(()=>goToPage('journal'));
+   const journalURL=await page.evaluate(()=>location.href);
+   await page.locator('[data-page="library"]').click();
+   assert.equal(await page.evaluate(()=>navigationPage),'journal','Click opens the menu without navigating');
+   assert.equal(await page.evaluate(()=>location.href),journalURL,'Click preserves the current URL');
+   assert.equal(await page.locator('#collection-views').isVisible(),true);
+   await page.locator('[data-page="library"]').click();
+   assert.equal(await page.locator('#collection-views').isVisible(),true,'Click keeps an already-open menu visible');
+   await page.keyboard.press('Escape');
+   await page.locator('[data-page="library"]').focus();await page.keyboard.press('ArrowDown');
+   assert.equal(await page.evaluate(()=>document.activeElement.closest('#collection-views')!==null),true,'Keyboard opening focuses a menu item from Journal');
+   await page.keyboard.press('Escape');
    let headerGeometry;
    for(const view of ['home','collection','cemetery']){
     await openCollectionMenu(page);await page.locator('[data-page="'+view+'"]').click();

@@ -3070,7 +3070,6 @@ window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
 
-let collectionHoverOpened = false;
 let collectionHoverTimer;
 let collectionOpenTimer;
 const collectionTrigger = document.querySelector('[data-page="library"]');
@@ -3086,10 +3085,9 @@ collectionGroup.addEventListener('pointerenter',()=>{
   if(!collectionHover.matches || !collectionMenu.classList.contains('hidden')) return;
   collectionOpenTimer = setTimeout(()=>{
     if(!collectionGroup.matches(':hover')) return;
-    collectionHoverOpened = true;
     collectionMenu.classList.remove('hidden');
     collectionTrigger.setAttribute('aria-expanded','true');
-  },180);
+  },350);
 });
 collectionGroup.addEventListener('pointerleave',()=>{
   cancelCollectionHover();
@@ -3098,7 +3096,6 @@ collectionGroup.addEventListener('pointerleave',()=>{
     if(collectionGroup.matches(':hover') || collectionMenu.contains(document.activeElement)) return;
     collectionMenu.classList.add('hidden');
     collectionTrigger.setAttribute('aria-expanded','false');
-    collectionHoverOpened = false;
   },250);
 });
 
@@ -3106,12 +3103,9 @@ document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
   btn.addEventListener('click', event => {
     if(btn.dataset.page === 'library'){
       const menu = document.getElementById('collection-views');
-      const opening = menu.classList.contains('hidden') || (event.detail > 0 && collectionHoverOpened);
-      collectionHoverOpened = false;
       cancelCollectionHover();
-      goToPage(lastCollectionPage);
-      menu.classList.toggle('hidden', !opening);
-      btn.setAttribute('aria-expanded',String(opening));
+      menu.classList.remove('hidden');
+      btn.setAttribute('aria-expanded','true');
       return;
     }
     goToPage(btn.dataset.page);
@@ -3141,7 +3135,7 @@ document.querySelector('[data-page="library"]').addEventListener('keydown',event
     event.preventDefault();
     document.getElementById('collection-views').classList.remove('hidden');
     event.currentTarget.setAttribute('aria-expanded','true');
-    document.querySelector('#collection-views [aria-current="page"]')?.focus();
+    (document.querySelector('#collection-views [aria-current="page"]') || collectionMenu.querySelector('button'))?.focus();
   }
 });
 document.getElementById('collection-views').addEventListener('keydown',event=>{

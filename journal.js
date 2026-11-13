@@ -74,23 +74,25 @@
     if(modes[entry.mode]) tags.push([modes[entry.mode],'']);
     if(accessLabel(entry)) tags.push([accessLabel(entry),accessIcons[entry.access]]);
     if(entry.replayed) tags.push(['Rejoué',replayIcon]);
-    return tags.length?'<span class="journal-tags">'+tags.map(([label,icon])=>
-      '<span class="journal-tag">'+(icon||'')+esc(label)+'</span>').join('')+'</span>':'';
+    const dateTitle=entry.estimated||entry.yearOnly?'Date de complétion approximative':'Date de complétion';
+    return '<span class="journal-tags">'+tags.map(([label,icon])=>
+      '<span class="journal-tag">'+(icon||'')+esc(label)+'</span>').join('')+
+      '<span class="journal-tag journal-completion-date" title="'+dateTitle+'">'+esc(dateLabel(entry))+'</span></span>';
   }
   function row(entry){
     const done = entry.group === 'completed';
     const tracked = entry.group === 'release';
     const scheduled = tracked && !entry.estimated && !entry.yearOnly && validDay(entry.date);
+    const platform='<small class="journal-row-platform">'+
+      (entry.platform?getPlatformOptionIconHtml(entry.platform)+'<span class="journal-platform-name">'+esc(entry.platform)+'</span>':'')+
+      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+'</small>';
+    const status=done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
+      (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'';
     return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'"'+(['playing','backlog'].includes(entry.group)?' draggable="true" title="Glisser pour déplacer le jeu"':'')+'>'+
       (scheduled?day(entry):'')+
-      gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small class="journal-row-platform">'+
-      (entry.platform?getPlatformOptionIconHtml(entry.platform)+esc(entry.platform):'')+
-      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+
-      (done?'<span class="journal-completion-date"'+(entry.estimated||entry.yearOnly?' title="Date approximative"':'')+'>'+esc(dateLabel(entry))+'</span>':'')+'</small>'+
-      (tracked&&!scheduled?'<small class="journal-release-date">'+esc(dateLabel(entry))+'</small>':'')+
-      '</span>'+(done?rowTags(entry):'')+
-      (done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
-        (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'')+'</button>';
+      gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong>'+(!done?platform:'')+
+      (tracked&&!scheduled?'<small class="journal-release-date">'+esc(dateLabel(entry))+'</small>':'')+'</span>'+
+      (done?'<span class="journal-row-meta">'+platform+status+'</span>'+rowTags(entry):'')+'</button>';
   }
   function calendar(entries,groupBy){
     const groups = new Map();

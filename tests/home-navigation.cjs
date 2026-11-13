@@ -51,7 +51,8 @@ const server=createSandboxServer();
    await openCollectionMenu(page);await page.locator('[data-page="collection"]').click();await page.waitForFunction(()=>navigationPage==='collection');
    await page.locator('[data-page="journal"]').click();
    await page.locator('[data-page="library"]').click();
-   assert.equal(await page.evaluate(()=>navigationPage),'collection');
+   assert.equal(await page.evaluate(()=>navigationPage),'journal','Collection trigger only opens the menu');
+   assert.equal(await page.locator('#collection-views').isVisible(),true);
    if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
    await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
    assert.equal(await page.locator('#home-boards-switcher').isVisible(),width<=820);
@@ -263,7 +264,7 @@ const server=createSandboxServer();
    assert.ok(art.every(entry=>entry.covers && entry.width>=(width>820?100:60)));
    const importedRow=page.locator('#journal-completed .journal-row').filter({hasText:'Import ancien !'});
    assert.equal(await importedRow.locator('.journal-row-platform :is(.icon-select-icon,.icon-select-dot)').count(),1);
-   assert.deepEqual(await importedRow.locator('.journal-tag').allTextContents(),['Physique','Solo']);
+   assert.deepEqual(await importedRow.locator('.journal-tag').allTextContents(),['Physique','Solo','≈ 2017']);
    await page.locator('#journal-sort').selectOption('desc');
    assert.deepEqual(await importedRows.allTextContents(),['Import au mois','Import rejoué !','Import ancien !']);
    assert.equal(await page.evaluate(()=>LEGACY_JOURNAL.find(record=>record.regalJournal===2).entries.filter(entry=>entry.importKey).length),3);
@@ -297,13 +298,15 @@ const server=createSandboxServer();
    });
    const layout=await page.locator('#journal-completed .journal-row').evaluateAll(rows=>rows.map(row=>{
     const box=selector=>{const element=row.querySelector(selector);if(!element)return null;const r=element.getBoundingClientRect();return {x:r.x,right:r.right,y:r.y,bottom:r.bottom};};
-    return {overflow:row.scrollWidth>row.clientWidth+1,title:box('.journal-title'),art:box('.board-thumb'),tags:box('.journal-tags'),status:box('.journal-row-status'),feeling:box('.journal-feeling'),comment:box('.journal-comment-mark')};
+    return {overflow:row.scrollWidth>row.clientWidth+1,title:box('.journal-title'),meta:box('.journal-row-meta'),platform:box('.journal-row-platform'),art:box('.board-thumb'),tags:box('.journal-tags'),status:box('.journal-row-status'),feeling:box('.journal-feeling'),comment:box('.journal-comment-mark')};
    }));
    assert.equal(layout.length,4);
    assert.ok(layout.every(row=>!row.overflow),'Long completion titles and metadata stay within the row');
    if(width<=820){
-    assert.ok(layout.every(row=>row.status.y>=Math.max(row.title.bottom,row.art.bottom)+5),'Status follows the game identity');
-    assert.ok(layout.every(row=>row.tags.y>=row.status.bottom+5),'Secondary metadata has its own line');
+    assert.ok(layout.every(row=>row.meta.y>=Math.max(row.title.bottom,row.art.bottom)+5),'Metadata follows the game identity');
+    assert.ok(layout.every(row=>row.status.y<row.platform.bottom&&row.platform.y<row.status.bottom),'Platform and completion status share the metadata line');
+    assert.ok(layout.every(row=>row.tags.y>=row.meta.bottom+5),'Secondary tags follow the metadata line');
+    assert.equal(await page.locator('#journal-completed .journal-tags > :last-child.journal-completion-date').count(),4,'Completion date is the last secondary tag');
     for(const key of ['feeling','comment']){
      const positions=layout.flatMap(row=>row[key]?[row[key].x]:[]);
      assert.ok(Math.max(...positions)-Math.min(...positions)<1,'Feeling and comment positions remain stable');
