@@ -1921,8 +1921,8 @@ function arrivalRowHtml(item, showSource){
       <div class="board-info">
         <div class="board-name" title="${escapeHTML(item.nom)}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${escapeHTML(item.nom)}</span></div>
         <div class="board-plat">${platIconHtml}${escapeHTML(item.plateforme)}${showSource && item.source ? `<span class="arrival-mobile-source"> · ${escapeHTML(item.source)}</span>` : ''}</div>
+        ${purchaseHtml}
       </div>
-      ${purchaseHtml}
     </div>`;
 }
 
