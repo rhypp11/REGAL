@@ -26,7 +26,9 @@ const server=createSandboxServer();
       assert.equal(await statsToggle.getAttribute('aria-expanded'),'false');
       assert.equal(await statsPanel.isVisible(),false);
       const titleBox=await page.locator('.platform-banner-title').boundingBox();
-      assert.ok(titleBox.height<32,'The unfiltered title stays on one line');
+      const titleLine=await page.locator('.platform-banner-title').evaluate(el=>parseFloat(getComputedStyle(el).lineHeight));
+      assert.ok(titleBox.height<=titleLine+1,'The unfiltered heading stays on one line');
+      assert.equal(await page.locator('#page-collection h1').count(),1,'Collection has a visible page heading');
       const toggleBox=await statsToggle.boundingBox();
       assert.ok(toggleBox.x>=titleBox.x+titleBox.width-.5,'Count fits beside the platform title');
       await statsToggle.press('Enter');
@@ -37,13 +39,20 @@ const server=createSandboxServer();
       await statsToggle.click();
       assert.equal(await statsPanel.isVisible(),false);
       await page.selectOption('#sort-select','name-asc');
+      const headingShape=()=>page.locator('.platform-banner-head').evaluate(el=>{
+        const style=getComputedStyle(el);return {padding:style.padding,radius:style.borderRadius};
+      });
+      const neutralHeading=await headingShape();
+      await page.evaluate(()=>{state.platform=GAMES.find(g=>g.format==='Physique').plateforme;buildPlatformList();render();});
+      assert.deepEqual(await headingShape(),neutralHeading,'All platforms and a selected platform use the same header structure');
+      await page.evaluate(()=>{state.platform=null;buildPlatformList();render();});
       await page.locator('#grid .card-banner img').first().evaluate(img=>img.decode());
       const geometry=await page.locator('#grid .card').evaluateAll(cards=>cards.map(card=>{
         const box=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
         return {card:box(card),banner:box(card.querySelector('.card-banner')),platformFont:parseFloat(getComputedStyle(card.querySelector('.card-platform')).fontSize),parts:[...card.querySelectorAll('.card-body,.card-name,.card-platform,.card-status-badge,.card-acquisition,.card-price')].map(box)};
       }));
       for(const g of geometry){
-        assert.ok(g.banner.top>=g.card.top+9 && g.banner.bottom<=g.card.bottom-9,'Thumbnail stays inside padded card');
+        assert.ok(Math.abs(g.banner.top-g.card.top-1)<1 && g.banner.bottom<=g.card.bottom,'Landscape artwork aligns with the top of its card');
         assert.ok(Math.abs(g.banner.width/g.banner.height-16/9)<.02,'Horizontal thumbnail keeps its proportions');
         assert.ok(g.platformFont>=12,'Platform remains readable');
         for(const p of g.parts) assert.ok(p.left>=g.card.left && p.right<=g.card.right+.5 && p.top>=g.card.top && p.bottom<=g.card.bottom+.5,'Card information stays inside');

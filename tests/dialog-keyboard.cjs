@@ -48,7 +48,11 @@ async function checkTrap(page,id){
     assert.equal(await page.locator('.topnav').evaluate(el=>el.inert),false,'Background released');
    }
    // Keyboard entry and restoring a rebuilt card after saving.
+   await page.locator('#collection-view-switch [data-view="cards"]').click();
    const card=page.locator('#page-collection .card-open-control').first();await card.focus();await page.keyboard.press('Enter');
+   await page.keyboard.press('Escape');
+   assert.equal(await card.evaluate(el=>el===document.activeElement),true,'Keyboard opening ignores a recent pointer on the view switch');
+   await page.keyboard.press('Enter');
    await checkTrap(page,'modal-overlay');
    await page.locator('#f-identity-summary .identity-edit-btn').click();
    await page.locator('#save-btn').click();

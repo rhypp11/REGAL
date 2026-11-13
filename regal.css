@@ -84,8 +84,7 @@
 @media(max-width:360px) {
   .topnav .brand-word.regal-logo { width:96px; height:36px; }
 }
-/* Cartes plus compactes sur ordinateur ; largeur mobile conservée. */
-@media(min-width:1101px) { #page-collection .grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+/* La grille de collection est définie dans collection.css. */
 
 
 @media(min-width:701px) and (max-width:1100px) {

@@ -107,6 +107,8 @@
     if(element) lastPointer={element,time:performance.now()};
   },true);
   document.addEventListener('keydown',event=>{
+    // Keyboard activation must return to its focused control, not a recent pointer target.
+    lastPointer = null;
     sync(); const entry = top(); if(!entry) return;
     if(event.key==='Escape'){
       // The inline platform creator handles its own first Escape.
