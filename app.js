@@ -2123,10 +2123,13 @@ function renderWishlist(){
       ? `<a class="board-link" href="${escapeHTML(safeURL(item.lien))}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(item.lien)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg><span>Voir le lien</span></a>`
       : '';
     const parsedDate = parseWishlistDate(item.date);
-    const releaseDateHtml = item.date
+    const showCalendar = !released && parsedDate.priority === 0;
+    row.classList.toggle('wishlist-row-dated',showCalendar);
+    const releaseDateHtml = item.date && !showCalendar
       ? `<span class="wishlist-release-date" title="Date de sortie">${escapeHTML(parsedDate.label)}</span>`
       : '';
     row.innerHTML = `
+      ${showCalendar ? calendarDayHtml(parsedDate.key) : ''}
       ${boardThumb(item)}
       <div class="board-info">
         <div class="board-name" title="${escapeHTML(item.nom)}">${item.collector ? `<span class="board-collector-star" title="Édition collector">${FORMAT_ICON_STAR}</span>` : ''}${japaneseEditionMark(item)}<span>${escapeHTML(item.nom)}</span></div>
@@ -3002,8 +3005,8 @@ function placeJournalControls(){
   const toolbar = document.getElementById('journal-toolbar');
   const views = document.getElementById('journal-view-controls');
   if(journalMobileControls.matches) views.after(toolbar);
-  else page.prepend(toolbar);
-  if(navigationPage === 'journal') (journalMobileControls.matches ? views : toolbar).prepend(mobileFilterToggle);
+  else page.querySelector('.journal-heading').after(toolbar);
+  if(navigationPage === 'journal') document.getElementById('journal-heading-actions').append(mobileFilterToggle);
 }
 journalMobileControls.addEventListener('change',placeJournalControls);
 
@@ -3012,7 +3015,7 @@ function goToPage(page, push = true){
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
   navigationPage = ['collection','cemetery','journal','pokedex'].includes(page) ? page : 'home';
-  const statsControl = navigationPage === 'home' || navigationPage === 'cemetery';
+  const statsControl = navigationPage === 'home' || navigationPage === 'cemetery' || navigationPage === 'journal';
   mobileFilterToggle.classList.toggle('page-stats-toggle', statsControl);
   mobileFilterToggle.innerHTML = statsControl
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10m8 10V4m8 16v-7"/></svg><span>Statistiques</span>'

@@ -58,6 +58,10 @@ const server=createSandboxServer();
      await page.locator('#mobile-backdrop').click({position:{x:width-1,y:400}});
      assert.equal(await filter.getAttribute('aria-expanded'),'false');
     }
+    if(view==='collection'){
+     assert.equal(await page.locator('.side-section-platforms').evaluate(el=>getComputedStyle(el).borderTopWidth),'0px','No separator directly below the format tabs');
+     assert.equal(await page.locator('.collection-media-controls').evaluate(el=>getComputedStyle(el).borderBottomWidth),'0px');
+    }
     if(view==='collection'&&width>=1101){
      assert.equal(await page.locator('#grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),width>=1440?4:3,'Collection uses four cards on large screens');
     }

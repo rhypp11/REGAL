@@ -304,12 +304,15 @@
 #collection-sidebar .reset-btn { border-color:transparent; background:transparent; color:var(--ui-text-muted); }
 #page-collection .results-bar { color:var(--ui-text-muted); }
 @media(min-width:821px) {
-  #collection-sidebar { background:transparent; padding:var(--ui-space-3) var(--ui-space-4); border-right:0; }
+  #collection-sidebar { background:var(--ui-sidebar); padding:var(--ui-space-6) var(--ui-space-4); border-right:1px solid var(--ui-border); min-height:calc(100dvh - var(--topnav-h)); }
 }
 #collection-sidebar { gap:0; }
 #collection-sidebar .side-section { padding:var(--ui-space-4) var(--ui-space-2); margin:0; border:0; border-bottom:1px solid var(--ui-border); border-radius:0; background:transparent; }
 #collection-sidebar .side-section:last-child { border-bottom:0; }
-#collection-sidebar .collection-media-controls { padding:4px; }
+#collection-sidebar .side-section + .side-section { border-top:0; padding-top:16px; }
+#collection-sidebar .collection-media-controls + .side-section-platforms { padding-top:8px; }
+#collection-sidebar .side-section.collection-media-controls { padding:4px 0 12px; border-bottom:0; }
+#collection-sidebar .side-section-platforms { padding-top:8px; }
 #collection-sidebar .side-label { font-size:12px; font-weight:650; color:var(--ui-text); text-transform:none; letter-spacing:0; }
 #collection-sidebar .side-label-row { margin-bottom:10px; }
 #collection-sidebar .icon-link-btn svg { width:18px; height:18px; }

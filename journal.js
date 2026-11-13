@@ -66,7 +66,7 @@
   }
   function day(entry){
     if(entry.estimated) return '<span class="calendar-day calendar-day-loose" title="Date approximative" aria-label="Date approximative"><strong>≈</strong></span>';
-    return calendarDayHtml(entry.date);
+    return calendarDayHtml(entry.date).replace('<div ', '<div aria-label="'+esc(dateLabel(entry))+'" ');
   }
   function rowTags(entry){
     const tags=[];
@@ -80,12 +80,14 @@
   function row(entry){
     const done = entry.group === 'completed';
     const tracked = entry.group === 'release';
-    return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'">'+
-      (done?day(entry):'')+
+    const scheduled = tracked && !entry.estimated && !entry.yearOnly && validDay(entry.date);
+    return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'"'+(['playing','backlog'].includes(entry.group)?' draggable="true" title="Glisser pour déplacer le jeu"':'')+'>'+
+      (scheduled?day(entry):'')+
       gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong><small class="journal-row-platform">'+
       (entry.platform?getPlatformOptionIconHtml(entry.platform)+esc(entry.platform):'')+
-      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+'</small>'+
-      (tracked&&validDay(entry.date)?'<small class="journal-release-date">'+esc(parseWishlistDate(entry.date).label)+'</small>':'')+
+      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+
+      (done?'<span class="journal-completion-date"'+(entry.estimated||entry.yearOnly?' title="Date approximative"':'')+'>'+esc(dateLabel(entry))+'</span>':'')+'</small>'+
+      (tracked&&!scheduled?'<small class="journal-release-date">'+esc(dateLabel(entry))+'</small>':'')+
       '</span>'+(done?rowTags(entry):'')+
       (done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
         (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'')+'</button>';
@@ -98,12 +100,12 @@
       groups.get(group.key).items.push(entry);
     }
     return [...groups.values()].map(group=>'<section class="journal-calendar">'+
-      calendarGroupHtml(group.label,'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('');
+      calendarGroupHtml(group.label,group.year||'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('');
   }
   function completedGroup(entry){
     if(entry.yearOnly) return {key:'year',label:'Année seule'};
     const month=Number(entry.date.slice(5,7))-1;
-    return {key:entry.date.slice(0,7),label:MONTH_NAMES_FULL[month]||'Date inconnue',color:MONTH_COLORS[month]};
+    return {key:entry.date.slice(0,7),label:MONTH_NAMES_FULL[month]||'Date inconnue',year:entry.date.slice(0,4),color:MONTH_COLORS[month]};
   }
   function releaseSortKey(entry){
     const date = String(entry.date || '');
@@ -113,7 +115,7 @@
   function releaseGroup(entry){
     const value=String(entry.date||'');
     const month=/^\d{4}-(?:0[1-9]|1[0-2])(?:-\d{2})?$/.test(value)?Number(value.slice(5,7))-1:-1;
-    if(month>=0) return {key:value.slice(0,7),label:MONTH_NAMES_FULL[month]+' '+value.slice(0,4),color:MONTH_COLORS[month]};
+    if(month>=0) return {key:value.slice(0,7),label:MONTH_NAMES_FULL[month],year:value.slice(0,4),color:MONTH_COLORS[month]};
     const label=/^\d{4}$/.test(value)?value:'TBD';
     return {key:label,label};
   }
@@ -141,7 +143,7 @@
       return counts;
     };
     const stat=(label,count,graphic='')=>'<div class="journal-stat"><span>'+graphic+esc(label)+'</span><b>'+count+'</b></div>';
-    const section=(label,html)=>'<section class="journal-stat-section"><h4>'+label+'</h4>'+html+'</section>';
+    const section=(label,html)=>'<section class="journal-stat-section"><h3>'+label+'</h3>'+html+'</section>';
     const counts=countBy('completion'), total=entries.length;
     const colors=['var(--status-done)','var(--amber)','#8867bb'];
     let start=0;
@@ -153,7 +155,7 @@
     });
     const ring='<div class="home-completion-ring journal-stat-ring" style="background:'+
       (total?'conic-gradient('+gradient.join(',')+',var(--ui-border) '+start+'% 100%)':'var(--ui-border)')+
-      '"><span><strong>'+total+'</strong><small>Complétions</small></span></div>';
+      '"><span><strong>'+total+'</strong><small>Total</small></span></div>';
     const platforms=[...countBy('platform')].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'fr')).map(([name,count])=>{
       const logo=safeURL(getPlatformLogo(name),true);
       const graphic=logo?'<img src="'+esc(logo)+'" alt="">':'<i style="background:'+esc(getPlatformColor(name))+'"></i>';
@@ -638,7 +640,61 @@
   $('journal-year').addEventListener('change',render);
   $('journal-sort').addEventListener('change',event=>{sortByYear.set($('journal-year').value,event.target.value);render();});
   $('journal-close').addEventListener('click',dismiss);
+  const journalDragType='application/x-regal-journal-entry';
+  let journalDrag=null, suppressJournalClickUntil=0;
+  const journalPage=$('page-journal');
+  function clearJournalDrag(){
+    journalDrag=null;
+    journalPage.classList.remove('journal-drag-active');
+    journalPage.querySelectorAll('.journal-dragging,.journal-drop-over').forEach(element=>element.classList.remove('journal-dragging','journal-drop-over'));
+  }
+  function journalDropTarget(event){
+    const zone=event.target.closest?.('[data-journal-drop]');
+    if(!journalDrag||!zone||navigationPage!=='journal'||journalDrag.generation!==window.JTDAccountGeneration) return null;
+    if(!Array.from(event.dataTransfer?.types||[]).includes(journalDragType)) return null;
+    const target=zone.dataset.journalDrop;
+    const entry=records().find(item=>item?.id===journalDrag.id);
+    if(!entry||entry.group!==journalDrag.group) return null;
+    const allowed=target==='completed'?entry.group==='playing':['playing','backlog'].includes(target)&&target!==entry.group;
+    return allowed?{zone,target,entry}:null;
+  }
+  journalPage.addEventListener('dragstart',event=>{
+    const row=event.target.closest?.('[data-journal-entry][draggable="true"]');
+    const entry=records().find(item=>item?.id===row?.dataset.journalEntry);
+    if(!entry||!['playing','backlog'].includes(entry.group)||!event.dataTransfer) return;
+    journalDrag={id:entry.id,group:entry.group,generation:window.JTDAccountGeneration};
+    event.dataTransfer.setData(journalDragType,entry.id);
+    event.dataTransfer.effectAllowed='move';
+    row.classList.add('journal-dragging');journalPage.classList.add('journal-drag-active');
+  });
+  journalPage.addEventListener('dragover',event=>{
+    const drop=journalDropTarget(event);
+    journalPage.querySelectorAll('.journal-drop-over').forEach(element=>element.classList.remove('journal-drop-over'));
+    if(!drop) return;
+    event.preventDefault();event.dataTransfer.dropEffect='move';drop.zone.classList.add('journal-drop-over');
+  });
+  journalPage.addEventListener('dragleave',event=>{
+    const zone=event.target.closest?.('[data-journal-drop]');
+    if(zone&&(!(event.relatedTarget instanceof Node)||!zone.contains(event.relatedTarget))) zone.classList.remove('journal-drop-over');
+  });
+  journalPage.addEventListener('dragend',clearJournalDrag);
+  journalPage.addEventListener('drop',event=>{
+    const drop=journalDropTarget(event);
+    const valid=drop&&event.dataTransfer.getData(journalDragType)===journalDrag.id;
+    clearJournalDrag();
+    if(!valid) return;
+    event.preventDefault();suppressJournalClickUntil=performance.now()+250;
+    try{
+      if(drop.target==='completed') edit({...drop.entry,group:'completed'},true);
+      else{
+        commit(records().map(entry=>entry?.id===drop.entry.id?{...entry,group:drop.target}:entry));
+        render();
+        $('journal-'+drop.target).querySelector('[data-journal-entry="'+CSS.escape(drop.entry.id)+'"]')?.focus({preventScroll:true});
+      }
+    }catch(error){showToast(error.message);}
+  });
   $('page-journal').addEventListener('click',event=>{
+    if(performance.now()<suppressJournalClickUntil){event.preventDefault();return;}
     const add=event.target.closest('[data-journal-add]');
     if(add) edit({group:add.dataset.journalAdd});
     const row=event.target.closest('[data-journal-entry]');
