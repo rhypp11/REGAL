@@ -27,6 +27,20 @@ function lotLabel(group){
   for(const item of group) counts.set(item.plateforme,(counts.get(item.plateforme) || 0) + 1);
   return [...counts].map(([platform,count]) => count + ' ' + platform).join(' · ');
 }
+function lotPreview(group){
+  const thumbnails = group.slice(0,3).map(game=>{
+    const hasImage = !!safeURL(game.image,true);
+    return '<span class="sale-lot-thumb'+gameImageClass(game)+'">'+
+      (hasImage ? gameImageHtml(game,'',true) : '')+
+      '<span class="board-image-fallback'+(hasImage?' hidden':'')+'">'+escapeHTML(game.plateforme.slice(0,2).toUpperCase())+'</span></span>';
+  }).join('');
+  const names = group.slice(0,2).map(game=>'<span class="sale-lot-name" title="'+escapeHTML(game.nom)+'">'+escapeHTML(game.nom)+'</span>').join('');
+  const remaining = group.length-2;
+  return {
+    thumbnails:'<span class="sale-lot-thumbs" aria-hidden="true">'+thumbnails+'</span>',
+    names:'<span class="sale-lot-names">'+names+(remaining>0?'<span class="sale-lot-more" aria-label="'+remaining+' autres jeux">+'+remaining+'</span>':'')+'</span>'
+  };
+}
 function updateCemeteryStats(){
   const pending = CEMETERY.filter(game => game.saleStatus === 'pending');
   const sold = CEMETERY.filter(game => game.saleStatus === 'sold');
@@ -210,9 +224,10 @@ function renderCemetery(){
       lot.className = 'sale-lot';
       lot.dataset.saleKey = saleKey(item);
       lot.open = openLots.has(lot.dataset.saleKey);
+      const preview = lotPreview(group);
       lot.innerHTML = `<summary class="sale-lot-summary">
-        <span class="sale-lot-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg></span>
-        <span class="sale-lot-title"><strong>Lot · ${group.length} jeux</strong><span>${escapeHTML(lotLabel(group))}</span></span>
+        ${preview.thumbnails}
+        <span class="sale-lot-title"><strong>Lot · ${group.length} jeux</strong>${preview.names}<span class="sale-lot-platforms" title="${escapeHTML(lotLabel(group))}">${escapeHTML(lotLabel(group))}</span></span>
         ${saleHeading(item,true)}
         <svg class="sale-lot-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </summary>`;

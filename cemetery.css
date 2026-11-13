@@ -44,10 +44,17 @@
 .sale-lot-summary::-webkit-details-marker { display:none; }
 .sale-lot-summary:hover { background:color-mix(in srgb,var(--sale-accent) 7%,var(--ui-surface)); }
 .sale-lot-summary:focus-visible { outline:2px solid var(--ui-accent); outline-offset:-2px; }
-.sale-lot-icon { display:grid; place-items:center; flex:0 0 48px; width:48px; height:48px; border-radius:12px; background:var(--ui-canvas); color:var(--sale-accent); }
-.sale-lot-icon svg { width:26px; height:26px; }
+.sale-lot-thumbs { position:relative; display:block; flex:0 0 128px; width:128px; height:60px; margin-block:4px; }
+.sale-lot-thumbs .sale-lot-thumb { position:absolute; display:block; top:0; left:0; z-index:3; width:84px; height:47.25px; border:2px solid var(--ui-surface); border-radius:6px; background:var(--ui-surface-raised); box-shadow:0 2px 6px #0004; transform:rotate(-4deg); }
+.sale-lot-thumb:nth-child(2) { top:5px; left:20px; z-index:2; transform:none; }
+.sale-lot-thumb:nth-child(3) { top:10px; left:40px; z-index:1; transform:rotate(4deg); }
+.sale-lot-thumb .board-image-fallback { position:absolute; inset:0; display:grid; place-items:center; color:var(--ui-text-muted); font-size:12px; font-weight:650; }
 .sale-lot-title,.sale-order-title { display:grid; flex:1; gap:5px; min-width:0; overflow-wrap:anywhere; font-size:16px; }
 :is(.sale-lot-title,.sale-order-title) > span { color:var(--ui-text-muted); font-size:12px; line-height:1.4; }
+.sale-lot-title > .sale-lot-names { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 8px; color:var(--ui-text); }
+.sale-lot-name { grid-column:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sale-lot-more { grid-column:2; grid-row:2; align-self:center; color:var(--ui-text-muted); white-space:nowrap; }
+.sale-lot-platforms { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 :is(.sale-lot-summary,.sale-order-row) .sale-group-heading { flex:0 0 170px; min-height:0; padding:0; border:0; }
 .sale-lot-chevron { flex:none; transition:transform var(--ui-transition-fast); }
 .sale-lot[open] > .sale-lot-summary .sale-lot-chevron { transform:rotate(180deg); }
@@ -113,10 +120,13 @@
   .sale-amount { font-size:20px; }
   .sale-game.card { grid-template-columns:96px minmax(0,1fr); }
   .sale-game.card .card-banner { width:96px; height:54px; }
-  .sale-lot-summary { display:grid; grid-template-columns:minmax(0,1fr) 16px; gap:12px; padding:16px; }
-  .sale-lot-icon { display:none; }
-  .sale-lot-title { grid-column:1; grid-row:1; }
-  .sale-lot-chevron { grid-column:2; grid-row:1; }
+  .sale-lot-summary { display:grid; grid-template-columns:92px minmax(0,1fr) 16px; gap:12px; padding:16px; }
+  .sale-lot-thumbs { grid-column:1; grid-row:1; width:92px; height:48px; }
+  .sale-lot-thumbs .sale-lot-thumb { width:64px; height:36px; }
+  .sale-lot-thumb:nth-child(2) { top:4px; left:14px; }
+  .sale-lot-thumb:nth-child(3) { top:8px; left:28px; }
+  .sale-lot-title { grid-column:2; grid-row:1; font-size:14px; }
+  .sale-lot-chevron { grid-column:3; grid-row:1; }
   .sale-lot-summary .sale-group-heading { grid-column:1 / -1; grid-row:2; flex-basis:auto; padding-top:12px; border-top:1px solid var(--ui-border); }
   .sale-order-row { display:grid; grid-template-columns:44px minmax(0,1fr); gap:12px; padding:16px; }
   .sale-order-row .sale-group-heading { grid-column:2; flex-basis:auto; padding:0; border:0; }
