@@ -286,7 +286,7 @@
 }
 @media(max-width:420px) {
   #page-collection .platform-banner-head { gap:8px; }
-  #page-collection .platform-banner-title { font-size:24px; }
+  #page-collection .platform-banner-title { font-size:22px; }
   #page-collection .platform-banner-head :is(.platform-banner-logo,.platform-banner-fallback) { width:28px; height:28px; flex-basis:28px; }
   #page-collection .platform-banner.neutral .platform-banner-fallback { display:none; }
 }
