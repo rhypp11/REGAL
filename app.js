@@ -1,5 +1,6 @@
 const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true;
 const mobileFilterToggle = document.getElementById('global-filter-toggle');
+const filterToggleIcon = mobileFilterToggle.innerHTML;
 window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
 if(IS_PREVIEW_MODE){
   document.documentElement.dataset.environment = 'sandbox';
@@ -1191,7 +1192,7 @@ function renderCard(g, options = {}){
     <div class="card-body">
       <button type="button" class="card-name card-open-control" aria-label="${options.onOpen ? 'Modifier la vente de ' : 'Ouvrir la fiche de '}${escapeHTML(g.nom)}" title="${escapeHTML(g.nom)}">${collectorTitleHtml}${japaneseEditionMark(g)}${bundleMark(g)}<span class="card-name-text">${escapeHTML(g.nom)}</span></button>
       <div class="card-summary card-identity">
-        <span class="card-platform">${platformHtml}</span>
+        ${options.readOnly || state.platform !== g.plateforme ? `<span class="card-platform">${platformHtml}</span>` : ''}
         ${statusBadgeHtml}
       </div>
       ${acquisitionHtml}
@@ -3011,6 +3012,11 @@ function goToPage(page, push = true){
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
   navigationPage = ['collection','cemetery','journal','pokedex'].includes(page) ? page : 'home';
+  const statsControl = navigationPage === 'home' || navigationPage === 'cemetery';
+  mobileFilterToggle.classList.toggle('page-stats-toggle', statsControl);
+  mobileFilterToggle.innerHTML = statsControl
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10m8 10V4m8 16v-7"/></svg><span>Statistiques</span>'
+    : filterToggleIcon;
   const inCollection = collectionPages.includes(navigationPage);
   if(inCollection) lastCollectionPage = navigationPage;
   const views = document.getElementById('collection-views');
@@ -3029,8 +3035,8 @@ function goToPage(page, push = true){
   document.title = 'REGAL | ' + (navigationPage === 'collection' ? 'Mes jeux' : 'Vue d’ensemble');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
   if(navigationPage === 'cemetery'){ document.title = 'REGAL | Ventes'; window.renderCemetery?.(); }
-  if(navigationPage === 'cemetery') document.getElementById('cemetery-view-controls').prepend(mobileFilterToggle);
-  if(navigationPage === 'home') document.getElementById('home-view-controls').prepend(mobileFilterToggle);
+  if(navigationPage === 'cemetery') document.getElementById('cemetery-heading-actions').append(mobileFilterToggle);
+  if(navigationPage === 'home') document.getElementById('home-heading-actions').append(mobileFilterToggle);
   if(navigationPage === 'journal') placeJournalControls();
   mobileFilterToggle.setAttribute('aria-label', navigationPage === 'collection' ? 'Afficher les filtres' : 'Afficher les statistiques');
   document.getElementById('page-home').classList.toggle('hidden', navigationPage !== 'home');

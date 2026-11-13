@@ -50,7 +50,7 @@ const server=createSandboxServer();
     const filter=page.locator('#global-filter-toggle');
     assert.equal(await filter.isVisible(),width<=1100);
     if(width<=1100){
-     const target=view==='collection'?'.platform-banner-title':view==='home'?'#home-view-controls':'.cemetery-tabs';
+     const target=view==='collection'?'.platform-banner-title':view==='home'?'.home-heading h1':'.cemetery-heading h1';
      const button=await filter.boundingBox(),title=await page.locator(target).boundingBox();
      assert.ok(Math.abs(button.y+button.height/2-title.y-title.height/2)<23,'Filter is alongside page controls');
      await filter.click();assert.equal(await filter.getAttribute('aria-expanded'),'true');
@@ -59,7 +59,7 @@ const server=createSandboxServer();
      assert.equal(await filter.getAttribute('aria-expanded'),'false');
     }
     if(view==='collection'&&width>=1101){
-     assert.equal(await page.locator('#grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),3,'Collection pilot gives each desktop card more room');
+     assert.equal(await page.locator('#grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),width>=1440?4:3,'Collection uses four cards on large screens');
     }
     assert.equal(await page.locator('#collection-views [aria-current="page"]').getAttribute('data-page'),view);
     const controls=view==='home'?'.board-add-btn':view==='collection'?'#search-input,#sort-select,#add-btn':'#cemetery-search,#cemetery-platform';

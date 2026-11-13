@@ -44,6 +44,7 @@ const server=createSandboxServer();
       });
       const neutralHeading=await headingShape();
       await page.evaluate(()=>{state.platform=GAMES.find(g=>g.format==='Physique').plateforme;buildPlatformList();render();});
+      assert.equal(await page.locator('#grid .card-platform').count(),0,'Selected platform is already shown in the heading');
       assert.deepEqual(await headingShape(),neutralHeading,'All platforms and a selected platform use the same header structure');
       await page.evaluate(()=>{state.platform=null;buildPlatformList();render();});
       await page.locator('#grid .card-banner img').first().evaluate(img=>img.decode());
@@ -57,6 +58,11 @@ const server=createSandboxServer();
         assert.ok(g.platformFont>=12,'Platform remains readable');
         for(const p of g.parts) assert.ok(p.left>=g.card.left && p.right<=g.card.right+.5 && p.top>=g.card.top && p.bottom<=g.card.bottom+.5,'Card information stays inside');
       }
+      const statusAlignment=await page.locator('#grid .card').first().evaluate(card=>{
+        const line=card.querySelector('.card-platform-line').getBoundingClientRect(),status=card.querySelector('.card-status-control').getBoundingClientRect();
+        return Math.abs(line.right-status.right);
+      });
+      assert.ok(statusAlignment<1,'Status is aligned with the right edge of the information row');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
       assert.equal(await page.locator('#grid .card-acquisition').count(),0,'Default cards hide purchase details');
       for(const sort of ['price-asc','price-desc','date-asc','date-desc','name-desc','name-asc']){

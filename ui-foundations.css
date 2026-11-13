@@ -89,6 +89,8 @@ select option,select optgroup { color:var(--text); background-color:var(--surfac
     color:var(--ui-text);
   }
   .page-filter-toggle svg { width:22px; height:22px; }
+  .page-filter-toggle.page-stats-toggle { width:auto; flex:0 0 auto; gap:6px; padding:8px 10px; background:transparent; border-color:transparent; font-size:12px; }
+  .page-stats-toggle svg { width:16px; height:16px; }
 }
 
 :where(button,a,input,select,textarea,[tabindex]):focus-visible {

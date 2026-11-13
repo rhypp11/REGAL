@@ -8,6 +8,8 @@
 .cemetery-stat svg { width:16px; height:16px; color:var(--stat-accent); flex:none; }
 .cemetery-stat strong { min-width:0; color:var(--ui-text); font:650 18px/1.3 var(--ui-font-sans); font-variant-numeric:tabular-nums; text-align:right; overflow-wrap:anywhere; }
 .cemetery-main { min-width:0; max-width:none; margin:0; padding:var(--ui-space-6) var(--ui-page-gutter) 70px; }
+.cemetery-title-row { display:flex; align-items:center; gap:12px; }
+#cemetery-heading-actions { margin-left:auto; }
 .cemetery-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px; margin:0 0 24px; border-radius:var(--ui-radius-lg); background:var(--ui-surface); }
 .cemetery-heading h1 { margin:0; font-size:32px; font-weight:750; line-height:1.15; letter-spacing:-.035em; }
 .cemetery-note { color:var(--ui-text-muted); line-height:1.6; }
@@ -102,6 +104,7 @@
   .cemetery-layout { display:block; min-height:0; padding:0 var(--ui-page-gutter-mobile); }
   .cemetery-stat { width:100%; }
   .cemetery-main { padding:var(--ui-space-4) 0 56px; }
+  .cemetery-title-row { justify-content:space-between; }
   .cemetery-heading { align-items:stretch; flex-direction:column; gap:16px; padding:12px; margin-bottom:24px; }
   .cemetery-heading h1 { font-size:26px; }
   .cemetery-tabs { width:100%; min-width:0; }

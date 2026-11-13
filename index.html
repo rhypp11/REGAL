@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_13.11.26-18">
-<meta name="regal-build" content="e78924b7492624ee9a021d73">
+<meta name="regal-version" content="3_13.11.26-19">
+<meta name="regal-build" content="aad1f95547bdd10e81344855">
 <link rel="icon" type="image/svg+xml" href="logo-icon-dark.svg?v=rgl-1">
 <link rel="apple-touch-icon" href="logo-icon-apple-dark.png?v=regal-1">
 <link rel="manifest" href="manifest.json">
@@ -163,7 +163,7 @@
     </aside>
   <main class="home-main">
     <header class="home-heading">
-      <h1>Vue d’ensemble</h1>
+      <div class="home-title-row"><h1>Vue d’ensemble</h1><div id="home-heading-actions"></div></div>
     <div class="home-view-controls" id="home-view-controls">
     <div class="home-boards-switcher" id="home-boards-switcher" role="group" aria-label="Arrivages et wishlist">
       <button type="button" class="home-boards-switch-btn active" data-target="arrivals">
@@ -552,7 +552,7 @@
     </aside>
     <main class="cemetery-main">
     <header class="cemetery-heading">
-      <h1>Ventes</h1>
+      <div class="cemetery-title-row"><h1>Ventes</h1><div id="cemetery-heading-actions"></div></div>
       <div class="cemetery-view-controls" id="cemetery-view-controls">
     <button type="button" class="mobile-filter-toggle page-filter-toggle" id="global-filter-toggle" aria-label="Afficher les filtres" aria-expanded="false">
       <svg class="menu-burger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
