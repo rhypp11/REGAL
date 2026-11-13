@@ -23,7 +23,7 @@
 }
 
 #home-boards .board-head {
-  min-height:66px;
+  min-height:56px;
   padding:0 0 14px;
   border-bottom:0;
   background:transparent;
@@ -48,7 +48,7 @@
   color:var(--ui-text);
   font-family:var(--ui-font-sans);
   font-size:16px;
-  font-weight:750;
+  font-weight:650;
   letter-spacing:-.01em;
 }
 
@@ -104,7 +104,7 @@
 #home-boards .calendar-group {
   padding:0;
   border:1px solid var(--ui-border);
-  border-radius:var(--ui-radius-md);
+  border-radius:var(--ui-radius-lg);
   overflow:hidden;
   background:var(--ui-surface);
 }
@@ -115,46 +115,70 @@
   border-top:1px solid var(--ui-border);
 }
 
-/* Les mois redeviennent de vraies têtes de section colorées. */
+/* Un même repère mensuel dans les arrivages et la wishlist. */
 #home-boards .calendar-group-head {
-  min-height:38px;
-  margin:0 0 5px;
-  padding:7px 10px 7px 12px;
+  min-height:40px;
+  margin:0 0 6px;
+  padding:8px 12px;
   border:0;
-  border-left:3px solid var(--calendar-accent,var(--ui-border));
   border-radius:0;
   background:color-mix(in srgb,var(--calendar-accent,var(--ui-border)) 12%,var(--ui-surface));
 }
 
 #home-boards .calendar-group-head-loose {
-  border-color:var(--ui-border);
   background:rgba(var(--ui-rgb),.03);
 }
 
 #home-boards .calendar-group-title {
-  gap:6px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  min-width:0;
+  gap:12px;
 }
 
 #home-boards .calendar-group-title strong {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
   color:var(--ui-text);
   font-family:var(--ui-font-sans);
-  font-size:12.5px;
-  font-weight:750;
+  font-size:13px;
+  font-weight:650;
+  line-height:1.3;
   letter-spacing:0;
 }
 
+#home-boards .calendar-group-head:not(.calendar-group-head-loose) .calendar-group-title strong::before {
+  content:"";
+  width:6px;
+  height:6px;
+  flex:none;
+  border-radius:50%;
+  background:var(--calendar-accent);
+}
+
 #home-boards .calendar-group-head-loose .calendar-group-title strong {
-  color:var(--ui-text);
+  color:var(--ui-text-muted);
+  font-size:12px;
+  text-transform:none;
 }
 
 #home-boards .calendar-group-title span {
+  flex:none;
+  padding:4px 7px;
+  border-radius:6px;
+  background:var(--ui-canvas);
   color:var(--ui-text);
   font-family:var(--ui-font-sans);
-  font-size:9.5px;
-  font-weight:500;
+  font-size:11px;
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+  line-height:1.2;
 }
 
-/* Pas de pastille décorative : le bandeau porte déjà la couleur. */
+/* Aucun accent ajouté sur le bord du bandeau. */
 #home-boards .calendar-group-head::after {
   content:none;
 }
@@ -240,7 +264,7 @@
 #home-boards .board-name {
   color:var(--ui-text);
   font-family:var(--ui-font-sans);
-  font-size:12.5px;
+  font-size:14px;
   font-weight:650;
   line-height:var(--ui-leading-tight);
   letter-spacing:0;
@@ -282,6 +306,7 @@
 }
 
 #home-boards .arrival-purchase {
+  display:flex; flex-wrap:wrap; justify-content:flex-start; gap:6px; min-width:0; max-width:none; text-align:left;
   color:var(--ui-text-muted);
 }
 
@@ -402,12 +427,6 @@
     background:rgba(var(--board-accent-rgb),.07);
   }
 
-  #home-boards .calendar-group-head {
-    min-height:36px;
-    margin-bottom:4px;
-    padding:6px 9px 6px 10px;
-  }
-
   #home-boards .board.arrivals .board-row {
     min-height:64px;
     padding:7px 8px;
@@ -424,7 +443,7 @@
     height:42px;
   }
 
-  #home-boards .board-thumb {
+  #home-boards .arrivals .board-thumb {
     grid-row:1 !important;
     width:82px;
     height:46px;
@@ -436,12 +455,14 @@
   }
 
   #home-boards .board-name {
-    font-size:12.5px;
+    font-size:14px;
   }
 
   #home-boards .board-plat {
     font-size:11px;
   }
+
+  #home-boards .board-name > span:last-child { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; white-space:normal; overflow-wrap:anywhere; }
 
   #home-boards .arrival-purchase {
     display:none;
@@ -474,13 +495,13 @@
     height:40px;
   }
 
-  #home-boards .board-thumb {
+  #home-boards .arrivals .board-thumb {
     width:70px;
     height:40px;
   }
 
   #home-boards .board-name {
-    font-size:12.5px;
+    font-size:14px;
   }
 }
 
@@ -488,7 +509,7 @@
 /* Wishlist : un panneau compact, secondaire au calendrier des arrivages. */
 #home-boards .board.wishlist {
   padding:var(--ui-space-4);
-  border:0;
+  border:1px solid var(--ui-border);
   border-radius:var(--ui-radius-lg);
   background:var(--ui-surface);
   box-shadow:none;
@@ -502,20 +523,7 @@
   background:transparent;
 }
 #home-boards .wishlist .calendar-group + .calendar-group { margin-top:12px; border-top:0; }
-#home-boards .wishlist .calendar-group-head {
-  min-height:28px;
-  margin:0 0 3px;
-  padding:4px 8px;
-  border:0;
-  border-left:3px solid var(--calendar-accent,var(--ui-border));
-  background:transparent;
-}
-#home-boards .wishlist .calendar-group-title strong {
-  color:var(--ui-text-muted);
-  font-size:11px;
-  font-weight:650;
-}
-#home-boards .wishlist .calendar-group-title span { color:var(--ui-text-muted); }
+#home-boards .wishlist .calendar-group-head { border-radius:var(--ui-radius-sm); }
 #home-boards .board.wishlist .board-row {
   min-height:56px;
   padding:7px 0;
@@ -540,7 +548,7 @@
   }
 
   #home-boards .board.arrivals .board-row {
-    grid-template-columns:48px var(--arrival-thumb-width) minmax(0,1fr) auto;
+    grid-template-columns:48px var(--arrival-thumb-width) minmax(0,1fr);
     gap:14px;
     padding:12px;
   }
