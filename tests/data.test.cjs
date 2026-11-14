@@ -19,7 +19,7 @@ test('malformed Pokédex data cannot overwrite a valid backup',()=>{
  for(const value of [null,{},[null],[tracker({name:''})],[tracker({id:'bad"id'})],[tracker(),tracker()],[tracker({states:[]})],[tracker({states:{1:3}})],[tracker({states:{1:'1'}})],[tracker({states:{0:1}})],[tracker({choice:[]})]]) assert.throws(()=>D.parseBackup({games:[],pokedex:value}));
  const privateData={games:[game()],pokedex:[tracker()]};
  assert.equal(JSON.stringify(D.createPublicSharePayload(privateData)).includes('Mon HOME'),false);
- assert.equal(JSON.stringify(D.createChatGPTPayload(privateData)).includes('Mon HOME'),false);
+ assert.equal(JSON.stringify(D.createCollectionPayload(privateData)).includes('Mon HOME'),false);
 });
 test('image modes survive backups and transfers, older data stays compatible',()=>{
   const parsed=D.parseBackup({app:'Jeux Tout Doux',version:3,data:{games:[game({imageFit:'cover'})],wishlist:[game({id:'w',imageFit:'contain'})],arrivals:[game({id:'a',imageFit:'unexpected'})],cemetery:[game({id:'c',imageFit:'cover',saleStatus:'pending'})]}});

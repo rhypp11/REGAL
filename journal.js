@@ -24,6 +24,7 @@
     if(active && !Array.isArray(active.entries)) return [];
     return active?.entries ?? (IS_PREVIEW_MODE ? previewEntries : []);
   }
+  window.getJournalExportEntries=()=>records();
   window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit,date:entry.date}));
   const searchLocations={completed:'Terminé',playing:'En cours',backlog:'À faire',release:'Sorties'};
   window.getJournalSearchEntries=()=>records().filter(entry=>entry && Object.hasOwn(searchLocations,entry.group)).map(entry=>({

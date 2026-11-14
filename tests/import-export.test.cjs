@@ -2,10 +2,10 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('../jtd-data.js');
 const game=(id,nom='Un jeu',plateforme='NSW',other={})=>({id,nom,plateforme,...other});
 const record=(id,collectionId,other={})=>({id,nom:'Titre du parcours',plateforme:'PC',collectionId,status:'done',finishedAt:'2026-02-01',review:'Un avis',...other});
-test('ChatGPT export preserves exemplars and lot identity but excludes the retired journal without private acquisition or image data',()=>{
+test('Collection export preserves exemplars and lot identity but excludes the retired journal without private acquisition or image data',()=>{
   const data={games:[game('g')],cemetery:[game('c','Vendu','PS5',{saleStatus:'sold',salePrice:20,saleId:'lot'}),game('d','Vendu B','PS5',{saleStatus:'sold',salePrice:20,saleId:'lot'})],journal:[record('r','g'),record('replay','g'),record('sold','c'),record('deleted','missing'),record('free',null)],profile:{name:'Privé'},shareToken:'secret'};
   data.games[0].image='https://example.com/art.png';data.games[0].prix=100;data.games[0].source='Magasin';
-  const exported=D.createChatGPTPayload(data);
+  const exported=D.createCollectionPayload(data);
   assert.equal(exported.data.games[0].id,'g');assert.equal('journal' in exported.data,false);
   assert.equal(exported.data.cemetery[0].saleId,exported.data.cemetery[1].saleId);
   for(const field of ['image','prix','source'])assert.equal(field in exported.data.games[0],false);
@@ -42,4 +42,20 @@ test('candidate proposals preserve every physical copy and include sold copies a
   assert.equal(D.importKey(game('a','Pokémon : Test','NSW')),D.importKey(game('b','Pokemon Test','Nintendo Switch')));
   assert.equal(D.importKey(game('a','Titre','GC')),D.importKey(game('b','Titre','Nintendo Gamecube')));
   assert.notEqual(D.importKey(game('a','Titre','NSW')),D.importKey(game('b','Titre','NS2')));
+});
+
+
+test('journal consultation exports all groups, dates, notes and comments without images or archived records',()=>{
+  const entries=['completed','playing','backlog','release'].map((group,i)=>({id:'j'+i,group,name:'Jeu fictif',platform:'PC',date:'2027-02',notes:['S','A','','B','C'],comment:'Avis fictif',image:'secret-image',shareToken:'secret-token'}));
+  const before=JSON.stringify(entries), exported=D.createJournalPayload(entries,'2026-11-14');
+  assert.equal(exported.data.journal.length,4);
+  assert.deepEqual(exported.data.journal[0].notes,entries[0].notes);
+  assert.equal(exported.data.journal[0].comment,'Avis fictif');
+  assert.equal(exported.data.journal[3].date,'2027-02');
+  assert.equal(JSON.stringify(exported).includes('secret'),false);
+  assert.equal('games' in exported.data,false);
+  assert.equal(JSON.stringify(entries),before);
+  exported.data.journal[0].notes[0]='D';assert.equal(entries[0].notes[0],'S');
+  assert.deepEqual(D.createJournalPayload([]).data.journal,[]);
+  assert.throws(()=>D.parseBackup(exported),/consultation/);
 });

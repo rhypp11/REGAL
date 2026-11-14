@@ -322,7 +322,7 @@
       return {...game,score,exact:exactTitle&&samePlatform};
     }).sort((a,b)=>b.score-a.score||a.nom.localeCompare(b.nom,'fr'));
   }
-  function createChatGPTPayload(data, exportedAt=new Date().toISOString()){
+  function createCollectionPayload(data, exportedAt=new Date().toISOString()){
     const normalized=normalizeData(data), shared=createPublicSharePayload(normalized);
     for(const key of ['games','arrivals','wishlist','cemetery']) shared[key]=shared[key].map((item,i)=>({...item,id:normalized[key][i].id}));
     shared.cemetery=shared.cemetery.map((item,i)=>normalized.cemetery[i].saleId?{...item,saleId:normalized.cemetery[i].saleId}:item);
@@ -333,7 +333,19 @@
     },data:{...shared,games:shared.games.map((game,i)=>({...game,format:normalized.games[i].format,contentType:normalized.games[i].contentType || 'game',parentId:normalized.games[i].parentId || null}))}};
   }
 
-  const api = {searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createChatGPTPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  function createJournalPayload(entries, exportedAt=new Date().toISOString()){
+    if(!Array.isArray(entries)) throw new Error('Le journal enregistré est illisible.');
+    const fields=['id','group','name','platform','date','estimated','yearOnly','format','mode','access','service','replayed','completion','notes','feeling','comment','precision','collectionId'];
+    const journal=entries.filter(isRecord).map(entry=>Object.fromEntries(fields.filter(key=>Object.hasOwn(entry,key)).map(key=>[key,JSON.parse(JSON.stringify(entry[key]))])));
+    return {app:'REGAL',purpose:'Consultation du journal',exportedAt,definitions:{
+      group:{completed:'Complétions',playing:'En cours',backlog:'À faire',release:'Sorties'},
+      notes:['Histoire','Gameplay','Visuel','Durée de vie','Musique'],
+      completion:{finished:'Fini',hundred:'100 % en jeu',achievements:'Tous les succès'},
+      feeling:{bad:'💩',neutral:'😐',okay:'👍',love:'❤️',gem:'💎'}
+    },data:{journal}};
+  }
+
+  const api = {createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
