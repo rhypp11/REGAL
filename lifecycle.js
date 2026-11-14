@@ -1,7 +1,7 @@
 /* Existing public links can still be revoked from the profile. */
 (() => {
   if(window.JTD_PREVIEW_MODE === true) return;
-  const exportButton = document.getElementById('chatgpt-export-btn');
+  const exportButton = document.getElementById('collection-export-btn');
   if(!exportButton) return;
   const button = document.createElement('button');
   button.type = 'button';
