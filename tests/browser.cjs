@@ -147,11 +147,11 @@ async function restore(page, value, confirm=true){
       });
       assert.equal(await page.evaluate(()=>GAMES[0].format),'Ancien format');
       assert.equal(await page.evaluate(()=>GAMES[0].type),'Ancien type');
-      const chatGPTDownloadEvent=page.waitForEvent('download');
-      await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
-      const chatGPTDownload=await chatGPTDownloadEvent;
-      assert.match(chatGPTDownload.suggestedFilename(),/^regal-export-collection-\d{4}-\d{2}-\d{2}\.json$/);
-      const shared=JSON.parse(fs.readFileSync(await chatGPTDownload.path(),'utf8'));
+      const collectionDownloadEvent=page.waitForEvent('download');
+      await page.locator('#profile-menu-btn').click();await page.locator('#collection-export-btn').click();
+      const collectionDownload=await collectionDownloadEvent;
+      assert.match(collectionDownload.suggestedFilename(),/^regal-export-collection-\d{4}-\d{2}-\d{2}\.json$/);
+      const shared=JSON.parse(fs.readFileSync(await collectionDownload.path(),'utf8'));
       assert.equal(shared.app,'REGAL');assert.equal(shared.purpose,'Consultation de la collection');
       assert.deepEqual(Object.keys(shared.data).sort(),['arrivals','cemetery','games','publishedAt','version','wishlist']);
       assert.equal(Object.hasOwn(shared.data.games[0],'prix'),false);
@@ -170,7 +170,7 @@ async function restore(page, value, confirm=true){
       assert.equal(firebaseRequests.length,0,'sandbox must not load production Firebase');
       assert.deepEqual(errors,[]);
       await page.screenshot({path:'jtd-step1-'+width+'.png',fullPage:true});
-      console.log('PASS browser '+width+'px: restore/cancel/same file, escaping, status, rename, ChatGPT export, backup, invalid backup, no Firebase');
+      console.log('PASS browser '+width+'px: restore/cancel/same file, escaping, status, rename, collection JSON export, backup, invalid backup, no Firebase');
       await context.close();
     }
   }finally{await browser.close();server.close();}

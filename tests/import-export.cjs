@@ -22,7 +22,8 @@ async function importFile(page,data){
   const page=await context.newPage(),errors=[],cloud=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(/firestore|firebasejs|identitytoolkit|securetoken/.test(r.url()))cloud.push(r.url());});
   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
   assert.equal(await page.locator('#share-btn, #share-disable-btn').count(),0);
-  assert.equal(await page.locator('#chatgpt-export-btn').count(),1);
+  assert.equal(await page.locator('#collection-export-btn').count(),1);
+  assert.equal(await page.locator('#journal-export-btn').textContent().then(s=>s.trim()),'Export JSON journal');
   await page.evaluate(data=>applyRestoredData(JTDData.normalizeData(data)),fixture);
   assert.equal(await page.locator('[data-page="journal"]').count(),1);
   assert.equal(await page.locator('[id^="f-journal"]').count(),0,'Journal entries do not change collection forms');
@@ -60,14 +61,28 @@ async function importFile(page,data){
   await importFile(page,[{id:'new',nom:'Jeu inédit',plateforme:'PS5',saleStatus:'pending'}]);
   await page.evaluate(()=>{CEMETERY=[...CEMETERY,{id:'concurrent',nom:'Concurrent',plateforme:'PC',saleStatus:'pending'}];});
   await page.locator('#cemetery-import-apply').click();assert.match(await page.locator('#cemetery-import-error').textContent(),/changé/);assert.equal(await page.evaluate(()=>CEMETERY.some(g=>g.id==='new')),false);await page.locator('#cemetery-import-cancel').click();
-  // Advice exports exclude the retired private archive.
-  const downloadEvent=page.waitForEvent('download');await page.locator('#profile-menu-btn').click();await page.locator('#chatgpt-export-btn').click();
+  // Collection and journal consultation files remain separate from backups.
+  const downloadEvent=page.waitForEvent('download');await page.locator('#profile-menu-btn').click();await page.locator('#collection-export-btn').click();
   const advice=JSON.parse(fs.readFileSync(await (await downloadEvent).path(),'utf8'));
   assert.equal('journal' in advice.data,false);
+  await page.evaluate(()=>{LEGACY_JOURNAL.push({regalJournal:2,entries:[{id:'active-j',group:'completed',name:'Jeu fictif',platform:'PC',date:'2026-11-14',notes:['S','A','','B','C'],comment:'Avis fictif',image:'https://example.com/private.png'}]});});
+  const journalDownload=page.waitForEvent('download');
+  await page.locator('#profile-menu-btn').click();await page.locator('#journal-export-btn').click();
+  const downloaded=await journalDownload;
+  assert.match(downloaded.suggestedFilename(),/^regal-export-journal-.*\.json$/);
+  const journal=JSON.parse(fs.readFileSync(await downloaded.path(),'utf8'));
+  assert.equal(journal.data.journal.length,1);
+  assert.equal(journal.data.journal[0].id,'active-j');
+  assert.equal(journal.data.journal[0].comment,'Avis fictif');
+  assert.deepEqual(journal.data.journal[0].notes,['S','A','','B','C']);
+  assert.equal('image' in journal.data.journal[0],false);
+  assert.equal('games' in journal.data,false);
+  assert.equal(await page.evaluate(()=>buildBackupPayload().data.journal.find(r=>r.regalJournal===2).entries[0].image),'https://example.com/private.png');
+
   assert.equal(await page.evaluate(()=>Object.hasOwn(JTDData.createPublicSharePayload(buildBackupPayload().data),'journal')),false);
   // Oversized or advice files must not replace data, even when selected as restore input.
   const before=await page.evaluate(()=>JSON.stringify(buildBackupPayload().data));
-  for(const payload of [advice,{app:'Jeux Tout Doux',version:4,data:{games:[],profile:{name:'é'.repeat(450000)}}}]){
+  for(const payload of [advice,journal,{app:'Jeux Tout Doux',version:4,data:{games:[],profile:{name:'é'.repeat(450000)}}}]){
    await page.locator('#profile-menu-btn').click();const event=page.waitForEvent('filechooser');await page.locator('.profile-maintenance').evaluate(el=>el.open=true);await page.locator('#restore-trigger').click();await (await event).setFiles({name:'bad-restore.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(payload))});
    await page.waitForTimeout(100);assert.equal(await page.locator('#confirm-modal-overlay').isVisible(),false);assert.equal(await page.evaluate(()=>JSON.stringify(buildBackupPayload().data)),before);
   }
