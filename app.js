@@ -2844,9 +2844,9 @@ restoreInput.addEventListener('change', (e) => {
   if(file) restoreBackup(file);
 });
 
-function downloadChatGPTSnapshot(){
+function downloadCollectionSnapshot(){
   try{
-    const payload = JTDData.createChatGPTPayload(buildBackupPayload().data);
+    const payload = JTDData.createCollectionPayload(buildBackupPayload().data);
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -2863,7 +2863,25 @@ function downloadChatGPTSnapshot(){
   }
 }
 
-document.getElementById('chatgpt-export-btn').addEventListener('click', downloadChatGPTSnapshot);
+document.getElementById('collection-export-btn').addEventListener('click', downloadCollectionSnapshot);
+document.getElementById('journal-export-btn').addEventListener('click', () => {
+  try {
+    const payload = JTDData.createJournalPayload(window.getJournalExportEntries());
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'regal-export-journal-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Export JSON téléchargé.');
+  } catch(error) {
+    console.error('Export du journal impossible', error);
+    showToast('Impossible de préparer l’export JSON.');
+  }
+});
 
 document.getElementById('profile-menu-btn').addEventListener('click', (e) => {
   e.stopPropagation();
