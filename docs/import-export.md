@@ -6,11 +6,13 @@ Le JSON v4 conserve les quatre listes, une archive passive des anciennes donnée
 
 Le fichier est validé avant confirmation. Le même plafond conservateur de 900 000 octets est vérifié avant la restauration et les imports du cimetière. Les écritures locales précèdent le remplacement des données en mémoire ; un échec laisse les données actuelles intactes. La synchronisation cloud reste asynchrone et son état reste visible.
 
-## Export pour ChatGPT
+## Exports JSON
 
-L'export pour les conseils est distinct d'une sauvegarde complète et ne peut pas être restauré. Il inclut les quatre listes, les identifiants d’exemplaires et les identifiants de lots de vente `saleId`. L’archive du journal et ses anciens liens sont exclus. Le fichier n'inclut ni images, ni profil, ni données d'acquisition, ni jeton de partage. Le partage public existant continue d'exclure le journal.
+Le menu propose « Export JSON collection » et « Export JSON journal ». Ces fichiers de consultation sont distincts de la sauvegarde complète et ne peuvent pas être restaurés.
 
-Le menu conserve « Exporter pour ChatGPT » pour transmettre le fichier à ChatGPT. Les boutons de création/copie et de désactivation du lien public ont été retirés du menu ; les données de partage existantes ne sont pas modifiées par cette évolution d'interface.
+L’export collection conserve les quatre listes, les identifiants d’exemplaires, les liens des contenus additionnels et les identifiants de lots de vente `saleId`. Il exclut le journal, les images, le profil, les données d’acquisition et le jeton de partage.
+
+L’export journal contient les entrées actuelles de toutes les années : complétions, en cours, à faire et sorties, avec dates et précisions, support, mode et accès, notes, ressenti et commentaires. Il exclut les images, les anciennes archives passives et les données des autres modules. Il exporte les mêmes entrées que la page Journal, indépendamment des filtres affichés. La sauvegarde complète conserve toutes les données, y compris les images et l’archive historique. Le partage public reste inchangé et exclut le journal.
 
 ## Import additif du cimetière
 
@@ -35,3 +37,4 @@ Les données historiques restent privées et passives dans le champ `journal` de
 ## Vérification et livraison
 
 Les suites `import-export.test.cjs` et `import-export.cjs` couvrent les relations exportées, les ambiguïtés, les exemplaires vendus, les changements pendant l'aperçu, le refus des fichiers trop volumineux et le rollback. Les scénarios navigateur utilisent uniquement des données fictives, le mode sandbox et le blocage des requêtes externes. Le workflow Firebase Preview conserve le site et le stockage sandbox existants. La fusion nécessite le « go » de Rom après validation de la preview.
+
