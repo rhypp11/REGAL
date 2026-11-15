@@ -1084,6 +1084,11 @@ function renderPlatformBanner(cards){
     `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span class="library-stat-label"><span class="library-stat-icon" aria-hidden="true">${statIcons[key] || ''}</span>${key === 'platforms' ? `<span class="library-stat-label-wide">${escapeHTML(label)}</span><span class="library-stat-label-short">${platformsCount > 1 ? 'Supports' : 'Support'}</span>` : escapeHTML(label)}</span></span>`;
   const collectionStats = [
     stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
+    ...(state.media !== 'physical' ? [
+      stat(games.filter(g=>!JTDData.isAddon(g)).length,'Jeux','base-games'),
+      stat(games.filter(JTDData.isDLC).length,'DLC','dlc'),
+      stat(games.filter(g=>JTDData.isAddon(g) && g.contentType==='upgrade').length,'Mises à niveau','upgrades')
+    ] : []),
     !state.platform ? stat(platformsCount, platformsCount > 1 ? 'Plateformes' : 'Plateforme', 'platforms') : '',
     stat(games.filter(g=>!JTDData.isDigital(g)).length,'Physique','physical'),
     stat(games.filter(g=>JTDData.isDigital(g)).length,'Numérique','digital'),

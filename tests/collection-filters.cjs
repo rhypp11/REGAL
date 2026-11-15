@@ -31,11 +31,22 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.deepEqual((await cards(page)).sort(),['game:base','game:dlc']);
       await page.locator('.collection-stat-toggle').click();
       assert.equal(await stat(page,'games'),2);
+      assert.equal(await stat(page,'base-games'),1);assert.equal(await stat(page,'dlc'),1);assert.equal(await stat(page,'upgrades'),0);
       assert.equal(await stat(page,'termine'),2);
       assert.equal(await stat(page,'digital'),2);
       assert.match(await page.locator('[data-stat="spent"]').innerText(),/40/);
       assert.match(await page.locator('.collection-stat-toggle').innerText(),/^2(?:\s|$)/);
       assert.match(await page.locator('#platform-list .active .plat-count').textContent(),/^2$/);
+      for(const [contentType,expected] of [['dlc','dlc'],['upgrade','upgrade'],['game','game'],['game,dlc','game']]){
+        await page.evaluate(contentType=>{state.contentType=contentType;openModal();},contentType);
+        assert.equal(await page.locator('#f-content-type').inputValue(),expected,'New entry follows a single content filter');
+        assert.equal(await page.locator('#f-content-status-field').isVisible(),expected==='dlc');
+        await page.locator('#cancel-btn').click();
+      }
+      await page.evaluate(()=>{state.contentType='upgrade';openModal('base');});
+      assert.equal(await page.locator('#f-content-type').inputValue(),'game','Editing preserves the purchase type');
+      await page.locator('#cancel-btn').click();
+      await page.evaluate(()=>{state.contentType='game,dlc';render();});
       const currentView=await page.evaluate(()=>navigationSnapshot());
       await page.evaluate(view=>applyNavigation({...view,search:'Jardin',sort:'name-desc'}),currentView);
       const searchChip=page.getByRole('button',{name:'Retirer « Jardin »'});
