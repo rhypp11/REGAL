@@ -87,7 +87,7 @@ test('old sessions remain invalid after logout and login with the same UID', () 
 
 async function cloudHarness(){
   const raw = memory(), storage = D.createStorage(raw), writes = [];
-  const element = {classList:{add(){},remove(){},toggle(){}},addEventListener(){},dataset:{}};
+  const element = {classList:{add(){},remove(){},toggle(){}},addEventListener(){},setAttribute(name,value){this[name]=value;},dataset:{}};
   const ctx = {
     console,JSON,Date,Uint8Array,crypto:require('node:crypto').webcrypto,
     setTimeout,clearTimeout,URL,window:{JTD_PREVIEW_MODE:false,cancelPendingConfirmation(){}},state:{platform:null,search:''},JTDData:D,accountStorage:storage,
@@ -335,3 +335,25 @@ test('live public collection preserves links and media without private purchase/
   assert.doesNotMatch(JSON.stringify(payload),/private-account|private note|Secret|currency|prix/);
 });
 
+
+test('a completed old cloud write does not report newer edits as synchronized',async()=>{
+ const {ctx}=await cloudHarness();
+ ctx.getDoc=async()=>({exists:()=>true,data:()=>({games:[]})});
+ await ctx.authCallback({uid:'A'});
+ const element=ctx.document.getElementById('cloud-sync-status');
+ assert.equal(element.textContent,'Synchronisé');
+ let release,started;
+ const began=new Promise(resolve=>started=resolve);
+ ctx.setDoc=()=>new Promise(resolve=>{release=resolve;started();});
+ const first=ctx.window.JTDPrepareReload();await began;
+ assert.equal(element.textContent,'Synchronisation…');
+ ctx.window.JTDDataChanged();assert.equal(element.textContent,'En attente…');
+ release();await first;
+ assert.equal(element.textContent,'En attente…','The previous snapshot is not the latest state');
+ ctx.setDoc=async()=>{};
+ await ctx.window.JTDPrepareReload();assert.equal(element.textContent,'Synchronisé');
+ ctx.setDoc=async()=>{throw new Error('Erreur fictive');};
+ await ctx.window.JTDPrepareReload();
+ assert.equal(element.textContent,'Échec sync');assert.match(element['aria-label'],/Erreur fictive/);
+ await ctx.authCallback(null);
+});

@@ -47,6 +47,9 @@ jobs:
       - name: Check purchase feedback and undo
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/purchase-feedback.cjs
 
+      - name: Check backup dates and restoration preview
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/backup-status.cjs
+
       - name: Check order and receipt flows
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/workflow.cjs
 

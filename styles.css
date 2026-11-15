@@ -2088,6 +2088,7 @@ a {
 }
 
 .confirm-modal-message {
+  white-space: pre-line;
   font-size: 13.5px;
   color: var(--muted);
   line-height: 1.5;
