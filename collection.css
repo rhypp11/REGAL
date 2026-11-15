@@ -223,14 +223,15 @@
   -webkit-box-orient:vertical;
 }
 #page-collection .card-platform { font-size:12px; color:var(--ui-text-muted); }
-#page-collection .card-identity .card-status-badge:hover { background:color-mix(in srgb,var(--status-color) 8%,transparent); }
+#page-collection .card-identity .card-status-badge:hover { background:transparent; }
 #page-collection .card-identity { gap:6px 8px; }
-#page-collection .card-status-badge {
-  min-height:28px;
+#page-collection .card-identity .card-status-badge {
+  min-width:44px;
+  min-height:44px;
   background:transparent;
   border:0;
   color:var(--status-color);
-  padding:4px;
+  padding:0;
   font-size:11px;
   border-radius:var(--ui-radius-sm);
 }
@@ -327,13 +328,16 @@
 #page-collection .card-identity { display:flex; flex-direction:column; align-items:stretch; gap:5px; }
 #page-collection .card-platform-line { display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px; min-width:0; }
 #page-collection .card-platform-line .card-status-control { margin:0 0 0 auto; flex:0 0 auto; }
-#page-collection .card-platform-line .card-status-badge {
+#page-collection .card-platform-line .card-status-face {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
   padding:4px 7px;
   border:1px solid transparent;
   border-radius:7px;
   background:color-mix(in srgb,var(--status-fill) 25%,var(--ui-surface));
 }
-#page-collection .card-platform-line .card-status-badge:hover {
+#page-collection .card-platform-line .card-status-badge:hover .card-status-face {
   background:color-mix(in srgb,var(--status-fill) 38%,var(--ui-surface));
 }
 #page-collection .card-state-row { display:flex; align-items:center; justify-content:flex-start; flex-wrap:wrap; gap:4px 10px; margin-top:2px; }
@@ -357,7 +361,6 @@
 
 @media(max-width:820px){
   .collection-view-switch button { width:44px; height:44px; }
-  #page-collection .card-state-row .card-status-badge { min-height:26px; }
 }
 
 @media(max-width:820px){

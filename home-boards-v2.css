@@ -543,7 +543,7 @@
   font-size:var(--ui-text-sm);
 }
 #home-boards .wishlist .board-name { font-size:14px; }
-#home-boards .wishlist .board-link { width:28px; height:32px; }
+#home-boards .wishlist .board-link { width:44px; height:44px; }
 
 @media(min-width:821px) {
   #home-boards {

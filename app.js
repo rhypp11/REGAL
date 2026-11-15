@@ -1147,7 +1147,7 @@ function renderCard(g, options = {}){
 
   const statusBadgeHtml = `<div class="card-status-control">
       <button type="button" class="card-status-badge" style="--status-color:${statusColor};--status-fill:${statusFill};" title="${statusTitle}" aria-label="Statut : ${statusTitle}" aria-expanded="false">
-        ${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span>
+        <span class="card-status-face">${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span></span>
       </button>
       <div class="card-status-menu hidden">${statusMenu}</div>
     </div>`;
@@ -1976,11 +1976,12 @@ function renderArrivals(){
     </section>
   `).join('');
 
+  const arrivalNames = new Map(ARRIVALS.map(item=>[item.id,[item.nom,item.plateforme].filter(Boolean).join(' · ')]));
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
     row.tabIndex = 0;
     row.setAttribute('role','button');
-    row.setAttribute('aria-label','Modifier cet arrivage');
+    row.setAttribute('aria-label','Modifier l’arrivage : '+arrivalNames.get(id));
     row.dataset.dialogTrigger = 'arrival:'+id;
     row.addEventListener('keydown',event=>{
       if(event.target===row && (event.key==='Enter' || event.key===' ')){event.preventDefault();openArrivalModal(id);}
