@@ -223,7 +223,9 @@ function openDigitalFields(game){
   const digital = !physicalOnly && (game ? JTDData.isDigital(game) : state.media === 'digital');
   document.getElementById('f-media-field').classList.toggle('hidden',physicalOnly);
   document.getElementById('f-media').value = digital ? 'digital' : 'physical';
-  document.getElementById('f-content-type').value = JTDData.isAddon(game) ? game.contentType : 'game';
+  const types = selectedContentTypes();
+  const newContentType = digital && types.length === 1 ? types[0] : 'game';
+  document.getElementById('f-content-type').value = game ? (JTDData.isAddon(game) ? game.contentType : 'game') : newContentType;
   document.getElementById('f-currency').value = game?.currency || 'EUR';
   document.getElementById('f-content-status').innerHTML='<option value="">Non défini</option>'+STATUS_OPTIONS.map(s=>'<option value="'+s.key+'">'+s.label+'</option>').join('');
   document.getElementById('f-content-status').value=game ? getEffectiveStatus(game) || '' : '';
