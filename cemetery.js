@@ -31,7 +31,7 @@ function lotPreview(group){
   const thumbnails = group.slice(0,3).map(game=>{
     const hasImage = !!safeURL(game.image,true);
     return '<span class="sale-lot-thumb'+gameImageClass(game)+'">'+
-      (hasImage ? gameImageHtml(game,'',true) : '')+
+      (hasImage ? gameImageHtml(game,'',true,'lazy') : '')+
       '<span class="board-image-fallback'+(hasImage?' hidden':'')+'">'+escapeHTML(game.plateforme.slice(0,2).toUpperCase())+'</span></span>';
   }).join('');
   const names = group.slice(0,2).map(game=>'<span class="sale-lot-name" title="'+escapeHTML(game.nom)+'">'+escapeHTML(game.nom)+'</span>').join('');

@@ -1157,7 +1157,7 @@ function renderCard(g, options = {}){
     : '';
 
   const bannerInner = g.image
-    ? gameImageHtml(g, g.nom)
+    ? gameImageHtml(g, g.nom, false, options.imageLoading || 'lazy')
     : '';
 
   const bannerHtml = `<div class="card-banner${gameImageClass(g)}${g.image ? '' : ' placeholder'}">
@@ -1340,7 +1340,7 @@ function render(){
     return;
   }
 
-  games.forEach(g => grid.appendChild(renderCard(g)));
+  games.forEach((g,index) => grid.appendChild(renderCard(g,{imageLoading:navigationPage === 'collection' && index < 12 ? 'eager' : 'lazy'})));
 }
 
 /* ---------- Modal ajout / édition ---------- */
@@ -1485,11 +1485,13 @@ function setLastUsed(key, value){
 }
 
 /* One image treatment for cards, board thumbnails and editing previews. */
-function gameImageHtml(item, alt = '', board = false){
+function gameImageHtml(item, alt = '', board = false, loading = 'eager'){
   const url = safeURL(item?.image, true);
   if(!url) return '';
   const src = escapeHTML(url);
-  return `<img class="game-art-backdrop" src="${src}" alt="" aria-hidden="true" decoding="async"><img class="game-art-image" ${board ? 'data-board-art' : ''} src="${src}" alt="${escapeHTML(alt)}" decoding="async">`;
+  // Defer both layers: an eager decorative backdrop would fetch the same art early.
+  const load = loading === 'lazy' ? 'lazy' : 'eager';
+  return `<img class="game-art-backdrop" loading="${load}" src="${src}" alt="" aria-hidden="true" decoding="async"><img class="game-art-image" loading="${load}" ${board ? 'data-board-art' : ''} src="${src}" alt="${escapeHTML(alt)}" decoding="async">`;
 }
 function gameImageClass(item){ return ' game-art-frame image-fit-' + (item?.imageFit === 'cover' ? 'cover' : 'contain'); }
 
@@ -1875,7 +1877,7 @@ function boardThumb(item){
     ? `<img src="${escapeHTML(logo)}" alt="" style="width:44px;height:44px;object-fit:contain;border-radius:8px;">`
     : `<span style="color:${color};font-weight:700;">${escapeHTML(initials)}</span>`;
   const image = safeURL(item.image, true);
-  return `<div class="board-thumb${gameImageClass(item)}"><span class="board-image-fallback${image ? ' hidden' : ''}">${fallback}</span>${image ? gameImageHtml(item, '', true) : ''}</div>`;
+  return `<div class="board-thumb${gameImageClass(item)}"><span class="board-image-fallback${image ? ' hidden' : ''}">${fallback}</span>${image ? gameImageHtml(item, '', true, 'lazy') : ''}</div>`;
 }
 
 function calendarDayHtml(date, opts = {}){

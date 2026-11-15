@@ -87,6 +87,9 @@ jobs:
       - name: Check editing modal actions on mobile and desktop
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/modal-actions.cjs
 
+      - name: Check deferred list image loading
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/image-loading.cjs
+
       - name: Check whole and cropped game images and persistence
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/image-modes.cjs
 
