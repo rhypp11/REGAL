@@ -30,7 +30,7 @@ const server=createSandboxServer();
    assert.equal(await page.locator('#grid .card').count(),0,'Changed status respects the active filter');
    await page.locator('#toast-stack .toast-action').click();
    assert.equal(await page.locator('#grid .card').count(),1,'Undo restores the filtered card');
-   await page.evaluate(()=>revealCollectionPurchase('test-dlc-digital'));
+   await page.evaluate(()=>{if(!commitCollection([...GAMES,...digitalPreviewGames()],digitalPreviewAccounts()))throw new Error('Fixture non enregistrée');revealCollectionPurchase('test-dlc-digital');});
    assert.equal(await page.locator('#grid .card').count(),1,'Explicit DLC filter shows the child rather than its parent');
    assert.equal(await page.locator('#grid .card').getAttribute('data-dialog-trigger'),'game:test-dlc-digital');
    await page.evaluate(id=>{setStatus(id,'termine');window.JTDAccountGeneration=(window.JTDAccountGeneration||0)+1;},id);
