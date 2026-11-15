@@ -102,6 +102,9 @@ jobs:
       - name: Check shared page controls and keyboard filters
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/global-ui.cjs
 
+      - name: Check empty sales, touch targets and arrival labels
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/ui-finishing.cjs
+
       - name: Check long lists and empty collection transitions
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/edge-cases.cjs
 

@@ -215,7 +215,31 @@ function renderCemetery(){
   const openLots = new Set([...container.querySelectorAll('.sale-lot[open]')].map(lot=>lot.dataset.saleKey));
   container.classList.toggle('pending-sales',saleView === 'pending');
   container.replaceChildren();
-  if(!groups.length){ container.innerHTML = '<div class="cemetery-empty">Aucun jeu ici pour le moment.</div>'; return; }
+  if(!groups.length){
+    const filtered = allGroups.length > 0 && (platform || search);
+    const message = filtered ? 'Aucune vente ne correspond à ces filtres.'
+      : saleView === 'sold' ? 'Aucune vente enregistrée pour le moment.' : 'Aucun jeu à vendre pour le moment.';
+    const empty = document.createElement('div');
+    empty.className = 'cemetery-empty';
+    const text = document.createElement('p');
+    text.textContent = message;
+    empty.append(text);
+    if(filtered){
+      const reset = document.createElement('button');
+      reset.type = 'button';
+      reset.className = 'btn btn-ghost';
+      reset.textContent = 'Effacer les filtres';
+      reset.addEventListener('click',()=>{
+        select.value = '';
+        saleEl('cemetery-search').value = '';
+        renderCemetery();
+        saleEl('cemetery-search').focus({preventScroll:true});
+      });
+      empty.append(reset);
+    }
+    container.append(empty);
+    return;
+  }
   groups.forEach(group=>{
     if(reorderingSales){ container.append(renderOrderRow(group)); return; }
     const item = group[0];
