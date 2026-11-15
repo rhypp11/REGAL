@@ -22,6 +22,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
 
   let currentUser = null;
   let syncTimer = null;
+  let syncRevision = 0;
   // Reste à true tant que le chargement initial (local + cloud) n'est pas terminé,
   // pour qu'aucune sauvegarde locale déclenchée pendant l'init ne parte écraser
   // le document Firestore avant qu'on ait pu lire les vraies données du compte.
@@ -207,12 +208,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     if(!el) return;
     el.className = 'cloud-sync-status ' + status;
     el.title = message || '';
-    el.textContent = status === 'error' ? '⚠ Sync' : (status === 'syncing' || status === 'pending' ? '☁ …' : '☁ Sync');
+    el.setAttribute('aria-label', message || 'Synchronisation');
+    el.textContent = ({error:'Échec sync',syncing:'Synchronisation…',pending:'En attente…',ok:'Synchronisé'})[status] || 'Synchronisation';
   }
 
-  async function doCloudSync(session, payload, publicPayload){
+  async function doCloudSync(session, payload, publicPayload, revision = syncRevision){
     if(suppressSync || !sessionIsCurrent(session)) return;
-    setSyncStatus('syncing', 'Synchronisation...');
+    if(revision === syncRevision) setSyncStatus('syncing', 'Synchronisation en cours…');
     try{
       // The UID and data are captured together; a later login cannot retarget this write.
       payload.shareToken = SHARE_TOKEN;
@@ -221,12 +223,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       if(payload.shareToken && payload.shareToken === SHARE_TOKEN){
         await publishSharedSnapshot(session, payload.shareToken, publicPayload);
       }
-      if(sessionIsCurrent(session)) setSyncStatus('ok', 'Synchronisé avec le cloud');
+      if(sessionIsCurrent(session) && revision === syncRevision) setSyncStatus('ok', 'Synchronisé avec le cloud');
       return sessionIsCurrent(session);
     }catch(err){
       if(!sessionIsCurrent(session)) return;
       console.error('Erreur de synchronisation Firebase', err);
-      setSyncStatus('error', 'Erreur de synchronisation : ' + err.message);
+      if(revision === syncRevision) setSyncStatus('error', 'Erreur de synchronisation : ' + err.message);
       return false;
     }
   }
@@ -234,13 +236,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   function scheduleCloudSync(){
     if(!currentUser || suppressSync) return;
     const session = sessions.current();
+    const revision = ++syncRevision;
     setSyncStatus('pending', 'Synchronisation en attente...');
     cancelPendingSync();
     syncTimer = setTimeout(() => {
       if(!sessionIsCurrent(session) || suppressSync) return;
       const payload = buildCloudPayload();
       const publicPayload = buildPublicSharePayload();
-      enqueueCloudOperation(() => doCloudSync(session, payload, publicPayload));
+      enqueueCloudOperation(() => doCloudSync(session, payload, publicPayload, revision));
     }, 900);
   }
   window.JTDDataChanged = scheduleCloudSync;
@@ -250,7 +253,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     if(suppressSync) return false;
     const session = sessions.current();
     cancelPendingSync();
-    return enqueueCloudOperation(() => doCloudSync(session, buildCloudPayload(), buildPublicSharePayload()));
+    const revision = syncRevision;
+    return enqueueCloudOperation(() => doCloudSync(session, buildCloudPayload(), buildPublicSharePayload(), revision));
   };
 
   async function loadFromCloudOrSeed(session){

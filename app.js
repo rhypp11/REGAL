@@ -642,18 +642,15 @@ function saveWishlist(){
 
 const BACKUP_VERSION = 5;
 const LAST_BACKUP_KEY = 'ludotheque:last-backup-v2';
-const LEGACY_LAST_EXPORT_KEY = 'ludotheque:last-export-v1';
-
 function updateBackupNote(){
   const el = document.getElementById('backup-note');
   if(!el) return;
-  const raw = IS_PREVIEW_MODE ? null : (accountStorage.getItem(LAST_BACKUP_KEY) || accountStorage.getItem(LEGACY_LAST_EXPORT_KEY));
-  if(!raw){
-    el.textContent = 'Aucune sauvegarde locale';
-    return;
-  }
-  const d = new Date(raw);
-  el.textContent = 'Dernière : ' + d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  let raw;
+  try { raw = IS_PREVIEW_MODE ? localStorage.getItem(PREVIEW_STORAGE_KEY+':last-backup') : accountStorage.getItem(LAST_BACKUP_KEY); } catch {}
+  const date = raw ? new Date(raw) : null;
+  el.textContent = date && Number.isFinite(date.getTime())
+    ? 'Dernière sur cet appareil : ' + date.toLocaleString('fr-FR', {dateStyle:'short',timeStyle:'short'})
+    : 'Aucune sauvegarde complète sur cet appareil';
 }
 
 function buildBackupPayload(){
@@ -692,7 +689,11 @@ function downloadBackup(suffix){
 
 function backupData(){
   downloadBackup('sauvegarde');
-  try{ accountStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); }catch(e){ /* ignore */ }
+  try{
+    const date = new Date().toISOString();
+    if(IS_PREVIEW_MODE) localStorage.setItem(PREVIEW_STORAGE_KEY+':last-backup',date);
+    else accountStorage.setItem(LAST_BACKUP_KEY,date);
+  }catch(e){ /* Le téléchargement reste disponible sans mémorisation de sa date. */ }
   updateBackupNote();
   showToast('Sauvegarde téléchargée.');
 }
@@ -743,17 +744,23 @@ function restoreBackup(file){
   reader.onload = (e) => {
     if(accountGeneration !== window.JTDAccountGeneration) return;
     try{
-      const data = cleanBackupData(JSON.parse(e.target.result));
+      const parsed = JSON.parse(e.target.result);
+      const data = cleanBackupData(parsed);
       JTDData.assertCloudSize({...data,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
-      const summary = [
-        data.games.length + ' jeu(x)',
-        data.wishlist.length + ' souhait(s)',
-        data.arrivals.length + ' arrivage(s)',
-        data.cemetery.length + ' entrée(s) au cimetière',
-        data.pokedex.length + ' Pokédex'
-      ].join(' • ');
+      const current = cleanBackupData(buildBackupPayload());
+      const rows = [
+        ['Jeux', value=>value.games.filter(game=>!JTDData.isAddon(game)).length],
+        ['DLC', value=>value.games.filter(JTDData.isDLC).length],
+        ['Mises à niveau', value=>value.games.filter(game=>JTDData.isAddon(game) && game.contentType==='upgrade').length],
+        ['Wishlist', value=>value.wishlist.length],
+        ['Arrivages', value=>value.arrivals.length],
+        ['Cimetière', value=>value.cemetery.length],
+        ['Pokédex', value=>value.pokedex.length],
+        ['Comptes numériques', value=>value.digitalAccounts.length]
+      ];
+      const summary = rows.map(([label,count])=>`${label} : ${count(current)} → ${count(data)}`).join('\n');
       confirmAction(
-        'Cette restauration remplacera toutes les listes, le profil et les plateformes par le contenu du fichier : ' + summary + '. Les sections absentes d’une ancienne sauvegarde seront vidées. Tu peux annuler et télécharger une sauvegarde complète avant de continuer.',
+        `Fichier : ${file.name}\n\nDonnées actuelles → Après restauration\n${summary}\n\nToutes les listes, le journal, le profil et les réglages de plateformes seront remplacés par ceux du fichier. Les sections absentes d’une ancienne sauvegarde seront vidées. Tu peux annuler pour télécharger une sauvegarde complète avant de continuer.`,
         () => {
           if(accountGeneration !== window.JTDAccountGeneration) return;
           try{
