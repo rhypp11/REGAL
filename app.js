@@ -778,8 +778,10 @@ function restoreBackup(file){
 function setStatus(id, statusKey){
   const g = GAMES.find(x => x.id === id);
   if(!g || !isPlayablePurchase(g)) return;
-  g.status = (getEffectiveStatus(g) === statusKey) ? null : statusKey;
-  saveGames();
+  const previousStatus = g.status;
+  const nextStatus = (getEffectiveStatus(g) === statusKey) ? null : statusKey;
+  const generation = window.JTDAccountGeneration;
+  if(!commitCollection(GAMES.map(game => game.id === id ? {...game,status:nextStatus} : game))) return;
   const cards = [...document.querySelectorAll('#grid .card')];
   const index = cards.findIndex(card=>card.dataset.dialogTrigger==='game:'+id);
   render();
@@ -787,6 +789,16 @@ function setStatus(id, statusKey){
   const same = updated.find(card=>card.dataset.dialogTrigger==='game:'+id);
   const target = same?.querySelector('.card-status-badge') || updated[Math.min(index,updated.length-1)]?.querySelector('.card-open-control') || document.getElementById('search-input');
   target?.focus({preventScroll:true});
+  const label = STATUS_OPTIONS.find(option => option.key === nextStatus)?.label || 'Sans statut';
+  showToast(`« ${g.nom} » : ${label}.`, 'Annuler', () => {
+    if(generation !== window.JTDAccountGeneration) return;
+    const current = GAMES.find(game => game.id === id);
+    if(!current || current.status !== nextStatus) return;
+    if(!commitCollection(GAMES.map(game => game.id === id ? {...game,status:previousStatus} : game))) return;
+    render();
+    const card = [...document.querySelectorAll('#grid .card')].find(card => card.dataset.dialogTrigger === 'game:'+id);
+    card?.querySelector('.card-status-badge')?.focus({preventScroll:true});
+  });
 }
 
 function closeCardStatusMenus(restoreFocus = false){
@@ -1783,6 +1795,8 @@ function saveModal(){
   try { Object.assign(fields, readDigitalFields()); }
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
+  const wasEditing = !!editingId;
+  const savedId = editingId || convertingArrivalId || crypto.randomUUID();
   const received = convertingArrivalId
     ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, format:'Physique', type:null, status:'a_jouer'})
     : null;
@@ -1792,7 +1806,7 @@ function saveModal(){
   } else if(!convertingArrivalId){
     const next = editingId
       ? GAMES.map(game => game.id === editingId ? {...game,...fields} : game)
-      : [...GAMES,{id:crypto.randomUUID(),type:null,status:null,...fields}];
+      : [...GAMES,{id:savedId,type:null,status:null,...fields}];
     if(!commitCollection(next)) return;
   } else renderArrivals();
 
@@ -1807,13 +1821,26 @@ function saveModal(){
     showToast('Infos du jeu mises à jour.');
     return;
   }
-  if(received) showToast(`« ${received.nom} » ajouté à la collection.`, 'Voir', () => {
-    goToPage('collection');
-    state.platform = received.plateforme;
-    state.search = ''; document.getElementById('search-input').value = '';
-    state.status = null; state.collector = false; state.japanese = false; state.bundle = false;
-    buildPlatformList(); buildFormatToggles(); buildStatusToggles(); render();
-  });
+  const saved = received || GAMES.find(game => game.id === savedId);
+  if(saved){
+    const generation = window.JTDAccountGeneration;
+    showToast(`« ${saved.nom} » ${wasEditing ? 'modifié' : 'ajouté à la collection'}.`, 'Voir', () => {
+      if(generation !== window.JTDAccountGeneration) return;
+      revealCollectionPurchase(saved.id);
+    });
+  }
+}
+
+function revealCollectionPurchase(id){
+  const game = GAMES.find(item => item.id === id);
+  if(!game) return;
+  // An explicit content filter keeps a newly saved DLC visible independently of its parent.
+  applyNavigation({page:'collection',media:JTDData.isDigital(game) ? 'digital' : 'physical',
+    platform:game.plateforme,contentType:JTDData.isAddon(game) ? game.contentType : null,
+    search:game.nom,sort:state.sort,board:navigationBoard});
+  const card = [...document.querySelectorAll('#grid .card')].find(card => card.dataset.dialogTrigger === 'game:'+id);
+  card?.scrollIntoView({block:'center'});
+  card?.querySelector('.card-open-control')?.focus({preventScroll:true});
 }
 
 function deleteGame(){
