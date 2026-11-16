@@ -27,7 +27,7 @@ const server=createSandboxServer();
    return Math.abs((status.top+status.bottom)/2-(media.top+media.bottom)/2);
   });assert.ok(alignment<2,'Support and status share the same line when space allows');
   await page.screenshot({path:`/tmp/jtd-abandoned-${width}-${theme}.png`});
-  await page.locator('#toast-stack .toast-action').click();assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='box').status),null);
+  await page.locator('#toast-stack .toast-action').click();assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='box').status),undefined);
   await card.locator('.card-status-badge').click();await card.getByRole('button',{name:'Abandonné',exact:true}).click();
   await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
   assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='box').status),'abandonne');
