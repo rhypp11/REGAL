@@ -1346,6 +1346,8 @@ function syncCollectionView(){
 function render(){
   syncCollectionView();
   renderMediaControls();
+  // Keep sidebar counts in sync with every render path (filters, search and status edits).
+  buildPlatformList({keepSelection:true});
   persistNavigation();
   const games = sortGames(filteredGames());
   renderPlatformBanner(games);
