@@ -63,8 +63,11 @@
 .copy-line-purchases{display:none}
 #page-collection #grid[data-view="list"] .copy-card .copy-platform-rows{max-width:none}
 #page-collection #grid[data-view="list"] .copy-card .copy-media{display:none}
-#page-collection #grid[data-view="list"] .copy-card .copy-platform{flex:0 1 150px}
-#page-collection #grid[data-view="list"] .copy-card .copy-line-purchases{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+#page-collection #grid[data-view="list"] .copy-card .copy-platform-row{display:grid;grid-template-columns:minmax(110px,150px) minmax(0,1fr) 30px 30px;gap:8px}
+#page-collection #grid[data-view="list"] .copy-card .copy-platform{grid-column:1;grid-row:1}
+#page-collection #grid[data-view="list"] .copy-card .copy-count-dlc{grid-column:3;grid-row:1;justify-content:center}
+#page-collection #grid[data-view="list"] .copy-card .copy-count-upgrade{grid-column:4;grid-row:1;justify-content:center}
+#page-collection #grid[data-view="list"] .copy-card .copy-line-purchases{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;grid-column:2;grid-row:1}
 .copy-line-purchase{display:grid;grid-template-columns:minmax(65px,1fr) 75px 90px minmax(0,1fr);align-items:center;gap:8px;min-width:0;font-size:11px;color:var(--ui-text-muted)}
 .copy-line-format{display:flex;align-items:center;gap:4px;min-width:0}.copy-line-format svg{width:12px;height:12px;flex:none}
 .copy-line-price{color:var(--ui-text);white-space:nowrap}.copy-line-purchase time{white-space:nowrap}
@@ -77,6 +80,9 @@
 @media(max-width:700px){
  #page-collection #grid[data-view="list"] .copy-card .copy-platform-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px;white-space:normal;padding:6px 0}
  #page-collection #grid[data-view="list"] .copy-card .copy-line-purchases{grid-column:1/-1;width:100%}
+ #page-collection #grid[data-view="list"] .copy-card .copy-count-dlc{grid-column:2}
+ #page-collection #grid[data-view="list"] .copy-card .copy-count-upgrade{grid-column:3}
+ #page-collection #grid[data-view="list"] .copy-card .copy-line-purchases{grid-row:2}
  .copy-line-purchase{grid-template-columns:minmax(0,1fr) auto auto;gap:6px;font-size:10px}
  .copy-line-source{grid-column:1/-1}
 }
