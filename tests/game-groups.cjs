@@ -47,11 +47,13 @@ let activePage;
    await card().scrollIntoViewIfNeeded();await page.screenshot({path:`/tmp/jtd-game-groups-${view}-${width}.png`,fullPage:true});
   }
   await card().locator('.card-name').click();assert.equal(await page.locator('#f-copy-details [data-copy-id]').count(),3);
+  await page.screenshot({path:`/tmp/jtd-game-groups-sheet-${width}.png`,fullPage:true});
   await page.locator('#f-content-details .content-type-dlc').click();assert.equal(await page.locator('#f-format-title').innerText(),'DLC');
   assert.match(await page.locator('#f-content-details .content-base-link').innerText(),/Switch 2/);
   await page.screenshot({path:`/tmp/jtd-game-groups-dlc-${width}.png`,fullPage:true});
   await page.locator('#f-content-details .content-base-link').click();await page.locator('#f-content-details .content-type-upgrade').click();
   assert.match(await page.locator('#f-format-title').innerText(),/Mise à niveau.*Switch 2 Edition/);
+  await page.screenshot({path:`/tmp/jtd-game-groups-upgrade-${width}.png`,fullPage:true});
   await page.locator('#f-content-details').getByRole('button',{name:'Modifier le rattachement',exact:true}).click();await page.locator('#f-parent-enabled').uncheck();await page.locator('#save-btn').click();
   assert.equal(await page.evaluate(()=>copyPlatform(GAMES.find(g=>g.id==='base'))),'Switch');
   assert.equal(await page.locator('#grid .card').count(),2,'Unlinked upgrade stays as an independent purchase');

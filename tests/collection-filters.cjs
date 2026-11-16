@@ -101,7 +101,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
 
       for(const media of ['physical','digital']){
         await page.evaluate(media=>{state.media=media;render();},media);
-        assert.ok(await page.locator('#grid .copy-media-tag').count()>0,'Copy rows keep a compact support identity');
+        assert.ok(await page.locator('#grid .card').evaluateAll(cards=>cards.every(card=>card.querySelector('.copy-media-tag'))),'Every matching card keeps a compact support identity');
       }
       await page.evaluate(()=>{state.media='all';state.japanese=false;buildPlatformList();render();});
       await types(page,'game','dlc','upgrade');
