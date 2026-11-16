@@ -59,7 +59,7 @@ const server=createSandboxServer();
         for(const p of g.parts) assert.ok(p.left>=g.card.left && p.right<=g.card.right+.5 && p.top>=g.card.top && p.bottom<=g.card.bottom+.5,'Card information stays inside');
       }
       const statusAlignment=await page.locator('#grid .card').first().evaluate(card=>{
-        const line=card.querySelector('.card-platform-line').getBoundingClientRect(),status=card.querySelector('.card-status-control').getBoundingClientRect();
+        const line=card.querySelector('.card-state-row').getBoundingClientRect(),status=card.querySelector('.card-status-control').getBoundingClientRect();
         return Math.abs(line.right-status.right);
       });
       assert.ok(statusAlignment<1,'Status is aligned with the right edge of the information row');

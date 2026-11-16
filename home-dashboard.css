@@ -30,6 +30,7 @@
 .home-completion-legend > span { display:flex; align-items:center; gap:6px; }
 .home-completion-legend strong { margin-left:auto; font-size:13px; color:var(--ui-text); }
 .completion-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; background:var(--ui-border); }
+.completion-dot.abandoned { background:var(--status-abandoned); }
 .completion-dot.done { background:var(--status-done); }.completion-dot.multi { background:var(--status-multi); }
 #page-home .home-heading { display:flex; flex-direction:column; gap:12px; padding:0; border:0; background:transparent; }
 #page-home .home-title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; }
