@@ -439,7 +439,8 @@ const STATUS_OPTIONS = [
   { key: "a_jouer", label: "À faire", icon: ICON_STATUS_TODO, color: "var(--status-todo)", fill: "var(--status-todo-fill)", bg: "color-mix(in srgb,var(--status-todo-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-todo-fill) 55%,var(--surface))" },
   { key: "multi", label: "Multi", icon: ICON_STATUS_MULTI, color: "var(--status-multi)", fill: "var(--status-multi-fill)", bg: "color-mix(in srgb,var(--status-multi-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-multi-fill) 55%,var(--surface))" },
   { key: "termine", label: "Terminé", icon: ICON_STATUS_DONE, color: "var(--status-done)", fill: "var(--status-done-fill)", bg: "color-mix(in srgb,var(--status-done-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-done-fill) 55%,var(--surface))" },
-  { key: "termine_ailleurs", label: "Terminé ailleurs", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg>`, color: "var(--status-elsewhere)", fill: "var(--status-elsewhere-fill)", bg: "color-mix(in srgb,var(--status-elsewhere-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-elsewhere-fill) 55%,var(--surface))" }
+  { key: "termine_ailleurs", label: "Terminé ailleurs", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h5v5"></path><path d="m10 14 10-10"></path><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"></path></svg>`, color: "var(--status-elsewhere)", fill: "var(--status-elsewhere-fill)", bg: "color-mix(in srgb,var(--status-elsewhere-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-elsewhere-fill) 55%,var(--surface))" },
+  { key: "abandonne", label: "Abandonné", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>', color: "var(--status-abandoned)", fill: "var(--status-abandoned-fill)", bg: "color-mix(in srgb,var(--status-abandoned-fill) 28%,var(--surface))", border: "color-mix(in srgb,var(--status-abandoned-fill) 55%,var(--surface))" }
 ];
 
 let GAMES = [];
@@ -1079,6 +1080,7 @@ function renderPlatformBanner(cards){
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
   const statIcons = {
     games:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/></svg>',
+    abandonne:STATUS_OPTIONS.find(option=>option.key==='abandonne').icon,
     platforms:ICON_STATUS_PLAYING,
     spent:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M16 7.5a5 5 0 1 0 0 9M6 10h8M6 14h7"/></svg>',
     collectors:FORMAT_ICON_STAR,
@@ -1105,7 +1107,8 @@ function renderPlatformBanner(cards){
   const completionStats = [
     stat(playableGames.filter(g => !getEffectiveStatus(g) || getEffectiveStatus(g)==='a_jouer').length,'À faire','a_jouer'),
     stat(playableGames.filter(g => g.status==='termine' || g.status==='termine_ailleurs').length,'Terminés','termine'),
-    stat(playableGames.filter(g => g.status==='multi').length,'Multi','multi')
+    stat(playableGames.filter(g => g.status==='multi').length,'Multi','multi'),
+    stat(playableGames.filter(g => g.status==='abandonne').length,'Abandonnés','abandonne')
   ].join('');
   const statsHtml = `<section class="library-stat-group" aria-labelledby="collection-stats-title">
     <h3 id="collection-stats-title">Collection</h3><div class="library-stat-values library-collection-values">${collectionStats}</div>
@@ -1256,10 +1259,10 @@ function renderCard(g, options = {}){
   if(!options.readOnly){
     const identity = card.querySelector('.card-identity');
     const platformLine = document.createElement('div');platformLine.className='card-platform-line';
-    identity.querySelectorAll('.card-platform,.card-status-control').forEach(el=>platformLine.appendChild(el));
+    identity.querySelectorAll('.card-platform').forEach(el=>platformLine.appendChild(el));
     identity.prepend(platformLine);
     const footer = document.createElement('div');footer.className='card-state-row';
-    for(const selector of ['.card-media-mark','.card-dlc-count']){
+    for(const selector of ['.card-media-mark','.card-dlc-count','.card-status-control']){
       const element=card.querySelector(selector);
       if(element) footer.appendChild(element);
     }
@@ -1893,14 +1896,16 @@ function renderHomeStats(){
     const playable=GAMES.filter(game=>isPlayablePurchase(game) && JTDData.isDigital(game)===(format==='digital'));
     const finished=playable.filter(game=>['termine','termine_ailleurs'].includes(game.status)).length;
     const multi=playable.filter(game=>game.status==='multi').length;
-    const todo=playable.length-finished-multi;
+    const abandoned=playable.filter(game=>game.status==='abandonne').length;
+    const todo=playable.length-finished-multi-abandoned;
+    const dropped=playable.length?abandoned/playable.length*100:0;
     const done=playable.length?finished/playable.length*100:0;
     const shared=playable.length?multi/playable.length*100:0;
     return `<div class="home-completion-group" data-home-progress="${format}">
       <h4>${icon(MEDIA_ICONS[format])}${label}</h4>
       <div class="home-completion">
-        <div class="home-completion-ring" role="img" aria-label="${finished} jeux et DLC terminés sur ${playable.length}" style="background:conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--ui-border) ${done+shared}% 100%)"><span><strong>${Math.round(done)} %</strong><small>Terminés</small></span></div>
-        <div class="home-completion-legend"><span><i class="completion-dot done"></i>Terminés<strong>${finished}</strong></span><span><i class="completion-dot multi"></i>Multi<strong>${multi}</strong></span><span><i class="completion-dot todo"></i>À faire<strong>${todo}</strong></span></div>
+        <div class="home-completion-ring" role="img" aria-label="${finished} jeux et DLC terminés sur ${playable.length}" style="background:conic-gradient(var(--status-done) 0 ${done}%,var(--status-multi) ${done}% ${done+shared}%,var(--status-abandoned) ${done+shared}% ${done+shared+dropped}%,var(--ui-border) ${done+shared+dropped}% 100%)"><span><strong>${Math.round(done)} %</strong><small>Terminés</small></span></div>
+        <div class="home-completion-legend"><span><i class="completion-dot done"></i>Terminés<strong>${finished}</strong></span><span><i class="completion-dot multi"></i>Multi<strong>${multi}</strong></span><span><i class="completion-dot todo"></i>À faire<strong>${todo}</strong></span><span><i class="completion-dot abandoned"></i>Abandonnés<strong>${abandoned}</strong></span></div>
       </div></div>`;
   }).join('');
 }

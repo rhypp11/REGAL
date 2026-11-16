@@ -133,7 +133,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');
-        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-platform-line .card-status-control').count(),1);
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-status-control').count(),1);
         assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-console-account').count(),0);
         assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-media-mark').count(),1);
         await page.screenshot({path:'/tmp/jtd-card-surface-'+view+'-'+width+'-'+theme+'.png'});

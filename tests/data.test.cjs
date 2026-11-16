@@ -357,3 +357,10 @@ test('a completed old cloud write does not report newer edits as synchronized',a
  assert.equal(element.textContent,'Échec sync');assert.match(element['aria-label'],/Erreur fictive/);
  await ctx.authCallback(null);
 });
+
+test('abandoned games and DLC preserve their status in backups and public snapshots',()=>{
+ const input={games:[game({status:'abandonne'}),game({id:'dlc',format:'Numérique',contentType:'dlc',parentId:'g',status:'abandonne'})]};
+ const saved=D.parseBackup({app:'Jeux Tout Doux',version:5,data:input});
+ assert.deepEqual(saved.games.map(g=>g.status),['abandonne','abandonne']);
+ assert.deepEqual(D.createPublicSharePayload(saved).games.map(g=>g.status),['abandonne','abandonne']);
+});

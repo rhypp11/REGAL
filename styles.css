@@ -16,6 +16,8 @@
   --wishlist-rgb: 238,151,62;
   --arrival: #78DCC6;
   --arrival-rgb: 48,171,151;
+  --status-abandoned: #ECA5A5;
+  --status-abandoned-fill: #C85F61;
   --status-todo-fill: #E6AF38;
   --status-multi-fill: #A47AD8;
   --status-done-fill: #6DB653;
