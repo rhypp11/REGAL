@@ -39,7 +39,8 @@ const server=createSandboxServer();
     assert.equal(await sidebar.evaluate(el=>el.classList.contains('mobile-open')),true);
     await page.waitForFunction(()=>Math.abs(document.getElementById('home-sidebar').getBoundingClientRect().left)<1);
     assert.ok((await sidebar.boundingBox()).width>250,'Open drawer has a readable width');
-    const drawerBox=await sidebar.evaluate(el=>({bottom:el.getBoundingClientRect().bottom,height:el.getBoundingClientRect().height,innerHeight,top:getComputedStyle(el).top,overflow:getComputedStyle(el).overflowY}));
+    const drawerBox=await sidebar.evaluate(el=>({bottom:el.getBoundingClientRect().bottom,height:el.getBoundingClientRect().height,innerHeight,top:getComputedStyle(el).top,rectTop:el.getBoundingClientRect().top,cssHeight:getComputedStyle(el).height,minHeight:getComputedStyle(el).minHeight,maxHeight:getComputedStyle(el).maxHeight,position:getComputedStyle(el).position,transform:getComputedStyle(el).transform,boxSizing:getComputedStyle(el).boxSizing,overflow:getComputedStyle(el).overflowY}));
+    await page.screenshot({path:'/tmp/jtd-home-drawer-diagnostic-'+width+'.png'});
     assert.ok(Math.abs(drawerBox.bottom-drawerBox.innerHeight)<2,'Drawer reaches the bottom of the viewport: '+JSON.stringify(drawerBox));
     await page.screenshot({path:'/tmp/jtd-home-drawer-'+width+'-'+theme+'.png'});
    }else{
