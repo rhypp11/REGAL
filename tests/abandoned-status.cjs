@@ -40,8 +40,8 @@ const server=createSandboxServer();
   assert.equal(await page.locator('#f-content-status').inputValue(),'abandonne');await page.locator('#cancel-btn').click();
   await page.evaluate(()=>goToPage('home'));
   const physical=page.locator('[data-home-progress="physical"]');
-  assert.match(await physical.locator('.completion-dot.abandoned').locator('..').innerText(),/Abandonnés1/);
-  assert.match(await physical.locator('.completion-dot.todo').locator('..').innerText(),/À faire0/);
+  assert.equal(await physical.locator('.completion-dot.abandoned').locator('..').locator('strong').textContent(),'1');
+  assert.equal(await physical.locator('.completion-dot.todo').locator('..').locator('strong').textContent(),'0');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   assert.deepEqual(errors,[]);await context.close();console.log('PASS abandoned status',width,theme);
  }}finally{await browser.close();server.close();}
