@@ -213,7 +213,8 @@ body.mobile-drawer-open { overflow:hidden; }
     bottom:0;
     width:min(86vw,340px);
     max-width:340px;
-    height:auto;
+    height:calc(100dvh - var(--topnav-h,102px));
+    min-height:0;
     padding:20px 14px 28px;
     z-index:60;
     overflow-y:auto;
