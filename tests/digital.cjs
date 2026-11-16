@@ -158,7 +158,7 @@ async function openFilters(page){
           const gridBox=await page.locator('#grid').boundingBox();
           const cardBox=await page.locator('#grid .card').first().boundingBox();
           assert.ok(cardBox.width>=gridBox.width-2,'Detailed rows use the full list width');
-          assert.equal(await page.locator('#grid .card-list-details').first().isVisible(),true,'List exposes acquisition details independently of sort');
+          assert.equal(await page.locator('#grid .copy-line-purchases').first().isVisible(),true,'List exposes acquisition details independently of sort');
         }
         const nameBox=await page.locator('#grid .card-name').first().boundingBox();
         assert.ok(nameBox.height>=14,'Every display retains a visible game title');

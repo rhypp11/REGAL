@@ -21,7 +21,14 @@ function decorateCopyCard(card,entry){
     const formats=[...new Set(matches.map(copy=>JTDData.isDigital(copy)?'digital':'physical'))];
     const row=document.createElement('div');row.className='copy-platform-row';
     row.innerHTML=copyPlatformHtml(platform)+'<span class="copy-media">'+formats.map(format=>'<span class="copy-media-tag card-media-mark" title="'+(format==='digital'?'Numérique':'Physique')+'">'+MEDIA_ICONS[format]+'<span class="copy-media-name">'+(format==='digital'?'Numérique':'Physique')+'</span></span>').join('')+'</span>'+copyCounter(contents.filter(JTDData.isDLC).length,'dlc')+copyCounter(contents.filter(child=>child.contentType==='upgrade').length,'upgrade');
-    rows.appendChild(row);
+    const purchases=document.createElement('div');purchases.className='copy-line-purchases';
+    for(const copy of matches){
+      const line=document.createElement('div');line.className='copy-line-purchase';line.dataset.purchaseId=copy.id;
+      const format=JTDData.isDigital(copy)?'digital':'physical';
+      line.innerHTML='<span class="copy-line-format">'+MEDIA_ICONS[format]+'<span>'+(format==='digital'?'Numérique':'Physique')+'</span></span><span class="copy-line-price">'+escapeHTML(purchaseMoney(copy))+'</span><time>'+escapeHTML(copy.date?dateFR(copy.date):'—')+'</time>'+(copy.source?'<span class="copy-line-source">'+escapeHTML(copy.source)+'</span>':'');
+      purchases.appendChild(line);
+    }
+    row.appendChild(purchases);rows.appendChild(row);
   }
   identity.replaceChildren(rows);
   card.classList.add('copy-card');
@@ -29,9 +36,8 @@ function decorateCopyCard(card,entry){
     const count=document.createElement('span');count.className='copy-count';count.textContent=!JTDData.isAddon(entry)&&copies.length>1?copies.length+' exemplaires':'';
     footer.append(count,control);card.querySelector('.card-body').appendChild(footer);
   }
+  card.querySelector('.card-list-details')?.remove();
   if(copies.length>1){
-    const details=card.querySelector('.card-list-details');
-    if(details)details.innerHTML='<div><dt>Exemplaires</dt><dd>'+copies.length+'</dd></div><div><dt>Achats</dt><dd>'+copyPrices(copies)+'</dd></div><div><dt>Dernier achat</dt><dd>'+escapeHTML(entry.date?dateFR(entry.date):'—')+'</dd></div>';
     const acquisition=card.querySelector('.card-acquisition');if(acquisition && state.sort.startsWith('price-'))acquisition.innerHTML='<span class="card-sort-label">Achats des exemplaires</span><span class="card-price">'+copyPrices(copies)+'</span>';
   }
 }
@@ -67,16 +73,25 @@ function renderCopyDetails(game){
   const container=document.getElementById('f-copy-details');container.replaceChildren();
   document.getElementById('modal-overlay').classList.toggle('copy-sheet-group',!!game && !JTDData.isAddon(game) && JTDData.gameCopies(game,GAMES).length>1);
   if(!game || JTDData.isAddon(game) || editingCollection!=='games')return;
-  const copies=JTDData.gameCopies(game,GAMES),section=document.createElement('section');section.className='form-section copy-purchases';
-  const heading=document.createElement('div');heading.className='copy-section-heading';heading.innerHTML='<h3>Exemplaires</h3>';
-  const add=document.createElement('button');add.type='button';add.className='manage-link';add.textContent='Ajouter un exemplaire';add.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>{const target=game.id;openModal(null);document.getElementById('f-nom').value=game.nom;document.getElementById('f-copy-target').value=target;document.getElementById('f-copy-options').open=true;renderCopySelection();});heading.appendChild(add);section.appendChild(heading);
+  const copies=JTDData.gameCopies(game,GAMES);
+  const add=document.createElement('button');add.type='button';add.className='manage-link copy-add';add.textContent='Ajouter un exemplaire';
+  add.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>{openModal(null);document.getElementById('f-nom').value=game.nom;document.getElementById('f-copy-target').value=game.id;renderCopySelection();});
+  if(copies.length===1){container.appendChild(add);return;}
+  const heading=document.createElement('div');heading.className='copy-section-heading';heading.innerHTML='<h3>Exemplaires</h3>';heading.appendChild(add);container.appendChild(heading);
   for(const copy of copies){
+    const section=document.createElement('section');section.className='copy-exemplar';section.dataset.exemplarId=copy.id;
     const button=document.createElement('button');button.type='button';button.className='content-purchase-link copy-purchase-link';button.dataset.copyId=copy.id;
-    button.innerHTML='<span class="copy-purchase-info"><strong>'+copyPlatformHtml(copyPlatform(copy))+'</strong><span>'+escapeHTML((JTDData.isDigital(copy)?'Numérique':'Physique')+(copy.collector?' · Collector':'')+(copy.japanese?' · Japonais':'')+(copy.date?' · '+dateFR(copy.date):''))+'</span>'+(copyPlatform(copy)!==copy.plateforme?'<small>Achat d’origine : '+escapeHTML(copy.plateforme)+'</small>':'')+'</span><span class="content-related-price">'+escapeHTML(purchaseMoney(copy))+'</span>';
+    button.innerHTML='<span class="copy-purchase-info"><strong>'+copyPlatformHtml(copyPlatform(copy))+'</strong><span>'+escapeHTML((JTDData.isDigital(copy)?'Numérique':'Physique')+(copy.collector?' · Collector':'')+(copy.japanese?' · Japonais':'')+(copy.date?' · '+dateFR(copy.date):''))+'</span>'+(copy.source?'<small>'+escapeHTML(copy.source)+'</small>':'')+(copyPlatform(copy)!==copy.plateforme?'<small>Achat d’origine : '+escapeHTML(copy.plateforme)+'</small>':'')+'</span><span class="content-related-price">'+escapeHTML(purchaseMoney(copy))+'</span>';
     button.setAttribute('aria-label','Modifier cet exemplaire : '+copy.plateforme+' · '+(JTDData.isDigital(copy)?'Numérique':'Physique'));
     button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>{if(copy.id!==editingId)openModal(copy.id);document.querySelector('#f-identity-summary .identity-edit-btn')?.click();});section.appendChild(button);
+    const children=GAMES.filter(child=>JTDData.contentParent(child,GAMES)?.id===copy.id);
+    if(children.length){
+      const title=document.createElement('div');title.className='copy-linked-title';title.textContent='Contenus liés · '+children.length;section.appendChild(title);
+      for(const child of children)section.appendChild(linkedContentButton(child));
+      const total=document.createElement('div');total.className='content-purchase-total';total.textContent='Total avec contenus : ';total.innerHTML+=copyPrices([copy,...children]);section.appendChild(total);
+    }
+    container.appendChild(section);
   }
-  const manage=document.createElement('button');manage.type='button';manage.className='manage-link';manage.textContent=copies.length>1?'Modifier le regroupement':'Regrouper avec un autre jeu';manage.onclick=()=>{document.querySelector('#f-identity-summary .identity-edit-btn')?.click();document.getElementById('f-copy-options').open=true;document.getElementById('f-copy-search').focus();};section.appendChild(manage);container.appendChild(section);
 }
 document.getElementById('f-copy-search').addEventListener('input',copyCandidates);
 document.getElementById('f-nom').addEventListener('input',()=>{

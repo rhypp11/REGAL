@@ -27,7 +27,6 @@
 #page-collection #grid[data-view="gallery"] .copy-card .copy-count{font-size:9px;max-width:65%;overflow:hidden;text-overflow:ellipsis}
 #page-collection #grid[data-view="gallery"] .copy-card .card-status-label{display:none}
 #page-collection #grid[data-view="gallery"] .copy-card .card-status-menu{right:0;left:auto;max-width:min(220px,calc(100vw - 30px))}
-#page-collection #grid[data-view="list"] .copy-card .copy-platform-rows{max-width:560px}
 #page-collection #grid[data-view="list"] .copy-card .copy-media-tag{display:inline-flex}
 #page-collection #grid[data-view="list"] .copy-card .copy-status-footer{margin-top:4px}
 .copy-section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
@@ -58,3 +57,27 @@
 .copy-platform-short{display:none}
 #page-collection #grid[data-view="gallery"] .copy-card .copy-platform-long{display:none}
 #page-collection #grid[data-view="gallery"] .copy-card .copy-platform-short{display:inline}
+
+/* Purchases stay on their platform line in list view. */
+.copy-platform-row+.copy-platform-row{border-top:1px solid var(--ui-border);padding-top:4px}
+.copy-line-purchases{display:none}
+#page-collection #grid[data-view="list"] .copy-card .copy-platform-rows{max-width:none}
+#page-collection #grid[data-view="list"] .copy-card .copy-media{display:none}
+#page-collection #grid[data-view="list"] .copy-card .copy-platform{flex:0 1 150px}
+#page-collection #grid[data-view="list"] .copy-card .copy-line-purchases{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.copy-line-purchase{display:grid;grid-template-columns:minmax(65px,1fr) 75px 90px minmax(0,1fr);align-items:center;gap:8px;min-width:0;font-size:11px;color:var(--ui-text-muted)}
+.copy-line-format{display:flex;align-items:center;gap:4px;min-width:0}.copy-line-format svg{width:12px;height:12px;flex:none}
+.copy-line-price{color:var(--ui-text);white-space:nowrap}.copy-line-purchase time{white-space:nowrap}
+.copy-line-source{overflow:hidden;text-overflow:ellipsis}
+.copy-exemplar{padding:10px 12px;margin:10px 0 16px;border:1px solid var(--ui-border);border-radius:var(--ui-radius-sm)}
+.copy-exemplar .copy-purchase-link{border-bottom:0;padding:8px 0}
+.copy-linked-title{font-size:11px;color:var(--ui-text-muted);margin:10px 0 4px;padding-top:12px;border-top:1px solid var(--ui-border)}
+.copy-exemplar .content-purchase-total{font-size:11px;margin-top:12px}
+#f-copy-details>.copy-add{margin:6px 0 12px;min-height:44px;font-size:12px}
+@media(max-width:700px){
+ #page-collection #grid[data-view="list"] .copy-card .copy-platform-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px;white-space:normal;padding:6px 0}
+ #page-collection #grid[data-view="list"] .copy-card .copy-line-purchases{grid-column:1/-1;width:100%}
+ .copy-line-purchase{grid-template-columns:minmax(0,1fr) auto auto;gap:6px;font-size:10px}
+ .copy-line-source{grid-column:1/-1}
+}
+@media(max-width:420px){#page-collection #grid[data-view="list"] .copy-line-format>span{display:none}}

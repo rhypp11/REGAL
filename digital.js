@@ -243,10 +243,21 @@ function readDigitalFields(){
   }
   return {format:'Numérique',contentType:dlc?kind:'game',parentId,currency,collector:false,japanese:false,japaneseAccount:document.getElementById('f-japanese-account').checked,bundle:document.getElementById('f-bundle').checked,...(kind==='dlc'?{status:document.getElementById('f-content-status').value || null}:kind==='upgrade'?{status:null}:{})};
 }
+function linkedContentButton(child){
+      const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-addon-link content-type-'+child.contentType;
+      const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;
+      const thumb='<span class="content-related-thumb'+gameImageClass(child)+'">'+(child.image?gameImageHtml(child):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
+      button.innerHTML='<span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+thumb+
+        '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
+        '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
+        '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
+      button.onclick=()=>navigateGameSheet(child.id);return button;
+}
 function renderContentDetails(game){
   const container = document.getElementById('f-content-details');
   container.replaceChildren();
   if(!game) return;
+  if(!JTDData.isAddon(game) && JTDData.gameCopies(game,GAMES).length>1)return;
   const parent = JTDData.contentParent(game,GAMES);
   const children = gameContents(game);
   const section = document.createElement('section');
@@ -269,14 +280,7 @@ function renderContentDetails(game){
   if(children.length){
     const title = document.createElement('div');title.className='form-section-title';title.textContent='Contenus liés';section.appendChild(title);
     for(const child of children){
-      const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-addon-link content-type-'+child.contentType;
-      const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;
-      const thumb='<span class="content-related-thumb'+gameImageClass(child)+'">'+(child.image?gameImageHtml(child):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
-      button.innerHTML='<span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+thumb+
-        '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
-        '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
-        '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
-      button.onclick=()=>navigateGameSheet(child.id);section.appendChild(button);
+      section.appendChild(linkedContentButton(child));
     }
     const sums = new Map();
     for(const purchase of [...JTDData.gameCopies(game,GAMES),...children]) if(purchase.prix != null) sums.set(purchase.currency || 'EUR',(sums.get(purchase.currency || 'EUR') || 0)+purchase.prix);
