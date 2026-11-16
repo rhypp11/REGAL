@@ -28,6 +28,7 @@
 #page-collection #grid[data-view="gallery"] .copy-card .card-status-label{display:none}
 #page-collection #grid[data-view="gallery"] .copy-card .card-status-menu{right:0;left:auto;max-width:min(220px,calc(100vw - 30px))}
 #page-collection #grid[data-view="list"] .copy-card .copy-platform-rows{max-width:560px}
+#page-collection #grid[data-view="list"] .copy-card .copy-media-tag{display:inline-flex}
 #page-collection #grid[data-view="list"] .copy-card .copy-status-footer{margin-top:4px}
 .copy-section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .copy-section-heading h3{margin:0;font-size:14px}.copy-section-heading button{min-height:44px}

@@ -38,8 +38,8 @@ let activePage;
    await page.locator(`#collection-view-switch [data-view="${view}"]`).click();
    const bounds=await card().evaluate(el=>{
     const box=el.getBoundingClientRect(),footer=el.querySelector('.copy-status-footer').getBoundingClientRect();
-    return {overflow:el.scrollWidth>el.clientWidth+1,rows:[...el.querySelectorAll('.copy-platform-row')].map(row=>{const r=row.getBoundingClientRect();return r.left>=box.left&&r.right<=box.right+1&&r.bottom<=footer.top+1&&row.scrollWidth<=row.clientWidth+1;}),status:el.querySelector('.card-status-badge').getBoundingClientRect().height};
-   });assert.equal(bounds.overflow,false,JSON.stringify({width,view,bounds}));assert.ok(bounds.rows.every(Boolean));assert.ok(bounds.status>=40);
+    return {overflow:el.scrollWidth>el.clientWidth+1,rows:[...el.querySelectorAll('.copy-platform-row')].map(row=>{const r=row.getBoundingClientRect();return r.left>=box.left&&r.right<=box.right+1&&r.bottom<=footer.top+1&&row.scrollWidth<=row.clientWidth+1;}),media:[...el.querySelectorAll(".copy-media-tag")].every(tag=>tag.getBoundingClientRect().width>0&&getComputedStyle(tag).display!=="none"),status:el.querySelector('.card-status-badge').getBoundingClientRect().height};
+   });assert.equal(bounds.overflow,false,JSON.stringify({width,view,bounds}));assert.ok(bounds.rows.every(Boolean));assert.ok(bounds.media,"Formats remain visible in every view");assert.ok(bounds.status>=40);
    await card().locator('.card-status-badge').click();await card().getByRole('button',{name:'Abandonné',exact:true}).click();
    assert.equal(await page.evaluate(()=>GAMES.filter(g=>!JTDData.isAddon(g)).every(g=>g.status==='abandonne')),true);
    assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='dlc').status),'a_jouer');
