@@ -11,7 +11,7 @@ const groups=[
 const statusLabels={a_jouer:'À faire',termine:'Terminé',termine_ailleurs:'Terminé ailleurs',multi:'Multi',abandonne:'Abandonné'};
 const state={media:'all',platform:'all',content:'games',grouped:true};
 let current=null,trigger=null,noticeTimer;
-const platform=(group,copy)=>group.id==='animal'&&group.upgraded?'Switch 2':copy.platform;
+const platform=(group,copy)=>group.id==='animal'&&group.upgraded&&copy.platform==='Switch'?'Switch 2':copy.platform;
 const money=value=>value==null?'Prix non renseigné':new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(value);
 const mediaLabel=value=>value==='digital'?'Numérique':'Physique';
 const matches=(group,copy)=> (state.media==='all'||copy.media===state.media)&&(state.platform==='all'||platform(group,copy)===state.platform);
@@ -21,7 +21,8 @@ function announce(message){$('notice').textContent=message;$('notice').classList
 function render(){
  for(const [id,key] of [['media','media'],['content','content']])for(const button of $(id).querySelectorAll('button'))button.setAttribute('aria-pressed',String(state[key]===button.dataset.value));
  const counts={all:0};
- for(const group of groups){const platforms=new Set(group.copies.filter(copy=>state.media==='all'||copy.media===state.media).map(copy=>platform(group,copy)));if(platforms.size)counts.all++;for(const p of platforms)counts[p]=(counts[p]||0)+1;}
+ if(state.content==='games')for(const group of groups){const platforms=new Set(group.copies.filter(copy=>state.media==='all'||copy.media===state.media).map(copy=>platform(group,copy)));if(platforms.size)counts.all++;for(const p of platforms)counts[p]=(counts[p]||0)+1;}
+ if(state.content!=='games'&&state.media!=='physical'){counts.all=1;counts[state.content==='upgrade'?'Switch 2':'Switch']=1;}
  $('platforms').innerHTML=[['all','Toutes'],...['Switch 2','Switch','PS4'].map(p=>[p,p])].map(([value,label])=>`<button data-value="${value}" aria-pressed="${state.platform===value}"><span>${label}</span><strong>${counts[value]||0}</strong></button>`).join('');
  $('heading').textContent=state.content==='dlc'?'DLC':state.content==='upgrade'?'Mises à niveau':state.platform==='all'?'Tous les jeux':state.platform;
  const visible=groups.map(group=>({group,copies:group.copies.filter(copy=>matches(group,copy))})).filter(item=>item.copies.length);

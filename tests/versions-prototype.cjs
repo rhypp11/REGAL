@@ -24,7 +24,7 @@ const server=createSandboxServer();
   await page.locator('#upgrade-linked').uncheck();await page.locator('#close').click();
   assert.equal(await page.locator('#grid .game-card').count(),0,'Unlinking returns the game to Switch without changing its acquisition');
   await page.locator('#platforms [data-value="all"]').click();
-  await page.locator('#content [data-value="dlc"]').click();await page.locator('#grid [data-open="dlc"]').click();
+  await page.locator('#content [data-value="dlc"]').click();assert.equal(await page.locator('#platforms [data-value="all"] strong').textContent(),'1');await page.locator('#grid [data-open="dlc"]').click();
   assert.equal(await page.locator('#sheet-kind').innerText(),'DLC');
   assert.match(await page.locator('#sheet-body [data-relation="animal"]').innerText(),/Jeu de base/);
   await page.screenshot({path:`/tmp/jtd-versions-dlc-${width}-${theme}.png`});
