@@ -23,9 +23,9 @@ async function drawer(page){if(await page.locator('#global-filter-toggle').isVis
   await drawer(page);await page.locator('#status-toggles').getByRole('button',{name:'Terminé',exact:true}).click();
   assert.deepEqual(await counts(page),{Toutes:1,'Switch 2':1},'Status immediately removes excluded platforms');
   await page.locator('#status-toggles').getByRole('button',{name:'Terminé',exact:true}).click();
-  await page.locator('#format-toggles').getByRole('button',{name:'Collector',exact:true}).click();
+  await page.locator('#format-toggles').getByRole('button',{name:/Collector/}).click();
   assert.deepEqual(await counts(page),{Toutes:1,'Switch 2':1},'Edition immediately refreshes counts');
-  await page.locator('#format-toggles').getByRole('button',{name:'Collector',exact:true}).press('Enter');
+  await page.locator('#format-toggles').getByRole('button',{name:/Collector/}).press('Enter');
   assert.deepEqual(await counts(page),{Toutes:2,'Switch 2':1,'PlayStation 5':1});
   await page.locator('#format-toggles').getByRole('button',{name:'Japonais',exact:true}).click();
   assert.deepEqual(await counts(page),{Toutes:1,'PlayStation 5':1});
