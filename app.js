@@ -801,7 +801,9 @@ function setStatus(id, statusKey){
   showToast(`« ${g.nom} » : ${label}.`, 'Annuler', () => {
     if(generation !== window.JTDAccountGeneration) return;
     const current = GAMES.find(game => game.id === id);
-    if(!current || JTDData.gameCopies(current,GAMES).some(copy=>!previousStatuses.has(copy.id) || copy.status!==nextStatus)) return;
+    if(!current) return;
+    const currentCopies=JTDData.gameCopies(current,GAMES);
+    if(currentCopies.length!==previousStatuses.size || currentCopies.some(copy=>!previousStatuses.has(copy.id) || copy.status!==nextStatus)) return;
     if(!commitCollection(GAMES.map(game => previousStatuses.has(game.id) ? {...game,status:previousStatuses.get(game.id)} : game))) return;
     render();
     const card = [...document.querySelectorAll('#grid .card')].find(card => card.dataset.dialogTrigger === 'game:'+id);

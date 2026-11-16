@@ -6,7 +6,7 @@ let activePage;
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const browser=await chromium.launch({headless:true,executablePath:process.env.JTD_CHROME,args:['--no-sandbox']});
  try{for(const width of [320,390,1440]){
-  const context=await sandboxContext(browser,{viewport:{width,height:900}});const page=activePage=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const context=await sandboxContext(browser,{viewport:{width,height:900}});const page=activePage=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.stack || e.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/#collection');await page.locator('#app-shell').waitFor({state:'visible'});
   await page.evaluate(()=>{
    const image=new URL('preview-assets/garden.svg',location.href).href;

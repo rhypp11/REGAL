@@ -308,7 +308,15 @@ function initDigitalControls(){
     const type=button.dataset.contentType;types.has(type) ? types.delete(type) : types.add(type);
     state.contentType=[...types].join(',') || null;buildPlatformList();render();
   };
-  for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
+  for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{
+    setGameSheetViewing(false);
+    if(id==='f-content-type' && document.getElementById(id).value==='upgrade'){
+      const target=allPlatformNames().find(p=>/^(?:Nintendo )?Switch 2$/i.test(p)) || 'Switch 2';
+      const select=document.getElementById('f-plateforme');if(![...select.options].some(option=>option.value===target))select.add(new Option(target,target));
+      setSelectValueAndSync('f-plateforme',target);
+    }
+    updateDigitalFields();
+  });
   document.getElementById('f-parent-enabled').onchange=()=>{
     setGameSheetViewing(false);
     updateParentAttachment();
@@ -321,10 +329,6 @@ function initDigitalControls(){
     setGameSheetViewing(false);
     const parent=GAMES.find(g=>g.id===event.target.value);if(!parent)return;
     const upgrade = document.getElementById('f-content-type').value === 'upgrade';
-  const heading=document.getElementById('f-format-title');
-  heading.dataset.kind=dlc?(upgrade?'upgrade':'dlc'):'game';
-  heading.innerHTML=MEDIA_ICONS[dlc?(upgrade?'upgrade':'dlc'):digital?'digital':'physical']+'<span>'+(dlc?(upgrade?'Mise à niveau · Switch 2 Edition':'DLC'):(digital?'Numérique':'Physique'))+'</span>';
-  document.getElementById('f-copy-options').classList.toggle('hidden',dlc || editingCollection!=='games' || !!convertingArrivalId);
     const target = upgrade && /^(?:Nintendo )?Switch(?: 1)?$/i.test(parent.plateforme) ? allPlatformNames().find(p=>/^(?:Nintendo )?Switch 2$/i.test(p)) || 'Switch 2' : parent.plateforme;
     const platformSelect=document.getElementById('f-plateforme');if(![...platformSelect.options].some(o=>o.value===target))platformSelect.add(new Option(target,target));
     setSelectValueAndSync('f-plateforme',target);
