@@ -44,6 +44,9 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/jtd-browser" --no-package-lock playwright@1.58.2
           NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/theme-smoke.cjs
 
+      - name: Check isolated game versions prototype
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/versions-prototype.cjs
+
       - name: Check sidebar counts after filter changes
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/sidebar-counts.cjs
 
