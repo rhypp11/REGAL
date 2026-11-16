@@ -60,7 +60,8 @@ function collectionPlayablePurchases(cards){
   return collectionPurchases(cards).filter(isPlayablePurchase);
 }
 function collectionScope(){
-  return collectionPurchases(collectionCardsForFilters(),{ignorePlatform:true,search:''});
+  const search = state.search || '';
+  return collectionPurchases(collectionCardsForFilters(search),{ignorePlatform:true,search});
 }
 function collectionCardsForFilters(search = ''){
   const types=selectedContentTypes();
