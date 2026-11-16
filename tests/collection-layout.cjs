@@ -44,7 +44,7 @@ const server=createSandboxServer();
       });
       const neutralHeading=await headingShape();
       await page.evaluate(()=>{state.platform=GAMES.find(g=>g.format==='Physique').plateforme;buildPlatformList();render();});
-      assert.equal(await page.locator('#grid .card-platform').count(),0,'Selected platform is already shown in the heading');
+      assert.ok(await page.locator('#grid .copy-platform-row .card-platform').count()>0,'Each copy row keeps its platform identity');
       assert.deepEqual(await headingShape(),neutralHeading,'All platforms and a selected platform use the same header structure');
       await page.evaluate(()=>{state.platform=null;buildPlatformList();render();});
       await page.locator('#grid .card-banner img').first().evaluate(img=>img.decode());

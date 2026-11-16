@@ -62,9 +62,10 @@
         }
         used.add(id);
         const item = {id, nom, plateforme};
-        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId','journalPreviousStatus','contentType','parentId','accountId','currency','dekuNote','dekuAddedAt']){
+        for(const field of ['date','source','image','lien','format','type','status','saleStatus','saleVenue','saleChannel','saleId','journalPreviousStatus','contentType','parentId','accountId','currency','dekuNote','dekuAddedAt','gameGroupId']){
           if(value[field] !== undefined) item[field] = text(value[field], field);
         }
+        if(item.gameGroupId && (item.gameGroupId.length>200 || !/^[a-zA-Z0-9_-]+$/.test(item.gameGroupId) || isAddon(item))) throw new Error('Regroupement de jeu invalide');
         for(const field of ['collector','japanese','japaneseAccount','bundle']){
           if(value[field] != null && typeof value[field] !== 'boolean') throw new Error('Édition invalide');
           if(field === 'collector' || field === 'japanese' || value[field] != null) item[field] = value[field] === true;
@@ -151,12 +152,73 @@
   function isAddon(game){ return isDigital(game) && ['dlc','upgrade'].includes(game.contentType); }
   function canAttachContent(child, parent){
     if(!isAddon(child) || !parent || isAddon(parent) || parent.id === child.id) return false;
+    if(child.contentType==='upgrade' && !/^(?:Nintendo )?Switch 2$/i.test(child.plateforme)) return false;
     return child.plateforme === parent.plateforme || (child.contentType === 'upgrade' &&
       /^(?:Nintendo )?Switch(?: 1)?$/i.test(parent.plateforme) && /^(?:Nintendo )?Switch 2$/i.test(child.plateforme));
   }
   function contentParent(game, games){
     if(!isAddon(game) || !game.parentId) return null;
     return games.find(parent => parent.id === game.parentId && canAttachContent(game,parent)) || null;
+  }
+  function copyKey(game){ return !isAddon(game) && game.gameGroupId ? 'group:'+game.gameGroupId : 'copy:'+game.id; }
+  function gameCopies(game,games){ return isAddon(game) ? [game] : games.filter(copy=>!isAddon(copy) && copyKey(copy)===copyKey(game)); }
+  function gameStatus(game,games){ const first=gameCopies(game,games)[0] || game;return first.status==='en_cours'?'a_jouer':first.status; }
+  function effectivePlatform(game,games){
+    if(isDLC(game)){const parent=contentParent(game,games);if(parent)return effectivePlatform(parent,games);}
+    if(isAddon(game) || !/^(?:Nintendo )?Switch(?: 1)?$/i.test(game.plateforme)) return game.plateforme;
+    const upgrade=games.find(child=>child.contentType==='upgrade' && /^(?:Nintendo )?Switch 2$/i.test(child.plateforme) && contentParent(child,games)?.id===game.id);
+    return upgrade?.plateforme || game.plateforme;
+  }
+  function uniqueGames(games){ const seen=new Set();return games.filter(game=>{const key=copyKey(game);if(seen.has(key))return false;seen.add(key);return true;}); }
+  // Pure view projections. Acquisition records and parent IDs are never rewritten for display.
+  function collectionEntries(games,{media='physical',platform=null,types=[],status=null,search='',collector=false,japanese=false,bundle=false}={}){
+    const query=searchKey(search.trim());
+    const eligible=games.filter(game=>{
+      const digital=isDigital(game),effective=gameStatus(game,games);
+      return !(media==='physical'&&digital) && !(media==='digital'&&!digital)
+        && (!types.length || types.includes(game.contentType || 'game'))
+        && (!platform || effectivePlatform(game,games)===platform)
+        && (!collector || game.collector) && (!japanese || (digital?game.japaneseAccount:game.japanese)) && (!bundle || (digital&&game.bundle))
+        && (!status || (game.contentType!=='upgrade' && (status==='__none__'?!effective:effective===status)));
+    });
+    const visible=eligible.filter(game=>!query || searchKey(game.nom).includes(query));
+    const cards=[],byKey=new Map();
+    for(const game of visible.filter(game=>!isAddon(game))){
+      const key=copyKey(game);let card=byKey.get(key);
+      if(!card){
+        const copies=gameCopies(game,games),identity=copies[0]||game,image=copies.find(copy=>copy.image);
+        card={...game,nom:identity.nom,image:image?.image || game.image,imageFit:image?.imageFit || game.imageFit,
+          plateforme:effectivePlatform(game,games),status:gameStatus(game,games),_copyIds:[],_purchaseIds:[],_copyKey:key};
+        byKey.set(key,card);cards.push(card);
+      }
+      card._copyIds.push(game.id);card._purchaseIds.push(game.id);
+    }
+    for(const game of visible.filter(isAddon)){
+      const parent=contentParent(game,games),card=parent&&byKey.get(copyKey(parent));
+      // Explicit content filters show each purchase. Otherwise group only under its visible copy.
+      if(!types.length && card && card._copyIds.includes(parent.id))card._purchaseIds.push(game.id);
+      else cards.push({...game,plateforme:effectivePlatform(game,games),status:gameStatus(game,games),_copyIds:[game.id],_purchaseIds:[game.id]});
+    }
+    for(const card of cards){
+      const copies=games.filter(game=>card._copyIds.includes(game.id));
+      if(copies.length>1){
+        const currencies=new Set(copies.filter(copy=>copy.prix!=null).map(copy=>copy.currency||'EUR'));
+        card.prix=currencies.size<=1?copies.reduce((sum,copy)=>sum+(copy.prix||0),0):null;
+        card.currency=currencies.values().next().value || 'EUR';
+        card.date=copies.map(copy=>copy.date).filter(Boolean).sort().at(-1) || null;
+      }
+    }
+    return cards;
+  }
+  function linkGameCopies(games,id,targetId,groupId){
+    const copy=games.find(game=>game.id===id),target=games.find(game=>game.id===targetId);
+    if(!copy)throw new Error('Exemplaire introuvable');
+    if(!targetId || isAddon(copy))return games.map(game=>game.id===id?{...game,gameGroupId:null,...(copy.gameGroupId?{status:gameStatus(copy,games)||null}:{})}:game);
+    if(!target || isAddon(target) || target.id===id)throw new Error('Choisis un autre jeu de la collection.');
+    const members=new Set(gameCopies(target,games).map(game=>game.id));members.add(id);
+    const shared=gameStatus(target,games),key=target.gameGroupId || groupId;
+    if(!key)throw new Error('Regroupement invalide');
+    return games.map(game=>members.has(game.id)?{...game,gameGroupId:key,status:shared || null}:game);
   }
   function searchKey(value){
     return String(value ?? '').normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr');
@@ -257,6 +319,7 @@
       publishedAt,
       games: list('games').filter(item => item && item.nom && item.plateforme).map(item => ({
         ...cleanGame(item),
+        ...(item.gameGroupId?{gameGroupId:item.gameGroupId}:{}),
         id: item.id == null ? null : String(item.id),
         format: isDigital(item) ? 'Numérique' : 'Physique',
         contentType: isAddon(item) ? item.contentType : 'game',
@@ -345,7 +408,7 @@
     },data:{journal}};
   }
 
-  const api = {createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {copyKey,gameCopies,gameStatus,effectivePlatform,uniqueGames,collectionEntries,linkGameCopies,createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

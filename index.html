@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_16.11.26-2">
-<meta name="regal-build" content="7537e38c7807c1e39adc17b3">
+<meta name="regal-version" content="3_16.11.26-3">
+<meta name="regal-build" content="58746a0e8c2ef9b9a2ee9ffc">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=2">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=2">
 <link rel="manifest" href="manifest.json">
@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="overview.css?v=listes-2">
 <link rel="stylesheet" href="pokedex.css?v=collection-navigation-1">
 <link rel="stylesheet" href="journal.css?v=journal-mobile-3">
+<link rel="stylesheet" href="game-groups.css?v=1">
 </head>
 <body>
 
@@ -443,6 +444,13 @@
           <label for="f-plateforme">Plateforme</label>
           <select id="f-plateforme" aria-required="true"></select>
       </div>
+      <details id="f-copy-options" class="purchase-options">
+        <summary>Même jeu / autres exemplaires</summary>
+        <input type="hidden" id="f-copy-target">
+        <div class="field"><label for="f-copy-search">Regrouper avec un jeu</label><input type="search" id="f-copy-search" autocomplete="off" placeholder="Rechercher un jeu de la collection…"></div>
+        <div id="f-copy-candidates" class="parent-search-results"></div>
+        <div id="f-copy-selection" class="copy-selection hidden"></div>
+      </details>
       <details id="f-image-options" class="purchase-options">
         <summary>Image du jeu</summary>
       <div class="image-url-row">
@@ -524,6 +532,7 @@
  </div>
       </div>
     </div>
+    <div id="f-copy-details"></div>
     <div id="f-content-details"></div>
     </div>
     <div class="modal-actions modal-edit-actions">
@@ -751,6 +760,7 @@
 <script src="jtd-data.js?v=account-pokedex-1"></script>
 <script src="dialogs.js?v=keyboard-viewport-1"></script>
 <script src="digital.js?v=density-1"></script>
+<script src="game-groups.js?v=1"></script>
 <script src="app.js?v=collection-hover-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>

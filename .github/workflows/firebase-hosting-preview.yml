@@ -35,6 +35,8 @@ jobs:
           node --check cemetery.js
           node --check cemetery-import.js
           node --check dialogs.js
+          node --test tests/game-groups.test.cjs
+          node --check game-groups.js
           node --test tests/data.test.cjs
           node --test tests/digital-data.test.cjs
           node --test tests/import-export.test.cjs
@@ -43,6 +45,9 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/jtd-browser" --no-package-lock playwright@1.58.2
           NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/theme-smoke.cjs
+
+      - name: Check grouped copies and Switch 2 editions in REGAL
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/game-groups.cjs
 
       - name: Check sidebar counts after filter changes
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/sidebar-counts.cjs

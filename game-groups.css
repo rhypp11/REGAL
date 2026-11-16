@@ -1,0 +1,55 @@
+/* Collection copies: reuse REGAL's single theme, icons, status menu and sheet. */
+.copy-platform-rows{display:flex;flex-direction:column;gap:4px;min-width:0;width:100%}
+.copy-platform-row{display:flex;align-items:center;gap:6px;min-width:0;min-height:28px;white-space:nowrap;font-size:12px}
+.copy-platform{display:inline-flex;align-items:center;gap:5px;min-width:0;flex:1;color:var(--ui-text-muted)}
+.copy-platform .icon-select-icon-svg,.copy-platform img,.copy-platform .icon-select-dot{width:15px;height:15px;flex:0 0 15px;object-fit:contain}
+.copy-platform-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.copy-media{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:48%;flex:0 1 auto}
+.copy-media-tag{display:inline-flex;align-items:center;gap:3px;min-width:0;font-size:10px;color:var(--ui-text-muted)}
+.copy-media-tag svg{width:12px;height:12px;flex:0 0 12px}.copy-media-name{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.copy-content-count{display:inline-flex;align-items:center;gap:3px;font-size:10px;line-height:1;padding:4px 5px;border-radius:5px;flex:none}
+.copy-content-count svg{width:12px;height:12px}
+.copy-count-dlc{color:var(--content-green);background:color-mix(in srgb,var(--content-green) 14%,var(--ui-surface))}
+.copy-count-upgrade{color:#8fc8f3;background:color-mix(in srgb,#8fc8f3 14%,var(--ui-surface))}
+#page-collection .copy-card .copy-status-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:8px 0 0;padding:6px 0 0;border-top:1px solid var(--ui-border)}
+#page-collection .copy-card .copy-status-footer .card-status-control{margin-left:auto;flex:none}
+#page-collection .copy-card .card-status-face{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:7px;background:color-mix(in srgb,var(--status-fill) 25%,var(--ui-surface))}
+.copy-count{font-size:10px;color:var(--ui-text-muted);white-space:nowrap}
+#page-collection .copy-card .card-body{display:flex;flex-direction:column;min-width:0}
+#page-collection .copy-card .card-identity{width:100%;margin:0}
+#page-collection #grid[data-view="gallery"] .copy-card :is(.card-identity,.copy-status-footer,.card-status-control){display:flex}
+#page-collection #grid[data-view="gallery"] .copy-card .card-identity{margin-top:5px}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-platform-row{font-size:10px;gap:4px;min-height:24px}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-media-name{display:none}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-media{max-width:none;flex:none;gap:2px}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-platform{gap:3px}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-content-count{padding:3px;font-size:9px;gap:2px}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-count{font-size:9px;max-width:65%;overflow:hidden;text-overflow:ellipsis}
+#page-collection #grid[data-view="gallery"] .copy-card .card-status-label{display:none}
+#page-collection #grid[data-view="gallery"] .copy-card .card-status-menu{right:0;left:auto;max-width:min(220px,calc(100vw - 30px))}
+#page-collection #grid[data-view="list"] .copy-card .copy-platform-rows{max-width:560px}
+#page-collection #grid[data-view="list"] .copy-card .copy-status-footer{margin-top:4px}
+.copy-section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.copy-section-heading h3{margin:0;font-size:14px}.copy-section-heading button{min-height:44px}
+.copy-purchase-link .copy-purchase-info{display:flex;flex-direction:column;gap:5px;min-width:0}
+.copy-purchase-info>span,.copy-purchase-info small{font-size:11px;color:var(--ui-text-muted)}
+.copy-purchase-info .copy-platform{font-size:12px;color:var(--ui-text)}
+.copy-selection{font-size:12px;padding:12px;border:1px solid var(--ui-border);border-radius:var(--ui-radius-sm)}
+.copy-selection p{margin:0 0 8px}.copy-selection button{min-height:44px}
+.content-base-link{border:1px solid var(--ui-border);border-radius:10px;padding:12px;background:var(--ui-canvas);margin:8px 0}
+.content-base-link small{display:flex;align-items:center;gap:5px}
+.content-base-link small>svg,.content-base-link small>img{width:15px;height:15px;object-fit:contain;flex:none}
+#f-format-title[data-kind="dlc"]{color:var(--content-green)}
+#f-format-title[data-kind="upgrade"]{color:#8fc8f3}
+#f-format-title[data-kind="dlc"],#f-format-title[data-kind="upgrade"]{padding:7px 10px;border-radius:7px;background:var(--ui-canvas);font-size:13px}
+#f-copy-options .parent-search-result .content-related-copy small{display:flex;align-items:center;gap:4px}
+#f-copy-options .parent-search-result small svg,#f-copy-options .parent-search-result small img{width:14px;height:14px;flex:none;object-fit:contain}
+@media(max-width:420px){.copy-platform-row{font-size:12px;gap:4px}.copy-media{gap:3px}.copy-media-tag{font-size:9px}.copy-content-count{padding:4px;gap:2px}}
+
+#modal-overlay.game-sheet-viewing.copy-sheet-group #f-context-summary{display:none}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-platform{font-size:10px}
+#page-collection .copy-card .copy-status-footer .card-status-badge{width:auto;height:auto;min-width:44px;min-height:44px;padding:0;border:0;border-radius:var(--ui-radius-sm);background:transparent;box-shadow:none;backdrop-filter:none;font-size:11px;transform:none}
+#page-collection .copy-card .copy-status-footer .card-status-label{display:inline}
+#page-collection .copy-card .copy-status-footer .card-status-face{display:inline-flex}
+#page-collection .copy-card .copy-status-footer .card-status-menu{top:calc(100% + 5px);right:0}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-status-footer .card-status-label{display:none}

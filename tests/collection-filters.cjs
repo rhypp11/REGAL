@@ -101,7 +101,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
 
       for(const media of ['physical','digital']){
         await page.evaluate(media=>{state.media=media;render();},media);
-        assert.equal(await page.locator('#grid .card-media-mark').count(),0,'A selected format does not repeat its tag on cards');
+        assert.ok(await page.locator('#grid .copy-media-tag').count()>0,'Copy rows keep a compact support identity');
       }
       await page.evaluate(()=>{state.media='all';state.japanese=false;buildPlatformList();render();});
       await types(page,'game','dlc','upgrade');
@@ -135,7 +135,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');
         assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-status-control').count(),1);
         assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-console-account').count(),0);
-        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .card-state-row .card-media-mark').count(),1);
+        assert.equal(await page.locator('[data-dialog-trigger="game:base"] .copy-platform-row .card-media-mark').count(),1);
         await page.screenshot({path:'/tmp/jtd-card-surface-'+view+'-'+width+'-'+theme+'.png'});
       }
       await page.evaluate(()=>{state.media='digital';state.japanese=true;buildPlatformList();render();openModal('base');});

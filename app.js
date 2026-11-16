@@ -83,7 +83,7 @@ function decoratePreviewData(data){
       }
     });
   }
-  const icons = {'Switch 2':['switch','#C4342B'],'PlayStation 5':['playstation','#245594'],'PlayStation 4':['playstation','#2C4C7C'],'PC':['pc','#4F7CD9']};
+  const icons = {'Switch':['switch','#C4342B'],'Switch 2':['switch','#C4342B'],'PlayStation 5':['playstation','#245594'],'PlayStation 4':['playstation','#2C4C7C'],'PC':['pc','#4F7CD9']};
   for(const [name,[icon,color]] of Object.entries(icons)){
     if(!data.platformMeta[name]) data.platformMeta[name] = {color};
     if(!data.platformMeta[name].logo) data.platformMeta[name].logo = new URL('preview-assets/'+icon+'.svg',location.href).href;
@@ -106,7 +106,7 @@ function loadPreviewData(){
   } catch(error){ console.error('Lecture sandbox impossible', error); }
   window.JTDMigratePreviewPokedex = !hasPreviewSnapshot();
   const initial = JTDData.normalizeData({...PREVIEW_SEED,
-    games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo(),...digitalPreviewGames()] : PREVIEW_SEED.games,
+    games:HAS_PREVIEW_COLLECTION_DEMO ? [...PREVIEW_SEED.games,...buildPreviewCollectionDemo(),...digitalPreviewGames(),...groupedPreviewGames()] : PREVIEW_SEED.games,
     digitalAccounts:HAS_PREVIEW_COLLECTION_DEMO ? digitalPreviewAccounts() : [],
     profileName:'Mode test'});
   return previewData = HAS_PREVIEW_COLLECTION_DEMO ? decoratePreviewData(initial) : initial;
@@ -786,10 +786,10 @@ function restoreBackup(file){
 function setStatus(id, statusKey){
   const g = GAMES.find(x => x.id === id);
   if(!g || !isPlayablePurchase(g)) return;
-  const previousStatus = g.status;
+  const previousStatuses = new Map(JTDData.gameCopies(g,GAMES).map(copy=>[copy.id,copy.status]));
   const nextStatus = (getEffectiveStatus(g) === statusKey) ? null : statusKey;
   const generation = window.JTDAccountGeneration;
-  if(!commitCollection(GAMES.map(game => game.id === id ? {...game,status:nextStatus} : game))) return;
+  if(!commitCollection(GAMES.map(game => previousStatuses.has(game.id) ? {...game,status:nextStatus} : game))) return;
   const cards = [...document.querySelectorAll('#grid .card')];
   const index = cards.findIndex(card=>card.dataset.dialogTrigger==='game:'+id);
   render();
@@ -801,8 +801,8 @@ function setStatus(id, statusKey){
   showToast(`« ${g.nom} » : ${label}.`, 'Annuler', () => {
     if(generation !== window.JTDAccountGeneration) return;
     const current = GAMES.find(game => game.id === id);
-    if(!current || current.status !== nextStatus) return;
-    if(!commitCollection(GAMES.map(game => game.id === id ? {...game,status:previousStatus} : game))) return;
+    if(!current || JTDData.gameCopies(current,GAMES).some(copy=>!previousStatuses.has(copy.id) || copy.status!==nextStatus)) return;
+    if(!commitCollection(GAMES.map(game => previousStatuses.has(game.id) ? {...game,status:previousStatuses.get(game.id)} : game))) return;
     render();
     const card = [...document.querySelectorAll('#grid .card')].find(card => card.dataset.dialogTrigger === 'game:'+id);
     card?.querySelector('.card-status-badge')?.focus({preventScroll:true});
@@ -965,7 +965,7 @@ function buildStatusToggles(){
 }
 
 function getEffectiveStatus(g){
-  return g.status === 'en_cours' ? 'a_jouer' : g.status;
+  return JTDData.gameStatus(g,GAMES);
 }
 
 function matchesCollectionVersion(game){
@@ -977,18 +977,7 @@ function matchesCollectionVersion(game){
 
 function filteredGames(){
   const q = JTDData.searchKey(state.search.trim());
-  return collectionCardsForFilters(q).filter(g => {
-      if(state.platform && g.plateforme !== state.platform) return false;
-      if(q && !JTDData.searchKey(g.nom).includes(q)) return false;
-      if(state.status){
-        if(state.status === '__none__'){
-          if(getEffectiveStatus(g)) return false;
-        } else if(getEffectiveStatus(g) !== state.status){
-          return false;
-        }
-      }
-      return true;
-    });
+  return collectionCardsForFilters(q,true);
 }
 
 function sortGames(games){
@@ -1074,7 +1063,7 @@ function renderPlatformBanner(cards){
   banner.dataset.resultCount = games.length;
   requestCollectionContextUpdate();
   const total = games.length;
-  const playableGames = games.filter(isPlayablePurchase);
+  const playableGames = JTDData.uniqueGames(games.filter(isPlayablePurchase));
   const spent = games.reduce((sum,g) => sum + ((g.currency || 'EUR') === 'EUR' ? (g.prix || 0) : 0), 0);
   const collectors = games.filter(g => g.collector).length;
   const platformsCount = new Set(games.map(g => g.plateforme)).size;
@@ -1092,9 +1081,10 @@ function renderPlatformBanner(cards){
   const stat = (value, label, key) =>
     `<span class="library-stat" data-stat="${key}"><strong>${value}</strong><span class="library-stat-label"><span class="library-stat-icon" aria-hidden="true">${statIcons[key] || ''}</span>${key === 'platforms' ? `<span class="library-stat-label-wide">${escapeHTML(label)}</span><span class="library-stat-label-short">${platformsCount > 1 ? 'Supports' : 'Support'}</span>` : escapeHTML(label)}</span></span>`;
   const collectionStats = [
-    stat(total, state.media && state.media !== 'physical' ? 'Éléments' : total > 1 ? 'Jeux' : 'Jeu', 'games'),
+    stat(total, state.media && state.media !== 'physical' ? 'Éléments' : 'Exemplaires', 'games'),
+    stat(JTDData.uniqueGames(games.filter(g=>!JTDData.isAddon(g))).length,'Jeux','base-games'),
     ...(state.media !== 'physical' ? [
-      stat(games.filter(g=>!JTDData.isAddon(g)).length,'Jeux','base-games'),
+      stat(games.filter(g=>!JTDData.isAddon(g)).length,'Exemplaires','copies'),
       stat(games.filter(JTDData.isDLC).length,'DLC','dlc'),
       stat(games.filter(g=>JTDData.isAddon(g) && g.contentType==='upgrade').length,'Mises à niveau','upgrades')
     ] : []),
@@ -1239,6 +1229,7 @@ function renderCard(g, options = {}){
     closeCardStatusMenus();
     menu.classList.toggle('hidden', !willOpen);
     badge.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if(willOpen){menu.style.left='';menu.style.right='0';if(menu.getBoundingClientRect().left<8){menu.style.left='0';menu.style.right='auto';}}
     if(willOpen && e.detail===0) (menu.querySelector('[aria-pressed="true"]') || menu.querySelector('button'))?.focus();
   });
   menu.querySelectorAll('.card-status-option').forEach(btn => {
@@ -1257,16 +1248,7 @@ function renderCard(g, options = {}){
   }
   decorateDigitalCard(card, g, options);
   if(!options.readOnly){
-    const identity = card.querySelector('.card-identity');
-    const platformLine = document.createElement('div');platformLine.className='card-platform-line';
-    identity.querySelectorAll('.card-platform').forEach(el=>platformLine.appendChild(el));
-    identity.prepend(platformLine);
-    const footer = document.createElement('div');footer.className='card-state-row';
-    for(const selector of ['.card-media-mark','.card-dlc-count','.card-status-control']){
-      const element=card.querySelector(selector);
-      if(element) footer.appendChild(element);
-    }
-    if(footer.childNodes.length) identity.appendChild(footer);
+    decorateCopyCard(card,g);
   }
   const onOpen = options.onOpen || (() => openModal(g.id));
   card.addEventListener('click', onOpen);
@@ -1678,7 +1660,7 @@ function boardEditorSnapshot(id, prefix){
     'input[id^="' + prefix + '-"], select[id^="' + prefix + '-"]'
   );
   const values = [...fields]
-    .filter(field => !['f-parent-search', 'w-release-search', 'w-date', 'w-year'].includes(field.id))
+    .filter(field => !['f-parent-search', 'f-copy-search', 'w-release-search', 'w-date', 'w-year'].includes(field.id))
     .map(field => field.type === 'checkbox' ? field.checked : field.value);
   if(prefix === 'w') values.push(getFlexibleDate('w'));
   return JSON.stringify(values);
@@ -1765,7 +1747,9 @@ function openModal(id, collection = 'games'){
   document.getElementById('f-image-options').open = false;
   document.getElementById('f-edition-options').open = false;
   openDigitalFields(identityItem);
-  setIdentityEditor('f', identityItem, !!editingId);
+  openCopyFields(identityItem);
+  const copyIdentity=identityItem && editingCollection==='games' ? {...identityItem,plateforme:copyPlatform(identityItem)} : identityItem;
+  setIdentityEditor('f', copyIdentity, !!editingId);
   if(identityItem && editingCollection==='games' && identityItem.contentType!=='upgrade'){
     const status=STATUS_OPTIONS.find(option=>option.key===getEffectiveStatus(identityItem));
     const badge=document.createElement('span');
@@ -1794,6 +1778,7 @@ function closeModal(){
   editingCollection = 'games';
   convertingArrivalId = null; // annuler = l'arrivage reste où il était
   document.getElementById('f-content-details').replaceChildren();
+  document.getElementById('f-copy-details').replaceChildren();
 }
 
 function updateImagePreview(){
@@ -1821,9 +1806,10 @@ function saveModal(){
   if(editedCemetery){
     if(!window.updateCemeteryGame?.(editingId, fields)) return;
   } else if(!convertingArrivalId){
-    const next = editingId
+    let next = editingId
       ? GAMES.map(game => game.id === editingId ? {...game,...fields} : game)
       : [...GAMES,{id:savedId,type:null,status:null,...fields}];
+    try { next=readCopyFields(next,savedId); }catch(error){ window.JTDDialogs.error('f-copy-search',error.message); return; }
     if(!commitCollection(next)) return;
   } else renderArrivals();
 
@@ -1853,7 +1839,7 @@ function revealCollectionPurchase(id){
   if(!game) return;
   // An explicit content filter keeps a newly saved DLC visible independently of its parent.
   applyNavigation({page:'collection',media:JTDData.isDigital(game) ? 'digital' : 'physical',
-    platform:game.plateforme,contentType:JTDData.isAddon(game) ? game.contentType : null,
+    platform:JTDData.effectivePlatform(game,GAMES),contentType:JTDData.isAddon(game) ? game.contentType : null,
     search:game.nom,sort:state.sort,board:navigationBoard});
   const card = [...document.querySelectorAll('#grid .card')].find(card => card.dataset.dialogTrigger === 'game:'+id);
   card?.scrollIntoView({block:'center'});
@@ -1864,7 +1850,7 @@ function deleteGame(){
   if(!editingId) return;
   const g = GAMES.find(x => x.id === editingId);
   if(!g) return;
-  confirmAction(`Supprimer « ${g.nom} » de la ludothèque ?`, () => {
+  confirmAction(JTDData.gameCopies(g,GAMES).length>1 ? `Supprimer cet exemplaire de « ${g.nom} » (${g.plateforme}, ${JTDData.isDigital(g)?'numérique':'physique'}) ? Les autres exemplaires seront conservés.` : `Supprimer « ${g.nom} » de la ludothèque ?`, () => {
     const idx = GAMES.indexOf(g);
     if(!commitCollection(GAMES.filter(x => x.id !== editingId))) return;
     closeModal();
@@ -1883,22 +1869,22 @@ function deleteGame(){
 /* ---------- Accueil : Stats ---------- */
 
 function renderHomeStats(){
-  const games=GAMES.filter(g=>!JTDData.isAddon(g));
-  const physical=games.filter(g=>!JTDData.isDigital(g));
-  const digital=games.filter(g=>JTDData.isDigital(g));
+  const games=JTDData.uniqueGames(GAMES.filter(g=>!JTDData.isAddon(g)));
+  const physical=JTDData.uniqueGames(GAMES.filter(g=>!JTDData.isAddon(g)&&!JTDData.isDigital(g)));
+  const digital=JTDData.uniqueGames(GAMES.filter(g=>!JTDData.isAddon(g)&&JTDData.isDigital(g)));
   const total=games.length;
   const totalEl=document.getElementById('home-total-games');if(totalEl) totalEl.textContent=total;
   const icon=(content)=>`<span class="stats-icon" aria-hidden="true">${content}</span>`;
   const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
   const meta=document.getElementById('home-summary-meta');
   const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
-  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
+  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('Exemplaires',GAMES.filter(g=>!JTDData.isAddon(g)).length,MEDIA_ICONS.game)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
   const breakdown=document.getElementById('home-status-breakdown');
   if(breakdown) breakdown.innerHTML = [['physical','Physique'],['digital','Numérique']].map(([format,label])=>{
-    const playable=GAMES.filter(game=>isPlayablePurchase(game) && JTDData.isDigital(game)===(format==='digital'));
-    const finished=playable.filter(game=>['termine','termine_ailleurs'].includes(game.status)).length;
-    const multi=playable.filter(game=>game.status==='multi').length;
-    const abandoned=playable.filter(game=>game.status==='abandonne').length;
+    const playable=JTDData.uniqueGames(GAMES.filter(game=>isPlayablePurchase(game) && JTDData.isDigital(game)===(format==='digital')));
+    const finished=playable.filter(game=>['termine','termine_ailleurs'].includes(getEffectiveStatus(game))).length;
+    const multi=playable.filter(game=>getEffectiveStatus(game)==='multi').length;
+    const abandoned=playable.filter(game=>getEffectiveStatus(game)==='abandonne').length;
     const todo=playable.length-finished-multi-abandoned;
     const dropped=playable.length?abandoned/playable.length*100:0;
     const done=playable.length?finished/playable.length*100:0;
