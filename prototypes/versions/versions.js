@@ -32,8 +32,15 @@ function render(){
  if(state.content==='games')for(const {group,copies} of visible){
   for(const shown of state.grouped?[copies]:copies.map(copy=>[copy])){
    const platforms=[...new Set(shown.map(copy=>platform(group,copy)))];
-   const media=[...new Set(shown.map(copy=>copy.media))];
-   html+=`<button class="game-card" data-open="${group.id}" aria-label="Ouvrir ${esc(group.name)}"><div class="art"><img src="${artSrc(group)}" alt="Illustration de démonstration">${group.upgraded?'<span class="art-label tag upgrade">↑ Switch 2 Edition</span>':''}</div><div class="card-copy"><h2>${esc(group.name)}</h2><div class="tags">${platforms.map(p=>tag(p,'platform')).join('')}</div><div class="tags copy-support">${media.map(m=>tag(mediaLabel(m))).join('')}${tag(statusLabels[group.status],'status '+group.status)}</div>${group.id==='animal'?`<div class="card-links">${tag('DLC · Happy Home Paradise','dlc')}${group.upgraded?tag('↑ Mise à niveau Switch 2','upgrade'):''}</div>`:''}<p class="count-note">${shown.length} exemplaire${shown.length>1?'s':''}${state.grouped?' · statut commun':''}</p></div></button>`;
+   const puzzle='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3h3a3 3 0 1 1 6 0h4v6a3 3 0 1 0 0 6v6h-6a3 3 0 1 0-6 0H3v-6a3 3 0 1 0 0-6V3h5Z"/></svg>';
+   const counter=(count,kind,icon,label)=>`<span class="addon-counter ${kind}" title="${label}" aria-label="${label}"><span>${count}</span>${icon}</span>`;
+   const rows=platforms.map(p=>{
+    const copies=shown.filter(copy=>platform(group,copy)===p);
+    const media=[...new Set(copies.map(copy=>copy.media))].map(mediaLabel).join(' · ');
+    const animal=group.id==='animal'&&copies.some(copy=>copy.platform==='Switch');
+    return `<div class="platform-row"><span class="row-platform" title="${esc(p)}">${esc(p)}</span><span class="row-support" title="${esc(media)}">${esc(media)}</span>${animal?counter(1,'dlc',puzzle,'1 DLC'):''}${animal&&group.upgraded?counter(1,'upgrade','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V4m-6 6 6-6 6 6"/></svg>','1 mise à niveau'):''}</div>`;
+   }).join('');
+   html+=`<article class="game-card" data-game="${group.id}"><button class="card-open-control" data-open="${group.id}" aria-label="Ouvrir ${esc(group.name)}"></button><div class="art"><img src="${artSrc(group)}" alt="Illustration de démonstration"></div><div class="card-copy"><h2>${esc(group.name)}</h2><div class="platform-rows">${rows}</div><div class="card-status-footer"><span class="count-note">${shown.length} exemplaire${shown.length>1?'s':''}</span><select class="card-status-select ${group.status}" data-card-status="${group.id}" aria-label="Statut commun de ${esc(group.name)}">${Object.entries(statusLabels).map(([value,label])=>`<option value="${value}" ${value===group.status?'selected':''}>${label}</option>`).join('')}</select></div></div></article>`;
   }
  }else if(state.media!=='physical'&&(state.platform==='all'||state.platform===(state.content==='upgrade'?'Switch 2':'Switch'))){
   const upgrade=state.content==='upgrade';
@@ -55,7 +62,7 @@ function openSheet(id){
  $('sheet-kind').className='eyebrow '+(upgrade?'kind-upgrade':dlc?'kind-dlc':'');
  $('sheet-kind').textContent=upgrade?'↑ MISE À NIVEAU · SWITCH 2 EDITION':dlc?'DLC':'FICHE DU JEU';
  if(group){
-  $('sheet-body').innerHTML=`<img class="sheet-art" src="${artSrc(group)}" alt="Illustration de démonstration"><h2>${esc(group.name)}</h2>${group.upgraded?'<span class="edition-label">↑ Switch 2 Edition</span>':''}<div class="tags">${[...new Set(group.copies.map(copy=>platform(group,copy)))].map(p=>tag(p,'platform')).join('')}</div><label class="status-edit">Statut commun<select id="shared-status">${Object.entries(statusLabels).map(([value,label])=>`<option value="${value}" ${value===group.status?'selected':''}>${label}</option>`).join('')}</select></label><section class="sheet-section"><div class="section-title"><h3>Exemplaires</h3><button data-add-copy="${group.id}">＋ Ajouter</button></div>${group.copies.map(copy=>`<div class="copy"><div><strong>${esc(platform(group,copy))} · ${mediaLabel(copy.media)}</strong><p>${esc(copy.date)}${group.id==='animal'?' · eShop':''}</p>${group.id==='animal'&&group.upgraded?'<small class="count-note">Achat d’origine : Switch</small>':''}</div><span class="money">${money(copy.price)}</span></div>`).join('')}</section>${group.id==='animal'?`<section class="sheet-section"><div class="section-title"><h3>Contenus liés</h3><small>${group.upgraded?'1 DLC · 1 mise à niveau':'1 DLC'}</small></div>${relation(group,'dlc')}${group.upgraded?relation(group,'upgrade'):''}</section><div class="history"><strong>Historique conservé</strong><br>Achat Switch en 2020 : ${money(59.99)}${group.upgraded?`<br>Mise à niveau Switch 2 : ${money(4.99)}`:''}. Montants fictifs pour cette maquette.</div>`:''}`;
+  $('sheet-body').innerHTML=`<img class="sheet-art" src="${artSrc(group)}" alt="Illustration de démonstration"><h2>${esc(group.name)}</h2>${group.upgraded?'<span class="edition-label">↑ Switch 2 Edition</span>':''}<div class="tags">${[...new Set(group.copies.map(copy=>platform(group,copy)))].map(p=>tag(p,'platform')).join('')}</div><label class="status-edit">Statut commun<select id="shared-status">${Object.entries(statusLabels).map(([value,label])=>`<option value="${value}" ${value===group.status?'selected':''}>${label}</option>`).join('')}</select></label><section class="sheet-section"><div class="section-title"><h3>Exemplaires</h3><button data-add-copy="${group.id}">Ajouter</button></div>${group.copies.map(copy=>`<div class="copy"><div><strong>${esc(platform(group,copy))} · ${mediaLabel(copy.media)}</strong><p>${esc(copy.date)}${group.id==='animal'?' · eShop':''}</p>${group.id==='animal'&&group.upgraded?'<small class="count-note">Achat d’origine : Switch</small>':''}</div><span class="money">${money(copy.price)}</span></div>`).join('')}</section>${group.id==='animal'?`<section class="sheet-section"><div class="section-title"><h3>Contenus liés</h3><small>${group.upgraded?'1 DLC · 1 mise à niveau':'1 DLC'}</small></div>${relation(group,'dlc')}${group.upgraded?relation(group,'upgrade'):''}</section><div class="history"><strong>Historique conservé</strong><br>Achat Switch en 2020 : ${money(59.99)}${group.upgraded?`<br>Mise à niveau Switch 2 : ${money(4.99)}`:''}. Montants fictifs pour cette maquette.</div>`:''}`;
   $('shared-status').onchange=event=>{group.status=event.target.value;render();announce('Statut commun mis à jour pour tous les exemplaires.');};
  }else{
   const animal=groups[0];
@@ -67,6 +74,13 @@ function openSheet(id){
 function closeSheet(){$('sheet').close();const target=trigger?.isConnected?trigger:document.querySelector(`[data-open="${current}"]`);target?.focus();}
 for(const [id,key] of [['media','media'],['content','content'],['platforms','platform']])$(id).onclick=event=>{const button=event.target.closest('[data-value]');if(!button)return;state[key]=button.dataset.value;render();if(id==='platforms')$(id).querySelector(`[data-value="${state.platform}"]`)?.focus();};
 $('grouped').onchange=event=>{state.grouped=event.target.checked;render();};
+$('grid').onchange=event=>{
+ const select=event.target.closest('[data-card-status]');if(!select)return;
+ const group=groups.find(group=>group.id===select.dataset.cardStatus);group.status=select.value;
+ const index=[...$('grid').querySelectorAll('[data-card-status]')].indexOf(select);
+ render();$('grid').querySelectorAll('[data-card-status]')[index]?.focus();
+ announce('Statut commun mis à jour pour tous les exemplaires.');
+};
 $('grid').onclick=event=>{const button=event.target.closest('[data-open]');if(button)openSheet(button.dataset.open);};
 $('sheet-body').onclick=event=>{const relation=event.target.closest('[data-relation]');if(relation)openSheet(relation.dataset.relation);const add=event.target.closest('[data-add-copy]');if(add){closeSheet();openAdd(groups.find(g=>g.id===add.dataset.addCopy).name);}};
 $('close').onclick=closeSheet;

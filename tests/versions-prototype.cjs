@@ -14,6 +14,26 @@ const server=createSandboxServer();
   assert.equal(await page.locator('#grid .game-card').count(),2);
   await page.locator('#grouped').uncheck();assert.equal(await page.locator('#grid .game-card').count(),4);
   await page.locator('#grouped').check();assert.equal(await page.locator('#grid .game-card').count(),2);
+  const personaCard=page.locator('[data-game="persona"]');
+  assert.equal(await personaCard.locator('.platform-row').count(),2,'One row per platform, not per copy');
+  assert.match(await personaCard.locator('.platform-row').first().innerText(),/Switch.*Physique.*Numérique/);
+  assert.match(await personaCard.locator('.platform-row').last().innerText(),/PS4.*Physique/);
+  const animalCard=page.locator('[data-game="animal"]');
+  assert.equal(await animalCard.locator('.addon-counter[aria-label="1 DLC"]').count(),1);
+  assert.equal(await animalCard.locator('.addon-counter[aria-label="1 mise à niveau"]').count(),1);
+  assert.doesNotMatch(await animalCard.innerText(),/Happy Home Paradise|Mise à niveau|Switch 2 Edition/,'Linked content names stay inside the sheet');
+  for(const card of [personaCard,animalCard]){
+   assert.ok(await card.evaluate(el=>{
+    const rows=[...el.querySelectorAll('.platform-row')],box=el.getBoundingClientRect(),status=el.querySelector('.card-status-footer').getBoundingClientRect();
+    return rows.every(row=>{const r=row.getBoundingClientRect();return r.left>=box.left&&r.right<=box.right&&r.bottom<=status.top&&row.scrollWidth<=row.clientWidth+1;});
+   }),'Rows stay compact and above the common status');
+  }
+  await personaCard.locator('[data-card-status]').selectOption('abandonne');
+  assert.equal(await page.locator('#sheet').evaluate(el=>el.open),false,'Status changes directly in the collection');
+  await page.locator('#grid [data-open="persona"]').click();
+  assert.equal(await page.locator('#shared-status').inputValue(),'abandonne');
+  await page.locator('#close').click();
+
   await page.locator('#platforms [data-value="Switch 2"]').click();assert.equal(await page.locator('#grid .game-card').count(),1);
   await page.locator('#grid [data-open="animal"]').click();
   assert.match(await page.locator('#sheet-body').innerText(),/Achat d’origine : Switch/);
@@ -41,7 +61,7 @@ const server=createSandboxServer();
   await page.locator('#add-form button[type=submit]').click();
   assert.equal(await page.locator('#sheet-body .copy').count(),4);
   await page.locator('#shared-status').selectOption('abandonne');await page.locator('#close').click();
-  assert.equal(await page.locator('#grid .game-card').count(),2);assert.match(await page.locator('#grid [data-open="persona"]').innerText(),/Abandonné/);
+  assert.equal(await page.locator('#grid .game-card').count(),2);assert.equal(await page.locator('#grid [data-game="persona"] [data-card-status]').inputValue(),'abandonne');
   await page.locator('#media [data-value="digital"]').click();assert.equal(await page.locator('#grid .game-card').count(),2);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.reload();assert.equal(await page.evaluate(()=>localStorage.length),0);assert.equal(await page.locator('#grid .game-card').count(),2);
