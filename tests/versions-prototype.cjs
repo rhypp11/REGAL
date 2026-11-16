@@ -16,8 +16,8 @@ const server=createSandboxServer();
   await page.locator('#grouped').check();assert.equal(await page.locator('#grid .game-card').count(),2);
   const personaCard=page.locator('[data-game="persona"]');
   assert.equal(await personaCard.locator('.platform-row').count(),2,'One row per platform, not per copy');
-  assert.match(await personaCard.locator('.platform-row').first().innerText(),/Switch.*Physique.*Numérique/);
-  assert.match(await personaCard.locator('.platform-row').last().innerText(),/PS4.*Physique/);
+  assert.match(await personaCard.locator('.platform-row').first().innerText(),/Switch.*Physique.*Numérique/s);
+  assert.match(await personaCard.locator('.platform-row').last().innerText(),/PS4.*Physique/s);
   const animalCard=page.locator('[data-game="animal"]');
   assert.equal(await animalCard.locator('.addon-counter[aria-label="1 DLC"]').count(),1);
   assert.equal(await animalCard.locator('.addon-counter[aria-label="1 mise à niveau"]').count(),1);
@@ -25,7 +25,7 @@ const server=createSandboxServer();
   for(const card of [personaCard,animalCard]){
    assert.ok(await card.evaluate(el=>{
     const rows=[...el.querySelectorAll('.platform-row')],box=el.getBoundingClientRect(),status=el.querySelector('.card-status-footer').getBoundingClientRect();
-    return rows.every(row=>{const r=row.getBoundingClientRect();return r.left>=box.left&&r.right<=box.right&&r.bottom<=status.top&&row.scrollWidth<=row.clientWidth+1;});
+    return rows.every(row=>{const r=row.getBoundingClientRect();return r.left>=box.left&&r.right<=box.right&&r.bottom<=status.top&&row.scrollWidth<=row.clientWidth+1&&[...row.children].every(child=>{const c=child.getBoundingClientRect();return Math.abs((c.top+c.bottom-r.top-r.bottom)/2)<2;});});
    }),'Rows stay compact and above the common status');
   }
   await personaCard.locator('[data-card-status]').selectOption('abandonne');
