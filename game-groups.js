@@ -40,7 +40,7 @@ function copyCandidates(){
   const input=document.getElementById('f-copy-search'),container=document.getElementById('f-copy-candidates');
   const query=JTDData.searchKey(input.value.trim());container.replaceChildren();
   const owned=GAMES.find(game=>game.id===editingId);
-  const candidates=JTDData.uniqueGames(GAMES.filter(game=>!JTDData.isAddon(game)&&game.id!==editingId && (!owned?.gameGroupId || game.gameGroupId!==owned.gameGroupId))).filter(game=>query && JTDData.searchKey(game.nom).includes(query));
+  const candidates=JTDData.uniqueGames(GAMES.filter(game=>!JTDData.isAddon(game)&&game.id!==editingId && (!owned?.gameGroupId || game.gameGroupId!==owned.gameGroupId) && query && JTDData.searchKey(game.nom).includes(query)));
   for(const game of candidates.slice(0,8)){
     const button=document.createElement('button');button.type='button';button.className='parent-search-result';button.dataset.copyTarget=game.id;button.innerHTML=relatedGameHtml(game);
     button.onclick=()=>{document.getElementById('f-copy-target').value=game.id;input.value='';container.replaceChildren();renderCopySelection();};container.appendChild(button);
@@ -72,7 +72,7 @@ function renderCopyDetails(game){
   const add=document.createElement('button');add.type='button';add.className='manage-link';add.textContent='Ajouter un exemplaire';add.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>{const target=game.id;openModal(null);document.getElementById('f-nom').value=game.nom;document.getElementById('f-copy-target').value=target;document.getElementById('f-copy-options').open=true;renderCopySelection();});heading.appendChild(add);section.appendChild(heading);
   for(const copy of copies){
     const button=document.createElement('button');button.type='button';button.className='content-purchase-link copy-purchase-link';button.dataset.copyId=copy.id;
-    button.innerHTML='<span class="copy-purchase-info"><strong>'+copyPlatformHtml(copyPlatform(copy))+'</strong><span>'+escapeHTML((JTDData.isDigital(copy)?'Numérique':'Physique')+(copy.date?' · '+dateFR(copy.date):''))+'</span>'+(copyPlatform(copy)!==copy.plateforme?'<small>Achat d’origine : '+escapeHTML(copy.plateforme)+'</small>':'')+'</span><span class="content-related-price">'+escapeHTML(purchaseMoney(copy))+'</span>';
+    button.innerHTML='<span class="copy-purchase-info"><strong>'+copyPlatformHtml(copyPlatform(copy))+'</strong><span>'+escapeHTML((JTDData.isDigital(copy)?'Numérique':'Physique')+(copy.collector?' · Collector':'')+(copy.japanese?' · Japonais':'')+(copy.date?' · '+dateFR(copy.date):''))+'</span>'+(copyPlatform(copy)!==copy.plateforme?'<small>Achat d’origine : '+escapeHTML(copy.plateforme)+'</small>':'')+'</span><span class="content-related-price">'+escapeHTML(purchaseMoney(copy))+'</span>';
     button.setAttribute('aria-label','Modifier cet exemplaire : '+copy.plateforme+' · '+(JTDData.isDigital(copy)?'Numérique':'Physique'));
     button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>{if(copy.id!==editingId)openModal(copy.id);document.querySelector('#f-identity-summary .identity-edit-btn')?.click();});section.appendChild(button);
   }

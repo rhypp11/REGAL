@@ -28,6 +28,8 @@ let activePage;
    await page.locator('#save-btn').click();await page.locator('#modal-overlay').waitFor({state:'hidden'});
   }
   assert.equal(await page.locator('#grid .card').count(),1);
+  await page.evaluate(()=>renderHomeStats());
+  assert.equal(await page.locator('#home-summary-meta .home-summary-stat').filter({hasText:'Plateformes'}).locator('strong').textContent(),'3');
   assert.deepEqual(await page.evaluate(()=>GAMES.filter(g=>!JTDData.isAddon(g)).map(g=>[g.id,g.prix,g.status])),[['base',59.99,'termine'],['box',39.99,'termine'],['ps4',29.99,'termine']]);
   const card=()=>page.locator('[data-dialog-trigger="game:base"]');
   assert.equal(await card().locator('.copy-platform-row').count(),3);

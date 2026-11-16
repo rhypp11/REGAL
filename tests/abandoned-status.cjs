@@ -21,11 +21,11 @@ const server=createSandboxServer();
   assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='box').status),'abandonne');
   assert.match(await card.locator('.card-status-badge').innerText(),/Abandonné/);
   assert.equal(await card.locator('.card-state-row .card-status-control').count(),1);
-  assert.equal(await card.locator('.card-state-row .card-media-mark').count(),1);
+  assert.equal(await card.locator('.copy-platform-row .card-media-mark').count(),1);
   const alignment=await card.evaluate(el=>{
    const status=el.querySelector('.card-status-control').getBoundingClientRect(),media=el.querySelector('.card-media-mark').getBoundingClientRect();
-   return Math.abs((status.top+status.bottom)/2-(media.top+media.bottom)/2);
-  });assert.ok(alignment<2,'Support and status share the same line when space allows');
+   return status.top-media.bottom;
+  });assert.ok(alignment>=0,'Common status sits below all platform rows');
   await page.screenshot({path:`/tmp/jtd-abandoned-${width}-${theme}.png`});
   await page.locator('#toast-stack .toast-action').click();assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='box').status),undefined);
   await card.locator('.card-status-badge').click();await card.getByRole('button',{name:'Abandonné',exact:true}).click();
