@@ -46,3 +46,9 @@ test('filtered rows and represented purchases keep matching copies and DLC indep
  assert.deepEqual(D.collectionEntries(renamed,{media:'all',search:'japonaise'})[0]._copyIds,['digital']);
  assert.equal(D.linkGameCopies(raw,'box','digital','ignored')[2].status,'a_jouer','DLC completion is never copied from its base game');
 });
+test('a parent search retains represented content while explicit content filters remain precise',()=>{
+ const raw=[g('base',{nom:'Échos fictifs',format:'Numérique'}),g('dlc',{nom:'À l’horizon',format:'Numérique',contentType:'dlc',parentId:'base'})];
+ assert.deepEqual(D.collectionEntries(raw,{media:'all',search:'ECHOS'})[0]._purchaseIds,['base','dlc']);
+ assert.deepEqual(D.collectionEntries(raw,{media:'all',search:'ECHOS',types:['game','dlc']})[0]._purchaseIds,['base']);
+ assert.deepEqual(D.collectionEntries(raw,{media:'all',search:'horizon'}).map(card=>card.id),['dlc']);
+});

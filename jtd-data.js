@@ -193,11 +193,11 @@
       }
       card._copyIds.push(game.id);card._purchaseIds.push(game.id);
     }
-    for(const game of visible.filter(isAddon)){
+    for(const game of eligible.filter(isAddon)){
       const parent=contentParent(game,games),card=parent&&byKey.get(copyKey(parent));
       // Explicit content filters show each purchase. Otherwise group only under its visible copy.
       if(!types.length && card && card._copyIds.includes(parent.id))card._purchaseIds.push(game.id);
-      else cards.push({...game,plateforme:effectivePlatform(game,games),status:gameStatus(game,games),_copyIds:[game.id],_purchaseIds:[game.id]});
+      else if(!query || searchKey(game.nom).includes(query))cards.push({...game,plateforme:effectivePlatform(game,games),status:gameStatus(game,games),_copyIds:[game.id],_purchaseIds:[game.id]});
     }
     for(const card of cards){
       const copies=games.filter(game=>card._copyIds.includes(game.id));
