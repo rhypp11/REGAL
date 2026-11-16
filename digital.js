@@ -252,12 +252,7 @@ function renderContentDetails(game){
   const section = document.createElement('section');
   section.className = 'form-section content-purchases';
   if(game.dekuNote){const note=document.createElement('p');note.className='content-parent-note';note.textContent='Note Deku Deals : '+game.dekuNote;section.appendChild(note);}
-  if(JTDData.isAddon(game)){
-    const summary = document.createElement('div');
-    summary.className = 'content-format-summary';
-    summary.innerHTML = MEDIA_ICONS[JTDData.isAddon(game)?game.contentType:'digital']+'<span>'+(JTDData.isAddon(game)?contentKind(game):'Jeu numérique')+'</span>';
-    section.appendChild(summary);
-  }
+
   if(parent){
     const title = document.createElement('div');title.className='form-section-title';title.textContent='Jeu de base';section.appendChild(title);
     const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-base-link';
@@ -268,6 +263,7 @@ function renderContentDetails(game){
     const note = document.createElement('p');note.className='content-parent-note';
     note.textContent = game.parentId ? 'Jeu de base hors de la collection. Cet achat reste dans ta bibliothèque numérique.' : 'Aucun jeu associé.';
     section.appendChild(note);
+    const attach=document.createElement('button');attach.type='button';attach.className='manage-link';attach.textContent='Rattacher à un jeu';attach.onclick=()=>{setGameSheetViewing(false);document.getElementById('f-parent-enabled').checked=true;updateParentAttachment();document.getElementById('f-parent-search').focus();};section.appendChild(attach);
   }
   if(JTDData.isDLC(game)){const status=document.createElement('p');status.className='content-dlc-status';status.textContent='Statut du DLC : '+(STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(game))?.label || 'Non défini');section.appendChild(status);const edit=document.createElement('button');edit.type='button';edit.className='manage-link';edit.textContent='Modifier le statut';edit.onclick=()=>{setGameSheetViewing(false);document.getElementById('f-content-status').focus();};section.appendChild(edit);}
   if(children.length){

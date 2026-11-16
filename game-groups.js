@@ -1,7 +1,8 @@
 /* Copies remain independent acquisition records; grouping only adds an explicit key. */
 function copyPlatform(game){ return JTDData.effectivePlatform(game,GAMES); }
+function copyPlatformShort(name){return /^(?:Nintendo )?Switch 2$/i.test(name)?'SW2':/^(?:Nintendo )?Switch(?: 1)?$/i.test(name)?'SW':/^PlayStation ?[1-5]$/i.test(name)?name.replace(/PlayStation ?/i,'PS'):name;}
 function copyPlatformHtml(name){
-  return '<span class="copy-platform card-platform" title="'+escapeHTML(name)+'">'+getPlatformOptionIconHtml(name)+'<span class="copy-platform-name">'+escapeHTML(name)+'</span></span>';
+  return '<span class="copy-platform card-platform" title="'+escapeHTML(name)+'">'+getPlatformOptionIconHtml(name)+'<span class="copy-platform-name"><span class="copy-platform-long">'+escapeHTML(name)+'</span><span class="copy-platform-short">'+escapeHTML(copyPlatformShort(name))+'</span></span></span>';
 }
 function copyCounter(count,type){
   if(!count)return '';

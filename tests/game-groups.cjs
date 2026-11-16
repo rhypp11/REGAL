@@ -53,7 +53,7 @@ let activePage;
   await page.locator('#f-content-details').getByRole('button',{name:'Modifier le rattachement',exact:true}).click();await page.locator('#f-parent-enabled').uncheck();await page.locator('#save-btn').click();
   assert.equal(await page.evaluate(()=>copyPlatform(GAMES.find(g=>g.id==='base'))),'Switch');
   assert.equal(await page.locator('#grid .card').count(),2,'Unlinked upgrade stays as an independent purchase');
-  await page.evaluate(()=>openModal('upgrade'));await page.locator('#f-content-details').getByRole('button',{name:'Modifier le rattachement',exact:true}).click();
+  await page.evaluate(()=>openModal('upgrade'));await page.locator('#f-content-details').getByRole('button',{name:'Rattacher à un jeu',exact:true}).click();
   await page.locator('#f-parent-enabled').check();await page.locator('#f-parent-search').fill('Chroniques');await page.locator('[data-parent-id="base"]').click();await page.locator('#save-btn').click();
   assert.equal(await page.evaluate(()=>copyPlatform(GAMES.find(g=>g.id==='base'))),'Switch 2');
   await page.evaluate(()=>applyNavigation({page:'collection',media:'all',platform:'PlayStation 4'}));

@@ -53,3 +53,7 @@
 #page-collection .copy-card .copy-status-footer .card-status-face{display:inline-flex}
 #page-collection .copy-card .copy-status-footer .card-status-menu{top:calc(100% + 5px);right:0}
 #page-collection #grid[data-view="gallery"] .copy-card .copy-status-footer .card-status-label{display:none}
+
+.copy-platform-short{display:none}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-platform-long{display:none}
+#page-collection #grid[data-view="gallery"] .copy-card .copy-platform-short{display:inline}
