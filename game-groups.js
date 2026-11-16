@@ -100,3 +100,11 @@ function groupedPreviewGames(){
 }
 
 function navigateGameSheet(id){withBoardEditorChanges('modal-overlay','f',()=>openModal(id));}
+
+function updateCopyHeading(viewing){
+  const game=GAMES.find(game=>game.id===editingId);if(!game || JTDData.isAddon(game))return;
+  const copies=JTDData.gameCopies(game,GAMES);if(copies.length<2)return;
+  const heading=document.getElementById('f-format-title');heading.dataset.kind='game';
+  const digital=document.getElementById('f-media').value==='digital';
+  heading.innerHTML=viewing?MEDIA_ICONS.game+'<span>Jeu · '+copies.length+' exemplaires</span>':MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span>';
+}
