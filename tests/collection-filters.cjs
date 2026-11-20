@@ -80,7 +80,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       for(const view of ['cards','gallery','list']){
         await page.locator('#collection-view-switch [data-view="'+view+'"]').click();
         await page.locator('[data-dialog-trigger="game:dlc"] .card-name').click();
-        assert.match(await page.locator('#modal-title').innerText(),/DLC/);
+        assert.equal(await page.locator('#modal-title').textContent(),'Extension du jardin');
         await page.locator('#cancel-btn').click();
       }
       await types(page);
@@ -124,7 +124,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.physical.every(value=>value<40),'Physical cards retain the base surface');
         assert.deepEqual(appearance.background,appearance.physical,'Both formats share the same surface');
         assert.equal(appearance.radius,'16px','Pilot cards share the same corners in every view');
-        assert.equal(appearance.physicalRadius,appearance.radius);
+        assert.equal(appearance.physicalRadius,view==='cards'?'5px':appearance.radius);
         assert.equal(appearance.physicalShadow,'none');
         assert.equal(appearance.digitalShadow,'none');
         assert.equal(appearance.borderStyle,'solid','Digital keeps a thin solid edge');

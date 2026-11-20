@@ -74,7 +74,7 @@ async function openFilters(page){
       assert.equal(await page.evaluate(()=>GAMES.filter(JTDData.isDigital).length),5);
       const backup=await page.evaluate(()=>buildBackupPayload());
       assert.equal(backup.data.digitalAccounts.length,2);assert.equal(backup.data.games.find(g=>g.nom==='Nouvelle extension').parentId,newId);
-      await page.evaluate(()=>{GAMES.push({id:'switch-base',nom:'Jeu Switch de base',plateforme:'Switch',format:'Physique',prix:40});buildPlatformList();render();});
+      await page.evaluate(()=>{GAMES.push({id:'switch-base',nom:'Jeu Switch de base',plateforme:'Switch',format:'Numérique',prix:40});buildPlatformList();render();});
       await page.locator('#add-btn').click();await page.locator('#f-nom').fill('Mise à niveau Switch 2');
       await page.selectOption('#f-content-type','upgrade');await page.locator('#f-parent-enabled').check();await page.locator('#f-parent-search').fill('Jeu Switch de base');await page.locator('[data-parent-id="switch-base"]').click();
       const optionColors=await page.locator('#f-content-type option').first().evaluate(option=>{const style=getComputedStyle(option);return {foreground:style.color,background:style.backgroundColor};});
@@ -85,7 +85,8 @@ async function openFilters(page){
       await page.locator('#f-prix').fill('10');await page.locator('#save-btn').click();
       const upgradeId=await page.evaluate(()=>GAMES.find(g=>g.nom==='Mise à niveau Switch 2').id);
       assert.equal(await page.evaluate(()=>GAMES.find(g=>g.nom==='Mise à niveau Switch 2').parentId),'switch-base');
-      await page.locator('[data-dialog-trigger="game:'+upgradeId+'"] .card-name').click();
+      await page.locator('[data-dialog-trigger="game:switch-base"] .card-name').click();
+      await page.locator('#f-content-details .content-type-upgrade').click();
       assert.ok((await page.locator('#f-content-details').innerText()).includes('Jeu de base'));
       assert.equal(await page.locator('#f-content-details .content-related-thumb').count(),1);
       await page.locator('#cancel-btn').click();
