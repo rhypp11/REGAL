@@ -63,7 +63,7 @@ Ces repères décrivent les choix actuels ; une nouvelle instruction explicite d
 
 ## Vérification et maintenance
 
-- La version visible suit `3_JJ.MM.AA-N` : majeure dans `release-config.json`, date du build en Europe/Paris, compteur des builds différents de la journée. Après toute modification de fichiers applicatifs, exécuter `node scripts/build-release.cjs`, puis `node scripts/build-release.cjs --check`, et inclure `site-version.json` et les métadonnées générées de `index.html` dans la PR. Un build inchangé ne doit pas incrémenter la version. Ne changer la majeure qu’avec une demande de Rom.
+- La version visible suit `Version 3-111 (JJ.MM.AA)` : renseigner la majeure et le numéro de la PR dans `release-config.json`. La date du build suit l’heure de Paris. Après toute modification de fichiers applicatifs, exécuter `node scripts/build-release.cjs`, puis `node scripts/build-release.cjs --check`, et inclure `site-version.json` et les métadonnées générées de `index.html` dans la PR. Un build inchangé ne doit pas incrémenter la version. Ne changer la majeure qu’avec une demande de Rom.
 
 - Privilégier les changements ciblés et simples. Lors d'un nettoyage, supprimer les restes devenus inutiles plutôt qu'empiler des overrides CSS ou des chemins de compatibilité non justifiés.
 - Ne pas introduire de framework, dépendance ou refonte d'architecture pour une correction locale.

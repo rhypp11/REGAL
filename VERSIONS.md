@@ -1,12 +1,10 @@
 # Versions du site
 
-Format visible : `3_08.11.26-1`.
+Le menu affiche `Version 3-111 (20.11.26)`. La majeure et le numéro de pull request sont renseignés dans `release-config.json`. Mettre à jour `pullRequest` avec le numéro de la PR qui livre le changement, puis régénérer les fichiers. La date du build suit l’heure de Paris.
 
-- `3` : version majeure, choisie par Rom dans `release-config.json`.
-- `08.11.26` : date du build en heure de Paris.
-- `1` : compteur des builds différents de la journée ; il repart à 1 le jour suivant.
+Le manifeste conserve son identifiant interne par date et compteur pour que les pages déjà ouvertes puissent détecter les mises à jour. Plusieurs builds d’une même PR peuvent porter le même libellé public.
 
-Après les modifications applicatives, exécuter `node scripts/build-release.cjs` puis `node scripts/build-release.cjs --check`. Le générateur écrit `site-version.json` et les deux métadonnées de `index.html`. Ces fichiers sont livrés ensemble, sans changer le pipeline statique de production. Relancer le générateur sans changement ne produit pas une nouvelle version. `JTD_BUILD_DATE` permet une date explicite pour les tests ; le contrôle ne dépend jamais du jour où il est exécuté.
+Après les modifications applicatives, exécuter `node scripts/build-release.cjs` puis `node scripts/build-release.cjs --check`. Le générateur écrit `site-version.json` et les métadonnées de `index.html`. Ces fichiers sont livrés ensemble, sans changer le pipeline statique de production. Relancer le générateur sans changement ne produit pas une nouvelle version. `JTD_BUILD_DATE` permet une date explicite pour les tests ; le contrôle ne dépend jamais du jour où il est exécuté.
 
 L’empreinte de contenu complète la version lisible. Elle porte sur les fichiers applicatifs JS/CSS/HTML/SVG de la racine, les icônes PNG du site, le manifeste et la configuration Hosting. Les champs de version du HTML sont neutralisés pour éviter une empreinte autoréférente. Les tests, documents et captures ne changent pas la version applicative.
 

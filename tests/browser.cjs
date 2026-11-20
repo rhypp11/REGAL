@@ -1,3 +1,4 @@
+const releaseConfig = require('../release-config.json');
 async function openCollectionMenu(page){
  if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
 }
@@ -91,7 +92,7 @@ async function restore(page, value, confirm=true){
       await page.evaluate(()=>dispatchEvent(new Event('online')));await page.waitForTimeout(150);
       assert.equal(await page.getByRole('button',{name:'Actualiser',exact:true}).count(),0,'A dismissed release is not announced on every wake-up');
       assert.equal(await page.locator('#site-update-btn').evaluate(el=>el.classList.contains('hidden')),false,'Update stays available in the profile menu');
-      assert.equal(await page.locator('#site-version-label').innerText(),baseRelease.version,'Profile shows the loaded version, not a version not yet installed');
+      assert.equal(await page.locator('#site-version-label').innerText(),'Version '+releaseConfig.major+'-'+releaseConfig.pullRequest+' ('+baseRelease.version.split('_')[1].split('-')[0]+')','Profile shows the loaded version, not a version not yet installed');
       await page.locator('#add-btn').click();
       await page.locator('#site-update-btn').evaluate(el=>el.click());
       // Background controls are inert while a dialog is open. Invoke the
@@ -109,7 +110,7 @@ async function restore(page, value, confirm=true){
       await navigation;await page.locator('#app-shell').waitFor({state:'visible'});
       await page.evaluate(()=>dispatchEvent(new Event('online')));await page.waitForTimeout(150);
       assert.equal(await page.getByRole('button',{name:'Actualiser',exact:true}).count(),0,'Successful action refresh must not announce the same update again');
-      assert.equal(await page.locator('#site-version-label').innerText(),clientRelease.version);
+      assert.equal(await page.locator('#site-version-label').innerText(),'Version '+releaseConfig.major+'-'+releaseConfig.pullRequest+' ('+clientRelease.version.split('_')[1].split('-')[0]+')');
       await page.locator('#reset-btn').evaluate(el=>el.click());
       console.log('PASS navigation '+width+'px '+theme+': reload, saved root, Back/Forward, board, invalid URL; update guards');
       await restore(page,payload);

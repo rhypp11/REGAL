@@ -22,13 +22,23 @@
  const build=document.querySelector('meta[name="regal-build"]')?.content;
  if(!version||!build) return;
  const label=document.getElementById('site-version-label'),button=document.getElementById('site-update-btn');
- if(label){label.textContent=version;label.title='Version du site · '+build;}
+ if(label){
+  const pullRequest=document.querySelector('meta[name="regal-pull-request"]')?.content;
+  const release=version.match(/^(\d+)_(\d{2}\.\d{2}\.\d{2})-\d+$/);
+  if(release && /^[1-9]\d*$/.test(pullRequest || '')){
+   const date=document.createElement('small');
+   date.className='profile-version-date';
+   date.textContent='('+release[2]+')';
+   label.append('Version '+release[1]+'-'+pullRequest+' ',date);
+  }else label.textContent=version;
+  label.title='Version du site · '+build;
+ }
  // A fresh build URL bypasses stale navigation caches; keep the visible URL tidy.
  const clean=new URL(location.href);
  if(clean.searchParams.get('_regal')===build){clean.searchParams.delete('_regal');history.replaceState(history.state,'',clean.pathname+clean.search+clean.hash);}
  let checking=false,lastCheck=0,pending=null,refreshing=false;
  const notified=new Set();
- function updateButton(){if(button){button.classList.toggle('hidden',!pending);button.title=pending?'Installer la version '+pending.version:'';}}
+ function updateButton(){if(button){button.classList.toggle('hidden',!pending);button.title=pending?'Installer la mise à jour':'';}}
  async function reload(){
   if(refreshing||!pending) return;
   if(document.querySelector('.modal-overlay:not(.hidden)')){showToast('Ferme la fenêtre en cours avant d’actualiser.','Actualiser',reload,15000);return;}
