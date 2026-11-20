@@ -25,7 +25,7 @@ const server=createSandboxServer();
      if([390,1440].includes(width))await page.screenshot({path:`/tmp/jtd-sheet-${scene}-${width}-${theme}.png`,fullPage:true});
     }
     if(scene==='collection'){
-     assert.equal(await page.locator('#modal-title').innerText(),'Fiche du jeu');
+     assert.equal(await page.locator('#modal-title').textContent(),await page.evaluate(()=>GAMES[0].nom));
      assert.equal(await page.locator('#cancel-btn').innerText(),'Fermer');
      assert.equal(await page.locator('#save-btn').isVisible(),false,'Consultation does not offer to save');
      assert.equal(await page.locator('#delete-btn').isVisible(),false,'Consultation keeps deletion out of the way');

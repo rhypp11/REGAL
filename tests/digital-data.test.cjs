@@ -33,12 +33,15 @@ test('invalid content, currencies, accounts and self-links are rejected',()=>{
 });
 test('Switch 2 upgrades retain their target platform and link to a Switch copy',()=>{
   const upgrade={...dlc,id:'upgrade',contentType:'upgrade',plateforme:'Switch 2',parentId:'box'};
-  assert.equal(D.contentParent(upgrade,[box])?.id,'box');
+  assert.equal(D.contentParent(upgrade,[box]),null);
   assert.equal(D.contentParent({...upgrade,plateforme:'PlayStation 5'},[box]),null);
   assert.equal(D.contentParent({...upgrade,contentType:'dlc'},[box]),null);
   assert.equal(D.normalizeData({games:[box,upgrade]}).games[1].contentType,'upgrade');
   const digitalBase={...box,format:'Numérique'};
-  assert.deepEqual(D.collectionCards([digitalBase,upgrade],'digital').map(g=>g.id),['box','upgrade']);
+  assert.equal(D.normalizeData({games:[box,upgrade]}).games[1].parentId,null);
+  assert.equal(D.effectivePlatform(digitalBase,[digitalBase,upgrade]),'Switch 2');
+  assert.equal(digitalBase.plateforme,'Switch');
+  assert.deepEqual(D.collectionCards([digitalBase,upgrade],'digital').map(g=>g.id),['box']);
 });
 test('account nicknames and avatars round-trip without allowing script URLs',()=>{
   const account={id:'eu',name:'Nintendo',nickname:'Aster',avatar:'data:image/png;base64,AAAA',ecosystem:'Nintendo'};

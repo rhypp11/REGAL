@@ -229,6 +229,8 @@ function resizeImageToDataUrl(file, size){
 }
 
 const PLATFORM_COLORS = {
+  "Switch 2": "#C4342B",
+  "Switch": "#E4483C",
   "Nintendo Switch 2": "#C4342B",
   "Nintendo Switch": "#E4483C",
   "Nintendo 3DS": "#6E4FA3",
@@ -1214,12 +1216,14 @@ function renderCard(g, options = {}){
     acquisitionHtml = `<div class="card-acquisition"><span class="card-sort-label">Date d'achat</span>${dateHtml}</div>`;
   }
 
+  const boxed = !options.readOnly && !JTDData.isDigital(g) && collectionView === 'cards';
+  const platformBand = boxed ? '<div class="case-platform">'+getPlatformOptionIconHtml(g.plateforme)+'<span>'+escapeHTML(g.plateforme)+'</span></div>' : '';
   card.innerHTML = `
-    ${bannerHtml}
+    ${platformBand}${bannerHtml}
     <div class="card-body">
       <button type="button" class="card-name card-open-control" aria-label="${options.onOpen ? 'Modifier la vente de ' : 'Ouvrir la fiche de '}${escapeHTML(g.nom)}" title="${escapeHTML(g.nom)}">${collectorTitleHtml}${japaneseEditionMark(g)}${bundleMark(g)}<span class="card-name-text">${escapeHTML(g.nom)}</span></button>
       <div class="card-summary card-identity">
-        ${options.readOnly || state.platform !== g.plateforme ? `<span class="card-platform">${platformHtml}</span>` : ''}
+        ${(!boxed && (options.readOnly || state.platform !== g.plateforme)) ? `<span class="card-platform">${platformHtml}</span>` : ''}
         ${statusBadgeHtml}
       </div>
       ${acquisitionHtml}
@@ -1765,7 +1769,7 @@ function openModal(id, collection = 'games'){
   document.getElementById('f-image-options').open = false;
   document.getElementById('f-edition-options').open = false;
   openDigitalFields(identityItem);
-  setIdentityEditor('f', identityItem, !!editingId);
+  setIdentityEditor('f', identityItem && editingCollection==='games' ? {...identityItem,plateforme:JTDData.effectivePlatform(identityItem,GAMES)} : identityItem, !!editingId);
   if(identityItem && editingCollection==='games' && identityItem.contentType!=='upgrade'){
     const status=STATUS_OPTIONS.find(option=>option.key===getEffectiveStatus(identityItem));
     const badge=document.createElement('span');
@@ -1853,7 +1857,7 @@ function revealCollectionPurchase(id){
   if(!game) return;
   // An explicit content filter keeps a newly saved DLC visible independently of its parent.
   applyNavigation({page:'collection',media:JTDData.isDigital(game) ? 'digital' : 'physical',
-    platform:game.plateforme,contentType:JTDData.isAddon(game) ? game.contentType : null,
+    platform:JTDData.effectivePlatform(game,GAMES),contentType:JTDData.isAddon(game) ? game.contentType : null,
     search:game.nom,sort:state.sort,board:navigationBoard});
   const card = [...document.querySelectorAll('#grid .card')].find(card => card.dataset.dialogTrigger === 'game:'+id);
   card?.scrollIntoView({block:'center'});
@@ -1892,7 +1896,7 @@ function renderHomeStats(){
   const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
   const meta=document.getElementById('home-summary-meta');
   const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
-  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>g.plateforme)).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
+  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>JTDData.effectivePlatform(g,GAMES))).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
   const breakdown=document.getElementById('home-status-breakdown');
   if(breakdown) breakdown.innerHTML = [['physical','Physique'],['digital','Numérique']].map(([format,label])=>{
     const playable=GAMES.filter(game=>isPlayablePurchase(game) && JTDData.isDigital(game)===(format==='digital'));

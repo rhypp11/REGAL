@@ -97,6 +97,10 @@
       });
     };
     const games = list('games'), arrivals = list('arrivals'), wishlist = list('wishlist'), cemetery = list('cemetery');
+    const physicalIds = new Set([...games,...cemetery].filter(game => !isDigital(game)).map(game => game.id));
+    for(const child of games){
+      if(isAddon(child) && physicalIds.has(child.parentId)) child.parentId = null;
+    }
     // Opaque archive only: never validate or replay retired journal semantics.
     const journal = Array.isArray(data.journal) ? JSON.parse(JSON.stringify(data.journal)) : [];
     if(data.platformMeta !== undefined && !isRecord(data.platformMeta)) throw new Error('Métadonnées invalides');
@@ -150,13 +154,22 @@
   function isDLC(game){ return isDigital(game) && game.contentType === 'dlc'; }
   function isAddon(game){ return isDigital(game) && ['dlc','upgrade'].includes(game.contentType); }
   function canAttachContent(child, parent){
-    if(!isAddon(child) || !parent || isAddon(parent) || parent.id === child.id) return false;
-    return child.plateforme === parent.plateforme || (child.contentType === 'upgrade' &&
-      /^(?:Nintendo )?Switch(?: 1)?$/i.test(parent.plateforme) && /^(?:Nintendo )?Switch 2$/i.test(child.plateforme));
+    if(!isAddon(child) || !isDigital(parent) || isAddon(parent) || parent.id === child.id) return false;
+    if(child.contentType === 'upgrade'){
+      return /^(?:Nintendo )?Switch 2$/i.test(child.plateforme) && /^(?:Nintendo )?Switch(?: [12])?$/i.test(parent.plateforme);
+    }
+    return child.plateforme === parent.plateforme;
   }
   function contentParent(game, games){
     if(!isAddon(game) || !game.parentId) return null;
     return games.find(parent => parent.id === game.parentId && canAttachContent(game,parent)) || null;
+  }
+  function effectivePlatform(game, games){
+    if(!isDigital(game)) return game.plateforme;
+    const base = isDLC(game) ? contentParent(game,games) : game;
+    if(!base || !/^(?:Nintendo )?Switch(?: 1)?$/i.test(base.plateforme)) return game.plateforme;
+    const upgrade = games.find(child => child.contentType === 'upgrade' && child.parentId === base.id && canAttachContent(child,base));
+    return upgrade ? upgrade.plateforme : game.plateforme;
   }
   function searchKey(value){
     return String(value ?? '').normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase('fr');
@@ -169,7 +182,7 @@
       if(accountId && game.accountId !== accountId) return false;
       const parent = contentParent(game,games);
       // Keep a child discoverable by its account or its own name when its parent is filtered out.
-      if(groupAddons && isAddon(game) && parent && isDigital(parent) && parent.plateforme === game.plateforme && (!accountId || parent.accountId === accountId) &&
+      if(groupAddons && isAddon(game) && parent && isDigital(parent) && (!accountId || parent.accountId === accountId) &&
         (!query || searchKey(parent.nom).includes(query))) return false;
       return !query || searchKey(game.nom).includes(query);
     });
@@ -345,7 +358,7 @@
     },data:{journal}};
   }
 
-  const api = {createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {effectivePlatform,createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
