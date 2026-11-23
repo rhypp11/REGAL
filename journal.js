@@ -62,7 +62,7 @@
   }
   function dateLabel(entry,short=false){
     if(typeof entry.date !== 'string' || !entry.date) return 'À annoncer';
-    if(entry.date==='TBD') return 'TBD';
+    if(entry.date==='TBD') return 'À préciser';
     if(entry.yearOnly) return '≈ '+entry.date.slice(0,4);
     if(entry.date.length===4) return entry.date;
     const [year,month,day] = entry.date.split('-');
@@ -111,17 +111,18 @@
     const scheduled = tracked && !entry.estimated && !entry.yearOnly && validDay(entry.date);
     const platform='<small class="journal-row-platform">'+
       (entry.platform?getPlatformOptionIconHtml(entry.platform)+'<span class="journal-platform-name">'+esc(entry.platform)+'</span>':'')+
-      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+'</small>';
+      (entry.precision?'<span class="journal-row-precision">'+esc(entry.precision)+'</span>':'')+
+      (tracked&&!scheduled&&entry.date&&entry.date!=='TBD'?'<span class="journal-release-date">'+esc(dateLabel(entry))+'</span>':'')+'</small>';
     const status=done?'<span class="journal-row-status">'+completionBadge(entry.completion)+(entry.feeling?'<span class="journal-feeling">'+esc(feelings[entry.feeling]||'')+'</span>':'')+
       (entry.comment?'<span class="journal-comment-mark" title="Avec commentaire" aria-label="Avec commentaire">'+bubble+'</span>':'')+'</span>':'';
     return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'"'+(['playing','backlog'].includes(entry.group)?' draggable="true" title="Glisser pour déplacer le jeu"':'')+'>'+
       (scheduled?day(entry):'')+
       gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong>'+(!done?platform:'')+
       (!done&&linkedPurchase(entry)?'<small class="journal-tag">Collection</small>':'')+
-      (tracked&&!scheduled?'<small class="journal-release-date">'+esc(dateLabel(entry))+'</small>':'')+'</span>'+
+      '</span>'+
       (done?'<span class="journal-row-meta">'+platform+status+'</span>'+rowTags(entry):'')+'</button>';
   }
-  function calendar(entries,groupBy){
+  function calendar(entries,groupBy,{continuous = true} = {}){
     const groups = new Map();
     for(const entry of entries){
       const group=groupBy(entry);
@@ -129,8 +130,9 @@
       groups.get(group.key).items.push(entry);
     }
     if(!groups.size) return '';
-    return '<div class="journal-calendar-table">'+[...groups.values()].map(group=>'<section class="journal-calendar">'+
-      calendarGroupHtml(group.label,group.year||'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('')+'</div>';
+    const sections = [...groups.values()].map(group=>'<section class="journal-calendar">'+
+      calendarGroupHtml(group.label,group.year||'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('');
+    return continuous ? '<div class="journal-calendar-table">'+sections+'</div>' : sections;
   }
   function completedGroup(entry){
     if(entry.yearOnly) return {key:'year',label:'Année seule'};
@@ -146,7 +148,7 @@
     const value=String(entry.date||'');
     const month=/^\d{4}-(?:0[1-9]|1[0-2])(?:-\d{2})?$/.test(value)?Number(value.slice(5,7))-1:-1;
     if(month>=0) return {key:value.slice(0,7),label:MONTH_NAMES_FULL[month],year:value.slice(0,4),color:MONTH_COLORS[month]};
-    const label=/^\d{4}$/.test(value)?value:'TBD';
+    const label=/^\d{4}$/.test(value)?value:'Date à préciser';
     return {key:label,label};
   }
   const statIcon=path=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+path+'</svg>';
@@ -215,7 +217,7 @@
     for(const group of ['playing','backlog','release']){
       const list = entries.filter(entry=>entry?.group===group);
       if(group==='release') list.sort((a,b)=>releaseSortKey(a).localeCompare(releaseSortKey(b)));
-      $('journal-'+group).innerHTML = (group==='release'?calendar(list,releaseGroup):list.map(row).join('')) || '<p class="journal-empty">Aucun jeu.</p>';
+      $('journal-'+group).innerHTML = (group==='release'?calendar(list,releaseGroup,{continuous:false}):list.map(row).join('')) || '<p class="journal-empty">'+(group==='release'?'Aucune sortie suivie.':'Aucun jeu.')+'</p>';
     }
   }
   window.renderJournal = render;

@@ -187,8 +187,6 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
   .journal-context-fields-completion > :last-child { grid-column:1 / -1; }
 }
 
-#page-journal [data-journal-panel="release"] .journal-row { border:0; padding:6px 0; }
-#page-journal .journal-release-date { font-variant-numeric:tabular-nums; }
 
 .journal-add-mobile-label { display:none; }
 .journal-toolbar-actions > .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
@@ -291,13 +289,31 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
 }
 
 .journal-completion-date { color:var(--ui-text-muted); font-variant-numeric:tabular-nums; }
-.journal-release-row:has(> .calendar-day) { display:grid; grid-template-columns:32px var(--journal-side-art-width,64px) minmax(0,1fr); gap:8px; }
-.journal-release-row > .calendar-day { width:32px; height:40px; grid-column:1; align-self:center; border-radius:8px; background:var(--calendar-day-bg); color:var(--calendar-day-ink); }
-.journal-release-row > .calendar-day :is(strong,span) { color:inherit; }
-.journal-release-row > .calendar-day strong { font-size:14px; }
-.journal-release-row > .calendar-day span { font-size:8px; }
-.journal-release-row > .board-thumb { grid-column:auto; }
-.journal-release-row > .journal-title { min-width:0; }
+/* The release catalogue follows the compact wishlist layout. */
+#journal-release { --release-art-width:60px; }
+#journal-release .journal-release-row {
+  display:grid; grid-template-columns:var(--release-art-width) minmax(0,1fr);
+  min-height:56px; gap:8px; padding:7px 4px; border:0;
+}
+#journal-release .journal-release-row:has(> .calendar-day) {
+  grid-template-columns:32px var(--release-art-width) minmax(0,1fr);
+}
+#journal-release .board-thumb { width:100%; height:auto; aspect-ratio:16/9; }
+#journal-release .journal-title { min-width:0; }
+#journal-release .journal-title strong { font-size:14px; }
+#journal-release .calendar-day {
+  width:32px; height:40px; border-radius:8px;
+  background:var(--calendar-day-bg); color:var(--calendar-day-ink);
+}
+#journal-release .calendar-day :is(strong,span) { color:inherit; }
+#journal-release .calendar-day strong { font-size:14px; }
+#journal-release .calendar-day span { font-size:8px; }
+.journal-release-date { font-variant-numeric:tabular-nums; }
+.journal-release-date::before { content:'·'; margin-right:6px; }
+#journal-release > .journal-empty { padding:12px 0; margin:0; }
+@media(min-width:821px){
+  #journal-release { --release-art-width:clamp(82px,7vw,112px); }
+}
 
 .journal-add-small { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
 .journal-add-icon { width:16px; height:16px; flex:none; }
