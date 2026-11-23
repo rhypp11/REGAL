@@ -46,7 +46,7 @@ async function openFilters(page){
       assert.ok((await page.locator('#f-content-details').innerText()).includes('40,00'));
       assert.doesNotMatch(await page.locator('#f-context-summary').innerText(),/Compte/);
       assert.doesNotMatch(await page.locator('#f-context-summary').innerText(),/Source/);
-      await page.locator('#f-context-summary .context-edit-btn').click();
+      await page.locator('#f-identity-summary .identity-edit-btn').click();
       assert.equal(await page.locator('#f-source').isVisible(),false);
       assert.equal(await page.locator('#f-digital-version-options').isVisible(),true);
       assert.equal(await page.locator('#f-context-editor #f-account').count(),0);

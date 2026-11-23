@@ -116,7 +116,7 @@ async function checkJournalSources(page){
  assert.equal(await page.locator('#journal-year').inputValue(),'2012');
  await page.locator('.journal-row').filter({hasText:'Complétion à l’année'}).click();
  assert.match(await page.locator('#journal-dialog-body').innerText(),/≈ 2012/);
- await page.locator('#journal-edit-completion').click();
+ await page.locator('#journal-dialog-body .identity-edit-btn').click();
  assert.equal(await page.locator('#journal-form [name="completionYear"]').inputValue(),'2012');
  await page.locator('#journal-save').click();
  await page.locator('#journal-close').click();
@@ -177,4 +177,17 @@ async function checkNintendoArtwork(page){
     const game=GAMES.find(game=>game.id===id);
     return [new URL(game.image).pathname,game.squareImage];
   },id),['/preview-assets/garden.svg',square]);
+  await page.evaluate(id=>openModal(id),id);
+  await page.locator('#f-identity-summary .identity-edit-btn').click();
+  assert.equal(await page.locator('#f-square-image').isVisible(),true,'The square is available when editing an existing game');
+  assert.equal(await page.locator('#f-square-image').inputValue(),square);
+  await page.selectOption('#f-plateforme','PlayStation 5');
+  await page.locator('#f-nom').fill('Donkey Kong Ban');
+  await page.locator('#f-eshop-results button').filter({hasText:'Donkey Kong Bananza'}).first().click();
+  assert.equal(await page.locator('#f-plateforme').inputValue(),'PlayStation 5');
+  assert.equal(await page.locator('#f-nom').inputValue(),'Donkey Kong Ban','Reuse on another console updates artwork only');
+  assert.equal(await page.locator('#f-image').inputValue(),banner);
+  await page.locator('#cancel-btn').click();
+  await page.locator('#confirm-modal-confirm-btn').click();
+
 }

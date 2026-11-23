@@ -321,8 +321,10 @@ function renderContentDetails(game){
     note.textContent = 'Aucun jeu numérique associé.';
     section.appendChild(note);
   }
-  if(children.length){
+  if(!JTDData.isAddon(game) && editingCollection==='games'){
     const title = document.createElement('div');title.className='form-section-title';title.textContent='DLC et mises à niveau';section.appendChild(title);
+  }
+  if(children.length){
     for(const child of children){
       const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-addon-link content-type-'+child.contentType;
       const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;

@@ -54,7 +54,7 @@ const switchArtworkMarket = (() => {
 function fillArtworkFields(prefix,item){
   const square=document.getElementById(prefix+'-square-image');
   const title=document.getElementById(prefix+'-nintendo-id');
-  if(square){square.value=item?.squareImage || '';square.dataset.hadValue=item?.squareImage?'1':'';}
+  if(square){square.value=item?.squareImage || '';square.dataset.hadValue=item?.squareImage?'1':'';square.dispatchEvent(new Event('input'));}
   if(title){title.value=item?.nintendoTitleId || '';title.dispatchEvent(new Event('change'));}
   const suggestions=document.getElementById(prefix+'-eshop-results');
   suggestions?.replaceChildren();
@@ -62,9 +62,7 @@ function fillArtworkFields(prefix,item){
 function readArtworkFields(prefix){
   const squareImage=safeURL(document.getElementById(prefix+'-square-image')?.value.trim(),true) || null;
   const id=document.getElementById(prefix+'-nintendo-id')?.value;
-  const platform=document.getElementById(prefix==='j'?'journal-platform':prefix+'-plateforme')?.value;
-  const matchingPlatform=id && switchArtworkMarket.platformOf(platform)===(id.startsWith('04')?'Switch 2':'Switch');
-  return {...(squareImage || document.getElementById(prefix+'-square-image')?.dataset.hadValue ? {squareImage} : {}), ...(id ? {nintendoTitleId:matchingPlatform?id:null} : {})};
+  return {...(squareImage || document.getElementById(prefix+'-square-image')?.dataset.hadValue ? {squareImage} : {}), ...(id ? {nintendoTitleId:id} : {})};
 }
 
 function mountSwitchArtwork(editor,{prefix,name,platform,image}){
@@ -73,10 +71,30 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
   id.type='hidden'; id.id=prefix+'-nintendo-id'; id.name='nintendoTitleId';
   const field=document.createElement('div');
   field.className='field switch-square-field';
-  field.innerHTML='<label for="'+prefix+'-square-image">Icône carrée</label><input type="url" id="'+prefix+'-square-image" name="squareImage" placeholder="https://…">';
-  const square=field.lastElementChild;
+  field.innerHTML='<label for="'+prefix+'-square-image">Icône carrée</label><input type="url" id="'+prefix+'-square-image" name="squareImage" placeholder="https://…"><div class="switch-square-preview">Aperçu de l’icône</div>';
+  const square=field.querySelector('input'), squarePreview=field.lastElementChild;
+  function previewSquare(){
+    const url=safeURL(square.value.trim(),true);
+    squarePreview.textContent='Aperçu de l’icône';
+    if(!url) return;
+    const preview=new Image();
+    preview.alt='Aperçu de l’icône'; preview.src=url;
+    preview.onerror=()=>{if(preview.isConnected) squarePreview.textContent='Image introuvable';};
+    squarePreview.replaceChildren(preview);
+  }
+  square.addEventListener('input',previewSquare);
   image.labels[0].firstChild.textContent='Bannière 16:9 ';
-  image.closest('.image-url-row').after(field,id);
+  const banner=image.closest('.image-url-row');
+  const fit=banner.nextElementSibling;
+  const artwork=document.createElement('div');
+  artwork.className='switch-artwork-grid';
+  const bannerPanel=document.createElement('div');
+  bannerPanel.className='switch-banner-field';
+  banner.before(artwork);
+  artwork.append(bannerPanel,field);
+  bannerPanel.append(banner);
+  if(fit?.classList.contains('image-fit-field')) bannerPanel.append(fit);
+  artwork.after(id);
   const home=document.createElement('button');
   home.type='button'; home.className='manage-link hidden'; home.textContent='Essayer l’icône HOME';
   const homeStatus=document.createElement('small');
@@ -98,6 +116,7 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
     picture.onload=()=>{
       if(!stillCurrent()) return;
       square.value=url;
+      previewSquare();
       homeStatus.textContent='Icône HOME sélectionnée.';
     };
     picture.onerror=()=>{
@@ -110,6 +129,10 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
   results.id=prefix+'-eshop-results';
   results.className='switch-art-results';
   results.setAttribute('aria-label','Suggestions eShop');
+  const lookup=document.createElement('button');
+  lookup.type='button'; lookup.className='manage-link switch-art-lookup';
+  lookup.textContent='Chercher des visuels eShop';
+  name.closest('.field').appendChild(lookup);
   name.closest('.field').after(results);
   let timer,revision=0;
   function update(){
@@ -118,14 +141,18 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
     results.replaceChildren();
     const selectedPlatform=switchArtworkMarket.platformOf(platform.value);
     const query=name.value.trim();
-    if(query.length<3 || (platform.value && !selectedPlatform) || editor.classList.contains('hidden')) return;
+    if(query.length<3 || editor.classList.contains('hidden')) return;
     const generation=window.JTDAccountGeneration;
     timer=setTimeout(async()=>{
       try{
         const rows=await switchArtworkMarket.load();
         if(current!==revision || query!==name.value.trim() || generation!==window.JTDAccountGeneration || !results.isConnected ||
             !name.closest('.modal-overlay:not(.hidden)')) return;
-        const choices=switchArtworkMarket.search(rows,query,selectedPlatform);
+        const exactPlatform=selectedPlatform ? switchArtworkMarket.search(rows,query,selectedPlatform,5) : [];
+        const other=selectedPlatform ? rows.filter(row=>row.platform!==selectedPlatform) : rows;
+        const choices=[...exactPlatform,...switchArtworkMarket.search(other,query,'',8-exactPlatform.length)];
+        if(!choices.length) results.textContent='Aucun titre trouvé dans le catalogue eShop.';
+        const crossPlatform=!!platform.value && !selectedPlatform;
         for(const row of choices){
           const button=document.createElement('button');
           button.type='button';
@@ -133,11 +160,12 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
           const title=document.createElement('strong');
           title.textContent=row.name;
           const detail=document.createElement('small');
-          detail.textContent=row.platform+' · '+row.id;
+          detail.textContent='Visuels '+row.platform+(crossPlatform?' · Réutiliser les images':'');
+          button.title=row.id;
           button.append(title,detail);
           button.onclick=()=>{
-            name.value=row.name;
-            if(!selectedPlatform){
+            if(!crossPlatform) name.value=row.name;
+            if(!platform.value){
               const alias=[...platform.options].find(option=>switchArtworkMarket.platformOf(option.value)===row.platform);
               if(!alias) platform.add(new Option(row.platform,row.platform));
               setSelectValueAndSync(platform.id,alias?.value || row.platform);
@@ -145,6 +173,8 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
             }
             if(row.banner){image.value=row.banner;image.dispatchEvent(new Event('input',{bubbles:true}));}
             if(row.square){square.value=row.square;square.dispatchEvent(new Event('input',{bubbles:true}));}
+            const details=artwork.closest('details');
+            if(details) details.open=true;
             id.value=row.id;
             id.dispatchEvent(new Event('change'));
             results.replaceChildren();
@@ -157,6 +187,7 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
       }
     },220);
   }
+  lookup.onclick=()=>{if(name.value.trim().length<3){name.focus();return;}update();};
   name.addEventListener('input',update);
   platform.addEventListener('change',update);
   name.addEventListener('keydown',event=>{

@@ -1561,8 +1561,8 @@ function gameImageHtml(item, alt = '', board = false, loading = 'eager'){
 }
 function gameImageClass(item){ return ' game-art-frame image-fit-' + (item?.imageFit === 'cover' ? 'cover' : 'contain'); }
 
-function identitySummaryHtml(item, detail = ''){
-  if(item) item = purchaseArtwork(item);
+function identitySummaryHtml(item, detail = '', preferSquare = false){
+  if(item) item = purchaseArtwork(item,preferSquare);
   const name = item && item.nom ? item.nom : 'Jeu';
   const platform = item && item.plateforme ? item.plateforme : 'Plateforme';
   const image = item && item.image ? item.image : null;
@@ -1598,7 +1598,7 @@ function setIdentityEditor(prefix, item, compact){
   const showSummary = !!compact;
   summary.classList.toggle('hidden', !showSummary);
   editor.classList.toggle('hidden', showSummary);
-  if(item) summary.innerHTML = identitySummaryHtml(item);
+  if(item) summary.innerHTML = identitySummaryHtml(item,'',prefix === 'f' && editingCollection === 'games' && !convertingArrivalId);
 
   const editBtn = summary.querySelector('.identity-edit-btn');
   if(editBtn){
@@ -1650,6 +1650,9 @@ function setContextEditor(prefix, item, type, compact){
   summary.classList.toggle('hidden', !showSummary);
   editor.classList.toggle('hidden', showSummary);
   if(item) summary.innerHTML = contextSummaryHtml(item, type);
+  if(prefix==='f' && editingCollection==='games' && !convertingArrivalId){
+    summary.querySelector('.context-edit-btn')?.remove();
+  }
   const btn = summary.querySelector('.context-edit-btn');
   if(btn){
     btn.addEventListener('click', () => {
@@ -1708,7 +1711,13 @@ function commitBoardTransfer(from, to, id, draft){
   }
 }
 function setGameSheetViewing(viewing){
-  if(!viewing) setContextEditor('f',null,'purchase',false);
+  if(!viewing){
+    setContextEditor('f',null,'purchase',false);
+    if(editingCollection==='games' && editingId && !convertingArrivalId){
+      setIdentityEditor('f',null,false);
+      document.getElementById('f-image-options').open=true;
+    }
+  }
   document.getElementById('modal-overlay').classList.toggle('game-sheet-viewing', viewing);
   document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
 }

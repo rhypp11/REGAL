@@ -74,7 +74,6 @@
     return '<span class="journal-grade" data-grade="'+esc(value||'')+'" title="'+esc(criterion+': '+(value||'Sans note'))+'">'+esc(value||'–')+'</span>';
   }
   const bubble='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
-  const pencil='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20h9M4 20l1-5L16 4l4 4L9 19z"/></svg>';
   const accessLabel=entry=>entry.access&&entry.access!=='owned'
     ? [access[entry.access],entry.access==='subscription'?entry.service:''].filter(Boolean).join(' · ') : '';
   const completionIcons={
@@ -278,18 +277,19 @@
     const generation=window.JTDAccountGeneration;
     const sources=release?WISHLIST:GAMES.filter(game=>game.contentType!=='upgrade');
     let collectionId=linkedPurchase(entry)?.id;
+    const fullEdit=section==='full';
     const identityOnly=section==='identity', commentOnly=section==='comment', completionOnly=section==='completion'||section==='release';
-    const chooseSource=!existing||identityOnly;
+    const chooseSource=!existing||identityOnly||fullEdit;
     const platforms=[...new Set([...allPlatformNames(),'PC',entry.platform].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
     const customPlatform='__journal_custom_platform__';
     const canComplete=existing&&!done&&!release;
     const precisionField=field('Précision',input('precision',entry.precision,'maxlength="250" placeholder="Version 1.0, suggéré par…"'));
     show(linkOnly?'Relier à la collection':identityOnly?'Modifier le jeu':commentOnly?'Modifier le commentaire':section==='release'?'Modifier la sortie':completionOnly?'Modifier la complétion':existing&&!fromBacklog?'Modifier l’entrée':done?'Ajouter une complétion':release?'Ajouter une sortie':'Ajouter un jeu',
       '<form id="journal-form">'+
-      '<section class="form-section journal-game-section">'+
-      '<div id="journal-game-summary"'+(!existing||identityOnly?' class="hidden"':'')+'>'+identityCard(entry,!fromBacklog&&!completionOnly&&!commentOnly)+'</div>'+
-      '<div id="journal-game-editor"'+(existing&&!identityOnly?' class="hidden"':'')+'>'+
-      (chooseSource?'<fieldset class="journal-source-choice"><legend>Origine du jeu</legend>'+
+      '<section class="form-section journal-game-section"><h3 class="form-section-title">Jeu</h3>'+
+      '<div id="journal-game-summary"'+(!existing||identityOnly||fullEdit?' class="hidden"':'')+'>'+identityCard(entry,!fromBacklog&&!completionOnly&&!commentOnly)+'</div>'+
+      '<div id="journal-game-editor"'+(existing&&!identityOnly&&!fullEdit?' class="hidden"':'')+'>'+
+      (chooseSource?'<fieldset class="journal-source-choice"><legend>Source de la fiche</legend>'+
         '<label><input type="radio" name="origin" value="manual" checked> Saisie manuelle</label>'+
         '<label><input type="radio" name="origin" value="collection"> Depuis la '+(release?'wishlist':'collection')+'</label></fieldset>'+
         '<div id="journal-source-picker" class="hidden">'+field('Rechercher un jeu',input('lookup','','type="search" placeholder="Titre ou plateforme" autocomplete="off"'))+
@@ -303,7 +303,7 @@
       '<div class="image-url-row">'+field('Image du jeu',input('image',entry.image,'id="j-image" maxlength="200000" placeholder="https://…"'))+
       '<div id="j-image-preview" class="image-preview image-preview-compact"><span>Aperçu de l’image</span></div></div>'+
       '<div class="image-fit-field">'+field('Affichage de l’image',select('imageFit',{contain:'Image entière',cover:'Remplir le cadre'},entry.imageFit==='cover'?'cover':'contain'))+'</div>'+
-      '<button type="button" class="btn btn-ghost'+(identityOnly?' hidden':'')+'" id="journal-apply-identity">Réduire les détails</button></div></div></section>'+
+      '<button type="button" class="btn btn-ghost'+(identityOnly||fullEdit?' hidden':'')+'" id="journal-apply-identity">Réduire les détails</button></div></div></section>'+
       '<section class="form-section'+(identityOnly||commentOnly?' hidden':'')+'">'+
       (done?'<div class="form-section-title">Complétion</div>'+
         '<div class="journal-form-grid journal-date-fields">'+
@@ -527,11 +527,12 @@
     const done=entry.group==='completed';
     const generation=window.JTDAccountGeneration;
     if(['playing','backlog'].includes(entry.group)){ edit(entry); return; }
-    const editButton=(id,label)=>'<button type="button" id="'+id+'" class="context-edit-btn" aria-label="'+label+'" title="'+label+'">'+pencil+'</button>';
+    const banner=purchaseArtwork(entry);
     show(done?'Fiche de complétion':'Fiche du jeu',
-      '<section class="form-section">'+identityCard(entry,true)+'</section>'+
+      (banner.image?'<div class="journal-detail-banner'+gameImageClass(banner)+'">'+gameImageHtml(banner)+'</div>':'')+
+      '<section class="form-section journal-detail-identity">'+identityCard({...entry,image:null,squareImage:null},true)+'</section>'+
       '<section class="form-section"><div class="journal-section-heading"><div class="form-section-title">'+(done?completionBadge(entry.completion):entry.group==='release'?'Sortie':'Backlog')+'</div>'+
-      (done?editButton('journal-edit-completion','Modifier la complétion'):entry.group==='release'?editButton('journal-edit-release','Modifier la date de sortie'):'')+'</div>'+
+      '</div>'+
       '<dl class="journal-context-fields'+(done?' journal-context-fields-completion':'')+'">'+
       contextField(done?'Date de complétion':'Sortie','<span class="journal-context-date"'+(entry.estimated?' aria-label="Date approximative"':'')+'>'+calendarIcon+esc(dateLabel(entry))+'</span>')+
       (done?contextField('Mode de jeu',esc(modes[entry.mode]||'—')):'')+
@@ -543,29 +544,24 @@
       '<div>Ressenti<span class="journal-rating-feeling">'+esc(feelings[entry.feeling]||'–')+'</span></div></div>':'')+
       '</section>'+
       (done?'<section class="form-section journal-comment-section"><div class="journal-section-heading"><div class="form-section-title journal-comment-heading">'+bubble+'Commentaire</div>'+
-        editButton('journal-edit-comment','Modifier le commentaire')+'</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),{canDelete:true});
-    $('journal-dialog-body').querySelector('.identity-edit-btn').onclick=()=>edit(entry,false,'identity');
-    if(entry.group==='release') $('journal-edit-release').onclick=()=>edit(entry,false,'release');
+        '</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),{canDelete:true});
+    $('journal-dialog-body').querySelector('.identity-edit-btn').onclick=()=>edit(entry,false,'full');
     const purchase = linkedPurchase(entry);
     if(purchase){
       const link=document.createElement('button');
       link.type='button';
-      link.className='manage-link';
+      link.className='manage-link journal-collection-link';
       link.textContent='Voir dans la collection';
       link.onclick=()=>{close();openModal(purchase.id);};
-      $('journal-dialog-body').firstElementChild.appendChild(link);
+      $('journal-dialog-body').querySelector('.journal-detail-identity').appendChild(link);
     }
     if(done && !purchase){
       const link=document.createElement('button');
       link.type='button';
-      link.className='manage-link';
+      link.className='manage-link journal-collection-link';
       link.textContent='Relier à la collection';
       link.onclick=()=>edit(entry,false,'identity',true);
-      $('journal-dialog-body').firstElementChild.appendChild(link);
-    }
-    if(done){
-      $('journal-edit-completion').onclick=()=>edit(entry,false,'completion');
-      $('journal-edit-comment').onclick=()=>edit(entry,false,'comment');
+      $('journal-dialog-body').querySelector('.journal-detail-identity').appendChild(link);
     }
     bindDelete(entry,generation);
   }

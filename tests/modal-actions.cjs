@@ -31,7 +31,7 @@ const server=createSandboxServer();
      assert.equal(await page.locator('#delete-btn').isVisible(),false,'Consultation keeps deletion out of the way');
      const before=await page.evaluate(()=>JSON.stringify(GAMES));
      if([320,390,1440].includes(width))await page.screenshot({path:`/tmp/jtd-sheet-view-${width}-${theme}.png`,fullPage:true});
-     await page.locator('#f-context-summary .context-edit-btn').click();
+     await page.locator('#f-identity-summary .identity-edit-btn').click();
      assert.equal(await page.locator('#save-btn').isVisible(),true,'Purchase pencil enters editing');
      assert.equal(await page.locator('#cancel-btn').innerText(),'Annuler');
      await page.locator('#f-source').fill('Modification à annuler');
