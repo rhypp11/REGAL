@@ -170,6 +170,7 @@ function updateParentAttachment(){
   document.getElementById('f-parent-enabled').setAttribute('aria-expanded',String(enabled));
 }
 function relatedGameHtml(game){
+  game = purchaseArtwork(game,true);
   return '<span class="content-related-thumb'+gameImageClass(game)+'">'+(game.image?gameImageHtml(game):'<span>'+escapeHTML(game.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span><span class="content-related-copy"><strong>'+escapeHTML(game.nom)+'</strong><small>'+escapeHTML(JTDData.effectivePlatform(game,GAMES)+' · '+(JTDData.isAddon(game)?contentKind(game):JTDData.isDigital(game)?'Numérique':'Physique'))+'</small></span>';
 }
 function renderParentPreview(){
@@ -212,7 +213,6 @@ function updateDigitalFields(){
     const title = document.getElementById('modal-title');
     title.textContent = editingId ? document.getElementById('f-nom').value : dlc ? (upgrade?'Ajouter une mise à niveau':'Ajouter un DLC') : 'Ajouter un jeu';
   }
-  document.getElementById('f-content-type-field').classList.toggle('hidden',!digital);
   document.getElementById('f-edition-options').classList.toggle('hidden',digital);
   document.getElementById('f-digital-fields').classList.toggle('hidden',!dlc);
   document.getElementById('f-source-field').classList.toggle('hidden',digital);
@@ -222,28 +222,27 @@ function updateDigitalFields(){
   document.getElementById('f-content-status-field').classList.toggle('hidden',!digital || upgrade || !dlc);
   populateParentGames();
   document.getElementById('f-price-currency').textContent = digital ? ({EUR:'€',JPY:'¥',USD:'$',GBP:'£'})[document.getElementById('f-currency').value] : '€';
-  const owned = GAMES.find(g=>g.id === editingId);
-  document.getElementById('f-sell-btn').classList.toggle('hidden',!owned || digital || JTDData.isDigital(owned) || editingCollection !== 'games');
 }
-function openDigitalFields(game){
+function openDigitalFields(game, content){
   const physicalOnly = editingCollection === 'cemetery' || !!convertingArrivalId;
-  const digital = !physicalOnly && (game ? JTDData.isDigital(game) : state.media === 'digital');
-  document.getElementById('f-media-field').classList.toggle('hidden',physicalOnly);
+  const digital = !physicalOnly && (game ? JTDData.isDigital(game) : !!content || state.media === 'digital');
   document.getElementById('f-media').value = digital ? 'digital' : 'physical';
   const types = selectedContentTypes();
   const newContentType = digital && types.length === 1 ? types[0] : 'game';
-  document.getElementById('f-content-type').value = game ? (JTDData.isAddon(game) ? game.contentType : 'game') : newContentType;
+  document.getElementById('f-content-type').value = game ? (JTDData.isAddon(game) ? game.contentType : 'game') : content?.kind || newContentType;
+  document.getElementById('f-media-field').classList.toggle('hidden',physicalOnly || (!game && digital && document.getElementById('f-content-type').value !== 'game'));
   document.getElementById('f-currency').value = game?.currency || 'EUR';
   document.getElementById('f-content-status').innerHTML='<option value="">Non défini</option>'+STATUS_OPTIONS.map(s=>'<option value="'+s.key+'">'+s.label+'</option>').join('');
   document.getElementById('f-content-status').value=game ? (game.status==='en_cours'?'a_jouer':game.status) || '' : '';
   document.getElementById('f-content-status').disabled=!!window.getLinkedJournalCompletion?.(game?.id);
   document.getElementById('f-parent-search').value = '';
-  document.getElementById('f-parent-enabled').checked=!!JTDData.contentParent(game,GAMES);
+  document.getElementById('f-parent-enabled').checked=!!(content?.parentId || JTDData.contentParent(game,GAMES));
   updateParentAttachment();
   document.getElementById('f-digital-version-options').open = false;
   document.getElementById('f-japanese-account').checked = game?.japaneseAccount === true;
   document.getElementById('f-bundle').checked = game?.bundle === true;
-  populateParentGames(game?.parentId || '');
+  populateParentGames(game?.parentId || content?.parentId || '');
+  if(content) setCollectionContentPlatform(content.platform);
   renderContentDetails(game);
   updateDigitalFields();
 }
@@ -292,13 +291,6 @@ function renderGameSheetStatus(game){
     const summary = document.createElement('p');
     summary.textContent = completion.result + ' · ' + completion.date;
     section.append(summary,link);
-  }else if(JTDData.isDLC(game)){
-    const edit = document.createElement('button');
-    edit.type = 'button';
-    edit.className = 'manage-link';
-    edit.textContent = 'Modifier le statut';
-    edit.onclick = () => {setGameSheetViewing(false);document.getElementById('f-content-status').focus();};
-    section.appendChild(edit);
   }
 }
 function renderContentDetails(game){
@@ -315,20 +307,14 @@ function renderContentDetails(game){
     const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-base-link';
     button.innerHTML = '<span class="content-related-identity">'+relatedGameHtml(parent)+'</span>';
     button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(parent.id));section.appendChild(button);
-    const change=document.createElement('button');change.type='button';change.className='manage-link';change.textContent='Modifier le rattachement';change.onclick=()=>{setGameSheetViewing(false);document.getElementById('f-parent-search').focus();};section.appendChild(change);
-  }else if(JTDData.isAddon(game)){
-    const note = document.createElement('p');note.className='content-parent-note';
-    note.textContent = 'Aucun jeu numérique associé.';
-    section.appendChild(note);
-  }
-  if(!JTDData.isAddon(game) && editingCollection==='games'){
-    const title = document.createElement('div');title.className='form-section-title';title.textContent='DLC et mises à niveau';section.appendChild(title);
   }
   if(children.length){
+    const title = document.createElement('h3');title.className='form-section-title';title.textContent='DLC et mises à niveau';section.appendChild(title);
     for(const child of children){
       const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-addon-link content-type-'+child.contentType;
       const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;
-      const thumb='<span class="content-related-thumb'+gameImageClass(child)+'">'+(child.image?gameImageHtml(child):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
+      const art=purchaseArtwork(child,true);
+      const thumb='<span class="content-related-thumb'+gameImageClass(art)+'">'+(art.image?gameImageHtml(art):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
       button.innerHTML='<span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+thumb+
         '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
         '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
@@ -339,10 +325,72 @@ function renderContentDetails(game){
     for(const purchase of [game,...children]) if(purchase.prix != null) sums.set(purchase.currency || 'EUR',(sums.get(purchase.currency || 'EUR') || 0)+purchase.prix);
     const total = document.createElement('div');total.className='content-purchase-total';
     total.textContent = 'Total jeu et contenus : '+[...sums].map(([currency,prix])=>purchaseMoney({currency,prix})).join(' + ');
-    section.appendChild(total);
+    if(sums.size) section.appendChild(total);
   }
   if(section.childNodes.length) container.appendChild(section);
 }
+function isSwitchUpgradeParent(game){
+  return /^(?:Nintendo )?Switch(?: [12])?$/i.test(game.plateforme);
+}
+function collectionContentPlatform(parent, kind){
+  if(kind === 'dlc' || /^(?:Nintendo )?Switch 2$/i.test(parent.plateforme)) return parent.plateforme;
+  return allPlatformNames().find(platform => /^(?:Nintendo )?Switch 2$/i.test(platform)) || 'Switch 2';
+}
+function setCollectionContentPlatform(platform){
+  if(!platform) return;
+  const select = document.getElementById('f-plateforme');
+  if(![...select.options].some(option => option.value === platform)) select.add(new Option(platform,platform));
+  setSelectValueAndSync('f-plateforme',platform);
+}
+function openCollectionContent(game, kind){
+  const digital = JTDData.isDigital(game);
+  const content = {kind, parentId:digital ? game.id : null, platform:collectionContentPlatform(game,kind)};
+  const overlay = 'collection-content-overlay';
+  const close = () => window.JTDDialogs.close(overlay);
+  const create = () => {close();openModal(null,'games',content);};
+  if(!digital){create();return;}
+  const search = document.getElementById('collection-content-search');
+  const results = document.getElementById('collection-content-results');
+  const empty = document.getElementById('collection-content-empty');
+  const add = document.getElementById('collection-content-create');
+  document.getElementById('collection-content-title').textContent = kind === 'dlc' ? 'Ajouter ou rattacher un DLC' : 'Ajouter ou rattacher une mise à niveau';
+  add.textContent = kind === 'dlc' ? 'Créer un DLC' : 'Créer une mise à niveau';
+  add.onclick = create;
+  document.getElementById('collection-content-cancel').onclick = close;
+  search.value = '';
+  function renderCandidates(){
+    const query = JTDData.foldImport(search.value);
+    const candidates = GAMES.filter(child => child.contentType === kind && !JTDData.contentParent(child,GAMES)
+      && JTDData.canAttachContent(child,game) && JTDData.foldImport(child.nom).includes(query));
+    results.replaceChildren();
+    for(const child of candidates.slice(0,30)){
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'parent-search-result';
+      button.innerHTML = relatedGameHtml(child);
+      button.onclick = () => {
+        const parent = GAMES.find(item => item.id === game.id);
+        const candidate = GAMES.find(item => item.id === child.id);
+        if(!JTDData.canAttachContent(candidate,parent) || JTDData.contentParent(candidate,GAMES)){
+          renderCandidates();
+          return;
+        }
+        if(!commitCollection(GAMES.map(item => item.id === child.id ? {...item,parentId:game.id} : item))) return;
+        close();
+        openModal(game.id);
+        buildPlatformList();
+        render();
+        showToast('Contenu rattaché.');
+      };
+      results.append(button);
+    }
+    empty.textContent = candidates.length ? '' : 'Aucun contenu compatible à rattacher.';
+  }
+  search.oninput = renderCandidates;
+  renderCandidates();
+  window.JTDDialogs.open(overlay,{onDismiss:close,initialFocus:'#collection-content-search'});
+}
+
 function initDigitalControls(){
   document.querySelectorAll('[data-format-icon]').forEach(element=>{element.innerHTML=MEDIA_ICONS[element.dataset.formatIcon];});
   document.querySelectorAll('[name="f-media-choice"]').forEach(input=>input.addEventListener('change',()=>{
@@ -365,7 +413,7 @@ function initDigitalControls(){
     const type=button.dataset.contentType;types.has(type) ? types.delete(type) : types.add(type);
     state.contentType=[...types].join(',') || null;buildPlatformList();render();
   };
-  for(const id of ['f-media','f-content-type','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
+  for(const id of ['f-media','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
   document.getElementById('f-parent-enabled').onchange=()=>{
     setGameSheetViewing(false);
     updateParentAttachment();
@@ -378,9 +426,7 @@ function initDigitalControls(){
     setGameSheetViewing(false);
     const parent=GAMES.find(g=>g.id===event.target.value);if(!parent)return;
     const upgrade = document.getElementById('f-content-type').value === 'upgrade';
-    const target = upgrade && /^(?:Nintendo )?Switch(?: 1)?$/i.test(parent.plateforme) ? allPlatformNames().find(p=>/^(?:Nintendo )?Switch 2$/i.test(p)) || 'Switch 2' : parent.plateforme;
-    const platformSelect=document.getElementById('f-plateforme');if(![...platformSelect.options].some(o=>o.value===target))platformSelect.add(new Option(target,target));
-    setSelectValueAndSync('f-plateforme',target);
+    setCollectionContentPlatform(collectionContentPlatform(parent, upgrade ? 'upgrade' : 'dlc'));
     renderParentPreview();
   };
   document.getElementById('f-plateforme').addEventListener('change',renderParentPreview);

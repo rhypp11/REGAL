@@ -46,13 +46,13 @@ const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
      assert.deepEqual(await page.locator('.journal-context-fields dd').first().evaluate(element=>({
       font:getComputedStyle(element).fontFamily,size:getComputedStyle(element).fontSize
      })),summaryType,'Summary values match the Collection');
-     if(scene==='journal-game')await page.locator('#journal-game-summary .identity-edit-btn, #journal-dialog-body .identity-edit-btn').first().click();
-     if(scene==='journal-completion')await page.locator('#journal-dialog-body .identity-edit-btn').click();
-     if(scene==='journal-comment')await page.locator('#journal-dialog-body .identity-edit-btn').click();
+     if(scene==='journal-game'){await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
+     if(scene==='journal-completion'){await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
+     if(scene==='journal-comment'){await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
     }else if(scene==='backlog'||scene==='release'){
      await page.locator('[data-journal-tab="'+scene+'"]').click();
      await page.locator('#journal-'+scene+' .journal-row').click();
-     if(scene==='release')await page.locator('#journal-dialog-body .identity-edit-btn').click();
+     if(scene==='release'){await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
     }
     const overlay=page.locator('.sheet-dialog:not(.hidden)');
     const labels=await overlay.locator('.field > label:visible').evaluateAll(elements=>elements.map(element=>({

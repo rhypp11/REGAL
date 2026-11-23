@@ -144,14 +144,14 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.screenshot({path:'/tmp/jtd-linked-content-'+width+'-'+theme+'.png'});
       assert.equal(await page.locator('#f-format-title').innerText(),'Numérique');
       assert.equal(await page.evaluate(()=>document.getElementById('f-media-section').compareDocumentPosition(document.getElementById('f-identity-summary')) & Node.DOCUMENT_POSITION_PRECEDING),2);
-      await page.locator('#f-identity-summary .identity-edit-btn').click();
+      await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
       assert.equal(await page.locator('#f-digital-version-options').isVisible(),true);
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
-      assert.equal(await page.locator('#f-content-type-field').isVisible(),true);
+      assert.equal(await page.locator('#f-content-type').isVisible(),false);
       await page.locator('[name="f-media-choice"][value="physical"]').check();
       await page.locator('#f-edition-options summary').click();
       assert.equal(await page.locator('#f-collector-field').isVisible(),true);
-      assert.equal(await page.locator('#f-content-type-field').isVisible(),false);
+      assert.equal(await page.locator('#f-content-type').isVisible(),false);
       assert.equal(await page.locator('#f-media-section #f-collector-field').count(),1);
       await page.locator('#f-collector').check();await page.locator('#f-japanese').check();
       await page.locator('[name="f-media-choice"][value="digital"]').check();
@@ -180,7 +180,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         applyRestoredData(JTDData.normalizeData({games:[{id:'conversion',nom:'Chroniques du rivage 5 — Démo',plateforme:'Switch 2',format:'Physique',collector:true,japanese:true,prix:19.99+40,status:'termine',date:'2026-10-15',source:'Boutique démo'}]}));
         openModal('conversion');
       });
-      await page.locator('#f-identity-summary .identity-edit-btn').click();
+      await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
       await page.locator('[name="f-media-choice"][value="digital"]').check();
       await page.locator('#save-btn').click();
       assert.equal(await page.locator('#modal-overlay').isVisible(),false,'Changing only format must save and close');

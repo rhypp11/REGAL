@@ -16,7 +16,7 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
    for(const prefix of ['f','a','w']){
     await page.evaluate(({prefix,longTitle})=>{
      closeModal();closeArrivalModal();closeWishlistModal();
-     if(prefix==='f')openModal(null);
+     if(prefix==='f'){openModal(GAMES.find(game=>!JTDData.isDigital(game)).id);setGameSheetViewing(false);document.getElementById('f-image-options').open=false;}
      if(prefix==='a')openArrivalModal(null);
      if(prefix==='w')openWishlistModal(null);
      document.getElementById(prefix+'-nom').value=longTitle;
@@ -52,9 +52,7 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
    await page.keyboard.press('Escape');
    await page.locator('#confirm-modal-confirm-btn').click();
    // A tall DLC editor scrolls its fields without hiding the title or actions.
-   await page.evaluate(()=>openModal(null));
-   await page.locator('[name="f-media-choice"][value="digital"]').check();
-   await page.locator('#f-content-type').selectOption('dlc');
+   await page.evaluate(()=>openModal(null,'games',{kind:'dlc',platform:'Switch'}));
    await page.locator('#f-parent-enabled').check();
    const sheet=page.locator('#modal-overlay .collection-sheet-body');
    await page.locator('#f-image-options summary').click();
@@ -71,7 +69,7 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
    await page.locator('#confirm-modal-confirm-btn').click();
    if(width<=820){
     await page.evaluate(()=>openModal(null));
-    await page.locator('#f-source').focus();
+    await page.locator('#f-nom').focus();
     await page.evaluate(()=>{
      Object.defineProperty(visualViewport,'height',{configurable:true,value:390});
      visualViewport.dispatchEvent(new Event('resize'));

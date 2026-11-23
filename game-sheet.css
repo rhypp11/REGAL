@@ -309,4 +309,24 @@
 
 .switch-art-lookup { justify-self:start; min-height:36px; }
 #modal-overlay .modal-edit-actions .modal-primary-actions { display:flex; gap:8px; }
-#modal-overlay:not(.game-sheet-viewing) #f-sell-btn { display:none; }
+#modal-overlay .modal-edit-actions { justify-content:flex-end; }
+#modal-overlay:not(.cemetery-game-editor) #delete-btn,
+#journal-overlay:has(#journal-detail-actions) #journal-delete { display:none; }
+.collection-quick-add :is(#f-image-options,#f-context-editor,.collection-purchase-heading,#f-identity-editor > h3) { display:none; }
+.sheet-actions-menu { position:relative; flex:none; align-self:flex-start; }
+.sheet-actions-menu > summary { list-style:none; }
+.sheet-actions-menu > summary::-webkit-details-marker { display:none; }
+.sheet-actions-menu:not([open]) > .sheet-actions-list { display:none; }
+.sheet-actions-list {
+  position:absolute; z-index:5; inset-inline-end:0; top:calc(100% + 4px);
+  display:grid; width:max-content; max-width:min(270px,75vw);
+  padding:4px; border:1px solid var(--ui-border); border-radius:12px;
+  background:var(--ui-surface-raised); box-shadow:var(--ui-floating-shadow);
+}
+.sheet-actions-list button {
+  padding:8px 12px; min-height:40px; border:0; border-radius:8px;
+  background:transparent; color:var(--ui-text); font:inherit; text-align:start; cursor:pointer;
+}
+.sheet-actions-list button:is(:hover,:focus-visible) { background:var(--ui-surface); }
+#collection-content-overlay .parent-search-results { max-height:min(38vh,280px); overflow:auto; }
+#collection-content-empty:empty { display:none; }

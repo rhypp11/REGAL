@@ -1601,7 +1601,21 @@ function setIdentityEditor(prefix, item, compact){
   if(item) summary.innerHTML = identitySummaryHtml(item,'',prefix === 'f' && editingCollection === 'games' && !convertingArrivalId);
 
   const editBtn = summary.querySelector('.identity-edit-btn');
-  if(editBtn){
+  if(editBtn && prefix === 'f' && editingCollection === 'games' && !convertingArrivalId && item){
+    const game = GAMES.find(game => game.id === editingId);
+    const actions = [['Modifier la fiche', () => editCollectionSheet('f-nom'), 'f-edit-game']];
+    if(JTDData.isAddon(game)){
+      actions.push(['Modifier le rattachement', () => editCollectionSheet('f-parent-enabled')]);
+    }else{
+      actions.push([JTDData.isDigital(game) ? 'Ajouter ou rattacher un DLC' : 'Ajouter un DLC', () => openCollectionContent(game, 'dlc')]);
+      if(isSwitchUpgradeParent(game)){
+        actions.push([JTDData.isDigital(game) ? 'Ajouter ou rattacher une mise à niveau' : 'Ajouter une mise à niveau', () => openCollectionContent(game, 'upgrade')]);
+      }
+      if(!JTDData.isDigital(game)) actions.push(['Mettre en vente', () => openSaleModal(game.id, 'new'), 'f-sell-btn']);
+    }
+    actions.push(['Supprimer', () => document.getElementById('delete-btn').click()]);
+    editBtn.replaceWith(sheetActions(actions, 'f-game-actions'));
+  }else if(editBtn){
     editBtn.addEventListener('click', () => {
       if(prefix === 'f') setGameSheetViewing(false);
       summary.classList.add('hidden');
@@ -1610,6 +1624,37 @@ function setIdentityEditor(prefix, item, compact){
       if(nameInput) nameInput.focus();
     }, {once:true});
   }
+}
+
+function sheetActions(actions, id){
+  const menu = document.createElement('details');
+  menu.className = 'sheet-actions-menu';
+  menu.id = id;
+  const toggle = document.createElement('summary');
+  toggle.className = 'identity-edit-btn';
+  toggle.setAttribute('aria-label','Actions de la fiche');
+  toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>';
+  const list = document.createElement('div');
+  list.className = 'sheet-actions-list';
+  for(const [label, action, buttonId] of actions){
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    if(buttonId) button.id = buttonId;
+    button.onclick = () => {
+      menu.open = false;
+      toggle.focus({preventScroll:true});
+      action();
+    };
+    list.appendChild(button);
+  }
+  menu.append(toggle,list);
+  return menu;
+}
+
+function editCollectionSheet(field){
+  setGameSheetViewing(false);
+  document.getElementById(field).focus();
 }
 
 function contextEditIcon(){
@@ -1712,6 +1757,8 @@ function commitBoardTransfer(from, to, id, draft){
 }
 function setGameSheetViewing(viewing){
   if(!viewing){
+    const menu = document.getElementById('f-game-actions');
+    if(menu) menu.open = false;
     setContextEditor('f',null,'purchase',false);
     if(editingCollection==='games' && editingId && !convertingArrivalId){
       setIdentityEditor('f',null,false);
@@ -1767,12 +1814,11 @@ function setPurchaseDate(date = ''){
   note.classList.toggle('hidden', !partial.value);
 }
 
-function openModal(id, collection = 'games'){
+function openModal(id, collection = 'games', content = null){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
   editingId = id || null;
   if(editingId && !items.some(game => game.id === editingId)) return;
-  document.getElementById('f-sell-btn').classList.toggle('hidden', !editingId || editingCollection !== 'games');
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
 
   const title = document.getElementById('modal-title');
@@ -1816,7 +1862,9 @@ function openModal(id, collection = 'games'){
   document.getElementById('f-image-options').open = false;
   document.getElementById('f-edition-options').open = false;
   fillArtworkFields('f',identityItem);
-  openDigitalFields(identityItem);
+  openDigitalFields(identityItem, content);
+  const quickAdd = !editingId && editingCollection === 'games' && document.getElementById('f-content-type').value === 'game';
+  document.getElementById('modal-overlay').classList.toggle('collection-quick-add',quickAdd);
   setIdentityEditor('f', identityItem && editingCollection==='games' ? {...identityItem,plateforme:JTDData.effectivePlatform(identityItem,GAMES)} : identityItem, !!editingId);
   renderGameSheetStatus(editingCollection === 'games' ? identityItem : null);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
@@ -1829,7 +1877,7 @@ function openModal(id, collection = 'games'){
 
 function closeModal(){
   document.getElementById('receipt-status-note').classList.add('hidden');
-  document.getElementById('f-sell-btn').classList.add('hidden');
+  document.getElementById('modal-overlay').classList.remove('collection-quick-add');
   document.getElementById('save-btn').textContent = 'Enregistrer';
   window.JTDDialogs.close('modal-overlay');
   setGameSheetViewing(false);
@@ -1858,6 +1906,7 @@ function saveModal(){
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
   const wasEditing = !!editingId;
+  const quickAdd = document.getElementById('modal-overlay').classList.contains('collection-quick-add');
   const savedId = editingId || convertingArrivalId || crypto.randomUUID();
   const received = convertingArrivalId
     ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, format:'Physique', type:null, status:'a_jouer'})
@@ -1885,6 +1934,7 @@ function saveModal(){
   }
   const saved = received || GAMES.find(game => game.id === savedId);
   if(saved){
+    if(quickAdd) openModal(saved.id);
     const generation = window.JTDAccountGeneration;
     showToast(`« ${saved.nom} » ${wasEditing ? 'modifié' : 'ajouté à la collection'}.`, 'Voir', () => {
       if(generation !== window.JTDAccountGeneration) return;

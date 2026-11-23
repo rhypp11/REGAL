@@ -18,6 +18,7 @@ const server=createSandboxServer();
    const id=await page.evaluate(()=>GAMES.find(game=>game.nom==='Achat fictif à retrouver').id);
    assert.equal(await page.locator('#toast-stack .toast-action').innerText(),'Voir');
    assert.equal(await page.locator('#grid .card').count(),0,'Saving preserves the current filters');
+   await page.locator('#cancel-btn').click();
    await page.locator('#toast-stack .toast-action').click();
    assert.equal(await page.locator('#grid .card').count(),1,'Voir reveals the new purchase despite incompatible filters');
    assert.equal(await page.locator('#search-input').inputValue(),'Achat fictif à retrouver');

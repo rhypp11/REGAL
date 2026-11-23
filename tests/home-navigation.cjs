@@ -214,12 +214,12 @@ const server=createSandboxServer();
    assert.equal(await page.locator('.journal-comment').innerText(),'Commentaire de test');
    assert.deepEqual(await page.locator('#journal-dialog-body dt').allTextContents(),['Date de complétion','Mode de jeu','Précision']);
    assert.equal(await page.locator('.journal-row .journal-comment-mark').count(),1);
-   await page.locator('#journal-dialog-body .identity-edit-btn').click();
+   {await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
    await page.locator('#journal-form summary').filter({hasText:'Commentaire'}).click();
    await page.locator('#journal-form [name="comment"]').fill('Commentaire modifié');
    await page.locator('#journal-save').click();
    assert.equal(await page.locator('.journal-comment').innerText(),'Commentaire modifié');
-   await page.locator('#journal-dialog-body .identity-edit-btn').click();
+   {await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
    assert.equal(await page.locator('#journal-game-summary').isVisible(),false);
    assert.equal(await page.locator('#journal-game-editor').isVisible(),true);
    assert.equal(await page.evaluate(()=>GAMES[0].status),undefined);

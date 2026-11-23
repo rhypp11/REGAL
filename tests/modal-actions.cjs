@@ -31,7 +31,7 @@ const server=createSandboxServer();
      assert.equal(await page.locator('#delete-btn').isVisible(),false,'Consultation keeps deletion out of the way');
      const before=await page.evaluate(()=>JSON.stringify(GAMES));
      if([320,390,1440].includes(width))await page.screenshot({path:`/tmp/jtd-sheet-view-${width}-${theme}.png`,fullPage:true});
-     await page.locator('#f-identity-summary .identity-edit-btn').click();
+     await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
      assert.equal(await page.locator('#save-btn').isVisible(),true,'Purchase pencil enters editing');
      assert.equal(await page.locator('#cancel-btn').innerText(),'Annuler');
      await page.locator('#f-source').fill('Modification à annuler');
@@ -40,7 +40,7 @@ const server=createSandboxServer();
      assert.equal(await page.evaluate(()=>JSON.stringify(GAMES)),before,'Cancel keeps the game unchanged');
      await page.evaluate(()=>openModal(GAMES[0].id));
      assert.equal(await page.locator('#save-btn').isVisible(),false,'Reopening returns to consultation');
-     await page.locator('#f-identity-summary .identity-edit-btn').click();
+     await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
      assert.equal(await page.locator('#save-btn').isVisible(),true,'Game pencil enters editing');
     }
     const lastSection=page.locator('.modal-overlay:not(.hidden) :is(.modal,.collection-sheet-body,.sale-sheet-body) > .form-section').last();

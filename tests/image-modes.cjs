@@ -32,7 +32,7 @@ const server=createSandboxServer();
    assert.equal(await page.locator('#cemetery-list .game-art-image').first().evaluate(img=>getComputedStyle(img).objectFit),'cover','Cemetery shares the image mode');
    await page.evaluate(()=>goToPage('collection'));
    await page.evaluate(()=>openModal('art-wide'));
-   await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
    assert.equal(await page.locator('#f-image-options').getAttribute('open'),'');
    assert.equal(await page.locator('#f-image-fit').inputValue(),'contain');
    // Native dropdowns must stay readable with either OS preference.

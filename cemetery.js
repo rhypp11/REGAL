@@ -411,19 +411,6 @@ function setSaleView(view){
   document.querySelectorAll('[data-sale-view]').forEach(button => { button.classList.toggle('active', button.dataset.saleView === view); button.setAttribute('aria-pressed', String(button.dataset.saleView === view)); });
   renderCemetery();
 }
-saleEl('f-sell-btn').addEventListener('click', () => {
-  const item = GAMES.find(g => g.id === editingId);
-  if(!item || JTDData.isDigital(item)) return;
-  if(boardEditorSnapshots.get('modal-overlay') === boardEditorSnapshot('modal-overlay','f')){
-    openSaleModal(item.id,'new');
-    return;
-  }
-  withBoardEditorChanges('modal-overlay','f',() => {
-    closeModal();
-    openModal(item.id);
-    openSaleModal(item.id,'new');
-  });
-});
 saleEl('sale-complete').addEventListener('click', () => {
   const id = saleEditingId;
   withBoardEditorChanges('sale-modal-overlay','sale',() => {
