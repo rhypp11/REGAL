@@ -203,12 +203,13 @@ function updatePurchaseChangeNote(){
 
 function updateDigitalFields(){
   const digital = document.getElementById('f-media').value === 'digital';
-  document.getElementById('f-format-title').innerHTML = MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span>';
+  document.getElementById('f-editor-format-title').innerHTML = MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span>';
   document.querySelectorAll('[name="f-media-choice"]').forEach(input=>{input.checked=input.value===(digital?'digital':'physical');});
   const dlc = digital && ['dlc','upgrade'].includes(document.getElementById('f-content-type').value);
   const upgrade = document.getElementById('f-content-type').value === 'upgrade';
-  if(dlc) document.getElementById('f-format-title').innerHTML = MEDIA_ICONS[upgrade?'upgrade':'dlc']+'<span>'+(upgrade?'Mise à niveau · Switch 2 Edition':'DLC')+'</span>';
+  if(dlc) document.getElementById('f-editor-format-title').innerHTML = MEDIA_ICONS[upgrade?'upgrade':'dlc']+'<span>'+(upgrade?'Mise à niveau · Switch 2 Edition':'DLC')+'</span>';
   document.querySelector('label[for="f-nom"]').textContent = dlc ? 'Nom du contenu' : 'Nom du jeu';
+  document.getElementById('game-sheet-purchase-title').textContent = dlc || !editingId || editingCollection !== 'games' ? 'Achat' : 'Jeu';
   if(!convertingArrivalId && editingCollection !== 'cemetery'){
     const title = document.getElementById('modal-title');
     title.textContent = editingId ? document.getElementById('f-nom').value : dlc ? (upgrade?'Ajouter une mise à niveau':'Ajouter un DLC') : 'Ajouter un jeu';
@@ -281,16 +282,23 @@ function renderGameSheetStatus(game){
   badge.style.setProperty('--status-color',status?.color || 'var(--ui-text-muted)');
   badge.style.setProperty('--status-fill',status?.fill || 'var(--ui-border)');
   badge.innerHTML = (status?.icon || '') + escapeHTML(status?.label || 'Sans statut');
-  section.append(heading,badge);
+  const card = document.createElement('div');
+  card.className = 'game-status-panel';
+  card.append(badge);
+  section.append(heading,card);
   if(completion){
     const link = document.createElement('button');
     link.type = 'button';
     link.className = 'manage-link';
-    link.textContent = 'Voir dans le Journal';
+    link.innerHTML = document.querySelector('.nav-tab[data-page="journal"] svg')?.outerHTML || '';
+    link.append('Voir dans le Journal');
     link.onclick = () => {closeModal();window.openJournalEntry(completion.id);};
-    const summary = document.createElement('p');
-    summary.textContent = completion.result + ' · ' + completion.date;
-    section.append(summary,link);
+    const summary = document.createElement('dl');
+    summary.className = 'game-status-completion';
+    summary.innerHTML = [
+      ['Type de complétion',completion.result], ['Date de complétion',completion.date]
+    ].map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+escapeHTML(value)+'</dd></div>').join('');
+    card.append(link,summary);
   }
 }
 function renderContentDetails(game){
@@ -300,10 +308,10 @@ function renderContentDetails(game){
   const parent = JTDData.contentParent(game,GAMES);
   const children = gameContents(game);
   const section = document.createElement('section');
-  section.className = 'form-section content-purchases';
+  section.className = 'content-purchases';
   if(game.dekuNote){const note=document.createElement('p');note.className='content-parent-note';note.textContent='Note Deku Deals : '+game.dekuNote;section.appendChild(note);}
   if(parent){
-    const title = document.createElement('div');title.className='form-section-title';title.textContent='Fait partie de';section.appendChild(title);
+    const title = document.createElement('h3');title.className='form-section-title';title.textContent='Fait partie de';section.appendChild(title);
     const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-base-link';
     button.innerHTML = '<span class="content-related-identity">'+relatedGameHtml(parent)+'</span>';
     button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(parent.id));section.appendChild(button);
@@ -315,10 +323,10 @@ function renderContentDetails(game){
       const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;
       const art=purchaseArtwork(child,true);
       const thumb='<span class="content-related-thumb'+gameImageClass(art)+'">'+(art.image?gameImageHtml(art):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
-      button.innerHTML='<span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+thumb+
+      button.innerHTML=thumb+
         '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
         '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
-        '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
+        '<span class="content-related-meta"><span class="content-kind-label"><span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+contentKind(child)+'</span>'+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
       button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(child.id));section.appendChild(button);
     }
     const sums = new Map();

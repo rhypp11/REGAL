@@ -1603,17 +1603,17 @@ function setIdentityEditor(prefix, item, compact){
   const editBtn = summary.querySelector('.identity-edit-btn');
   if(editBtn && prefix === 'f' && editingCollection === 'games' && !convertingArrivalId && item){
     const game = GAMES.find(game => game.id === editingId);
-    const actions = [['Modifier la fiche', () => editCollectionSheet('f-nom'), 'f-edit-game']];
+    const actions = [['Modifier la fiche', () => editCollectionSheet('f-nom'), 'f-edit-game', 'edit']];
     if(JTDData.isAddon(game)){
-      actions.push(['Modifier le rattachement', () => editCollectionSheet('f-parent-enabled')]);
+      actions.push(['Modifier le rattachement', () => editCollectionSheet('f-parent-enabled'), null, 'link']);
     }else{
-      actions.push([JTDData.isDigital(game) ? 'Ajouter ou rattacher un DLC' : 'Ajouter un DLC', () => openCollectionContent(game, 'dlc')]);
+      actions.push([JTDData.isDigital(game) ? 'Ajouter ou rattacher un DLC' : 'Ajouter un DLC', () => openCollectionContent(game, 'dlc'), null, 'dlc']);
       if(isSwitchUpgradeParent(game)){
-        actions.push([JTDData.isDigital(game) ? 'Ajouter ou rattacher une mise à niveau' : 'Ajouter une mise à niveau', () => openCollectionContent(game, 'upgrade')]);
+        actions.push([JTDData.isDigital(game) ? 'Ajouter ou rattacher une mise à niveau' : 'Ajouter une mise à niveau', () => openCollectionContent(game, 'upgrade'), null, 'upgrade']);
       }
-      if(!JTDData.isDigital(game)) actions.push(['Mettre en vente', () => openSaleModal(game.id, 'new'), 'f-sell-btn']);
+      if(!JTDData.isDigital(game)) actions.push(['Mettre en vente', () => openSaleModal(game.id, 'new'), 'f-sell-btn', 'sale']);
     }
-    actions.push(['Supprimer', () => document.getElementById('delete-btn').click()]);
+    actions.push(['Supprimer', () => document.getElementById('delete-btn').click(), null, 'delete']);
     editBtn.replaceWith(sheetActions(actions, 'f-game-actions'));
   }else if(editBtn){
     editBtn.addEventListener('click', () => {
@@ -1629,17 +1629,18 @@ function setIdentityEditor(prefix, item, compact){
 function sheetActions(actions, id){
   const menu = document.createElement('details');
   menu.className = 'sheet-actions-menu';
-  menu.id = id;
+  if(id) menu.id = id;
   const toggle = document.createElement('summary');
   toggle.className = 'identity-edit-btn';
   toggle.setAttribute('aria-label','Actions de la fiche');
   toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>';
   const list = document.createElement('div');
   list.className = 'sheet-actions-list';
-  for(const [label, action, buttonId] of actions){
+  for(const [label, action, buttonId, kind] of actions){
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = label;
+    button.innerHTML = sheetActionIcon(kind) + '<span>'+escapeHTML(label)+'</span>';
+    if(kind === 'delete') button.classList.add('sheet-action-danger');
     if(buttonId) button.id = buttonId;
     button.onclick = () => {
       menu.open = false;
@@ -1650,6 +1651,18 @@ function sheetActions(actions, id){
   }
   menu.append(toggle,list);
   return menu;
+}
+
+function sheetActionIcon(kind){
+  if(kind === 'edit') return contextEditIcon();
+  if(kind === 'dlc' || kind === 'upgrade') return MEDIA_ICONS[kind];
+  const paths = {
+    link:'<path d="m10 13 4-4m-6 6-1 1a3 3 0 0 1-4-4l4-4a3 3 0 0 1 4 0m2 3a3 3 0 0 0 4 0l4-4a3 3 0 0 0-4-4l-1 1"/>',
+    sale:'<path d="M20 13 12 21l-9-9V3h9l8 8a1.4 1.4 0 0 1 0 2Z"/><circle cx="7.5" cy="7.5" r="1"/>',
+    delete:'<path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/>',
+    transfer:'<path d="M4 12h16m-6-6 6 6-6 6"/>'
+  };
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[kind] || '')+'</svg>';
 }
 
 function editCollectionSheet(field){
@@ -1697,6 +1710,11 @@ function setContextEditor(prefix, item, type, compact){
   if(item) summary.innerHTML = contextSummaryHtml(item, type);
   if(prefix==='f' && editingCollection==='games' && !convertingArrivalId){
     summary.querySelector('.context-edit-btn')?.remove();
+    if(item){
+      const format = JTDData.isDigital(item) ? 'digital' : 'physical';
+      const label = JTDData.isAddon(item) ? contentKind(item) : format === 'digital' ? 'Numérique' : 'Physique';
+      summary.insertAdjacentHTML('afterbegin','<div id="f-format-title">'+MEDIA_ICONS[format]+escapeHTML(label)+'</div>');
+    }
   }
   const btn = summary.querySelector('.context-edit-btn');
   if(btn){
@@ -2047,6 +2065,33 @@ function calendarGroupHtml(label, year, color, loose = false){
   </div>`;
 }
 
+function mountBoardRowActions(row, id, label, kind){
+  const arrival = kind === 'arrival';
+  const prefix = arrival ? 'a' : 'w';
+  const open = () => arrival ? openArrivalModal(id) : openWishlistModal(id);
+  const primary = document.createElement('button');
+  primary.type = 'button';
+  primary.className = 'board-row-open';
+  primary.setAttribute('aria-label',label);
+  primary.dataset.dialogTrigger = kind+':'+id;
+  const run = selector => {open();document.querySelector(selector).click();};
+  const menu = sheetActions([
+    ['Modifier la fiche', () => {
+      open();
+      document.querySelector('#'+prefix+'-context-summary .context-edit-btn').click();
+      document.querySelector('#'+prefix+'-identity-summary .identity-edit-btn').click();
+    }, null, 'edit'],
+    [arrival ? 'Réceptionner' : 'Commander', () => run(arrival ? '#a-received-btn' : '#w-order-btn'), null, 'transfer'],
+    ['Supprimer', () => run('#'+prefix+'-delete-btn'), null, 'delete']
+  ]);
+  menu.classList.add('board-row-actions');
+  menu.querySelector('summary').setAttribute('aria-label','Actions pour '+label.replace(/^Modifier (?:l’arrivage : )?/, ''));
+  row.append(primary,menu);
+  row.addEventListener('click',event=>{
+    if(!event.target.closest('.board-row-actions,.board-link')) open();
+  });
+}
+
 function arrivalRowHtml(item, showSource){
   const color = getPlatformColor(item.plateforme);
   const logo = getPlatformLogo(item.plateforme);
@@ -2121,14 +2166,7 @@ function renderArrivals(){
   const arrivalNames = new Map(ARRIVALS.map(item=>[item.id,[item.nom,item.plateforme].filter(Boolean).join(' · ')]));
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
-    row.tabIndex = 0;
-    row.setAttribute('role','button');
-    row.setAttribute('aria-label','Modifier l’arrivage : '+arrivalNames.get(id));
-    row.dataset.dialogTrigger = 'arrival:'+id;
-    row.addEventListener('keydown',event=>{
-      if(event.target===row && (event.key==='Enter' || event.key===' ')){event.preventDefault();openArrivalModal(id);}
-    });
-    row.addEventListener('click', () => openArrivalModal(id));
+    mountBoardRowActions(row,id,'Modifier l’arrivage : '+arrivalNames.get(id),'arrival');
     row.addEventListener('dragstart', () => {
       homeDragArrivalId = id;
       row.classList.add('dragging');
@@ -2286,17 +2324,7 @@ function renderWishlist(){
       </div>
       ${linkHtml}
     `;
-    row.addEventListener('click', (e) => {
-      if(e.target.closest('.board-link')) return;
-      openWishlistModal(item.id);
-    });
-    row.tabIndex = 0;
-    row.setAttribute('role','button');
-    row.setAttribute('aria-label','Modifier '+item.nom);
-    row.dataset.dialogTrigger = 'wishlist:'+item.id;
-    row.addEventListener('keydown',event=>{
-      if(event.target===row && (event.key==='Enter' || event.key===' ')){event.preventDefault();openWishlistModal(item.id);}
-    });
+    mountBoardRowActions(row,item.id,'Modifier '+item.nom,'wishlist');
     row.addEventListener('dragstart', () => {
       homeDragWishlistId = item.id;
       row.classList.add('dragging');

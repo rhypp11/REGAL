@@ -129,11 +129,7 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
   results.id=prefix+'-eshop-results';
   results.className='switch-art-results';
   results.setAttribute('aria-label','Suggestions eShop');
-  const lookup=document.createElement('button');
-  lookup.type='button'; lookup.className='manage-link switch-art-lookup';
-  lookup.textContent='Chercher des visuels eShop';
-  name.closest('.field').appendChild(lookup);
-  name.closest('.field').after(results);
+  name.closest('.field').appendChild(results);
   let timer,revision=0;
   function update(){
     clearTimeout(timer);
@@ -187,7 +183,6 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
       }
     },220);
   }
-  lookup.onclick=()=>{if(name.value.trim().length<3){name.focus();return;}update();};
   name.addEventListener('input',update);
   platform.addEventListener('change',update);
   name.addEventListener('keydown',event=>{

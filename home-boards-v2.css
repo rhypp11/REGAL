@@ -206,12 +206,12 @@
 }
 
 #home-boards .board.wishlist .board-row {
-  grid-template-columns:var(--wishlist-date-column,) 60px minmax(0,1fr) auto;
+  grid-template-columns:var(--wishlist-date-column,) 60px minmax(0,1fr) auto 44px;
   gap:8px;
 }
 
 #home-boards .board.wishlist .wishlist-row-released {
-  grid-template-columns:60px minmax(0,1fr) auto;
+  grid-template-columns:60px minmax(0,1fr) auto 44px;
 }
 
 #home-boards .board.arrivals .board-row {
@@ -552,13 +552,13 @@
   }
 
   #home-boards .board.arrivals .board-row {
-    grid-template-columns:48px var(--arrival-thumb-width) minmax(0,1fr);
+    grid-template-columns:48px var(--arrival-thumb-width) minmax(0,1fr) 44px;
     gap:14px;
     padding:12px;
   }
 
   #home-boards .board.wishlist .board-row {
-    grid-template-columns:var(--wishlist-date-column,) var(--wishlist-thumb-width) minmax(0,1fr) auto;
+    grid-template-columns:var(--wishlist-date-column,) var(--wishlist-thumb-width) minmax(0,1fr) auto 44px;
     gap:10px;
     padding:9px 0;
   }
@@ -587,7 +587,7 @@
   #home-boards .board.wishlist { padding:var(--ui-space-4); }
   #home-boards .wishlist .board-head { min-height:0; padding:0 0 12px; }
   #home-boards .board.wishlist .board-row {
-    grid-template-columns:var(--wishlist-date-column,) 60px minmax(0,1fr) auto !important;
+    grid-template-columns:var(--wishlist-date-column,) 60px minmax(0,1fr) auto 44px !important;
     grid-template-rows:1fr !important;
     gap:8px !important;
     min-height:56px !important;
@@ -596,4 +596,22 @@
   #home-boards .wishlist .board-thumb { grid-column:var(--wishlist-art-column,1) !important; }
   #home-boards .wishlist .board-info { grid-column:var(--wishlist-info-column,2) !important; }
   #home-boards .wishlist .board-link { grid-column:var(--wishlist-link-column,3) !important; grid-row:1 !important; position:static; transform:none; }
+}
+
+#home-boards .board-row { position:relative; }
+#home-boards .calendar-group:has(.board-row-actions[open]) { overflow:visible; }
+#home-boards .board-row:has(.board-row-actions[open]) { z-index:4; }
+#home-boards .board-row-open { position:absolute; inset:0; border:0; border-radius:inherit; background:none; cursor:pointer; }
+#home-boards .board-row-open:focus-visible { outline:2px solid var(--ui-accent); outline-offset:-2px; }
+#home-boards .board-link { z-index:1; position:relative; }
+#home-boards .board-row-actions {
+  grid-column:-2 / -1; grid-row:1; align-self:center; justify-self:end; z-index:2;
+}
+#home-boards .board-row-actions summary { width:44px; height:44px; }
+#home-boards .board-row:not(:has(.board-link)) { column-gap:6px; }
+@media(max-width:820px) {
+  #home-boards .board.arrivals .board-row {
+    grid-template-columns:42px 82px minmax(0,1fr) 44px !important;
+  }
+  #home-boards .board.wishlist .board-row { column-gap:4px !important; }
 }

@@ -545,8 +545,8 @@
       '</section>'+
       (done?'<section class="form-section journal-comment-section"><div class="journal-section-heading"><div class="form-section-title journal-comment-heading">'+bubble+'Commentaire</div>'+
         '</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),{canDelete:true});
-    const actions = [['Modifier la fiche', () => edit(entry,false,'full'), 'journal-detail-edit']];
-    actions.push(['Supprimer', () => $('journal-delete').click()]);
+    const actions = [['Modifier la fiche', () => edit(entry,false,'full'), 'journal-detail-edit', 'edit']];
+    actions.push(['Supprimer', () => $('journal-delete').click(), null, 'delete']);
     $('journal-dialog-body').querySelector('.identity-edit-btn').replaceWith(sheetActions(actions,'journal-detail-actions'));
     const purchase = linkedPurchase(entry);
     if(purchase){

@@ -85,7 +85,7 @@ const server=createSandboxServer();
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(id=>GAMES.some(g=>g.id===id),created.id),true,'Manual add survives reload');
    await checkJournalSources(page);
-   if(width===390 && theme==='dark') await checkNintendoArtwork(page);
+   if([390,1440].includes(width) && theme==='dark') await checkNintendoArtwork(page);
    assert.deepEqual(errors,[]);await context.close();console.log('PASS manual entry and module actions',width,theme);
   }
  }finally{await browser.close();server.close();}
@@ -160,7 +160,15 @@ async function checkNintendoArtwork(page){
   await page.evaluate(()=>{goToPage('collection');openModal(null);});
   await page.selectOption('#f-plateforme','Switch 2');
   await page.locator('#f-nom').fill('Donkey Kong Ban');
-  await page.locator('#f-eshop-results button').filter({hasText:'Donkey Kong Bananza'}).first().click();
+  const suggestion=page.locator('#f-eshop-results button').filter({hasText:'Donkey Kong Bananza'}).first();
+  await suggestion.waitFor({state:'visible'});
+  const titleBox=await page.locator('#f-nom').boundingBox();
+  const listBox=await page.locator('#f-eshop-results').boundingBox();
+  const platformBox=await page.locator('#f-identity-editor .icon-select-trigger').boundingBox();
+  assert.ok(listBox.y>=titleBox.y+titleBox.height && Math.abs(listBox.x-titleBox.x)<2,'Suggestions appear below the title');
+  assert.ok(platformBox.y>=listBox.y+listBox.height-1,'The platform follows the title and suggestions');
+  assert.equal(await page.getByRole('button',{name:'Chercher des visuels eShop'}).count(),0);
+  await suggestion.click();
   assert.equal(await page.locator('#f-nom').inputValue(),'Donkey Kong Bananza');
   const banner=await page.locator('#f-image').inputValue();
   const square=await page.locator('#f-square-image').inputValue();

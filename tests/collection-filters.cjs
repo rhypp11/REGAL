@@ -138,6 +138,10 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       }
       await page.evaluate(()=>{state.media='digital';state.japanese=true;buildPlatformList();render();openModal('base');});
       assert.equal(await page.locator('#f-content-details .content-addon-link').count(),2);
+      assert.equal(await page.locator('#f-content-details .content-purchases > h3').innerText(),'DLC et mises à niveau');
+      const linkedColors=await page.locator('#f-content-details .content-addon-link').evaluateAll(rows=>rows.map(row=>getComputedStyle(row).backgroundColor));
+      assert.equal(new Set(linkedColors).size,2,'DLC and upgrades use different colors');
+      assert.ok(linkedColors.every(color=>color!=='rgba(0, 0, 0, 0)'),'Each row has a colored surface');
       assert.equal(await page.locator('#f-content-details .content-type-dlc .content-kind-icon').count(),1);
       assert.equal(await page.locator('#f-content-details .content-type-upgrade .content-kind-icon').count(),1);
       assert.equal(await page.locator('#f-quick-hide-fields').evaluate(el=>getComputedStyle(el).borderBottomWidth),'0px');

@@ -103,15 +103,23 @@
     field.focus();
   }
   document.addEventListener('pointerdown',event=>{
-    const menu = top()?.overlay.querySelector('.sheet-actions-menu[open]');
-    if(menu && !menu.contains(event.target)) menu.open = false;
+    for(const menu of document.querySelectorAll('.sheet-actions-menu[open]')){
+      if(!menu.contains(event.target)) menu.open = false;
+    }
     const element = event.target.closest('button,a,input,select,textarea,summary,[tabindex],.card,.board-row,label');
     if(element) lastPointer={element,time:performance.now()};
   },true);
   document.addEventListener('keydown',event=>{
     // Keyboard activation must return to its focused control, not a recent pointer target.
     lastPointer = null;
-    sync(); const entry = top(); if(!entry) return;
+    sync(); const entry = top();
+    if(!entry){
+      if(event.key==='Escape'){
+        const menu = event.target.closest('.board-row-actions[open]');
+        if(menu){event.preventDefault();menu.open = false;menu.querySelector('summary').focus();}
+      }
+      return;
+    }
     if(event.key==='Escape'){
       // The inline platform creator handles its own first Escape.
       if(event.target.id==='new-platform-name' && !document.getElementById('add-platform-row').classList.contains('hidden')) return;
