@@ -61,16 +61,7 @@
     else choices[0]?.focus();
   });
 
-  for(const button of document.querySelectorAll('[data-open-board]')){
-    button.addEventListener('click',()=>{
-      const board = button.dataset.openBoard;
-      closeSearch();
-      setHomeBoard(board);
-      goToPage('home');
-      persistNavigation(true);
-      byId(board === 'wishlist' ? 'add-wishlist-btn' : 'add-arrival-btn').focus();
-    });
-  }
+
   window.closeListSearch = closeSearch;
 
   const reportDialog = 'purchase-report-overlay';

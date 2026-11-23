@@ -36,7 +36,7 @@ const server=createSandboxServer();
   await page.locator('.collection-stat-toggle').click();assert.equal(await page.locator('[data-stat="abandonne"] strong').innerText(),'2');
   assert.equal(await page.locator('[data-stat="a_jouer"] strong').innerText(),'0');
   await page.evaluate(()=>openModal('dlc'));
-  assert.match(await page.locator('#f-identity-summary .game-sheet-status').innerText(),/Abandonné/);
+  assert.match(await page.locator('#f-sheet-status .game-sheet-status').innerText(),/Abandonné/);
   assert.equal(await page.locator('#f-content-status').inputValue(),'abandonne');await page.locator('#cancel-btn').click();
   await page.evaluate(()=>goToPage('home'));
   const physical=page.locator('[data-home-progress="physical"]');

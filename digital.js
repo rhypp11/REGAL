@@ -235,7 +235,8 @@ function openDigitalFields(game){
   document.getElementById('f-content-type').value = game ? (JTDData.isAddon(game) ? game.contentType : 'game') : newContentType;
   document.getElementById('f-currency').value = game?.currency || 'EUR';
   document.getElementById('f-content-status').innerHTML='<option value="">Non défini</option>'+STATUS_OPTIONS.map(s=>'<option value="'+s.key+'">'+s.label+'</option>').join('');
-  document.getElementById('f-content-status').value=game ? getEffectiveStatus(game) || '' : '';
+  document.getElementById('f-content-status').value=game ? (game.status==='en_cours'?'a_jouer':game.status) || '' : '';
+  document.getElementById('f-content-status').disabled=!!window.getLinkedJournalCompletion?.(game?.id);
   document.getElementById('f-parent-search').value = '';
   document.getElementById('f-parent-enabled').checked=!!JTDData.contentParent(game,GAMES);
   updateParentAttachment();
@@ -267,6 +268,39 @@ function readDigitalFields(){
   }
   return {format:'Numérique',contentType:dlc?kind:'game',parentId,currency,collector:false,japanese:false,japaneseAccount:document.getElementById('f-japanese-account').checked,bundle:document.getElementById('f-bundle').checked,...(kind==='dlc'?{status:document.getElementById('f-content-status').value || null}:kind==='upgrade'?{status:null}:{})};
 }
+function renderGameSheetStatus(game){
+  const section = document.getElementById('f-sheet-status');
+  section.replaceChildren();
+  if(!game || !isPlayablePurchase(game)) return;
+  const status = STATUS_OPTIONS.find(option => option.key === getEffectiveStatus(game));
+  const completion = window.getLinkedJournalCompletion?.(game.id);
+  const heading = document.createElement('h3');
+  heading.className = 'form-section-title';
+  heading.textContent = 'Statut';
+  const badge = document.createElement('span');
+  badge.className = 'game-sheet-status';
+  badge.style.setProperty('--status-color',status?.color || 'var(--ui-text-muted)');
+  badge.style.setProperty('--status-fill',status?.fill || 'var(--ui-border)');
+  badge.innerHTML = (status?.icon || '') + escapeHTML(status?.label || 'Sans statut');
+  section.append(heading,badge);
+  if(completion){
+    const link = document.createElement('button');
+    link.type = 'button';
+    link.className = 'manage-link';
+    link.textContent = 'Voir dans le Journal';
+    link.onclick = () => {closeModal();window.openJournalEntry(completion.id);};
+    const summary = document.createElement('p');
+    summary.textContent = completion.result + ' · ' + completion.date;
+    section.append(summary,link);
+  }else if(JTDData.isDLC(game)){
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'manage-link';
+    edit.textContent = 'Modifier le statut';
+    edit.onclick = () => {setGameSheetViewing(false);document.getElementById('f-content-status').focus();};
+    section.appendChild(edit);
+  }
+}
 function renderContentDetails(game){
   const container = document.getElementById('f-content-details');
   container.replaceChildren();
@@ -277,17 +311,16 @@ function renderContentDetails(game){
   section.className = 'form-section content-purchases';
   if(game.dekuNote){const note=document.createElement('p');note.className='content-parent-note';note.textContent='Note Deku Deals : '+game.dekuNote;section.appendChild(note);}
   if(parent){
-    const title = document.createElement('div');title.className='form-section-title';title.textContent='Jeu de base';section.appendChild(title);
-    const button = document.createElement('button');button.type='button';button.className='content-purchase-link';
+    const title = document.createElement('div');title.className='form-section-title';title.textContent='Fait partie de';section.appendChild(title);
+    const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-base-link';
     button.innerHTML = '<span class="content-related-identity">'+relatedGameHtml(parent)+'</span>';
-    button.onclick=()=>openModal(parent.id);section.appendChild(button);
+    button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(parent.id));section.appendChild(button);
     const change=document.createElement('button');change.type='button';change.className='manage-link';change.textContent='Modifier le rattachement';change.onclick=()=>{setGameSheetViewing(false);document.getElementById('f-parent-search').focus();};section.appendChild(change);
   }else if(JTDData.isAddon(game)){
     const note = document.createElement('p');note.className='content-parent-note';
     note.textContent = 'Aucun jeu numérique associé.';
     section.appendChild(note);
   }
-  if(JTDData.isDLC(game)){const status=document.createElement('p');status.className='content-dlc-status';status.textContent='Statut du DLC : '+(STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(game))?.label || 'Non défini');section.appendChild(status);const edit=document.createElement('button');edit.type='button';edit.className='manage-link';edit.textContent='Modifier le statut';edit.onclick=()=>{setGameSheetViewing(false);document.getElementById('f-content-status').focus();};section.appendChild(edit);}
   if(children.length){
     const title = document.createElement('div');title.className='form-section-title';title.textContent='DLC et mises à niveau';section.appendChild(title);
     for(const child of children){
@@ -298,7 +331,7 @@ function renderContentDetails(game){
         '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
         '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
         '<span class="content-related-meta"><span class="content-kind-label">'+contentKind(child)+'</span>'+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
-      button.onclick=()=>openModal(child.id);section.appendChild(button);
+      button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(child.id));section.appendChild(button);
     }
     const sums = new Map();
     for(const purchase of [game,...children]) if(purchase.prix != null) sums.set(purchase.currency || 'EUR',(sums.get(purchase.currency || 'EUR') || 0)+purchase.prix);
