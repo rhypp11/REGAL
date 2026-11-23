@@ -357,7 +357,7 @@
 #page-collection #grid[data-view="list"] .card {
   display:flex; flex-direction:row; align-items:center;
   width:100%; max-width:none; margin:0; gap:12px; padding:7px 12px;
-  border:0; border-radius:0; background:transparent;
+  border:0 solid transparent; border-radius:0; background:transparent;
 }
 #page-collection #grid[data-view="list"] .card + .card { border-top:1px solid var(--ui-border); }
 #page-collection #grid[data-view="list"] .card:hover { background:color-mix(in srgb,var(--ui-accent) 6%,transparent); }
@@ -383,7 +383,7 @@
 #page-collection #grid[data-view="gallery"] {
   display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;
 }
-#page-collection #grid[data-view="gallery"] .card { border:0; border-radius:0; background:transparent; }
+#page-collection #grid[data-view="gallery"] .card { border:0 solid transparent; border-radius:0; background:transparent; }
 #page-collection #grid[data-view="gallery"] .card-banner { border-radius:var(--ui-radius-sm); }
 #page-collection #grid[data-view="gallery"] .card-body { padding:3px 0 0; }
 #page-collection #grid[data-view="gallery"] .card-body:not(:has(.card-media-mark)) { display:none; }
