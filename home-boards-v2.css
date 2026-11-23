@@ -522,8 +522,8 @@
   border-radius:0;
   background:transparent;
 }
-#home-boards .wishlist .calendar-group + .calendar-group { margin-top:12px; border-top:0; }
-#home-boards .wishlist .calendar-group-head { border-radius:var(--ui-radius-sm); }
+:is(#home-boards .wishlist,#page-journal #journal-release) :is(.calendar-group,.journal-calendar) + :is(.calendar-group,.journal-calendar) { margin-top:12px; border-top:0; }
+:is(#home-boards .wishlist,#page-journal #journal-release) .calendar-group-head { border-radius:var(--ui-radius-sm); }
 #home-boards .board.wishlist .board-row {
   min-height:56px;
   padding:7px 0;
