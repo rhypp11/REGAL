@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_23.11.26-6">
-<meta name="regal-pull-request" content="113">
-<meta name="regal-build" content="e82a76be372a52c18c24bddc">
+<meta name="regal-version" content="3_23.11.26-8">
+<meta name="regal-pull-request" content="115">
+<meta name="regal-build" content="8e51ae78774fccc5d900bde7">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=2">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=2">
 <link rel="manifest" href="manifest.json">
@@ -465,8 +465,8 @@
       <div class="context-summary hidden" id="f-context-summary"></div>
       <div class="context-editor" id="f-context-editor">
         <div class="field hidden" id="f-content-type-field"><label for="f-content-type">Type de contenu</label><select id="f-content-type"><option value="game">Jeu complet</option><option value="dlc">Contenu téléchargeable (DLC)</option><option value="upgrade">Mise à niveau</option></select></div>
+        <div class="field hidden" id="f-content-status-field"><label for="f-content-status">Statut</label><select id="f-content-status"></select></div>
       <div id="f-digital-fields" class="hidden">
-        <div class="field hidden" id="f-content-status-field"><label for="f-content-status">Statut du DLC</label><select id="f-content-status"></select></div>
         <div id="f-parent-field" class="hidden">
           <label class="content-link-toggle" for="f-parent-enabled">
             <span>Rattacher à un jeu de base</span>
@@ -664,7 +664,7 @@
 </section>
 <section class="page hidden" id="page-journal">
   <header class="journal-heading"><h1>Journal</h1><div id="journal-heading-actions"></div></header>
-  <div class="journal-toolbar" id="journal-toolbar"><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien</option><option value="desc">Plus récent</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed" aria-label="Ajouter une complétion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="journal-add-label">Ajouter une complétion</span><span class="journal-add-mobile-label">Ajouter</span></button></div></div>
+  <div class="journal-toolbar" id="journal-toolbar"><select id="journal-year" aria-label="Année du journal"></select><select id="journal-sort" aria-label="Trier les complétions"><option value="asc">Plus ancien</option><option value="desc">Plus récent</option></select><select id="journal-platform-filter" aria-label="Plateforme des complétions"><option value="">Toutes les plateformes</option></select><div class="journal-toolbar-actions"><button type="button" class="btn btn-primary" data-journal-add="completed" aria-label="Ajouter une complétion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="journal-add-label">Ajouter une complétion</span><span class="journal-add-mobile-label">Ajouter</span></button></div></div>
   <aside class="sidebar journal-sidebar" id="journal-sidebar" aria-label="Statistiques du journal">
     <div class="journal-panel"><h2>Statistiques</h2><div id="journal-stats"></div></div>
   </aside>

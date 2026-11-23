@@ -255,3 +255,19 @@
 
 
 .flexible-date-original { margin:6px 0 0; color:var(--ui-text-muted); font-size:12px; overflow-wrap:anywhere; }
+
+/* Reading keeps the artwork and game identity together with one edit action. */
+#modal-overlay.game-sheet-viewing #f-identity-summary {
+  display:grid; grid-template-columns:minmax(0,1fr) auto;
+  gap:14px 10px; align-items:center;
+}
+#modal-overlay.game-sheet-viewing #f-identity-summary .identity-thumb {
+  grid-column:1 / -1; width:100%; height:auto; aspect-ratio:16/9;
+  max-height:245px; border-radius:var(--ui-radius-md);
+}
+#modal-overlay.game-sheet-viewing #f-identity-summary .identity-copy strong {
+  font-size:clamp(17px,3vw,22px); line-height:1.25;
+}
+#modal-overlay.game-sheet-viewing #f-context-summary { display:block; }
+#modal-overlay.game-sheet-viewing #f-format-title { font-size:13px; }
+#modal-overlay.game-sheet-viewing #f-format-title > svg { width:16px; height:16px; }

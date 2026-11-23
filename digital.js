@@ -219,7 +219,7 @@ function updateDigitalFields(){
   document.getElementById('f-purchase-digital-fields').classList.toggle('hidden',!digital);
   document.getElementById('f-digital-version-options').classList.toggle('hidden',!digital);
   document.getElementById('f-parent-field').classList.toggle('hidden',!dlc);
-  document.getElementById('f-content-status-field').classList.toggle('hidden',!digital || upgrade || !dlc);
+  document.getElementById('f-content-status-field').classList.toggle('hidden',(digital && upgrade) || (editingCollection !== 'games' || (!editingId && !dlc) || !!convertingArrivalId));
   populateParentGames();
   document.getElementById('f-price-currency').textContent = digital ? ({EUR:'€',JPY:'¥',USD:'$',GBP:'£'})[document.getElementById('f-currency').value] : '€';
   const owned = GAMES.find(g=>g.id === editingId);
@@ -292,13 +292,7 @@ function renderGameSheetStatus(game){
     const summary = document.createElement('p');
     summary.textContent = completion.result + ' · ' + completion.date;
     section.append(summary,link);
-  }else if(JTDData.isDLC(game)){
-    const edit = document.createElement('button');
-    edit.type = 'button';
-    edit.className = 'manage-link';
-    edit.textContent = 'Modifier le statut';
-    edit.onclick = () => {setGameSheetViewing(false);document.getElementById('f-content-status').focus();};
-    section.appendChild(edit);
+
   }
 }
 function renderContentDetails(game){
@@ -315,7 +309,6 @@ function renderContentDetails(game){
     const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-base-link';
     button.innerHTML = '<span class="content-related-identity">'+relatedGameHtml(parent)+'</span>';
     button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(parent.id));section.appendChild(button);
-    const change=document.createElement('button');change.type='button';change.className='manage-link';change.textContent='Modifier le rattachement';change.onclick=()=>{setGameSheetViewing(false);document.getElementById('f-parent-search').focus();};section.appendChild(change);
   }else if(JTDData.isAddon(game)){
     const note = document.createElement('p');note.className='content-parent-note';
     note.textContent = 'Aucun jeu numérique associé.';

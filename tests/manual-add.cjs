@@ -115,7 +115,7 @@ async function checkJournalSources(page){
  assert.equal(await page.locator('#journal-year').inputValue(),'2012');
  await page.locator('.journal-row').filter({hasText:'Complétion à l’année'}).click();
  assert.match(await page.locator('#journal-dialog-body').innerText(),/≈ 2012/);
- await page.locator('#journal-edit-completion').click();
+ await page.locator('#journal-dialog-body .identity-edit-btn').click();
  assert.equal(await page.locator('#journal-form [name="completionYear"]').inputValue(),'2012');
  await page.locator('#journal-save').click();
  await page.locator('#journal-close').click();

@@ -1607,14 +1607,14 @@ function contextEditIcon(){
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>`;
 }
 
-function contextSummaryHtml(item, type){
+function contextSummaryHtml(item, type, editable = true){
   if(type === 'purchase'){
     const bits = [
       `<span><small>Prix payé</small><strong>${item.prix != null ? purchaseMoney(item) : '—'}</strong></span>`,
       `<span><small>Date d'achat</small><strong>${escapeHTML(item.date ? dateFR(item.date) : '—')}</strong></span>`,
       JTDData.isDigital(item) ? '' : `<span><small>Source</small><strong>${escapeHTML(item.source || '—')}</strong></span>`
     ].join('');
-    return `<div class="context-summary-values">${bits}</div><button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>`;
+    return `<div class="context-summary-values">${bits}</div>${editable ? `<button type="button" class="context-edit-btn" title="Modifier l'achat" aria-label="Modifier l'achat">${contextEditIcon()}</button>` : ''}`;
   }
   if(type === 'arrival'){
     const bits = [
@@ -1640,7 +1640,7 @@ function setContextEditor(prefix, item, type, compact){
   const showSummary = !!compact;
   summary.classList.toggle('hidden', !showSummary);
   editor.classList.toggle('hidden', showSummary);
-  if(item) summary.innerHTML = contextSummaryHtml(item, type);
+  if(item) summary.innerHTML = contextSummaryHtml(item, type, prefix !== 'f' || editingCollection !== 'games' || !!convertingArrivalId);
   const btn = summary.querySelector('.context-edit-btn');
   if(btn){
     btn.addEventListener('click', () => {
@@ -1697,7 +1697,12 @@ function commitBoardTransfer(from, to, id, draft){
   }
 }
 function setGameSheetViewing(viewing){
-  if(!viewing) setContextEditor('f',null,'purchase',false);
+  if(!viewing){
+    setContextEditor('f',null,'purchase',false);
+    if(editingCollection === 'games' && editingId && !convertingArrivalId){
+      setIdentityEditor('f',null,false);
+    }
+  }
   document.getElementById('modal-overlay').classList.toggle('game-sheet-viewing', viewing);
   document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
 }
@@ -1835,6 +1840,12 @@ function saveModal(){
   const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit};
   try { Object.assign(fields, readDigitalFields()); }
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
+  const statusField = document.getElementById('f-content-status');
+  if(!statusField.disabled && !document.getElementById('f-content-status-field').classList.contains('hidden')){
+    const original = GAMES.find(game => game.id === editingId)?.status;
+    const initial = original === 'en_cours' ? 'a_jouer' : original || '';
+    if(statusField.value !== initial) fields.status = statusField.value || null;
+  }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
   const wasEditing = !!editingId;
   const savedId = editingId || convertingArrivalId || crypto.randomUUID();

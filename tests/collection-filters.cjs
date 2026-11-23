@@ -144,7 +144,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.screenshot({path:'/tmp/jtd-linked-content-'+width+'-'+theme+'.png'});
       assert.equal(await page.locator('#f-format-title').innerText(),'Numérique');
       assert.equal(await page.evaluate(()=>document.getElementById('f-media-section').compareDocumentPosition(document.getElementById('f-identity-summary')) & Node.DOCUMENT_POSITION_PRECEDING),2);
-      await page.locator('#f-context-summary .context-edit-btn').click();
+      await page.locator('#f-identity-summary .identity-edit-btn').click();
       assert.equal(await page.locator('#f-digital-version-options').isVisible(),true);
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
       assert.equal(await page.locator('#f-content-type-field').isVisible(),true);
