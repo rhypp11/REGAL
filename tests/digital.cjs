@@ -161,8 +161,10 @@ async function openFilters(page){
           assert.ok(cardBox.width>=gridBox.width-2,'Detailed rows use the full list width');
           assert.equal(await page.locator('#grid .card-list-details').first().isVisible(),true,'List exposes acquisition details independently of sort');
         }
-        const nameBox=await page.locator('#grid .card-name').first().boundingBox();
-        assert.ok(nameBox.height>=14,'Every display retains a visible game title');
+        const open=page.locator('#grid .card-name').first();
+        assert.match(await open.getAttribute('aria-label'),/Ouvrir la fiche/);
+        if(view==='gallery') assert.equal(await open.innerText(),'','Gallery shows the artwork without a visible title');
+        else assert.ok((await open.boundingBox()).height>=14,'Cards and list keep the visible title');
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
         await page.locator('#grid .card').first().click();
         await page.locator('#modal-overlay').waitFor({state:'visible'});

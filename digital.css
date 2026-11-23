@@ -154,16 +154,6 @@
 .card-bundle-mark svg,.bundle-choice-icon svg { display:block; width:16px; height:16px; }
 #f-digital-version-options .edition-options { grid-template-columns:repeat(auto-fit,minmax(min(100%, 155px),1fr)); }
 
-#page-collection #grid[data-view="cards"] .case-platform {
-  display:flex; align-items:center; gap:7px; min-height:28px; padding:4px 10px;
-  background:color-mix(in srgb,var(--spine) 62%,#17191e); color:white;
-  font-size:12px; font-weight:750; letter-spacing:.02em; overflow-wrap:anywhere;
-}
-.case-platform img { width:18px; height:18px; object-fit:contain }
-.case-platform .icon-select-dot { width:10px; height:10px; border:1px solid currentColor; border-radius:50% }
-#page-collection #grid[data-view="cards"] .card[data-media="physical"] {border-radius:5px;overflow:visible}
-#page-collection #grid[data-view="cards"] .case-platform {border-radius:4px 4px 0 0}
-#page-collection #grid[data-view="cards"] .case-platform+.card-banner {border-radius:0}
 #modal-overlay.game-sheet-viewing #modal-title {
   position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
   clip-path:inset(50%); white-space:nowrap;

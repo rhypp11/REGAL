@@ -101,7 +101,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
 
       for(const media of ['physical','digital']){
         await page.evaluate(media=>{state.media=media;render();},media);
-        assert.equal(await page.locator('#grid .card-media-mark').count(),0,'A selected format does not repeat its tag on cards');
+        assert.equal(await page.locator('#grid .card-media-mark').count(),await page.locator('#grid .card').count(),'Each list row shows its format');
       }
       await page.evaluate(()=>{state.media='all';state.japanese=false;buildPlatformList();render();});
       await types(page,'game','dlc','upgrade');
@@ -123,13 +123,11 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
         assert.ok(appearance.physical.every(value=>value<40),'Physical cards retain the base surface');
         assert.deepEqual(appearance.background,appearance.physical,'Both formats share the same surface');
-        assert.equal(appearance.radius,'16px','Pilot cards share the same corners in every view');
-        assert.equal(appearance.physicalRadius,view==='cards'?'5px':appearance.radius);
+        assert.equal(appearance.radius,view==='cards'?'16px':'0px');
+        assert.equal(appearance.physicalRadius,appearance.radius);
         assert.equal(appearance.physicalShadow,'none');
         assert.equal(appearance.digitalShadow,'none');
-        assert.equal(appearance.borderStyle,'solid','Digital keeps a thin solid edge');
-        assert.equal(appearance.physicalStyle,'solid','Physical keeps the same simple border');
-        assert.equal(appearance.physicalBorder,'1px');assert.equal(appearance.digitalBorder,'1px');
+        assert.equal(appearance.physicalBorder,view==='cards'?'1px':'0px');assert.equal(appearance.digitalBorder,appearance.physicalBorder);
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');

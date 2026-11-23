@@ -1216,14 +1216,12 @@ function renderCard(g, options = {}){
     acquisitionHtml = `<div class="card-acquisition"><span class="card-sort-label">Date d'achat</span>${dateHtml}</div>`;
   }
 
-  const boxed = !options.readOnly && !JTDData.isDigital(g) && collectionView === 'cards';
-  const platformBand = boxed ? '<div class="case-platform">'+getPlatformOptionIconHtml(g.plateforme)+'<span>'+escapeHTML(g.plateforme)+'</span></div>' : '';
   card.innerHTML = `
-    ${platformBand}${bannerHtml}
+    ${bannerHtml}
     <div class="card-body">
       <button type="button" class="card-name card-open-control" aria-label="${options.onOpen ? 'Modifier la vente de ' : 'Ouvrir la fiche de '}${escapeHTML(g.nom)}" title="${escapeHTML(g.nom)}">${collectorTitleHtml}${japaneseEditionMark(g)}${bundleMark(g)}<span class="card-name-text">${escapeHTML(g.nom)}</span></button>
       <div class="card-summary card-identity">
-        ${(!boxed && (options.readOnly || state.platform !== g.plateforme)) ? `<span class="card-platform">${platformHtml}</span>` : ''}
+        ${(options.readOnly || collectionView === 'list' || state.platform !== g.plateforme) ? `<span class="card-platform">${platformHtml}</span>` : ''}
         ${statusBadgeHtml}
       </div>
       ${acquisitionHtml}
@@ -1256,21 +1254,40 @@ function renderCard(g, options = {}){
     const detail=(label,value)=>`<div><dt>${label}</dt><dd>${value}</dd></div>`;
     const digital=JTDData.isDigital(g);
     const details=document.createElement('dl');details.className='card-list-details';
-    details.innerHTML=detail('Support',digital ? 'Numérique' : 'Physique')+detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+(digital ? '' : detail('Enseigne',escapeHTML(g.source || '—')));
+    details.innerHTML=detail('Prix',g.prix != null ? escapeHTML(purchaseMoney(g)) : '—')+detail('Date d’achat',g.date ? escapeHTML(dateFR(g.date)) : '—')+(digital ? '' : detail('Enseigne',escapeHTML(g.source || '—')));
     card.querySelector('.card-body').appendChild(details);
   }
   decorateDigitalCard(card, g, options);
   if(!options.readOnly){
     const identity = card.querySelector('.card-identity');
-    const platformLine = document.createElement('div');platformLine.className='card-platform-line';
-    identity.querySelectorAll('.card-platform').forEach(el=>platformLine.appendChild(el));
-    identity.prepend(platformLine);
-    const footer = document.createElement('div');footer.className='card-state-row';
-    for(const selector of ['.card-media-mark','.card-dlc-count','.card-status-control']){
-      const element=card.querySelector(selector);
-      if(element) footer.appendChild(element);
+    const gallery = collectionView === 'gallery';
+    const metadata = document.createElement('div');
+    metadata.className = 'card-state-row';
+    const formatLine = document.createElement('div');
+    formatLine.className = 'card-format-line';
+    for(const selector of ['.card-platform','.card-media-mark']){
+      const element = card.querySelector(selector);
+      if(element) formatLine.appendChild(element);
     }
-    if(footer.childNodes.length) identity.appendChild(footer);
+    if(formatLine.childNodes.length) metadata.appendChild(formatLine);
+    for(const selector of ['.card-dlc-count','.card-status-control']){
+      const element = card.querySelector(selector);
+      if(element) metadata.appendChild(element);
+    }
+    identity.appendChild(metadata);
+    if(gallery){
+      const banner = card.querySelector('.card-banner');
+      const control = card.querySelector('.card-open-control');
+      control.querySelector('.card-name-text').remove();
+      const editions = [...control.children];
+      if(editions.length){
+        const marks = document.createElement('span');
+        marks.className = 'gallery-editions';
+        marks.append(...editions);
+        banner.appendChild(marks);
+      }
+      banner.appendChild(control);
+    }
   }
   const onOpen = options.onOpen || (() => openModal(g.id));
   card.addEventListener('click', onOpen);

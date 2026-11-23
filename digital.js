@@ -130,7 +130,7 @@ function decorateDigitalCard(card, game, options){
     }
   }
   const body = card.querySelector('.card-body');
-  if(state.media === 'all'){
+  if(state.media === 'all' || collectionView !== 'gallery'){
     body.querySelector('.card-identity').insertAdjacentHTML('beforeend','<span class="card-media-mark"><span>'+(digital?'Numérique':'Physique')+'</span></span>');
   }
   const contents = gameContents(game).filter(JTDData.isDLC);
