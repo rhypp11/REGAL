@@ -131,6 +131,7 @@ const server=createSandboxServer();
    assert.equal(await page.locator('#global-search-overlay').isVisible(),true);
    assert.equal(await page.locator('#global-search-overlay [data-open-board]').count(),0);
    await page.locator('#global-search-close').click();
+   await page.evaluate(()=>goToPage('home'));
    if(width<=820) await page.locator('#global-filter-toggle').click();
    await page.locator('#purchase-report-open').click();
    if(width<=820) assert.ok(await page.evaluate(()=>Number(getComputedStyle(document.getElementById('purchase-report-overlay')).zIndex)>Number(getComputedStyle(document.getElementById('home-sidebar')).zIndex)),'Report appears over the statistics drawer');
