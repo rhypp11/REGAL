@@ -1837,14 +1837,14 @@ function updateImagePreview(){
 }
 
 function saveModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit, squareImage, nintendoTitleId} = readIdentityFields('f');
+  const {nom, plateforme, collector, japanese, image, imageFit, ...artwork} = readIdentityFields('f');
   window.JTDDialogs.clearErrors(document.getElementById('modal-overlay'));
   if(!nom){ window.JTDDialogs.error('f-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('f-plateforme','Choisis une plateforme.'); return; }
   const prix = parsePriceInput(document.getElementById('f-prix').value);
   const date = document.getElementById('f-date').value || document.getElementById('f-partial-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
-  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit, squareImage, nintendoTitleId};
+  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit, ...artwork};
   try { Object.assign(fields, readDigitalFields()); }
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
@@ -2392,7 +2392,7 @@ function closeArrivalModal(){
 }
 
 function saveArrivalModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit, squareImage, nintendoTitleId} = readIdentityFields('a');
+  const {nom, plateforme, collector, japanese, image, imageFit, ...artwork} = readIdentityFields('a');
   window.JTDDialogs.clearErrors(document.getElementById('arrival-modal-overlay'));
   if(!nom){ window.JTDDialogs.error('a-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('a-plateforme','Choisis une plateforme.'); return; }
@@ -2401,7 +2401,7 @@ function saveArrivalModal(){
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
 
-  const fields = {nom, plateforme, date, prix, source, collector, japanese, image, imageFit, squareImage, nintendoTitleId};
+  const fields = {nom, plateforme, date, prix, source, collector, japanese, image, imageFit, ...artwork};
   const ordered = !!convertingWishlistId;
   if(ordered){
     if(!commitBoardTransfer('wishlist', 'arrivals', convertingWishlistId, fields)) return;
@@ -2544,7 +2544,7 @@ function closeWishlistModal(){
 }
 
 function saveWishlistModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit, squareImage, nintendoTitleId} = readIdentityFields('w');
+  const {nom, plateforme, collector, japanese, image, imageFit, ...artwork} = readIdentityFields('w');
   window.JTDDialogs.clearErrors(document.getElementById('wishlist-modal-overlay'));
   if(!nom){ window.JTDDialogs.error('w-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('w-plateforme','Choisis une plateforme.'); return; }
@@ -2553,7 +2553,7 @@ function saveWishlistModal(){
   if(document.querySelector('[data-date-mode="w"]').dataset.currentMode==='month' && date && !/^[0-9]{4}-(0[1-9]|1[0-2])$/.test(date)){window.JTDDialogs.error('w-month','Indique un mois valide.');return;}
   const lien = document.getElementById('w-lien').value.trim() || null;
 
-  const fields = {nom, plateforme, date, lien, collector, japanese, image, imageFit, squareImage, nintendoTitleId};
+  const fields = {nom, plateforme, date, lien, collector, japanese, image, imageFit, ...artwork};
   if(convertingArrivalToWishlistId){
     if(!commitBoardTransfer('arrivals', 'wishlist', convertingArrivalToWishlistId, fields)) return;
     renderArrivals();
