@@ -243,6 +243,19 @@ const server=createSandboxServer();
    assert.equal(await page.evaluate(()=>getJournalExportEntries().find(entry=>entry.name==='Étoile de test').collectionId),undefined);
    assert.equal(await page.evaluate(()=>getEffectiveStatus(GAMES.find(game=>game.id==='report-zero'))),undefined);
    assert.equal(await completionRow.getByText('Collection',{exact:true}).count(),0);
+   await completionRow.click();
+   await page.getByRole('button',{name:'Relier à la collection'}).click();
+   assert.equal(await page.locator('#journal-form [name="lookup"]').inputValue(),'Étoile de test');
+   await page.locator('[data-journal-source="report-zero"]').click();
+   await page.locator('#journal-save').click();
+   assert.equal(await page.locator('.journal-comment').innerText(),'Commentaire modifié');
+   await page.locator('#journal-close').click();
+   await page.evaluate(()=>{applyNavigation({page:'collection',media:'all'});});
+   const badge=page.locator('[data-dialog-trigger="game:report-zero"] .card-status-badge');
+   assert.equal(await badge.getAttribute('aria-label'),'Statut : Terminé · Journal');
+   assert.equal(await badge.locator('svg path').getAttribute('d'),await page.locator('.nav-tab[data-page="journal"] svg path').getAttribute('d'));
+   await page.evaluate(()=>goToPage('journal'));
+
    await page.evaluate(()=>{
     const image=new URL('preview-assets/garden.svg',location.href).href;
     GAMES.push({id:'import-from-collection',nom:'Import ancien !',plateforme:'Nintendo 3DS',image,imageFit:'cover'});

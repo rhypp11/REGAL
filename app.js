@@ -1170,7 +1170,9 @@ function renderCard(g, options = {}){
   card.style.setProperty('--spine', color);
 
   const activeStatus = STATUS_OPTIONS.find(s => s.key === getEffectiveStatus(g));
-  const statusIcon = activeStatus ? activeStatus.icon : '<span class="card-status-empty-dot"></span>';
+  const journalStatus = !options.readOnly && window.getLinkedJournalCompletion?.(g.id);
+  const journalIcon = journalStatus && document.querySelector('.nav-tab[data-page="journal"] svg');
+  const statusIcon = journalIcon ? journalIcon.outerHTML : activeStatus ? activeStatus.icon : '<span class="card-status-empty-dot"></span>';
   const statusTitle = activeStatus ? activeStatus.label : 'Définir le statut';
   const statusColor = activeStatus ? activeStatus.color : 'var(--muted)';
   const statusFill = activeStatus ? activeStatus.fill : 'var(--muted)';
@@ -1180,7 +1182,7 @@ function renderCard(g, options = {}){
     </button>`).join('');
 
   const statusBadgeHtml = `<div class="card-status-control">
-      <button type="button" class="card-status-badge" style="--status-color:${statusColor};--status-fill:${statusFill};" title="${statusTitle}" aria-label="Statut : ${statusTitle}${window.getLinkedJournalCompletion?.(g.id) ? ' · Journal' : ''}" aria-expanded="false">
+      <button type="button" class="card-status-badge" style="--status-color:${statusColor};--status-fill:${statusFill};" title="${statusTitle}${journalStatus ? ' · Journal' : ''}" aria-label="Statut : ${statusTitle}${journalStatus ? ' · Journal' : ''}" aria-expanded="false">
         <span class="card-status-face">${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span></span>
       </button>
       <div class="card-status-menu hidden">${statusMenu}</div>
@@ -1242,7 +1244,7 @@ function renderCard(g, options = {}){
   const menu = card.querySelector('.card-status-menu');
   badge.addEventListener('click', (e) => {
     e.stopPropagation();
-    if(window.getLinkedJournalCompletion?.(g.id)){openModal(g.id);return;}
+    if(journalStatus){openModal(g.id);return;}
     const willOpen = menu.classList.contains('hidden');
     closeCardStatusMenus();
     menu.classList.toggle('hidden', !willOpen);

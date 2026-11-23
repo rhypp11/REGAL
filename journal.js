@@ -271,7 +271,7 @@
       catch(error){ showToast(error.message); }
     });
   }
-  function edit(entry,fromBacklog=false,section='all'){
+  function edit(entry,fromBacklog=false,section='all',linkOnly=false){
     const group=entry.group, done=group==='completed', release=group==='release';
     const date=entry.date ?? (done?today():'');
     const existing=records().some(record=>record?.id===entry.id);
@@ -284,7 +284,7 @@
     const customPlatform='__journal_custom_platform__';
     const canComplete=existing&&!done&&!release;
     const precisionField=field('Précision',input('precision',entry.precision,'maxlength="250" placeholder="Version 1.0, suggéré par…"'));
-    show(identityOnly?'Modifier le jeu':commentOnly?'Modifier le commentaire':section==='release'?'Modifier la sortie':completionOnly?'Modifier la complétion':existing&&!fromBacklog?'Modifier l’entrée':done?'Ajouter une complétion':release?'Ajouter une sortie':'Ajouter un jeu',
+    show(linkOnly?'Relier à la collection':identityOnly?'Modifier le jeu':commentOnly?'Modifier le commentaire':section==='release'?'Modifier la sortie':completionOnly?'Modifier la complétion':existing&&!fromBacklog?'Modifier l’entrée':done?'Ajouter une complétion':release?'Ajouter une sortie':'Ajouter un jeu',
       '<form id="journal-form">'+
       '<section class="form-section journal-game-section">'+
       '<div id="journal-game-summary"'+(!existing||identityOnly?' class="hidden"':'')+'>'+identityCard(entry,!fromBacklog&&!completionOnly&&!commentOnly)+'</div>'+
@@ -409,6 +409,11 @@
         if(!item) return;
         sourcePending=false;
         if(!release) collectionId=item.id;
+        if(linkOnly){
+          compactIdentity();
+          summary.insertAdjacentHTML('beforeend','<p class="journal-source-confirmation">Collection · '+esc(item.nom)+' · '+esc(item.plateforme)+'</p>');
+          return;
+        }
         elements.name.value=item.nom;
         if(![...elements.platform.options].some(option=>option.value===item.plateforme)) elements.platform.add(new Option(item.plateforme,item.plateforme));
         setSelectValueAndSync('journal-platform',item.plateforme);
@@ -421,6 +426,11 @@
         compactIdentity();
         if(release && !identityOnly) form.querySelector('[data-date-mode="journal-release"] .active')?.focus();
       });
+      if(linkOnly){
+        elements.origin.value='collection';
+        elements.lookup.value=entry.name;
+        mode();
+      }
       form.addEventListener('submit',event=>{
         if(!sourcePending) return;
         event.preventDefault();
@@ -540,6 +550,14 @@
       link.className='manage-link';
       link.textContent='Voir dans la collection';
       link.onclick=()=>{close();openModal(purchase.id);};
+      $('journal-dialog-body').firstElementChild.appendChild(link);
+    }
+    if(done && !purchase){
+      const link=document.createElement('button');
+      link.type='button';
+      link.className='manage-link';
+      link.textContent='Relier à la collection';
+      link.onclick=()=>edit(entry,false,'identity',true);
       $('journal-dialog-body').firstElementChild.appendChild(link);
     }
     if(done){
