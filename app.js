@@ -1263,7 +1263,14 @@ function renderCard(g, options = {}){
     const gallery = collectionView === 'gallery';
     const metadata = document.createElement('div');
     metadata.className = 'card-state-row';
-    for(const selector of ['.card-platform','.card-media-mark','.card-dlc-count','.card-status-control']){
+    const formatLine = document.createElement('div');
+    formatLine.className = 'card-format-line';
+    for(const selector of ['.card-platform','.card-media-mark']){
+      const element = card.querySelector(selector);
+      if(element) formatLine.appendChild(element);
+    }
+    if(formatLine.childNodes.length) metadata.appendChild(formatLine);
+    for(const selector of ['.card-dlc-count','.card-status-control']){
       const element = card.querySelector(selector);
       if(element) metadata.appendChild(element);
     }

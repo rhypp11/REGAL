@@ -341,6 +341,7 @@
   background:color-mix(in srgb,var(--status-fill) 38%,var(--ui-surface));
 }
 #page-collection .card-state-row { display:flex; align-items:center; justify-content:flex-start; flex-wrap:wrap; gap:4px 10px; margin-top:2px; }
+#page-collection .card-format-line { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; min-width:0; }
 #page-collection .card-state-row .card-console-account { font-size:var(--ui-text-sm); }
 #page-collection .card-console-account { overflow:hidden; text-overflow:ellipsis; }
 #page-collection .card-state-row .card-dlc-count { font-size:var(--ui-text-sm); white-space:nowrap; }
