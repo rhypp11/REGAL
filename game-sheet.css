@@ -255,3 +255,18 @@
 
 
 .flexible-date-original { margin:6px 0 0; color:var(--ui-text-muted); font-size:12px; overflow-wrap:anywhere; }
+
+.switch-art-results:empty { display:none; }
+.switch-art-results { display:grid; gap:5px; max-height:230px; overflow:auto; margin-bottom:8px; }
+.switch-art-choice,.switch-bulk-row {
+  min-width:0; padding:8px 10px; border:1px solid var(--ui-border); border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface-raised); color:var(--ui-text); font:inherit; text-align:left;
+}
+.switch-art-choice { display:grid; gap:3px; min-height:44px; cursor:pointer; overflow-wrap:anywhere; }
+.switch-art-choice small { color:var(--ui-text-muted); font-size:11px; }
+#switch-artwork-list { display:grid; gap:6px; max-height:40vh; overflow:auto; }
+.switch-bulk-row { display:grid; gap:6px; overflow-wrap:anywhere; }
+.switch-bulk-row select { min-width:0; width:100%; min-height:44px; }
+.switch-bulk-preview { display:flex; flex-wrap:wrap; gap:8px; }
+.switch-bulk-preview img { width:auto; height:38px; max-width:100%; object-fit:contain; border-radius:4px; }
+.switch-square-field [role="status"] { display:block; color:var(--ui-text-muted); }

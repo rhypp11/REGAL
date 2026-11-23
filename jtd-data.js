@@ -83,6 +83,8 @@
         }
         // Missing mode in older backups keeps the whole image. Unknown modes cannot become CSS.
         if(value.imageFit !== undefined) item.imageFit = value.imageFit === 'cover' ? 'cover' : 'contain';
+        if(value.squareImage !== undefined) item.squareImage = safeURL(text(value.squareImage,'icône carrée'),true) || null;
+        if(value.nintendoTitleId != null && /^(01|04)[0-9a-f]{14}$/i.test(value.nintendoTitleId)) item.nintendoTitleId = value.nintendoTitleId.toUpperCase();
         if(item.image) item.image = safeURL(item.image, true) || null;
         if(item.lien) item.lien = safeURL(item.lien) || null;
         if(key === 'games'){

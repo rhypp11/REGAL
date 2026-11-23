@@ -1192,13 +1192,14 @@ function renderCard(g, options = {}){
     ? `<span class="card-title-collector" title="Édition collector" aria-label="Édition collector">${FORMAT_ICON_STAR}</span>`
     : '';
 
-  const bannerInner = g.image
-    ? gameImageHtml(g, g.nom, false, options.imageLoading || 'lazy')
+  const art = purchaseArtwork(g,!options.readOnly && collectionView !== 'cards');
+  const bannerInner = art.image
+    ? gameImageHtml(art, g.nom, false, options.imageLoading || 'lazy')
     : '';
 
-  const bannerHtml = `<div class="card-banner${gameImageClass(g)}${g.image ? '' : ' placeholder'}">
+  const bannerHtml = `<div class="card-banner${gameImageClass(art)}${art.image ? '' : ' placeholder'}">
       ${bannerInner}
-      <span class="card-fallback${g.image ? ' hidden' : ''}">${escapeHTML(g.plateforme.slice(0,2).toUpperCase())}</span>
+      <span class="card-fallback${art.image ? ' hidden' : ''}">${escapeHTML(g.plateforme.slice(0,2).toUpperCase())}</span>
     </div>`;
 
   const platformHtml = `${logo
@@ -1542,6 +1543,13 @@ function setLastUsed(key, value){
   try { accountStorage.setItem('jtd-last-'+key, value); } catch(e){}
 }
 
+function purchaseArtwork(item, preferSquare = false){
+  const banner = safeURL(item?.image,true), square = safeURL(item?.squareImage,true);
+  const useSquare = square && (preferSquare || !banner);
+  return {...item,image:useSquare ? square : banner,imageFit:useSquare ? 'contain' : item?.imageFit,
+    alternateImage:useSquare ? banner : square};
+}
+
 /* One image treatment for cards, board thumbnails and editing previews. */
 function gameImageHtml(item, alt = '', board = false, loading = 'eager'){
   const url = safeURL(item?.image, true);
@@ -1549,11 +1557,12 @@ function gameImageHtml(item, alt = '', board = false, loading = 'eager'){
   const src = escapeHTML(url);
   // Defer both layers: an eager decorative backdrop would fetch the same art early.
   const load = loading === 'lazy' ? 'lazy' : 'eager';
-  return `<img class="game-art-backdrop" loading="${load}" src="${src}" alt="" aria-hidden="true" decoding="async"><img class="game-art-image" loading="${load}" ${board ? 'data-board-art' : ''} src="${src}" alt="${escapeHTML(alt)}" decoding="async">`;
+  return `<img class="game-art-backdrop" loading="${load}" src="${src}" alt="" aria-hidden="true" decoding="async"><img class="game-art-image" loading="${load}" ${board ? 'data-board-art' : ''} src="${src}" alt="${escapeHTML(alt)}"${item.alternateImage && item.alternateImage !== url ? ` data-art-fallback="${escapeHTML(item.alternateImage)}"` : ''} decoding="async">`;
 }
 function gameImageClass(item){ return ' game-art-frame image-fit-' + (item?.imageFit === 'cover' ? 'cover' : 'contain'); }
 
 function identitySummaryHtml(item, detail = ''){
+  if(item) item = purchaseArtwork(item);
   const name = item && item.nom ? item.nom : 'Jeu';
   const platform = item && item.plateforme ? item.plateforme : 'Plateforme';
   const image = item && item.image ? item.image : null;
@@ -1654,6 +1663,7 @@ function setContextEditor(prefix, item, type, compact){
 }
 
 function fillIdentityFields(prefix, item = {}){
+  fillArtworkFields(prefix,item);
   populatePlatformSelect(prefix+'-plateforme');
   document.getElementById(prefix+'-nom').value = item.nom || '';
   setSelectValueAndSync(prefix+'-plateforme', item.plateforme || '');
@@ -1670,6 +1680,7 @@ function readIdentityFields(prefix){
     collector:document.getElementById(prefix+'-collector').checked,
     japanese:document.getElementById(prefix+'-japanese').checked,
     image:safeURL(document.getElementById(prefix+'-image').value.trim(), true) || null,
+    ...readArtworkFields(prefix),
     imageFit:document.getElementById(prefix+'-image-fit').value === 'cover' ? 'cover' : 'contain'
   };
 }
@@ -1795,6 +1806,7 @@ function openModal(id, collection = 'games'){
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
   document.getElementById('f-image-options').open = false;
   document.getElementById('f-edition-options').open = false;
+  fillArtworkFields('f',identityItem);
   openDigitalFields(identityItem);
   setIdentityEditor('f', identityItem && editingCollection==='games' ? {...identityItem,plateforme:JTDData.effectivePlatform(identityItem,GAMES)} : identityItem, !!editingId);
   renderGameSheetStatus(editingCollection === 'games' ? identityItem : null);
@@ -1825,14 +1837,14 @@ function updateImagePreview(){
 }
 
 function saveModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('f');
+  const {nom, plateforme, collector, japanese, image, imageFit, squareImage, nintendoTitleId} = readIdentityFields('f');
   window.JTDDialogs.clearErrors(document.getElementById('modal-overlay'));
   if(!nom){ window.JTDDialogs.error('f-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('f-plateforme','Choisis une plateforme.'); return; }
   const prix = parsePriceInput(document.getElementById('f-prix').value);
   const date = document.getElementById('f-date').value || document.getElementById('f-partial-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
-  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit};
+  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit, squareImage, nintendoTitleId};
   try { Object.assign(fields, readDigitalFields()); }
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
@@ -1940,6 +1952,7 @@ function renderHomeStats(){
 
 
 function boardThumb(item){
+  item = purchaseArtwork(item,true);
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
   const logo = getPlatformLogo(item.plateforme);
   const color = getPlatformColor(item.plateforme);
@@ -2379,7 +2392,7 @@ function closeArrivalModal(){
 }
 
 function saveArrivalModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('a');
+  const {nom, plateforme, collector, japanese, image, imageFit, squareImage, nintendoTitleId} = readIdentityFields('a');
   window.JTDDialogs.clearErrors(document.getElementById('arrival-modal-overlay'));
   if(!nom){ window.JTDDialogs.error('a-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('a-plateforme','Choisis une plateforme.'); return; }
@@ -2388,7 +2401,7 @@ function saveArrivalModal(){
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
 
-  const fields = {nom, plateforme, date, prix, source, collector, japanese, image, imageFit};
+  const fields = {nom, plateforme, date, prix, source, collector, japanese, image, imageFit, squareImage, nintendoTitleId};
   const ordered = !!convertingWishlistId;
   if(ordered){
     if(!commitBoardTransfer('wishlist', 'arrivals', convertingWishlistId, fields)) return;
@@ -2531,7 +2544,7 @@ function closeWishlistModal(){
 }
 
 function saveWishlistModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('w');
+  const {nom, plateforme, collector, japanese, image, imageFit, squareImage, nintendoTitleId} = readIdentityFields('w');
   window.JTDDialogs.clearErrors(document.getElementById('wishlist-modal-overlay'));
   if(!nom){ window.JTDDialogs.error('w-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('w-plateforme','Choisis une plateforme.'); return; }
@@ -2540,7 +2553,7 @@ function saveWishlistModal(){
   if(document.querySelector('[data-date-mode="w"]').dataset.currentMode==='month' && date && !/^[0-9]{4}-(0[1-9]|1[0-2])$/.test(date)){window.JTDDialogs.error('w-month','Indique un mois valide.');return;}
   const lien = document.getElementById('w-lien').value.trim() || null;
 
-  const fields = {nom, plateforme, date, lien, collector, japanese, image, imageFit};
+  const fields = {nom, plateforme, date, lien, collector, japanese, image, imageFit, squareImage, nintendoTitleId};
   if(convertingArrivalToWishlistId){
     if(!commitBoardTransfer('arrivals', 'wishlist', convertingArrivalToWishlistId, fields)) return;
     renderArrivals();
@@ -3439,7 +3452,15 @@ document.addEventListener('error', event => {
   const parent = image.parentElement;
   if(!parent) return;
   if(image.classList.contains('game-art-backdrop')){ image.remove(); return; }
-  if(image.classList.contains('game-art-image')) parent.querySelector('.game-art-backdrop')?.remove();
+  if(image.classList.contains('game-art-image')){
+    parent.querySelector('.game-art-backdrop')?.remove();
+    if(image.dataset.artFallback){
+      const fallback = image.dataset.artFallback;
+      delete image.dataset.artFallback;
+      image.src = fallback;
+      return;
+    }
+  }
   if(image.hasAttribute('data-board-art')){
     image.remove();
     parent.querySelector('.board-image-fallback')?.classList.remove('hidden');

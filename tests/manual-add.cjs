@@ -76,6 +76,7 @@ const server=createSandboxServer();
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(id=>GAMES.some(g=>g.id===id),created.id),true,'Manual add survives reload');
    await checkJournalSources(page);
+   if(width===390 && theme==='dark') await checkNintendoArtwork(page);
    assert.deepEqual(errors,[]);await context.close();console.log('PASS manual entry and module actions',width,theme);
   }
  }finally{await browser.close();server.close();}
@@ -145,3 +146,35 @@ async function checkJournalSources(page){
  assert.equal(await page.evaluate(()=>getJournalReleases().find(item=>item.nom==='Sortie fictive').date),'2028-04-12');
 }
 
+
+async function checkNintendoArtwork(page){
+  await page.evaluate(()=>{goToPage('collection');openModal(null);});
+  await page.selectOption('#f-plateforme','Switch 2');
+  await page.locator('#f-nom').fill('Donkey Kong Ban');
+  await page.locator('#f-eshop-results button').filter({hasText:'Donkey Kong Bananza'}).first().click();
+  assert.equal(await page.locator('#f-nom').inputValue(),'Donkey Kong Bananza');
+  const banner=await page.locator('#f-image').inputValue();
+  const square=await page.locator('#f-square-image').inputValue();
+  assert.match(banner,/^https:\/\/img-eshop\.cdn\.nintendo\.net/);
+  assert.notEqual(square,banner);
+  await page.locator('#save-btn').click();
+  const id=await page.evaluate(()=>GAMES.find(game=>game.nom==='Donkey Kong Bananza').id);
+  assert.deepEqual(await page.evaluate(id=>{
+    const game=GAMES.find(game=>game.id===id);
+    return [game.image,game.squareImage,game.nintendoTitleId];
+  },id),[banner,square,'040074A01BF12000']);
+  await page.evaluate(id=>{
+    const game=GAMES.find(item=>item.id===id);
+    game.image=new URL('preview-assets/garden.svg',location.href).href;
+    game.squareImage=null;
+  },id);
+  await page.locator('#profile-menu-btn').click();
+  await page.locator('#switch-artwork-open').click();
+  const row=page.locator('.switch-bulk-row').filter({hasText:'Donkey Kong Bananza'});
+  await row.locator('select').selectOption({label:'Donkey Kong Bananza · 040074A01BF12000'});
+  await page.locator('#switch-artwork-apply').click();
+  assert.deepEqual(await page.evaluate(id=>{
+    const game=GAMES.find(game=>game.id===id);
+    return [new URL(game.image).pathname,game.squareImage];
+  },id),['/preview-assets/garden.svg',square]);
+}

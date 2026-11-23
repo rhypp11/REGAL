@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_23.11.26-6">
-<meta name="regal-pull-request" content="113">
-<meta name="regal-build" content="e82a76be372a52c18c24bddc">
+<meta name="regal-version" content="3_23.11.26-8">
+<meta name="regal-pull-request" content="116">
+<meta name="regal-build" content="22a6559c386ecd2d72e1e83e">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=2">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=2">
 <link rel="manifest" href="manifest.json">
@@ -127,6 +127,7 @@
           </label>
           </section>
           <section class="profile-group" id="profile-share-group"><h3>Export</h3>
+          <button type="button" class="profile-menu-item" id="switch-artwork-open">Compléter les visuels Switch</button>
           <button class="profile-menu-item" id="collection-export-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Export JSON collection</span></span>
           </button>
@@ -725,6 +726,19 @@
     </div>
   </div>
 </div>
+<div class="modal-overlay sheet-dialog hidden" id="switch-artwork-overlay" role="dialog" aria-modal="true" aria-labelledby="switch-artwork-title">
+  <div class="modal">
+    <h2 id="switch-artwork-title">Compléter les visuels Switch</h2>
+    <p id="switch-artwork-status" role="status"></p>
+    <label class="journal-checkbox"><input type="checkbox" id="switch-artwork-rename"> Utiliser les titres eShop français</label>
+    <label class="journal-checkbox"><input type="checkbox" id="switch-artwork-replace"> Remplacer aussi les images existantes</label>
+    <div id="switch-artwork-list"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="switch-artwork-close">Annuler</button>
+      <button type="button" class="btn btn-primary" id="switch-artwork-apply" disabled>Appliquer la sélection</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay sheet-dialog hidden" id="global-search-overlay" role="dialog" aria-modal="true" aria-labelledby="global-search-title">
   <div class="modal overview-modal">
     <h2 id="global-search-title">Rechercher dans les listes</h2>
@@ -749,6 +763,7 @@
 <script src="jtd-data.js?v=account-pokedex-1"></script>
 <script src="dialogs.js?v=keyboard-viewport-1"></script>
 <script src="digital.js?v=density-1"></script>
+<script src="switch-artwork.js"></script>
 <script src="app.js?v=collection-hover-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>

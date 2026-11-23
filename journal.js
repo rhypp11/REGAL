@@ -40,7 +40,7 @@
     return entry && {id:entry.id,date:dateLabel(entry),result:completions[entry.completion] || completions.finished};
   };
   window.getJournalExportEntries=()=>records();
-  window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit,date:entry.date}));
+  window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,squareImage:entry.squareImage,nintendoTitleId:entry.nintendoTitleId,imageFit:entry.imageFit,date:entry.date}));
   const searchLocations={completed:'Terminé',playing:'En cours',backlog:'À faire',release:'Sorties'};
   window.getJournalSearchEntries=()=>records().filter(entry=>entry && Object.hasOwn(searchLocations,entry.group)).map(entry=>({
     id:entry.id,nom:entry.name,plateforme:entry.platform,searchSupport:formats[entry.format]||'',location:searchLocations[entry.group]
@@ -87,7 +87,7 @@
     return '<span class="journal-completion-badge" data-completion="'+key+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+completionIcons[key]+'</svg>'+completions[key]+'</span>';
   }
   function gameThumb(entry){
-    return boardThumb({nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit});
+    return boardThumb({nom:entry.name,plateforme:entry.platform,image:entry.image,squareImage:entry.squareImage,nintendoTitleId:entry.nintendoTitleId,imageFit:entry.imageFit});
   }
   function day(entry){
     if(entry.estimated) return '<span class="calendar-day calendar-day-loose" title="Date approximative" aria-label="Date approximative"><strong>≈</strong></span>';
@@ -240,7 +240,7 @@
   window.refreshJournal = () => { if(!$('journal-overlay').classList.contains('hidden')) close(); render(); };
   function identityCard(entry,editable=false){
     return '<div class="game-identity-summary'+(editable?'':' journal-identity-read')+'">'+
-      identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),imageFit:entry.imageFit},
+      identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),squareImage:entry.squareImage,imageFit:entry.imageFit},
         entry.group==='release'?'':formats[entry.format]||'')+'</div>';
   }
   function show(title,html,{editing=false,canComplete=false,canDelete=false}={}){
@@ -333,6 +333,8 @@
       '<p id="journal-error" role="alert" class="journal-error"></p></form>',{editing:true,canComplete,canDelete:existing&&!fromBacklog});
     const form=$('journal-form'), elements=form.elements;
     const summary=$('journal-game-summary'), editor=$('journal-game-editor');
+    mountSwitchArtwork(editor,{prefix:'j',name:elements.name,platform:$('journal-platform'),image:$('j-image')});
+    fillArtworkFields('j',entry);
     const platformValue=()=>elements.platform.value===customPlatform?elements.platformCustom.value.trim():elements.platform.value;
     const updatePlatform=()=> $('journal-custom-platform').classList.toggle('hidden',elements.platform.value!==customPlatform);
     iconSelectify('journal-platform',name=>name&&name!==customPlatform?getPlatformOptionIconHtml(name):'',editorEvents.signal);
@@ -356,7 +358,7 @@
         return;
       }
       $('journal-error').textContent='';
-      summary.innerHTML=identityCard({group,name:elements.name.value,platform:platformValue(),image:elements.image.value,format:elements.format.value,imageFit:elements.imageFit.value},true);
+      summary.innerHTML=identityCard({group,name:elements.name.value,platform:platformValue(),image:elements.image.value,...readArtworkFields('j'),format:elements.format.value,imageFit:elements.imageFit.value},true);
       summary.classList.remove('hidden');
       editor.classList.add('hidden');
       (identityOnly?$('journal-save'):elements.estimated||elements.group||$('journal-save')).focus();
@@ -419,6 +421,7 @@
         setSelectValueAndSync('journal-platform',item.plateforme);
         updatePlatform();
         elements.image.value=item.image||'';
+        fillArtworkFields('j',item);
         elements.imageFit.value=item.imageFit==='cover'?'cover':'contain';
         elements.format.value=release?'':JTDData.isAddon(item)?'extension':JTDData.isDigital(item)?'digital':'physical';
         if(release){setFlexibleDate('journal-release',item.date||'TBD');setReleaseDateInputs();releaseDateChanged=true;}
@@ -481,7 +484,7 @@
       if(!value('name')||!platformValue()) throw Error('Renseigne le titre et la plateforme.');
       const art=safeURL(value('image'),true);
       if(value('image')&&!art) throw Error('L’adresse de l’image est invalide.');
-      return {name:value('name'),platform:platformValue(),precision:value('precision'),image:art,imageFit:value('imageFit'),format:value('format')};
+      return {name:value('name'),platform:platformValue(),precision:value('precision'),image:art,...readArtworkFields('j'),imageFit:value('imageFit'),format:value('format')};
     };
     if(existing&&!fromBacklog) bindDelete(entry,generation);
     if(canComplete) $('journal-complete').onclick=()=>{
