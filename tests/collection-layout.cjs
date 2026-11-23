@@ -50,10 +50,10 @@ const server=createSandboxServer();
       await page.locator('#grid .card-banner img').first().evaluate(img=>img.decode());
       const geometry=await page.locator('#grid .card').evaluateAll(cards=>cards.map(card=>{
         const box=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
-        return {card:box(card),band:box(card.querySelector('.case-platform')),banner:box(card.querySelector('.card-banner')),platformFont:parseFloat(getComputedStyle(card.querySelector('.case-platform,.card-platform')).fontSize),parts:[...card.querySelectorAll('.card-body,.card-name,.card-platform,.card-status-badge,.card-acquisition,.card-price')].map(box)};
+        return {card:box(card),banner:box(card.querySelector('.card-banner')),platformFont:parseFloat(getComputedStyle(card.querySelector('.card-platform')).fontSize),parts:[...card.querySelectorAll('.card-body,.card-name,.card-platform,.card-status-badge,.card-acquisition,.card-price')].map(box)};
       }));
       for(const g of geometry){
-        assert.ok(Math.abs(g.band.top-g.card.top-1)<1 && Math.abs(g.banner.top-g.band.bottom)<1 && g.banner.bottom<=g.card.bottom,'Landscape artwork aligns with the top of its card');
+        assert.ok(Math.abs(g.banner.top-g.card.top-1)<1 && g.banner.bottom<=g.card.bottom,'Landscape artwork aligns with the top of its card');
         assert.ok(Math.abs(g.banner.width/g.banner.height-16/9)<.02,'Horizontal thumbnail keeps its proportions');
         assert.ok(g.platformFont>=12,'Platform remains readable');
         for(const p of g.parts) assert.ok(p.left>=g.card.left && p.right<=g.card.right+.5 && p.top>=g.card.top && p.bottom<=g.card.bottom+.5,'Card information stays inside');

@@ -110,8 +110,9 @@
       if(!groups.has(group.key)) groups.set(group.key,{...group,items:[]});
       groups.get(group.key).items.push(entry);
     }
-    return [...groups.values()].map(group=>'<section class="journal-calendar">'+
-      calendarGroupHtml(group.label,group.year||'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('');
+    if(!groups.size) return '';
+    return '<div class="journal-calendar-table">'+[...groups.values()].map(group=>'<section class="journal-calendar">'+
+      calendarGroupHtml(group.label,group.year||'',group.color,!group.color)+group.items.map(row).join('')+'</section>').join('')+'</div>';
   }
   function completedGroup(entry){
     if(entry.yearOnly) return {key:'year',label:'Année seule'};

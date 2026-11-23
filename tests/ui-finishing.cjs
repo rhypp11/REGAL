@@ -29,7 +29,7 @@ const server=createSandboxServer();
    assert.ok(visual.height<32 && visual.height<target.height,'Status pill remains compact');
    const surrounding=await card.evaluate(card=>{
     const rect=selector=>{const r=card.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right}};
-    return {title:rect('.card-name'),status:rect('.card-status-badge'),platform:rect('.case-platform,.card-platform')};
+    return {title:rect('.card-name'),status:rect('.card-status-badge'),platform:rect('.card-platform')};
    });
    assert.ok(surrounding.title.bottom<=surrounding.status.top+.5,'Status target does not overlap title');
    assert.ok(surrounding.platform.right<=surrounding.status.left+.5 || surrounding.platform.bottom<=surrounding.status.top+.5,'Status target does not overlap platform');

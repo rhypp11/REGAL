@@ -88,8 +88,8 @@
 .journal-backlog-group > header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
 .journal-backlog-group + .journal-backlog-group { margin-top:10px; }
 .journal-panel .journal-add-small { min-height:40px; padding:4px 8px; font-size:12px; }
-.journal-calendar { overflow:hidden; border:1px solid var(--ui-border); border-radius:var(--ui-radius-lg); }
-.journal-calendar + .journal-calendar { margin-top:16px; }
+.journal-calendar-table { overflow:hidden; border:1px solid var(--ui-border); border-radius:var(--ui-radius-lg); background:var(--ui-surface); }
+.journal-calendar + .journal-calendar { border-top:1px solid var(--ui-border); }
 .journal-calendar .journal-row:first-of-type { border-top:0; }
 .journal-row .board-thumb { flex:0 0 78px; width:78px; height:44px; }
 .journal-backlog-group .journal-row .board-thumb,.journal-release-row .board-thumb { flex-basis:64px; width:64px; height:36px; }
@@ -117,7 +117,6 @@
 }
 
 #page-journal :is([data-journal-panel="completed"],[data-journal-panel="release"]) { padding:0; border:0; background:transparent; }
-#page-journal :is([data-journal-panel="completed"],[data-journal-panel="release"]) .journal-calendar { background:var(--ui-surface); }
 
 
 .journal-completion-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 7px; border:1px solid color-mix(in srgb,var(--badge-color) 32%,var(--ui-border)); border-radius:7px; color:var(--ui-text); background:color-mix(in srgb,var(--badge-color) 14%,var(--ui-surface)); font-size:11px; font-weight:700; white-space:nowrap; --badge-color:var(--status-done); }
@@ -188,8 +187,6 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
   .journal-context-fields-completion > :last-child { grid-column:1 / -1; }
 }
 
-#page-journal [data-journal-panel="release"] .journal-calendar { border:0; border-radius:0; background:transparent; }
-#page-journal [data-journal-panel="release"] .calendar-group-head { border-radius:var(--ui-radius-sm); }
 #page-journal [data-journal-panel="release"] .journal-row { border:0; padding:6px 0; }
 #page-journal .journal-release-date { font-variant-numeric:tabular-nums; }
 
