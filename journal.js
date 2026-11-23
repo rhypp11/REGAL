@@ -463,7 +463,7 @@
       updateDateFields();
     }
     const snapshot=()=>JSON.stringify([...new FormData(form)].filter(([name])=>!['lookup','origin'].includes(name))
-      .concat(release ? [['releaseDate',getFlexibleDate('journal-release')]] : []));
+      .concat(release ? [['releaseDate',getFlexibleDate('journal-release')]] : [['collectionId',collectionId ?? null]]));
     const initial=snapshot();
     hasDraftChanges=()=>snapshot()!==initial;
     const value=name=>elements[name]?.value.trim()||'';
