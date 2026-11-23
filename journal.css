@@ -308,8 +308,26 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
 
 .journal-source-confirmation { margin:8px 0 0; font-size:12px; color:var(--ui-text-muted); overflow-wrap:anywhere; }
 
-.journal-detail-banner { width:100%; aspect-ratio:16/9; max-height:235px; border-radius:var(--ui-radius-md); overflow:hidden; }
-#journal-dialog-body .journal-detail-banner + .journal-detail-identity { padding-top:12px; }
-.journal-detail-banner + .journal-detail-identity .game-identity-summary { grid-template-columns:minmax(0,1fr) auto; }
-.journal-detail-banner + .journal-detail-identity .identity-thumb { display:none; }
-.journal-collection-link { margin-top:9px; min-height:44px; }
+#journal-overlay:has(.journal-detail-identity) #journal-dialog-title {
+  position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap;
+}
+#journal-dialog-body .journal-detail-identity {
+  position:relative; isolation:isolate; display:grid; align-items:end;
+  margin:0; padding:0; border:0; background:none;
+}
+#journal-dialog-body .has-journal-art {
+  min-height:clamp(130px,27vw,190px); padding:14px; border-radius:var(--ui-radius-lg);
+}
+.journal-detail-banner { position:absolute; inset:0; z-index:-1; border-radius:inherit; overflow:hidden; }
+#journal-dialog-body .journal-detail-banner > .game-art-image { object-fit:cover; opacity:.34; }
+#journal-dialog-body .journal-detail-banner > .game-art-backdrop { display:none; }
+.journal-detail-banner::after { content:''; position:absolute; inset:0; background:linear-gradient(0deg,var(--ui-surface) 0%,transparent 95%); }
+#journal-dialog-body .journal-detail-identity .game-identity-summary { padding:0; }
+#journal-dialog-body .journal-detail-section {
+  margin-top:19px; padding:0; border:0; background:none;
+}
+#journal-dialog-body .journal-detail-section .form-section-title {
+  font-size:16px; font-weight:700; letter-spacing:-.02em;
+}
+.journal-detail-section .journal-context-fields { border:0; border-radius:var(--ui-radius-md); }
+.journal-collection-link { min-height:44px; }

@@ -109,7 +109,7 @@ const server=createSandboxServer();
    await page.evaluate(items=>{WISHLIST=items;renderWishlist();},wishlistBeforeHover);
    await page.evaluate(()=>{GAMES=[];renderHomeStats();});assert.equal(await page.locator('#home-total-games').textContent(),'0');
    await page.evaluate(()=>{
-    GAMES=[{id:'report-zero',nom:'Étoile de test',plateforme:'Switch 2',date:'2023-04-02',prix:0},{id:'report-undated',nom:'Achat sans date',plateforme:'Switch 2',prix:20}];
+    GAMES=[{id:'report-zero',nom:'Étoile de test',plateforme:'Switch 2',date:'2023-04-02',prix:0,image:location.origin+'/preview-assets/garden.svg',squareImage:location.origin+'/preview-assets/lighthouse.svg'},{id:'report-undated',nom:'Achat sans date',plateforme:'Switch 2',prix:20}];
     CEMETERY=[
      {id:'report-sold',nom:'Étoile vendue',plateforme:'PS5',date:'2023-05',prix:30,saleStatus:'sold',salePrice:12},
      {id:'report-pending',nom:'Jeu sans prix',plateforme:'PS5',date:'2023',saleStatus:'pending'}
@@ -209,6 +209,14 @@ const server=createSandboxServer();
    assert.match(await completionRow.locator('.journal-completion-date').innerText(),/≈.*2022/,'Approximate completion dates stay approximate');
    assert.equal(await completionRow.locator('.journal-completion-badge').innerText(),'Fini');
    await completionRow.click();
+   const hero=page.locator('.journal-detail-identity');
+   assert.equal(await hero.locator('.journal-detail-banner').getAttribute('aria-hidden'),'true');
+   assert.match(await hero.locator('.journal-detail-banner .game-art-image').getAttribute('src'),/garden\.svg$/);
+   const square=hero.locator('.identity-thumb .game-art-image');
+   assert.match(await square.getAttribute('src'),/lighthouse\.svg$/);
+   const thumb=await square.boundingBox();
+   assert.ok(Math.abs(thumb.width-thumb.height)<1,'The Journal header keeps a square icon');
+   assert.equal(await hero.locator('.identity-copy strong').innerText(),'Étoile de test');
    assert.equal(await page.locator('.journal-detail-ratings .journal-grade[data-grade="S+"]').count(),1);
    assert.equal(await page.locator('#journal-dialog-body [aria-label="Date approximative"]').count(),1);
    assert.equal(await page.locator('.journal-comment').innerText(),'Commentaire de test');

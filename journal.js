@@ -237,10 +237,10 @@
     confirmAction('Les modifications du Journal seront perdues.',close,{title:'Abandonner la saisie ?',confirmLabel:'Abandonner'});
   };
   window.refreshJournal = () => { if(!$('journal-overlay').classList.contains('hidden')) close(); render(); };
-  function identityCard(entry,editable=false){
+  function identityCard(entry,editable=false,preferSquare=false){
     return '<div class="game-identity-summary'+(editable?'':' journal-identity-read')+'">'+
       identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),squareImage:entry.squareImage,imageFit:entry.imageFit},
-        entry.group==='release'?'':formats[entry.format]||'')+'</div>';
+        entry.group==='release'?'':formats[entry.format]||'',preferSquare)+'</div>';
   }
   function show(title,html,{editing=false,canComplete=false,canDelete=false}={}){
     editorEvents?.abort();
@@ -528,11 +528,12 @@
     const generation=window.JTDAccountGeneration;
     if(['playing','backlog'].includes(entry.group)){ edit(entry); return; }
     const banner=purchaseArtwork(entry);
-    show(done?'Fiche de complétion':'Fiche du jeu',
-      (banner.image?'<div class="journal-detail-banner'+gameImageClass(banner)+'">'+gameImageHtml(banner)+'</div>':'')+
-      '<section class="form-section journal-detail-identity">'+identityCard({...entry,image:null,squareImage:null},true)+'</section>'+
-      '<section class="form-section"><div class="journal-section-heading"><div class="form-section-title">'+(done?completionBadge(entry.completion):entry.group==='release'?'Sortie':'Backlog')+'</div>'+
-      '</div>'+
+    show(entry.name,
+      '<section class="form-section journal-detail-identity'+(banner.image?' has-journal-art':'')+'">'+
+      (banner.image?'<div class="journal-detail-banner'+gameImageClass(banner)+'" aria-hidden="true">'+gameImageHtml(banner)+'</div>':'')+
+      identityCard(entry,true,true)+'</section>'+
+      '<section class="form-section journal-detail-section"><div class="journal-section-heading"><h3 class="form-section-title">'+(done?'Complétion':'Sortie')+'</h3>'+
+      (done?completionBadge(entry.completion):'')+'</div>'+
       '<dl class="journal-context-fields'+(done?' journal-context-fields-completion':'')+'">'+
       contextField(done?'Date de complétion':'Sortie','<span class="journal-context-date"'+(entry.estimated?' aria-label="Date approximative"':'')+'>'+calendarIcon+esc(dateLabel(entry))+'</span>')+
       (done?contextField('Mode de jeu',esc(modes[entry.mode]||'—')):'')+
@@ -543,8 +544,8 @@
       (done?'<div class="journal-detail-ratings">'+criteria.map((label,index)=>'<div>'+esc(label)+score(entry.notes?.[index],label)+'</div>').join('')+
       '<div>Ressenti<span class="journal-rating-feeling">'+esc(feelings[entry.feeling]||'–')+'</span></div></div>':'')+
       '</section>'+
-      (done?'<section class="form-section journal-comment-section"><div class="journal-section-heading"><div class="form-section-title journal-comment-heading">'+bubble+'Commentaire</div>'+
-        '</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),{canDelete:true});
+      (done && entry.comment?'<section class="form-section journal-detail-section journal-comment-section"><div class="journal-section-heading"><h3 class="form-section-title">Commentaire</h3>'+
+        '</div><p class="journal-comment">'+esc(entry.comment)+'</p></section>':''),{canDelete:true});
     const actions = [['Modifier la fiche', () => edit(entry,false,'full'), 'journal-detail-edit', 'edit']];
     actions.push(['Supprimer', () => $('journal-delete').click(), null, 'delete']);
     $('journal-dialog-body').querySelector('.identity-edit-btn').replaceWith(sheetActions(actions,'journal-detail-actions'));
@@ -555,7 +556,7 @@
       link.className='manage-link journal-collection-link';
       link.textContent='Voir dans la collection';
       link.onclick=()=>{close();openModal(purchase.id);};
-      $('journal-dialog-body').querySelector('.journal-detail-identity').appendChild(link);
+      $('journal-dialog-body').querySelector('.journal-detail-identity').after(link);
     }
     if(done && !purchase){
       const link=document.createElement('button');
@@ -563,7 +564,7 @@
       link.className='manage-link journal-collection-link';
       link.textContent='Relier à la collection';
       link.onclick=()=>edit(entry,false,'identity',true);
-      $('journal-dialog-body').querySelector('.journal-detail-identity').appendChild(link);
+      $('journal-dialog-body').querySelector('.journal-detail-identity').after(link);
     }
     bindDelete(entry,generation);
   }

@@ -289,18 +289,29 @@
 }
 .switch-square-preview img { display:block; width:100%; height:100%; object-fit:contain; }
 .collection-purchase-heading,#f-identity-editor > h3 { margin:0 0 7px; }
-#f-identity-summary .identity-thumb { width:72px; height:72px; flex-basis:72px; }
-#modal-overlay.game-sheet-viewing .collection-sheet-body { gap:16px; padding-inline:2px; }
+#modal-overlay.game-sheet-viewing #f-identity-summary .identity-thumb,
+#journal-dialog-body .journal-detail-identity .identity-thumb {
+  --sheet-thumb:clamp(60px,13vw,88px);
+  width:var(--sheet-thumb); height:var(--sheet-thumb); flex:0 0 var(--sheet-thumb);
+  border-radius:12px;
+}
+#modal-overlay.game-sheet-viewing #f-identity-summary,
+#journal-dialog-body .journal-detail-identity .game-identity-summary { gap:12px; align-items:center; }
+#modal-overlay.game-sheet-viewing #f-identity-summary .identity-copy strong,
+#journal-dialog-body .journal-detail-identity .identity-copy strong {
+  font-size:clamp(17px,3vw,25px); line-height:1.2; letter-spacing:-.025em;
+}
+#modal-overlay.game-sheet-viewing .collection-sheet-body { gap:22px; padding:2px 3px; }
 #modal-overlay.game-sheet-viewing .collection-sheet-body > :is(.form-section,#f-content-details,#f-sheet-status) { padding:0; border:0; }
 #modal-overlay.game-sheet-viewing :is(#f-media-section,.content-purchases,#f-sheet-status) { display:grid; gap:8px; }
 #modal-overlay.game-sheet-viewing :is(#f-media-section,.content-purchases,#f-sheet-status) > h3 {
-  margin:0; font-size:14px; font-weight:700;
+  margin:0; font-size:16px; font-weight:700; letter-spacing:-.02em;
 }
 #modal-overlay.game-sheet-viewing #f-sheet-status:empty { display:none; }
 #modal-overlay.game-sheet-viewing #f-context-summary,.game-status-panel {
-  display:grid; gap:10px; padding:11px 12px;
-  border:1px solid var(--ui-border); border-radius:var(--ui-radius-md);
-  background:var(--ui-canvas);
+  display:grid; gap:10px; padding:13px 14px;
+  border:0; border-radius:var(--ui-radius-md);
+  background:var(--ui-surface-raised);
 }
 #modal-overlay.game-sheet-viewing #f-context-summary:not(:has(.context-summary-values > :nth-child(3))) .context-summary-values {
   grid-template-columns:repeat(2,minmax(0,1fr));

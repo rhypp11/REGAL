@@ -325,8 +325,11 @@ function renderContentDetails(game){
       const thumb='<span class="content-related-thumb'+gameImageClass(art)+'">'+(art.image?gameImageHtml(art):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
       button.innerHTML=thumb+
         '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
-        '<span class="content-related-platform">'+escapeHTML(child.plateforme)+(JTDData.isDLC(child)?'<span class="content-dlc-status">'+escapeHTML(status?.label || 'Statut non défini')+'</span>':'')+'</span>'+
-        '<span class="content-related-meta"><span class="content-kind-label"><span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+contentKind(child)+'</span>'+'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span></span></span>';
+        '<span class="content-related-meta"><span class="content-kind-label"><span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+contentKind(child)+'</span>'+
+        '<span>'+escapeHTML(child.plateforme)+'</span>'+
+        (status?'<span class="content-dlc-status">'+escapeHTML(status.label)+'</span>':'')+'</span></span>'+
+        (child.prix != null?'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span>':'')+
+        '<svg class="content-row-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>';
       button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(child.id));section.appendChild(button);
     }
     const sums = new Map();
