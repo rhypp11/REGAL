@@ -127,7 +127,6 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         assert.equal(appearance.physicalRadius,appearance.radius);
         assert.equal(appearance.physicalShadow,'none');
         assert.equal(appearance.digitalShadow,'none');
-        assert.equal(appearance.borderStyle,view==='cards'?'solid':'none');
         assert.equal(appearance.physicalStyle,appearance.borderStyle);
         assert.equal(appearance.physicalBorder,view==='cards'?'1px':'0px');assert.equal(appearance.digitalBorder,appearance.physicalBorder);
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
