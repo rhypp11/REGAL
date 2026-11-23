@@ -16,7 +16,12 @@ const longTitle='Une aventure au titre extrêmement long — édition complète 
    for(const prefix of ['f','a','w']){
     await page.evaluate(({prefix,longTitle})=>{
      closeModal();closeArrivalModal();closeWishlistModal();
-     if(prefix==='f'){openModal(GAMES.find(game=>!JTDData.isDigital(game)).id);setGameSheetViewing(false);document.getElementById('f-image-options').open=false;}
+     if(prefix==='f'){
+      GAMES.push({id:'form-layout-fixture',nom:'Jeu fictif',plateforme:'Switch',format:'Physique'});
+      openModal('form-layout-fixture');
+      setGameSheetViewing(false);
+      document.getElementById('f-image-options').open=false;
+     }
      if(prefix==='a')openArrivalModal(null);
      if(prefix==='w')openWishlistModal(null);
      document.getElementById(prefix+'-nom').value=longTitle;
