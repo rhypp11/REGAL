@@ -213,7 +213,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.keyboard.press('Escape');
       for(const [id,label] of [['label-long','Terminé ailleurs'],['label-old','À faire'],['label-none','Sans statut']]){
         await page.evaluate(id=>openModal(id),id);
-        const badge=page.locator('#f-identity-summary .game-sheet-status');
+        const badge=page.locator('#f-sheet-status .game-sheet-status');
         assert.equal(await badge.innerText(),label,'The sheet repeats the effective card status');
         assert.ok(await badge.evaluate(element=>{
           const bounds=element.getBoundingClientRect();
@@ -222,7 +222,7 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
         await page.locator('#cancel-btn').click();
       }
       await page.evaluate(()=>openModal('label-upgrade'));
-      assert.equal(await page.locator('#f-identity-summary .game-sheet-status').count(),0,'An upgrade has no completion status');
+      assert.equal(await page.locator('#f-sheet-status .game-sheet-status').count(),0,'An upgrade has no completion status');
       await page.locator('#cancel-btn').click();
       assert.deepEqual(errors,[]);
       await context.close();console.log('PASS collection filters',width,theme);

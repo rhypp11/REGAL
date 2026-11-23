@@ -102,7 +102,7 @@
       if(isAddon(child) && physicalIds.has(child.parentId)) child.parentId = null;
     }
     // Opaque archive only: never validate or replay retired journal semantics.
-    const journal = Array.isArray(data.journal) ? JSON.parse(JSON.stringify(data.journal)) : [];
+    const journal = Array.isArray(data.journal) ? detachJournalPurchases(JSON.parse(JSON.stringify(data.journal)),games) : [];
     if(data.platformMeta !== undefined && !isRecord(data.platformMeta)) throw new Error('Métadonnées invalides');
     const platformMeta = Object.create(null);
     for(const [name, meta] of Object.entries(data.platformMeta || {})){
@@ -144,6 +144,24 @@
       data = parsed.data;
     }else data = parsed;
     return normalizeData(data, defaults);
+  }
+  function detachJournalPurchases(journal, games){
+    const owned = new Set(games.filter(game => game.contentType !== 'upgrade').map(game => game.id));
+    let changed = false;
+    const next = journal.map(archive => {
+      if(archive?.regalJournal !== 2 || !Array.isArray(archive.entries)) return archive;
+      let detached = false;
+      const entries = archive.entries.map(entry => {
+        if(!entry || !Object.hasOwn(entry,'collectionId') || owned.has(entry.collectionId)) return entry;
+        const {collectionId,...snapshot} = entry;
+        detached = true;
+        return snapshot;
+      });
+      if(!detached) return archive;
+      changed = true;
+      return {...archive,entries};
+    });
+    return changed ? next : journal;
   }
   function transferItem(source, target, id, draft){
     if(!source.some(item => item.id === id)) throw new Error('Élément introuvable');
@@ -358,7 +376,7 @@
     },data:{journal}};
   }
 
-  const api = {effectivePlatform,createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {detachJournalPurchases,effectivePlatform,createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -722,14 +722,17 @@ function applyRestoredData(data){
 // Cemetery imports write only the boards they actually change.
 window.JTDApplyCemeteryImport = (games, cemetery) => {
   games = [...games,...GAMES.filter(game => JTDData.isDigital(game))];
-  JTDData.assertCloudSize({...buildBackupPayload().data,games,cemetery,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
-  if(IS_PREVIEW_MODE) savePreviewData({games, cemetery});
+  const journal = JTDData.detachJournalPurchases(LEGACY_JOURNAL,games);
+  JTDData.assertCloudSize({...buildBackupPayload().data,games,cemetery,journal,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
+  if(IS_PREVIEW_MODE) savePreviewData({games, cemetery, journal});
   else accountStorage.atomicWrite([
     [STORAGE_KEY, JSON.stringify(games)],
-    [CEMETERY_KEY, JSON.stringify(cemetery)]
+    [CEMETERY_KEY, JSON.stringify(cemetery)],
+    ...(journal === LEGACY_JOURNAL ? [] : [[LEGACY_JOURNAL_KEY, JSON.stringify(journal)]])
   ]);
   GAMES = games;
   CEMETERY = cemetery;
+  LEGACY_JOURNAL = journal;
   buildPlatformList();
   render();
   window.renderCemetery?.();
@@ -788,6 +791,7 @@ function restoreBackup(file){
 function setStatus(id, statusKey){
   const g = GAMES.find(x => x.id === id);
   if(!g || !isPlayablePurchase(g)) return;
+  if(window.getLinkedJournalCompletion?.(id)) return;
   const previousStatus = g.status;
   const nextStatus = (getEffectiveStatus(g) === statusKey) ? null : statusKey;
   const generation = window.JTDAccountGeneration;
@@ -967,6 +971,7 @@ function buildStatusToggles(){
 }
 
 function getEffectiveStatus(g){
+  if(window.getLinkedJournalCompletion?.(g.id)) return 'termine';
   return g.status === 'en_cours' ? 'a_jouer' : g.status;
 }
 
@@ -1108,9 +1113,9 @@ function renderPlatformBanner(cards){
   ].join('');
   const completionStats = [
     stat(playableGames.filter(g => !getEffectiveStatus(g) || getEffectiveStatus(g)==='a_jouer').length,'À faire','a_jouer'),
-    stat(playableGames.filter(g => g.status==='termine' || g.status==='termine_ailleurs').length,'Terminés','termine'),
-    stat(playableGames.filter(g => g.status==='multi').length,'Multi','multi'),
-    stat(playableGames.filter(g => g.status==='abandonne').length,'Abandonnés','abandonne')
+    stat(playableGames.filter(g => ['termine','termine_ailleurs'].includes(getEffectiveStatus(g))).length,'Terminés','termine'),
+    stat(playableGames.filter(g => getEffectiveStatus(g)==='multi').length,'Multi','multi'),
+    stat(playableGames.filter(g => getEffectiveStatus(g)==='abandonne').length,'Abandonnés','abandonne')
   ].join('');
   const statsHtml = `<section class="library-stat-group" aria-labelledby="collection-stats-title">
     <h3 id="collection-stats-title">Collection</h3><div class="library-stat-values library-collection-values">${collectionStats}</div>
@@ -1175,7 +1180,7 @@ function renderCard(g, options = {}){
     </button>`).join('');
 
   const statusBadgeHtml = `<div class="card-status-control">
-      <button type="button" class="card-status-badge" style="--status-color:${statusColor};--status-fill:${statusFill};" title="${statusTitle}" aria-label="Statut : ${statusTitle}" aria-expanded="false">
+      <button type="button" class="card-status-badge" style="--status-color:${statusColor};--status-fill:${statusFill};" title="${statusTitle}" aria-label="Statut : ${statusTitle}${window.getLinkedJournalCompletion?.(g.id) ? ' · Journal' : ''}" aria-expanded="false">
         <span class="card-status-face">${statusIcon}<span class="card-status-label">${activeStatus ? activeStatus.label : 'Statut'}</span></span>
       </button>
       <div class="card-status-menu hidden">${statusMenu}</div>
@@ -1237,6 +1242,7 @@ function renderCard(g, options = {}){
   const menu = card.querySelector('.card-status-menu');
   badge.addEventListener('click', (e) => {
     e.stopPropagation();
+    if(window.getLinkedJournalCompletion?.(g.id)){openModal(g.id);return;}
     const willOpen = menu.classList.contains('hidden');
     closeCardStatusMenus();
     menu.classList.toggle('hidden', !willOpen);
@@ -1671,13 +1677,15 @@ function commitBoardTransfer(from, to, id, draft){
   const keys = {games:STORAGE_KEY, arrivals:ARRIVALS_KEY, wishlist:WISHLIST_KEY, cemetery:CEMETERY_KEY};
   try {
     const moved = JTDData.transferItem(lists[from], lists[to], id, draft);
-    // Both local lists succeed before either list is replaced in memory.
-    if(IS_PREVIEW_MODE) savePreviewData({...lists, [from]:moved.source, [to]:moved.target});
-    else accountStorage.atomicWrite([
-      [keys[from], JSON.stringify(moved.source)], [keys[to], JSON.stringify(moved.target)]
-    ]);
     lists[from] = moved.source; lists[to] = moved.target;
+    const journal = from === 'games' ? JTDData.detachJournalPurchases(LEGACY_JOURNAL,lists.games) : LEGACY_JOURNAL;
+    if(IS_PREVIEW_MODE) savePreviewData({...lists,journal});
+    else accountStorage.atomicWrite([
+      [keys[from], JSON.stringify(moved.source)], [keys[to], JSON.stringify(moved.target)],
+      ...(journal === LEGACY_JOURNAL ? [] : [[LEGACY_JOURNAL_KEY, JSON.stringify(journal)]])
+    ]);
     GAMES = lists.games; ARRIVALS = lists.arrivals; WISHLIST = lists.wishlist; CEMETERY = lists.cemetery;
+    LEGACY_JOURNAL = journal;
     if(window.JTDDataChanged) window.JTDDataChanged();
     return moved.target.at(-1);
   } catch(error) {
@@ -1787,15 +1795,7 @@ function openModal(id, collection = 'games'){
   document.getElementById('f-edition-options').open = false;
   openDigitalFields(identityItem);
   setIdentityEditor('f', identityItem && editingCollection==='games' ? {...identityItem,plateforme:JTDData.effectivePlatform(identityItem,GAMES)} : identityItem, !!editingId);
-  if(identityItem && editingCollection==='games' && identityItem.contentType!=='upgrade'){
-    const status=STATUS_OPTIONS.find(option=>option.key===getEffectiveStatus(identityItem));
-    const badge=document.createElement('span');
-    badge.className='game-sheet-status';
-    badge.style.setProperty('--status-color',status?.color||'var(--ui-text-muted)');
-    badge.style.setProperty('--status-fill',status?.fill||'var(--ui-border)');
-    badge.innerHTML=(status?.icon||'')+escapeHTML(status?.label||'Sans statut');
-    document.querySelector('#f-identity-summary .identity-copy > span').appendChild(badge);
-  }
+  renderGameSheetStatus(editingCollection === 'games' ? identityItem : null);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
   setGameSheetViewing(!!editingId && editingCollection === 'games');
@@ -1815,6 +1815,7 @@ function closeModal(){
   editingCollection = 'games';
   convertingArrivalId = null; // annuler = l'arrivage reste où il était
   document.getElementById('f-content-details').replaceChildren();
+  renderGameSheetStatus(null);
 }
 
 function updateImagePreview(){
@@ -1917,9 +1918,9 @@ function renderHomeStats(){
   const breakdown=document.getElementById('home-status-breakdown');
   if(breakdown) breakdown.innerHTML = [['physical','Physique'],['digital','Numérique']].map(([format,label])=>{
     const playable=GAMES.filter(game=>isPlayablePurchase(game) && JTDData.isDigital(game)===(format==='digital'));
-    const finished=playable.filter(game=>['termine','termine_ailleurs'].includes(game.status)).length;
-    const multi=playable.filter(game=>game.status==='multi').length;
-    const abandoned=playable.filter(game=>game.status==='abandonne').length;
+    const finished=playable.filter(game=>['termine','termine_ailleurs'].includes(getEffectiveStatus(game))).length;
+    const multi=playable.filter(game=>getEffectiveStatus(game)==='multi').length;
+    const abandoned=playable.filter(game=>getEffectiveStatus(game)==='abandonne').length;
     const todo=playable.length-finished-multi-abandoned;
     const dropped=playable.length?abandoned/playable.length*100:0;
     const done=playable.length?finished/playable.length*100:0;

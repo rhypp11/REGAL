@@ -87,7 +87,7 @@ async function openFilters(page){
       assert.equal(await page.evaluate(()=>GAMES.find(g=>g.nom==='Mise à niveau Switch 2').parentId),'switch-base');
       await page.locator('[data-dialog-trigger="game:switch-base"] .card-name').click();
       await page.locator('#f-content-details .content-type-upgrade').click();
-      assert.ok((await page.locator('#f-content-details').innerText()).includes('Jeu de base'));
+      assert.ok((await page.locator('#f-content-details').innerText()).includes('Fait partie de'));
       assert.equal(await page.locator('#f-content-details .content-related-thumb').count(),1);
       await page.locator('#cancel-btn').click();
       // Content filters reveal attached DLC, persist, and stay specific to digital views.

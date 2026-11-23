@@ -24,6 +24,21 @@
     if(active && !Array.isArray(active.entries)) return [];
     return active?.entries ?? (IS_PREVIEW_MODE ? previewEntries : []);
   }
+  const linkedPurchase = entry => entry.collectionId && GAMES.find(game => game.id === entry.collectionId && game.contentType !== 'upgrade');
+  let indexedArchive, completionsByPurchase;
+  window.getLinkedJournalCompletion = id => {
+    if(!completionsByPurchase || indexedArchive !== LEGACY_JOURNAL){
+      indexedArchive = LEGACY_JOURNAL;
+      completionsByPurchase = new Map();
+      for(const entry of records()){
+        if(entry?.group !== 'completed' || !entry.collectionId || !validDay(entry.date)) continue;
+        const earlier = completionsByPurchase.get(entry.collectionId);
+        if(!earlier || earlier.date <= entry.date) completionsByPurchase.set(entry.collectionId,entry);
+      }
+    }
+    const entry = completionsByPurchase.get(id);
+    return entry && {id:entry.id,date:dateLabel(entry),result:completions[entry.completion] || completions.finished};
+  };
   window.getJournalExportEntries=()=>records();
   window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit,date:entry.date}));
   const searchLocations={completed:'Terminé',playing:'En cours',backlog:'À faire',release:'Sorties'};
@@ -42,6 +57,7 @@
     if(IS_PREVIEW_MODE) savePreviewData({journal});
     else accountStorage.atomicWrite([[LEGACY_JOURNAL_KEY,JSON.stringify(journal)]]);
     LEGACY_JOURNAL = journal;
+    if(navigationPage === 'collection') window.render();
     window.JTDDataChanged?.();
   }
   function dateLabel(entry,short=false){
@@ -79,6 +95,7 @@
   }
   function rowTags(entry){
     const tags=[];
+    if(linkedPurchase(entry)) tags.push(['Collection','']);
     if(formats[entry.format]) tags.push([formats[entry.format],'']);
     if(modes[entry.mode]) tags.push([modes[entry.mode],'']);
     if(accessLabel(entry)) tags.push([accessLabel(entry),accessIcons[entry.access]]);
@@ -100,6 +117,7 @@
     return '<button type="button" class="journal-row'+(done?' journal-completion-row':tracked?' journal-release-row':'')+'" data-journal-entry="'+esc(entry.id)+'"'+(['playing','backlog'].includes(entry.group)?' draggable="true" title="Glisser pour déplacer le jeu"':'')+'>'+
       (scheduled?day(entry):'')+
       gameThumb(entry)+'<span class="journal-title"><strong>'+esc(entry.name)+'</strong>'+(!done?platform:'')+
+      (!done&&linkedPurchase(entry)?'<small class="journal-tag">Collection</small>':'')+
       (tracked&&!scheduled?'<small class="journal-release-date">'+esc(dateLabel(entry))+'</small>':'')+'</span>'+
       (done?'<span class="journal-row-meta">'+platform+status+'</span>'+rowTags(entry):'')+'</button>';
   }
@@ -258,7 +276,8 @@
     const date=entry.date ?? (done?today():'');
     const existing=records().some(record=>record?.id===entry.id);
     const generation=window.JTDAccountGeneration;
-    const sources=release?WISHLIST:GAMES;
+    const sources=release?WISHLIST:GAMES.filter(game=>game.contentType!=='upgrade');
+    let collectionId=linkedPurchase(entry)?.id;
     const identityOnly=section==='identity', commentOnly=section==='comment', completionOnly=section==='completion'||section==='release';
     const chooseSource=!existing||identityOnly;
     const platforms=[...new Set([...allPlatformNames(),'PC',entry.platform].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
@@ -371,6 +390,7 @@
           (query&&!choices.length?'<p class="journal-empty">Aucun jeu trouvé.</p>':'');
       };
       const mode=()=>{
+        if(elements.origin.value==='manual') collectionId=undefined;
         sourcePending=elements.origin.value==='collection';
         picker.classList.toggle('hidden',!sourcePending);
         manual.classList.toggle('hidden',sourcePending);
@@ -388,6 +408,7 @@
         const item=choice&&sources.find(game=>game.id===choice.dataset.journalSource);
         if(!item) return;
         sourcePending=false;
+        if(!release) collectionId=item.id;
         elements.name.value=item.nom;
         if(![...elements.platform.options].some(option=>option.value===item.plateforme)) elements.platform.add(new Option(item.plateforme,item.plateforme));
         setSelectValueAndSync('journal-platform',item.plateforme);
@@ -469,6 +490,7 @@
         const releaseDate=release?(getFlexibleDate('journal-release')||(!releaseDateChanged?date:'')||'TBD'):'';
         if(release&&releaseDate!=='TBD'&&!/^\d{4}(?:-(?:0[1-9]|1[0-2]))?$/.test(releaseDate)&&!validDay(releaseDate)) throw Error('Indique une année ou une date valide.');
         const next={...readGame(),id:entry.id||crypto.randomUUID(),group:value('group')||group};
+        if(collectionId && linkedPurchase({collectionId})) next.collectionId=collectionId;
         if(entry.importKey) next.importKey=entry.importKey;
         if(done) next.date=completionDate;
         if(release) next.date=releaseDate;
@@ -511,6 +533,15 @@
         editButton('journal-edit-comment','Modifier le commentaire')+'</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),{canDelete:true});
     $('journal-dialog-body').querySelector('.identity-edit-btn').onclick=()=>edit(entry,false,'identity');
     if(entry.group==='release') $('journal-edit-release').onclick=()=>edit(entry,false,'release');
+    const purchase = linkedPurchase(entry);
+    if(purchase){
+      const link=document.createElement('button');
+      link.type='button';
+      link.className='manage-link';
+      link.textContent='Voir dans la collection';
+      link.onclick=()=>{close();openModal(purchase.id);};
+      $('journal-dialog-body').firstElementChild.appendChild(link);
+    }
     if(done){
       $('journal-edit-completion').onclick=()=>edit(entry,false,'completion');
       $('journal-edit-comment').onclick=()=>edit(entry,false,'comment');
