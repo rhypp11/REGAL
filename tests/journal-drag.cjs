@@ -28,7 +28,7 @@ const server=createSandboxServer();
   await row('drag-backlog').click();
   assert.equal(await page.locator('.journal-detail-identity .sheet-identity-card strong').innerText(),'Jeu à faire fictif');
   await page.locator('#journal-detail-actions summary').click();
-  assert.ok(await page.getByRole('button',{name:'Ajouter une complétion',exact:true}).isVisible());
+  assert.ok(await page.locator('#journal-detail-actions').getByRole('button',{name:'Ajouter une complétion',exact:true}).isVisible());
   await page.locator('#journal-close').click();
   await row('drag-backlog').dragTo(zone('playing'));
   await page.waitForFunction(()=>LEGACY_JOURNAL[0].entries.find(x=>x.id==='drag-backlog').group==='playing');
