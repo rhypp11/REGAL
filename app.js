@@ -722,7 +722,7 @@ function applyRestoredData(data){
 // Cemetery imports write only the boards they actually change.
 window.JTDApplyCemeteryImport = (games, cemetery) => {
   games = [...games,...GAMES.filter(game => JTDData.isDigital(game))];
-  const journal = JTDData.detachJournalPurchases(LEGACY_JOURNAL,games);
+  const journal = JTDData.detachJournalPurchases(LEGACY_JOURNAL,games,GAMES);
   JTDData.assertCloudSize({...buildBackupPayload().data,games,cemetery,journal,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
   if(IS_PREVIEW_MODE) savePreviewData({games, cemetery, journal});
   else accountStorage.atomicWrite([
@@ -1774,7 +1774,7 @@ function commitBoardTransfer(from, to, id, draft){
   try {
     const moved = JTDData.transferItem(lists[from], lists[to], id, draft);
     lists[from] = moved.source; lists[to] = moved.target;
-    const journal = from === 'games' ? JTDData.detachJournalPurchases(LEGACY_JOURNAL,lists.games) : LEGACY_JOURNAL;
+    const journal = from === 'games' ? JTDData.detachJournalPurchases(LEGACY_JOURNAL,lists.games,GAMES) : LEGACY_JOURNAL;
     if(IS_PREVIEW_MODE) savePreviewData({...lists,journal});
     else accountStorage.atomicWrite([
       [keys[from], JSON.stringify(moved.source)], [keys[to], JSON.stringify(moved.target)],

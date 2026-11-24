@@ -147,7 +147,22 @@
     }else data = parsed;
     return normalizeData(data, defaults);
   }
-  function detachJournalPurchases(journal, games){
+  function journalPurchaseIdentity(entry, game){
+    if(!game || game.contentType==='upgrade') return entry;
+    const image = safeURL(game.image,true);
+    const squareImage = safeURL(game.squareImage,true);
+    const artwork = image || squareImage ? {image,squareImage,imageFit:game.imageFit || 'contain'} : {};
+    return {
+      ...entry,
+      name:game.nom,
+      platform:game.plateforme,
+      format:isAddon(game)?'extension':isDigital(game)?'digital':'physical',
+      ...artwork,
+      nintendoTitleId:game.nintendoTitleId || null
+    };
+  }
+  function detachJournalPurchases(journal, games, previousGames = []){
+    const previous = new Map(previousGames.map(game=>[game.id,game]));
     const owned = new Set(games.filter(game => game.contentType !== 'upgrade').map(game => game.id));
     let changed = false;
     const next = journal.map(archive => {
@@ -157,7 +172,7 @@
         if(!entry || !Object.hasOwn(entry,'collectionId') || owned.has(entry.collectionId)) return entry;
         const {collectionId,...snapshot} = entry;
         detached = true;
-        return snapshot;
+        return journalPurchaseIdentity(snapshot,previous.get(collectionId));
       });
       if(!detached) return archive;
       changed = true;
@@ -378,7 +393,7 @@
     },data:{journal}};
   }
 
-  const api = {detachJournalPurchases,effectivePlatform,createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  const api = {journalPurchaseIdentity,detachJournalPurchases,effectivePlatform,createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
