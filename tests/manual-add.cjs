@@ -157,6 +157,24 @@ async function checkJournalSources(page){
 
 
 async function checkNintendoArtwork(page){
+  const switch2Titles=[
+    ['Star Fox','0400E88025B1A000'],
+    ['Splatoon Raiders','0400380020056000']
+  ];
+  for(const [title,titleId] of switch2Titles){
+    await page.evaluate(()=>{goToPage('collection');openModal(null);});
+    await page.selectOption('#f-plateforme','Switch 2');
+    await page.locator('#f-nom').fill(title);
+    await page.locator('#f-eshop-results button').filter({hasText:title}).first().click();
+    assert.equal(await page.locator('#f-nom').inputValue(),title);
+    assert.equal(await page.locator('#f-plateforme').inputValue(),'Switch 2');
+    assert.equal(await page.locator('#f-nintendo-id').inputValue(),titleId);
+    assert.match(await page.locator('#f-image').inputValue(),/\/16x9_/);
+    assert.match(await page.locator('#f-square-image').inputValue(),/\/1x1_/);
+    await page.locator('#save-btn').click();
+    await page.locator('#cancel-btn').click();
+  }
+
   await page.evaluate(()=>{goToPage('collection');openModal(null);});
   await page.selectOption('#f-plateforme','Switch 2');
   await page.locator('#f-nom').fill('Donkey Kong Ban');

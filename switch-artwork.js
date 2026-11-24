@@ -2,7 +2,11 @@
 const switchArtworkMarket = (() => {
   const base = new URL('switch-catalog/', document.currentScript.src);
   const build = document.querySelector('meta[name="regal-build"]')?.content || '';
-  const imageUrl = hash => hash ? 'https://img-eshop.cdn.nintendo.net/i/'+hash+'.jpg' : '';
+  const imageUrl = value => {
+    if (/^[a-f0-9]{64}$/i.test(value)) return 'https://img-eshop.cdn.nintendo.net/i/'+value+'.jpg';
+    if (/^https:\/\/www\.nintendo\.com\/eu\/media\/images\/assets\/[^?#]+\.jpg$/i.test(value)) return value;
+    return '';
+  };
   let pending;
   function load(){
     if(!pending){
@@ -14,8 +18,13 @@ const switchArtworkMarket = (() => {
         return response.json();
       };
       pending=get('manifest.json')
-        .then(files=>Promise.all(files.map(get)))
-        .then(parts=>parts.flat().map(([id,name,icon,banner])=>({
+        .then(files=>Promise.all([...files.map(get),get('switch2-fr.json')]))
+        .then(parts=>{
+          const additions=parts.pop();
+          const ids=new Set(additions.map(([id])=>id));
+          return [...parts.flat().filter(([id])=>!ids.has(id)),...additions];
+        })
+        .then(rows=>rows.map(([id,name,icon,banner])=>({
           id,name,square:imageUrl(icon),banner:imageUrl(banner),
           key:JTDData.foldImport(name), platform:id.startsWith('04')?'Switch 2':'Switch'
         })))
