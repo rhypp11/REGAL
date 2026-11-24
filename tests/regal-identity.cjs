@@ -30,12 +30,12 @@ const server=createSandboxServer();
     if(name==='import')await page.locator('#cemetery-import-input').setInputFiles({name:'regal-test.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify([{nom:'Vente fictive REGAL',plateforme:'Nintendo Switch',saleStatus:'pending'}]))});
     const state=await page.evaluate(()=>{
      const logo=document.querySelector('.regal-logo');const rect=logo.getBoundingClientRect();
-     return {preview:window.JTD_PREVIEW_MODE,overflow:document.documentElement.scrollWidth>innerWidth,canvas:getComputedStyle(document.body).backgroundColor,header:getComputedStyle(document.querySelector('.topnav')).backgroundColor,logo:logo.complete&&logo.naturalWidth>0,logoSource:logo.currentSrc,logoRight:rect.right,searchButtonLeft:document.getElementById('global-search-open').getBoundingClientRect().left,title:document.title};
+     return {preview:window.JTD_PREVIEW_MODE,overflow:document.documentElement.scrollWidth>innerWidth,canvas:getComputedStyle(document.body).backgroundColor,header:getComputedStyle(document.querySelector('.topnav')).backgroundColor,headerImage:getComputedStyle(document.querySelector('.topnav')).backgroundImage,accent:getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(),logo:logo.complete&&logo.naturalWidth>0,logoSource:logo.currentSrc,logoRight:rect.right,searchButtonLeft:document.getElementById('global-search-open').getBoundingClientRect().left,title:document.title};
     });
     assert.equal(state.preview,true);assert.equal(state.overflow,false,`${width} ${theme} ${name} overflow`);
     assert.equal(state.canvas,'rgb(21, 22, 24)');
     assert.ok(state.logoSource.includes(width<=360?'logo-regal-mark.svg':'brand-header.svg'),'Compact screens keep only the current logo mark');
-    assert.equal(state.header,'rgb(16, 16, 16)');assert.equal(state.logo,true);assert.ok(state.logoRight<=state.searchButtonLeft);assert.match(state.title,/^REGAL \|/);
+    assert.equal(state.header,'rgb(16, 16, 16)');assert.equal(state.headerImage,'none');assert.equal(state.accent,'#e4939b');assert.equal(state.logo,true);assert.ok(state.logoRight<=state.searchButtonLeft);assert.match(state.title,/^REGAL \|/);
     await page.screenshot({path:path.join(os.tmpdir(),`jtd-regal-${width}-${theme}-${name}.png`),fullPage:true});
    }
    const branding=await page.evaluate(async()=>{
