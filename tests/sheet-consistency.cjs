@@ -52,7 +52,7 @@ const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
     }else if(scene==='backlog'||scene==='release'){
      await page.locator('[data-journal-tab="'+scene+'"]').click();
      await page.locator('#journal-'+scene+' .journal-row').click();
-     if(scene==='release'){await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
+     {await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
     }
     const overlay=page.locator('.sheet-dialog:not(.hidden)');
     const labels=await overlay.locator('.field > label:visible').evaluateAll(elements=>elements.map(element=>({

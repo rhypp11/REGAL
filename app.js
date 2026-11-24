@@ -1603,7 +1603,7 @@ function setIdentityEditor(prefix, item, compact){
   const showSummary = !!compact;
   summary.classList.toggle('hidden', !showSummary);
   editor.classList.toggle('hidden', showSummary);
-  if(item) summary.innerHTML = identitySummaryHtml(item);
+  if(item) summary.innerHTML = identitySummaryHtml(item,'',prefix==='a' || prefix==='w');
   if(prefix === 'f'){
     const game = editingCollection === 'games' && editingId && !convertingArrivalId ? item : null;
     const hero = document.getElementById('f-edit-hero');
@@ -2082,6 +2082,24 @@ function calendarGroupHtml(label, year, color, loose = false){
   </div>`;
 }
 
+function openBoardSheetFields(prefix){
+  document.querySelector('#'+prefix+'-context-summary .context-edit-btn')?.click();
+  document.querySelector('#'+prefix+'-identity-summary .identity-edit-btn')?.click();
+  document.getElementById(prefix+'-game-heading').classList.add('hidden');
+}
+function boardSheetActions(prefix, item){
+  const slot = document.getElementById(prefix+'-sheet-actions');
+  slot.replaceChildren();
+  document.getElementById(prefix+'-game-heading').classList.toggle('hidden',!item);
+  if(!item) return;
+  const arrival = prefix==='a';
+  slot.append(sheetActions([
+    ['Modifier la fiche', () => openBoardSheetFields(prefix), prefix+'-edit-sheet', 'edit'],
+    [arrival?'Réceptionner':'Commander', () => document.getElementById(arrival?'a-received-btn':'w-order-btn').click(), null, 'transfer'],
+    ['Supprimer', () => document.getElementById(prefix+'-delete-btn').click(), null, 'delete']
+  ]));
+}
+
 function mountBoardRowActions(row, id, label, kind){
   const arrival = kind === 'arrival';
   const prefix = arrival ? 'a' : 'w';
@@ -2095,8 +2113,7 @@ function mountBoardRowActions(row, id, label, kind){
   const menu = sheetActions([
     ['Modifier la fiche', () => {
       open();
-      document.querySelector('#'+prefix+'-context-summary .context-edit-btn').click();
-      document.querySelector('#'+prefix+'-identity-summary .identity-edit-btn').click();
+      openBoardSheetFields(prefix);
     }, null, 'edit'],
     [arrival ? 'Réceptionner' : 'Commander', () => run(arrival ? '#a-received-btn' : '#w-order-btn'), null, 'transfer'],
     ['Supprimer', () => run('#'+prefix+'-delete-btn'), null, 'delete']
@@ -2484,6 +2501,7 @@ function openArrivalModal(id){
   }
   setIdentityEditor('a', identityItem, !!editingArrivalId);
   setContextEditor('a', identityItem, 'arrival', !!editingArrivalId);
+  boardSheetActions('a',identityItem);
   openBoardEditor('arrival-modal-overlay', 'a', closeArrivalModal);
   if(!editingArrivalId) document.getElementById('a-nom').focus();
 }
@@ -2636,6 +2654,7 @@ function openWishlistModal(id){
   }
   setIdentityEditor('w', identityItem, !!editingWishlistId);
   setContextEditor('w', identityItem, 'wishlist', !!editingWishlistId);
+  boardSheetActions('w',identityItem);
   openBoardEditor('wishlist-modal-overlay', 'w', closeWishlistModal);
   if(!editingWishlistId) document.getElementById('w-nom').focus();
 }
@@ -2703,6 +2722,7 @@ function moveWishlistToArrivals(id, draft){
   fillIdentityFields('a', item);
 
   document.getElementById('arrival-modal-title').textContent = 'Confirmer la commande';
+  boardSheetActions('a',null);
   document.getElementById('a-delete-btn').classList.add('hidden');
   document.getElementById('a-received-btn').classList.add('hidden');
   document.getElementById('a-save-btn').textContent = 'Confirmer la commande';
@@ -2724,6 +2744,7 @@ function moveArrivalToWishlist(id){
   fillIdentityFields('w', item);
 
   document.getElementById('wishlist-modal-title').textContent = 'Remettre en wishlist';
+  boardSheetActions('w',null);
   document.getElementById('w-save-btn').textContent = 'Remettre en wishlist';
   document.getElementById('w-delete-btn').classList.add('hidden');
   document.getElementById('w-order-btn').classList.add('hidden');

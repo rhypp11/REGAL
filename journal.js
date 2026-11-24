@@ -216,6 +216,22 @@
       const list = entries.filter(entry=>entry?.group===group);
       if(group==='release') list.sort((a,b)=>releaseSortKey(a).localeCompare(releaseSortKey(b)));
       $('journal-'+group).innerHTML = (group==='release'?calendar(list,releaseGroup):list.map(row).join('')) || '<p class="journal-empty">Aucun jeu.</p>';
+      if(group!=='release'){
+        const byId=new Map(list.map(entry=>[entry.id,entry]));
+        for(const button of $('journal-'+group).querySelectorAll('.journal-row')){
+          const entry=byId.get(button.dataset.journalEntry);
+          const wrapper=document.createElement('div');
+          wrapper.className='journal-queue-row';
+          button.before(wrapper);
+          const menu=sheetActions([
+            ['Modifier la fiche', () => edit(entry,false,'full'), null, 'edit'],
+            ['Ajouter une complétion', () => edit({...entry,group:'completed'},true), null, 'transfer'],
+            ['Supprimer', () => {detail(entry);$('journal-delete').click();}, null, 'delete']
+          ]);
+          menu.querySelector('summary').setAttribute('aria-label','Actions pour '+entry.name);
+          wrapper.append(button,menu);
+        }
+      }
     }
   }
   window.renderJournal = render;
@@ -239,7 +255,7 @@
   };
   window.refreshJournal = () => { if(!$('journal-overlay').classList.contains('hidden')) close(); render(); };
   function identityCard(entry,editable=false,preferSquare=true){
-    return '<div class="game-identity-summary'+(editable?'':' journal-identity-read')+'">'+
+    return '<div class="game-identity-summary sheet-identity-card'+(editable?'':' journal-identity-read')+'">'+
       identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),squareImage:entry.squareImage,imageFit:entry.imageFit},
         entry.group==='release'?'':formats[entry.format]||'',preferSquare)+'</div>';
   }
@@ -528,14 +544,16 @@
     entry=withPurchaseIdentity(entry);
     const done=entry.group==='completed';
     const generation=window.JTDAccountGeneration;
-    if(['playing','backlog'].includes(entry.group)){ edit(entry); return; }
+    const queued=['playing','backlog'].includes(entry.group);
+    const sectionTitle=done?'Complétion':queued?'Suivi':'Sortie';
     show('Journal',
-      '<section class="form-section journal-detail-identity">'+
+      '<section class="form-section journal-detail-identity"><h3 class="sheet-section-title">Jeu</h3>'+
       identityCard(entry)+'</section>'+
-      '<section class="form-section journal-detail-section"><div class="journal-section-heading"><h3 class="form-section-title">'+(done?'Complétion':'Sortie')+'</h3>'+
+      '<section class="form-section journal-detail-section"><div class="journal-section-heading"><h3 class="sheet-section-title">'+sectionTitle+'</h3>'+
       (done?completionBadge(entry.completion):'')+'</div>'+
-      '<dl class="journal-context-fields'+(done?' journal-context-fields-completion':'')+'">'+
-      contextField(done?'Date de complétion':'Sortie','<span class="journal-context-date"'+(entry.estimated?' aria-label="Date approximative"':'')+'>'+calendarIcon+esc(dateLabel(entry))+'</span>')+
+      '<dl class="journal-context-fields sheet-summary-card'+(done?' journal-context-fields-completion':'')+'">'+
+      (queued?contextField('Statut',entry.group==='playing'?'En cours':'À faire'):
+        contextField(done?'Date de complétion':'Date de sortie','<span class="journal-context-date"'+(entry.estimated?' aria-label="Date approximative"':'')+'>'+calendarIcon+esc(dateLabel(entry))+'</span>'))+
       (done?contextField('Mode de jeu',esc(modes[entry.mode]||'—')):'')+
       contextField('Précision',esc(entry.precision||'—'), 'journal-context-precision')+'</dl>'+
       (done&&(entry.replayed||accessLabel(entry))?'<div class="journal-context-flags">'+
@@ -547,6 +565,7 @@
       (done && entry.comment?'<section class="form-section journal-detail-section journal-comment-section"><div class="journal-section-heading"><h3 class="form-section-title">Commentaire</h3>'+
         '</div><p class="journal-comment">'+esc(entry.comment)+'</p></section>':''),{canDelete:true});
     const actions = [['Modifier la fiche', () => edit(entry,false,'full'), 'journal-detail-edit', 'edit']];
+    if(queued) actions.push(['Ajouter une complétion', () => edit({...entry,group:'completed'},true), null, 'transfer']);
     const purchase = linkedPurchase(entry);
     if(purchase){
       actions.push(['Délier de la collection', () => {
@@ -576,7 +595,7 @@
       link.onclick=()=>{close();openModal(purchase.id);};
       $('journal-dialog-body').querySelector('.journal-detail-identity .identity-copy').after(link);
     }
-    if(done && !purchase){
+    if((done || queued) && !purchase){
       const link=document.createElement('button');
       link.type='button';
       link.className='manage-link journal-collection-link';

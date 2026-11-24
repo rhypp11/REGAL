@@ -46,7 +46,7 @@ const fixture = {games:[],arrivals:[],wishlist:[
    assert.equal(await page.locator('#f-identity-editor').isVisible(),false);assert.equal(await page.locator('#f-context-editor').isVisible(),false);
    await page.locator('#cancel-btn').click();assert.equal(await page.evaluate(()=>ARRIVALS.length),1);assert.equal(await page.evaluate(()=>GAMES.length),0);
    await page.locator('#arrivals-rows [data-id="wish-year"]').click();
-   await page.locator('#a-context-summary .context-edit-btn').click();
+   await page.locator('#a-sheet-actions summary').click();await page.locator('#a-edit-sheet').click();
    await page.locator('#a-prix').fill('45,90');
    await page.locator('#a-received-btn').click();
    await page.locator('#confirm-modal-cancel-btn').click();
@@ -70,7 +70,7 @@ const fixture = {games:[],arrivals:[],wishlist:[
    await page.evaluate(()=>setHomeBoard('wishlist'));assert.equal(await page.locator('[data-id="wish-past"] .board-link').getAttribute('href'),'https://example.com/game');
    await page.locator('[data-id="wish-past"]').click();await page.locator('#w-order-btn').click();assert.equal(await page.locator('#a-date').inputValue(),'');await page.locator('#a-cancel-btn').click();
    await page.evaluate(()=>openWishlistModal('wish-past'));
-   await page.locator('#w-identity-summary .identity-edit-btn').click();
+   await page.locator('#w-sheet-actions summary').click();await page.locator('#w-edit-sheet').click();
    await page.locator('#w-nom').fill('Titre modifié');
    await page.keyboard.press('Escape');
    await page.locator('#confirm-modal-cancel-btn').click();
