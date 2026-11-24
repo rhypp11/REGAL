@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_23.11.26-6">
-<meta name="regal-pull-request" content="113">
-<meta name="regal-build" content="e82a76be372a52c18c24bddc">
+<meta name="regal-version" content="3_24.11.26-10">
+<meta name="regal-pull-request" content="116">
+<meta name="regal-build" content="01036ccf4eb06f1d6b6269f0">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=2">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=2">
 <link rel="manifest" href="manifest.json">
@@ -127,6 +127,7 @@
           </label>
           </section>
           <section class="profile-group" id="profile-share-group"><h3>Export</h3>
+          <button type="button" class="profile-menu-item" id="switch-artwork-open">Compléter les visuels Switch</button>
           <button class="profile-menu-item" id="collection-export-btn">
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Export JSON collection</span></span>
           </button>
@@ -436,6 +437,9 @@
     <div class="form-section game-sheet-section">
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
       <div class="game-identity-editor" id="f-identity-editor">
+        <div id="f-edit-hero"></div>
+        <h3 class="form-section-title">Jeu</h3>
+        <div class="field-row collection-identity-fields">
       <div class="field">
         <label for="f-nom">Nom du jeu</label>
         <input type="text" id="f-nom" aria-required="true" placeholder="ex. Hollow Knight">
@@ -444,8 +448,9 @@
           <label for="f-plateforme">Plateforme</label>
           <select id="f-plateforme" aria-required="true"></select>
       </div>
+        </div>
       <details id="f-image-options" class="purchase-options">
-        <summary>Image du jeu</summary>
+        <summary>Visuels du jeu</summary>
       <div class="image-url-row">
         <div class="field"><label for="f-image">Image du jeu <span class="optional-label">optionnel</span></label><input type="url" id="f-image" placeholder="https://…"></div>
         <div class="image-preview image-preview-compact" id="image-preview"><span>Aperçu</span></div>
@@ -456,15 +461,17 @@
       </div>
     </div>
 
-    <div id="f-quick-hide-fields" class="form-section game-sheet-section" aria-labelledby="game-sheet-purchase-title">
+    <section id="f-quick-hide-fields" class="form-section game-sheet-section" aria-labelledby="game-sheet-purchase-title">
       <div id="f-media-section">
-      <div class="purchase-format-heading" id="game-sheet-purchase-title">
-        <span id="f-format-title">Physique</span>
+      <h3 class="form-section-title collection-purchase-heading" id="game-sheet-purchase-title">Achat</h3>
+      <div class="purchase-format-heading">
+        <span id="f-editor-format-title">Physique</span>
         <div id="f-media-field"><select id="f-media" class="hidden" tabindex="-1" aria-label="Format de l’achat"><option value="physical">Physique</option><option value="digital">Numérique</option></select><div class="purchase-format-options" role="radiogroup" aria-label="Format de l’achat"><label><input type="radio" name="f-media-choice" value="physical"><span class="purchase-format-icon" data-format-icon="physical" aria-hidden="true"></span><span>Physique</span></label><label><input type="radio" name="f-media-choice" value="digital"><span class="purchase-format-icon" data-format-icon="digital" aria-hidden="true"></span><span>Numérique</span></label></div></div>
       </div>
       <div class="context-summary hidden" id="f-context-summary"></div>
       <div class="context-editor" id="f-context-editor">
-        <div class="field hidden" id="f-content-type-field"><label for="f-content-type">Type de contenu</label><select id="f-content-type"><option value="game">Jeu complet</option><option value="dlc">Contenu téléchargeable (DLC)</option><option value="upgrade">Mise à niveau</option></select></div>
+        <div id="f-edit-purchase-art"></div>
+        <input type="hidden" id="f-content-type" value="game">
       <div id="f-digital-fields" class="hidden">
         <div class="field hidden" id="f-content-status-field"><label for="f-content-status">Statut du DLC</label><select id="f-content-status"></select></div>
         <div id="f-parent-field" class="hidden">
@@ -524,20 +531,32 @@
       <p id="f-purchase-change-note" class="content-parent-note hidden" role="status"></p>
  </div>
       </div>
-    </div>
+    </section>
     <div id="f-content-details"></div>
     <section id="f-sheet-status"></section>
     </div>
     <div class="modal-actions modal-edit-actions">
-      <div class="modal-secondary-actions">
-
-      <button type="button" class="btn btn-ghost hidden" data-modal-action="context" id="f-sell-btn">Mettre en vente</button>
-      </div>
       <div class="modal-primary-actions">
       <button class="btn btn-danger hidden" data-modal-action="delete" id="delete-btn">Supprimer</button>
       <button class="btn btn-ghost" data-modal-action="cancel" id="cancel-btn">Annuler</button>
       <button class="btn btn-primary" data-modal-action="save" id="save-btn">Enregistrer</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay sheet-dialog hidden" id="collection-content-overlay" role="dialog" aria-modal="true" aria-labelledby="collection-content-title">
+  <div class="modal">
+    <h2 id="collection-content-title"></h2>
+    <div class="field">
+      <label for="collection-content-search">Rattacher un contenu de la collection</label>
+      <input type="search" id="collection-content-search" placeholder="Rechercher par titre…" autocomplete="off" aria-controls="collection-content-results">
+    </div>
+    <div id="collection-content-results" class="parent-search-results"></div>
+    <p id="collection-content-empty" class="content-parent-note" role="status"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="collection-content-cancel">Annuler</button>
+      <button type="button" class="btn btn-primary" id="collection-content-create"></button>
     </div>
   </div>
 </div>
@@ -711,7 +730,7 @@
 <div class="modal-overlay sheet-dialog hidden" id="dex-editor-overlay" role="dialog" aria-modal="true" aria-labelledby="dex-editor-title"><div class="modal dex-editor-modal"><h2 id="dex-editor-title">Créer un Pokédex</h2><form id="dex-create"><div id="dex-picker"><div class="field"><label for="dex-choice-search">Choisir un Pokédex</label><input type="search" id="dex-choice-search" placeholder="HOME, Émeraude, Violet…" autocomplete="off"></div><div id="dex-choices" role="group" aria-label="Catalogue du Pokédex"></div></div><div class="field"><label for="dex-name">Nom du Pokédex</label><input id="dex-name" required maxlength="100" autocomplete="off"></div><p id="dex-editor-error" role="alert"></p><div class="modal-actions modal-edit-actions"><button type="button" id="dex-delete" data-modal-action="delete" class="btn btn-danger hidden">Supprimer</button><button type="button" id="dex-create-cancel" data-modal-action="cancel" class="btn btn-ghost">Annuler</button><button type="submit" id="dex-editor-save" data-modal-action="save" class="btn btn-primary">Créer</button></div></form></div></div>
 <div class="modal-overlay sheet-dialog hidden" id="journal-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-dialog-title">
   <div class="modal journal-modal">
-    <h2 id="journal-dialog-title">Journal</h2>
+    <div class="journal-dialog-heading"><h2 id="journal-dialog-title">Journal</h2><div id="journal-dialog-actions"></div></div>
     <div id="journal-dialog-body"></div>
     <div class="modal-actions modal-edit-actions" id="journal-actions">
       <div class="modal-secondary-actions">
@@ -722,6 +741,19 @@
         <button type="button" class="btn btn-ghost" data-modal-action="cancel" id="journal-close">Annuler</button>
         <button type="submit" class="btn btn-primary hidden" data-modal-action="save" id="journal-save" form="journal-form">Enregistrer</button>
       </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay sheet-dialog hidden" id="switch-artwork-overlay" role="dialog" aria-modal="true" aria-labelledby="switch-artwork-title">
+  <div class="modal">
+    <h2 id="switch-artwork-title">Compléter les visuels Switch</h2>
+    <p id="switch-artwork-status" role="status"></p>
+    <label class="journal-checkbox"><input type="checkbox" id="switch-artwork-rename"> Utiliser les titres eShop français</label>
+    <label class="journal-checkbox"><input type="checkbox" id="switch-artwork-replace"> Remplacer aussi les images existantes</label>
+    <div id="switch-artwork-list"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="switch-artwork-close">Annuler</button>
+      <button type="button" class="btn btn-primary" id="switch-artwork-apply" disabled>Appliquer la sélection</button>
     </div>
   </div>
 </div>
@@ -749,6 +781,7 @@
 <script src="jtd-data.js?v=account-pokedex-1"></script>
 <script src="dialogs.js?v=keyboard-viewport-1"></script>
 <script src="digital.js?v=density-1"></script>
+<script src="switch-artwork.js"></script>
 <script src="app.js?v=collection-hover-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>

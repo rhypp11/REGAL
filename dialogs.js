@@ -4,7 +4,7 @@
   const inerted = new Map();
   let lastPointer = null;
   const visible = el => !!el?.isConnected && !!el.getClientRects().length && !el.closest('.hidden,[inert]');
-  const focusable = root => [...root.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')]
+  const focusable = root => [...root.querySelectorAll('button,input,select,textarea,a[href],summary,[tabindex]')]
     .filter(el => visible(el) && !el.disabled && el.tabIndex >= 0);
   const top = () => stack.at(-1);
   function resetInert(){
@@ -55,7 +55,7 @@
     if(trigger?.matches('.card')) trigger = trigger.querySelector('.card-open-control') || trigger;
     if(trigger===document.body || overlay.contains(trigger)) trigger = document.activeElement;
     lastPointer = null;
-    if(trigger && !trigger.matches('button,input,select,textarea,a[href],[tabindex]')) trigger.tabIndex = -1;
+    if(trigger && !trigger.matches('button,input,select,textarea,a[href],summary,[tabindex]')) trigger.tabIndex = -1;
     const entry = {overlay,trigger,triggerId:trigger?.id,triggerKey:trigger?.closest('[data-dialog-trigger]')?.dataset.dialogTrigger,...options};
     overlay.tabIndex = -1;
     if(options.manageVisibility!==false) overlay.classList.remove('hidden');
@@ -103,17 +103,30 @@
     field.focus();
   }
   document.addEventListener('pointerdown',event=>{
-    const element = event.target.closest('button,a,input,select,textarea,[tabindex],.card,.board-row,label');
+    for(const menu of document.querySelectorAll('.sheet-actions-menu[open]')){
+      if(!menu.contains(event.target)) menu.open = false;
+    }
+    const element = event.target.closest('button,a,input,select,textarea,summary,[tabindex],.card,.board-row,label');
     if(element) lastPointer={element,time:performance.now()};
   },true);
   document.addEventListener('keydown',event=>{
     // Keyboard activation must return to its focused control, not a recent pointer target.
     lastPointer = null;
-    sync(); const entry = top(); if(!entry) return;
+    sync(); const entry = top();
+    if(!entry){
+      if(event.key==='Escape'){
+        const menu = event.target.closest('.board-row-actions[open]');
+        if(menu){event.preventDefault();menu.open = false;menu.querySelector('summary').focus();}
+      }
+      return;
+    }
     if(event.key==='Escape'){
       // The inline platform creator handles its own first Escape.
       if(event.target.id==='new-platform-name' && !document.getElementById('add-platform-row').classList.contains('hidden')) return;
-      event.preventDefault();event.stopImmediatePropagation();entry.onDismiss?.();
+      const menu = entry.overlay.querySelector('.sheet-actions-menu[open]');
+      event.preventDefault();event.stopImmediatePropagation();
+      if(menu){menu.open = false;menu.querySelector('summary').focus();}
+      else entry.onDismiss?.();
     }else if(event.key==='Tab'){
       const items=focusable(entry.overlay),first=items[0],last=items.at(-1);
       if(!first){event.preventDefault();entry.overlay.focus();}

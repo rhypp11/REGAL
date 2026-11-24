@@ -124,7 +124,7 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.locator('#page-collection .card-source').count(),0);
       await page.locator('#page-collection .card-name-text').click();
       assert.ok((await page.locator('#f-context-summary').innerText()).includes(payload.data.games[0].source));
-      assert.equal(await page.locator('#f-context-summary b, #f-context-summary img').count(),0,'Purchase source is escaped in details');
+      assert.equal(await page.locator('.context-summary-values b, .context-summary-values img').count(),0,'Purchase source is escaped in details');
       await page.locator('#cancel-btn').click();
       assert.equal(await page.locator('#page-collection .card img[onerror]').count(),0);
       assert.equal(await page.locator('#page-collection .card-name-text img').count(),0);

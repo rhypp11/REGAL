@@ -83,6 +83,8 @@
         }
         // Missing mode in older backups keeps the whole image. Unknown modes cannot become CSS.
         if(value.imageFit !== undefined) item.imageFit = value.imageFit === 'cover' ? 'cover' : 'contain';
+        if(value.squareImage !== undefined) item.squareImage = safeURL(text(value.squareImage,'icône carrée'),true) || null;
+        if(value.nintendoTitleId != null && /^(01|04)[0-9a-f]{14}$/i.test(value.nintendoTitleId)) item.nintendoTitleId = value.nintendoTitleId.toUpperCase();
         if(item.image) item.image = safeURL(item.image, true) || null;
         if(item.lien) item.lien = safeURL(item.lien) || null;
         if(key === 'games'){
@@ -328,8 +330,8 @@
     return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr').replace(/[^a-z0-9]+/g,' ').trim();
   }
   const platformAliases = new Map([
-    ['switch','Nintendo Switch'],['nintendo switch','Nintendo Switch'],['ns','Nintendo Switch'],['n switch','Nintendo Switch'],['nsw','Nintendo Switch'],
-    ['switch 2','Nintendo Switch 2'],['switch2','Nintendo Switch 2'],['nintendo switch 2','Nintendo Switch 2'],['ns2','Nintendo Switch 2'],
+    ['switch','Nintendo Switch'],['nintendo switch','Nintendo Switch'],['ns','Nintendo Switch'],['n switch','Nintendo Switch'],['nsw','Nintendo Switch'],['switch 1','Nintendo Switch'],['switch1','Nintendo Switch'],['nintendo switch 1','Nintendo Switch'],['nsw1','Nintendo Switch'],
+    ['switch 2','Nintendo Switch 2'],['switch2','Nintendo Switch 2'],['nintendo switch 2','Nintendo Switch 2'],['ns2','Nintendo Switch 2'],['nsw2','Nintendo Switch 2'],['nsw 2','Nintendo Switch 2'],['nintendo switch2','Nintendo Switch 2'],
     ['3ds','Nintendo 3DS'],['nintendo 3ds','Nintendo 3DS'],['ds','Nintendo DS'],['nintendo ds','Nintendo DS'],
     ['wu','Nintendo Wii U'],['wii u','Nintendo Wii U'],['nintendo wii u','Nintendo Wii U'],['wii','Nintendo Wii'],['nintendo wii','Nintendo Wii'],
     ['gc','Nintendo Gamecube'],['gamecube','Nintendo Gamecube'],['game cube','Nintendo Gamecube'],['nintendo gamecube','Nintendo Gamecube'],

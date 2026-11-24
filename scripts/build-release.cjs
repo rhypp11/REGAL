@@ -12,6 +12,8 @@ async function buildRelease({directory=root,check=false,date}={}){
  const prMetadata=config.pullRequest===undefined?'':'<meta name="regal-pull-request" content="'+config.pullRequest+'">';
  const withPullRequest=html=>html.replace(/<meta name="regal-pull-request" content="[^"]*">/,prMetadata);
  const files=(await fs.readdir(directory)).filter(file=>/\.(?:js|css|html|svg)$/.test(file)||/^logo-.*\.png$/.test(file)||['manifest.json','firebase.json'].includes(file)).sort();
+ const catalogue = await fs.readdir(path.join(directory,'switch-catalog')).catch(error=>{if(error.code==='ENOENT')return [];throw error;});
+ files.push(...catalogue.filter(file=>file.endsWith('.json')).sort().map(file=>'switch-catalog/'+file));
  const hash=crypto.createHash('sha256').update('REGAL '+config.major+(config.pullRequest===undefined?'':'-'+config.pullRequest)+'\n');
  for(const file of files){let content=await fs.readFile(path.join(directory,file));if(file==='index.html') content=Buffer.from(normalizeHTML(content.toString()));hash.update(file+'\0').update(content).update('\0');}
  const fingerprint=hash.digest('hex').slice(0,24);

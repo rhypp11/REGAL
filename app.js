@@ -1192,13 +1192,14 @@ function renderCard(g, options = {}){
     ? `<span class="card-title-collector" title="Édition collector" aria-label="Édition collector">${FORMAT_ICON_STAR}</span>`
     : '';
 
-  const bannerInner = g.image
-    ? gameImageHtml(g, g.nom, false, options.imageLoading || 'lazy')
+  const art = purchaseArtwork(g,!options.readOnly && collectionView !== 'cards');
+  const bannerInner = art.image
+    ? gameImageHtml(art, g.nom, false, options.imageLoading || 'lazy')
     : '';
 
-  const bannerHtml = `<div class="card-banner${gameImageClass(g)}${g.image ? '' : ' placeholder'}">
+  const bannerHtml = `<div class="card-banner${gameImageClass(art)}${art.image ? '' : ' placeholder'}">
       ${bannerInner}
-      <span class="card-fallback${g.image ? ' hidden' : ''}">${escapeHTML(g.plateforme.slice(0,2).toUpperCase())}</span>
+      <span class="card-fallback${art.image ? ' hidden' : ''}">${escapeHTML(g.plateforme.slice(0,2).toUpperCase())}</span>
     </div>`;
 
   const platformHtml = `${logo
@@ -1542,6 +1543,13 @@ function setLastUsed(key, value){
   try { accountStorage.setItem('jtd-last-'+key, value); } catch(e){}
 }
 
+function purchaseArtwork(item, preferSquare = false){
+  const banner = safeURL(item?.image,true), square = safeURL(item?.squareImage,true);
+  const useSquare = square && (preferSquare || !banner);
+  return {...item,image:useSquare ? square : banner,imageFit:useSquare ? 'contain' : item?.imageFit,
+    alternateImage:useSquare ? banner : square};
+}
+
 /* One image treatment for cards, board thumbnails and editing previews. */
 function gameImageHtml(item, alt = '', board = false, loading = 'eager'){
   const url = safeURL(item?.image, true);
@@ -1549,11 +1557,17 @@ function gameImageHtml(item, alt = '', board = false, loading = 'eager'){
   const src = escapeHTML(url);
   // Defer both layers: an eager decorative backdrop would fetch the same art early.
   const load = loading === 'lazy' ? 'lazy' : 'eager';
-  return `<img class="game-art-backdrop" loading="${load}" src="${src}" alt="" aria-hidden="true" decoding="async"><img class="game-art-image" loading="${load}" ${board ? 'data-board-art' : ''} src="${src}" alt="${escapeHTML(alt)}" decoding="async">`;
+  return `<img class="game-art-backdrop" loading="${load}" src="${src}" alt="" aria-hidden="true" decoding="async"><img class="game-art-image" loading="${load}" ${board ? 'data-board-art' : ''} src="${src}" alt="${escapeHTML(alt)}"${item.alternateImage && item.alternateImage !== url ? ` data-art-fallback="${escapeHTML(item.alternateImage)}"` : ''} decoding="async">`;
 }
 function gameImageClass(item){ return ' game-art-frame image-fit-' + (item?.imageFit === 'cover' ? 'cover' : 'contain'); }
 
-function identitySummaryHtml(item, detail = ''){
+function sheetArtworkHtml(item, square, className){
+  const art = purchaseArtwork(item,square);
+  return art.image ? '<div class="'+className+gameImageClass(art)+'">'+gameImageHtml(art)+'</div>' : '';
+}
+
+function identitySummaryHtml(item, detail = '', preferSquare = false){
+  if(item) item = purchaseArtwork(item,preferSquare);
   const name = item && item.nom ? item.nom : 'Jeu';
   const platform = item && item.plateforme ? item.plateforme : 'Plateforme';
   const image = item && item.image ? item.image : null;
@@ -1590,9 +1604,31 @@ function setIdentityEditor(prefix, item, compact){
   summary.classList.toggle('hidden', !showSummary);
   editor.classList.toggle('hidden', showSummary);
   if(item) summary.innerHTML = identitySummaryHtml(item);
+  if(prefix === 'f'){
+    const game = editingCollection === 'games' && editingId && !convertingArrivalId ? item : null;
+    const hero = document.getElementById('f-edit-hero');
+    if(item || !editingId){
+      hero.innerHTML = game ? '<div class="game-identity-summary">'+identitySummaryHtml(game)+'</div>' : '';
+      hero.querySelector('.identity-edit-btn')?.remove();
+    }
+  }
 
   const editBtn = summary.querySelector('.identity-edit-btn');
-  if(editBtn){
+  if(editBtn && prefix === 'f' && editingCollection === 'games' && !convertingArrivalId && item){
+    const game = GAMES.find(game => game.id === editingId);
+    const actions = [['Modifier la fiche', () => editCollectionSheet('f-nom'), 'f-edit-game', 'edit']];
+    if(JTDData.isAddon(game)){
+      actions.push(['Modifier le rattachement', () => editCollectionSheet('f-parent-enabled'), null, 'link']);
+    }else{
+      actions.push([JTDData.isDigital(game) ? 'Ajouter ou rattacher un DLC' : 'Ajouter un DLC', () => openCollectionContent(game, 'dlc'), null, 'dlc']);
+      if(isSwitchUpgradeParent(game)){
+        actions.push([JTDData.isDigital(game) ? 'Ajouter ou rattacher une mise à niveau' : 'Ajouter une mise à niveau', () => openCollectionContent(game, 'upgrade'), null, 'upgrade']);
+      }
+      if(!JTDData.isDigital(game)) actions.push(['Mettre en vente', () => openSaleModal(game.id, 'new'), 'f-sell-btn', 'sale']);
+    }
+    actions.push(['Supprimer', () => document.getElementById('delete-btn').click(), null, 'delete']);
+    editBtn.replaceWith(sheetActions(actions, 'f-game-actions'));
+  }else if(editBtn){
     editBtn.addEventListener('click', () => {
       if(prefix === 'f') setGameSheetViewing(false);
       summary.classList.add('hidden');
@@ -1601,6 +1637,50 @@ function setIdentityEditor(prefix, item, compact){
       if(nameInput) nameInput.focus();
     }, {once:true});
   }
+}
+
+function sheetActions(actions, id){
+  const menu = document.createElement('details');
+  menu.className = 'sheet-actions-menu';
+  if(id) menu.id = id;
+  const toggle = document.createElement('summary');
+  toggle.className = 'identity-edit-btn';
+  toggle.setAttribute('aria-label','Actions de la fiche');
+  toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>';
+  const list = document.createElement('div');
+  list.className = 'sheet-actions-list';
+  for(const [label, action, buttonId, kind] of actions){
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.innerHTML = sheetActionIcon(kind) + '<span>'+escapeHTML(label)+'</span>';
+    if(kind === 'delete') button.classList.add('sheet-action-danger');
+    if(buttonId) button.id = buttonId;
+    button.onclick = () => {
+      menu.open = false;
+      toggle.focus({preventScroll:true});
+      action();
+    };
+    list.appendChild(button);
+  }
+  menu.append(toggle,list);
+  return menu;
+}
+
+function sheetActionIcon(kind){
+  if(kind === 'edit') return contextEditIcon();
+  if(kind === 'dlc' || kind === 'upgrade') return MEDIA_ICONS[kind];
+  const paths = {
+    link:'<path d="m10 13 4-4m-6 6-1 1a3 3 0 0 1-4-4l4-4a3 3 0 0 1 4 0m2 3a3 3 0 0 0 4 0l4-4a3 3 0 0 0-4-4l-1 1"/>',
+    sale:'<path d="M20 13 12 21l-9-9V3h9l8 8a1.4 1.4 0 0 1 0 2Z"/><circle cx="7.5" cy="7.5" r="1"/>',
+    delete:'<path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/>',
+    transfer:'<path d="M4 12h16m-6-6 6 6-6 6"/>'
+  };
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[kind] || '')+'</svg>';
+}
+
+function editCollectionSheet(field){
+  setGameSheetViewing(false);
+  document.getElementById(field).focus();
 }
 
 function contextEditIcon(){
@@ -1636,11 +1716,23 @@ function contextSummaryHtml(item, type){
 function setContextEditor(prefix, item, type, compact){
   const summary = document.getElementById(prefix+'-context-summary');
   const editor = document.getElementById(prefix+'-context-editor');
+  if(prefix==='f' && (item || !editingId)){
+    document.getElementById('f-edit-purchase-art').innerHTML = item && editingId && editingCollection==='games' && !convertingArrivalId
+      ? sheetArtworkHtml(item,true,'purchase-square') : '';
+  }
   if(!summary || !editor) return;
   const showSummary = !!compact;
   summary.classList.toggle('hidden', !showSummary);
   editor.classList.toggle('hidden', showSummary);
   if(item) summary.innerHTML = contextSummaryHtml(item, type);
+  if(prefix==='f' && editingCollection==='games' && !convertingArrivalId){
+    summary.querySelector('.context-edit-btn')?.remove();
+    if(item){
+      const format = JTDData.isDigital(item) ? 'digital' : 'physical';
+      const label = JTDData.isAddon(item) ? contentKind(item) : format === 'digital' ? 'Numérique' : 'Physique';
+      summary.insertAdjacentHTML('afterbegin',sheetArtworkHtml(item,true,'purchase-square')+'<div id="f-format-title">'+MEDIA_ICONS[format]+escapeHTML(label)+'</div>');
+    }
+  }
   const btn = summary.querySelector('.context-edit-btn');
   if(btn){
     btn.addEventListener('click', () => {
@@ -1654,6 +1746,7 @@ function setContextEditor(prefix, item, type, compact){
 }
 
 function fillIdentityFields(prefix, item = {}){
+  fillArtworkFields(prefix,item);
   populatePlatformSelect(prefix+'-plateforme');
   document.getElementById(prefix+'-nom').value = item.nom || '';
   setSelectValueAndSync(prefix+'-plateforme', item.plateforme || '');
@@ -1670,6 +1763,7 @@ function readIdentityFields(prefix){
     collector:document.getElementById(prefix+'-collector').checked,
     japanese:document.getElementById(prefix+'-japanese').checked,
     image:safeURL(document.getElementById(prefix+'-image').value.trim(), true) || null,
+    ...readArtworkFields(prefix),
     imageFit:document.getElementById(prefix+'-image-fit').value === 'cover' ? 'cover' : 'contain'
   };
 }
@@ -1697,7 +1791,15 @@ function commitBoardTransfer(from, to, id, draft){
   }
 }
 function setGameSheetViewing(viewing){
-  if(!viewing) setContextEditor('f',null,'purchase',false);
+  if(!viewing){
+    const menu = document.getElementById('f-game-actions');
+    if(menu) menu.open = false;
+    setContextEditor('f',null,'purchase',false);
+    if(editingCollection==='games' && editingId && !convertingArrivalId){
+      setIdentityEditor('f',null,false);
+      document.getElementById('f-image-options').open=true;
+    }
+  }
   document.getElementById('modal-overlay').classList.toggle('game-sheet-viewing', viewing);
   document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
 }
@@ -1747,12 +1849,11 @@ function setPurchaseDate(date = ''){
   note.classList.toggle('hidden', !partial.value);
 }
 
-function openModal(id, collection = 'games'){
+function openModal(id, collection = 'games', content = null){
   editingCollection = collection === 'cemetery' ? 'cemetery' : 'games';
   const items = editingCollection === 'cemetery' ? CEMETERY : GAMES;
   editingId = id || null;
   if(editingId && !items.some(game => game.id === editingId)) return;
-  document.getElementById('f-sell-btn').classList.toggle('hidden', !editingId || editingCollection !== 'games');
   convertingArrivalId = null; // ouverture normale (pas une bascule depuis les arrivages)
 
   const title = document.getElementById('modal-title');
@@ -1795,7 +1896,10 @@ function openModal(id, collection = 'games'){
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
   document.getElementById('f-image-options').open = false;
   document.getElementById('f-edition-options').open = false;
-  openDigitalFields(identityItem);
+  fillArtworkFields('f',identityItem);
+  openDigitalFields(identityItem, content);
+  const quickAdd = !editingId && editingCollection === 'games' && document.getElementById('f-content-type').value === 'game';
+  document.getElementById('modal-overlay').classList.toggle('collection-quick-add',quickAdd);
   setIdentityEditor('f', identityItem && editingCollection==='games' ? {...identityItem,plateforme:JTDData.effectivePlatform(identityItem,GAMES)} : identityItem, !!editingId);
   renderGameSheetStatus(editingCollection === 'games' ? identityItem : null);
   setContextEditor('f', identityItem, 'purchase', !!editingId);
@@ -1808,7 +1912,7 @@ function openModal(id, collection = 'games'){
 
 function closeModal(){
   document.getElementById('receipt-status-note').classList.add('hidden');
-  document.getElementById('f-sell-btn').classList.add('hidden');
+  document.getElementById('modal-overlay').classList.remove('collection-quick-add');
   document.getElementById('save-btn').textContent = 'Enregistrer';
   window.JTDDialogs.close('modal-overlay');
   setGameSheetViewing(false);
@@ -1825,18 +1929,19 @@ function updateImagePreview(){
 }
 
 function saveModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('f');
+  const {nom, plateforme, collector, japanese, image, imageFit, ...artwork} = readIdentityFields('f');
   window.JTDDialogs.clearErrors(document.getElementById('modal-overlay'));
   if(!nom){ window.JTDDialogs.error('f-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('f-plateforme','Choisis une plateforme.'); return; }
   const prix = parsePriceInput(document.getElementById('f-prix').value);
   const date = document.getElementById('f-date').value || document.getElementById('f-partial-date').value || null;
   const source = document.getElementById('f-source').value.trim() || null;
-  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit};
+  const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit, ...artwork};
   try { Object.assign(fields, readDigitalFields()); }
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
   const wasEditing = !!editingId;
+  const quickAdd = document.getElementById('modal-overlay').classList.contains('collection-quick-add');
   const savedId = editingId || convertingArrivalId || crypto.randomUUID();
   const received = convertingArrivalId
     ? commitBoardTransfer('arrivals', 'games', convertingArrivalId, {...fields, format:'Physique', type:null, status:'a_jouer'})
@@ -1864,6 +1969,7 @@ function saveModal(){
   }
   const saved = received || GAMES.find(game => game.id === savedId);
   if(saved){
+    if(quickAdd) openModal(saved.id);
     const generation = window.JTDAccountGeneration;
     showToast(`« ${saved.nom} » ${wasEditing ? 'modifié' : 'ajouté à la collection'}.`, 'Voir', () => {
       if(generation !== window.JTDAccountGeneration) return;
@@ -1940,6 +2046,7 @@ function renderHomeStats(){
 
 
 function boardThumb(item){
+  item = purchaseArtwork(item);
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
   const logo = getPlatformLogo(item.plateforme);
   const color = getPlatformColor(item.plateforme);
@@ -1973,6 +2080,33 @@ function calendarGroupHtml(label, year, color, loose = false){
       ${year ? `<span>${year}</span>` : ''}
     </div>
   </div>`;
+}
+
+function mountBoardRowActions(row, id, label, kind){
+  const arrival = kind === 'arrival';
+  const prefix = arrival ? 'a' : 'w';
+  const open = () => arrival ? openArrivalModal(id) : openWishlistModal(id);
+  const primary = document.createElement('button');
+  primary.type = 'button';
+  primary.className = 'board-row-open';
+  primary.setAttribute('aria-label',label);
+  primary.dataset.dialogTrigger = kind+':'+id;
+  const run = selector => {open();document.querySelector(selector).click();};
+  const menu = sheetActions([
+    ['Modifier la fiche', () => {
+      open();
+      document.querySelector('#'+prefix+'-context-summary .context-edit-btn').click();
+      document.querySelector('#'+prefix+'-identity-summary .identity-edit-btn').click();
+    }, null, 'edit'],
+    [arrival ? 'Réceptionner' : 'Commander', () => run(arrival ? '#a-received-btn' : '#w-order-btn'), null, 'transfer'],
+    ['Supprimer', () => run('#'+prefix+'-delete-btn'), null, 'delete']
+  ]);
+  menu.classList.add('board-row-actions');
+  menu.querySelector('summary').setAttribute('aria-label','Actions pour '+label.replace(/^Modifier (?:l’arrivage : )?/, ''));
+  row.append(primary,menu);
+  row.addEventListener('click',event=>{
+    if(!event.target.closest('.board-row-actions,.board-link')) open();
+  });
 }
 
 function arrivalRowHtml(item, showSource){
@@ -2049,14 +2183,7 @@ function renderArrivals(){
   const arrivalNames = new Map(ARRIVALS.map(item=>[item.id,[item.nom,item.plateforme].filter(Boolean).join(' · ')]));
   container.querySelectorAll('.board-row').forEach(row => {
     const id = row.dataset.id;
-    row.tabIndex = 0;
-    row.setAttribute('role','button');
-    row.setAttribute('aria-label','Modifier l’arrivage : '+arrivalNames.get(id));
-    row.dataset.dialogTrigger = 'arrival:'+id;
-    row.addEventListener('keydown',event=>{
-      if(event.target===row && (event.key==='Enter' || event.key===' ')){event.preventDefault();openArrivalModal(id);}
-    });
-    row.addEventListener('click', () => openArrivalModal(id));
+    mountBoardRowActions(row,id,'Modifier l’arrivage : '+arrivalNames.get(id),'arrival');
     row.addEventListener('dragstart', () => {
       homeDragArrivalId = id;
       row.classList.add('dragging');
@@ -2214,17 +2341,7 @@ function renderWishlist(){
       </div>
       ${linkHtml}
     `;
-    row.addEventListener('click', (e) => {
-      if(e.target.closest('.board-link')) return;
-      openWishlistModal(item.id);
-    });
-    row.tabIndex = 0;
-    row.setAttribute('role','button');
-    row.setAttribute('aria-label','Modifier '+item.nom);
-    row.dataset.dialogTrigger = 'wishlist:'+item.id;
-    row.addEventListener('keydown',event=>{
-      if(event.target===row && (event.key==='Enter' || event.key===' ')){event.preventDefault();openWishlistModal(item.id);}
-    });
+    mountBoardRowActions(row,item.id,'Modifier '+item.nom,'wishlist');
     row.addEventListener('dragstart', () => {
       homeDragWishlistId = item.id;
       row.classList.add('dragging');
@@ -2379,7 +2496,7 @@ function closeArrivalModal(){
 }
 
 function saveArrivalModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('a');
+  const {nom, plateforme, collector, japanese, image, imageFit, ...artwork} = readIdentityFields('a');
   window.JTDDialogs.clearErrors(document.getElementById('arrival-modal-overlay'));
   if(!nom){ window.JTDDialogs.error('a-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('a-plateforme','Choisis une plateforme.'); return; }
@@ -2388,7 +2505,7 @@ function saveArrivalModal(){
   const prix = parsePriceInput(document.getElementById('a-prix').value);
   const source = document.getElementById('a-source').value.trim() || null;
 
-  const fields = {nom, plateforme, date, prix, source, collector, japanese, image, imageFit};
+  const fields = {nom, plateforme, date, prix, source, collector, japanese, image, imageFit, ...artwork};
   const ordered = !!convertingWishlistId;
   if(ordered){
     if(!commitBoardTransfer('wishlist', 'arrivals', convertingWishlistId, fields)) return;
@@ -2531,7 +2648,7 @@ function closeWishlistModal(){
 }
 
 function saveWishlistModal(){
-  const {nom, plateforme, collector, japanese, image, imageFit} = readIdentityFields('w');
+  const {nom, plateforme, collector, japanese, image, imageFit, ...artwork} = readIdentityFields('w');
   window.JTDDialogs.clearErrors(document.getElementById('wishlist-modal-overlay'));
   if(!nom){ window.JTDDialogs.error('w-nom','Indique le nom du jeu.'); return; }
   if(!plateforme){ window.JTDDialogs.error('w-plateforme','Choisis une plateforme.'); return; }
@@ -2540,7 +2657,7 @@ function saveWishlistModal(){
   if(document.querySelector('[data-date-mode="w"]').dataset.currentMode==='month' && date && !/^[0-9]{4}-(0[1-9]|1[0-2])$/.test(date)){window.JTDDialogs.error('w-month','Indique un mois valide.');return;}
   const lien = document.getElementById('w-lien').value.trim() || null;
 
-  const fields = {nom, plateforme, date, lien, collector, japanese, image, imageFit};
+  const fields = {nom, plateforme, date, lien, collector, japanese, image, imageFit, ...artwork};
   if(convertingArrivalToWishlistId){
     if(!commitBoardTransfer('arrivals', 'wishlist', convertingArrivalToWishlistId, fields)) return;
     renderArrivals();
@@ -3439,7 +3556,15 @@ document.addEventListener('error', event => {
   const parent = image.parentElement;
   if(!parent) return;
   if(image.classList.contains('game-art-backdrop')){ image.remove(); return; }
-  if(image.classList.contains('game-art-image')) parent.querySelector('.game-art-backdrop')?.remove();
+  if(image.classList.contains('game-art-image')){
+    parent.querySelector('.game-art-backdrop')?.remove();
+    if(image.dataset.artFallback){
+      const fallback = image.dataset.artFallback;
+      delete image.dataset.artFallback;
+      image.src = fallback;
+      return;
+    }
+  }
   if(image.hasAttribute('data-board-art')){
     image.remove();
     parent.querySelector('.board-image-fallback')?.classList.remove('hidden');

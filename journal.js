@@ -40,7 +40,7 @@
     return entry && {id:entry.id,date:dateLabel(entry),result:completions[entry.completion] || completions.finished};
   };
   window.getJournalExportEntries=()=>records();
-  window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit,date:entry.date}));
+  window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,squareImage:entry.squareImage,nintendoTitleId:entry.nintendoTitleId,imageFit:entry.imageFit,date:entry.date}));
   const searchLocations={completed:'Terminé',playing:'En cours',backlog:'À faire',release:'Sorties'};
   window.getJournalSearchEntries=()=>records().filter(entry=>entry && Object.hasOwn(searchLocations,entry.group)).map(entry=>({
     id:entry.id,nom:entry.name,plateforme:entry.platform,searchSupport:formats[entry.format]||'',location:searchLocations[entry.group]
@@ -74,7 +74,6 @@
     return '<span class="journal-grade" data-grade="'+esc(value||'')+'" title="'+esc(criterion+': '+(value||'Sans note'))+'">'+esc(value||'–')+'</span>';
   }
   const bubble='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
-  const pencil='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20h9M4 20l1-5L16 4l4 4L9 19z"/></svg>';
   const accessLabel=entry=>entry.access&&entry.access!=='owned'
     ? [access[entry.access],entry.access==='subscription'?entry.service:''].filter(Boolean).join(' · ') : '';
   const completionIcons={
@@ -87,7 +86,7 @@
     return '<span class="journal-completion-badge" data-completion="'+key+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+completionIcons[key]+'</svg>'+completions[key]+'</span>';
   }
   function gameThumb(entry){
-    return boardThumb({nom:entry.name,plateforme:entry.platform,image:entry.image,imageFit:entry.imageFit});
+    return boardThumb({nom:entry.name,plateforme:entry.platform,image:entry.image,squareImage:entry.squareImage,nintendoTitleId:entry.nintendoTitleId,imageFit:entry.imageFit});
   }
   function day(entry){
     if(entry.estimated) return '<span class="calendar-day calendar-day-loose" title="Date approximative" aria-label="Date approximative"><strong>≈</strong></span>';
@@ -238,16 +237,17 @@
     confirmAction('Les modifications du Journal seront perdues.',close,{title:'Abandonner la saisie ?',confirmLabel:'Abandonner'});
   };
   window.refreshJournal = () => { if(!$('journal-overlay').classList.contains('hidden')) close(); render(); };
-  function identityCard(entry,editable=false){
+  function identityCard(entry,editable=false,preferSquare=true){
     return '<div class="game-identity-summary'+(editable?'':' journal-identity-read')+'">'+
-      identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),imageFit:entry.imageFit},
-        entry.group==='release'?'':formats[entry.format]||'')+'</div>';
+      identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),squareImage:entry.squareImage,imageFit:entry.imageFit},
+        entry.group==='release'?'':formats[entry.format]||'',preferSquare)+'</div>';
   }
   function show(title,html,{editing=false,canComplete=false,canDelete=false}={}){
     editorEvents?.abort();
     hasDraftChanges = null;
     editorEvents = new AbortController();
     $('journal-dialog-title').textContent = title;
+    $('journal-dialog-actions').replaceChildren();
     $('journal-dialog-body').innerHTML = html;
     $('journal-save').classList.toggle('hidden',!editing);
     $('journal-save').textContent='Enregistrer';
@@ -278,18 +278,19 @@
     const generation=window.JTDAccountGeneration;
     const sources=release?WISHLIST:GAMES.filter(game=>game.contentType!=='upgrade');
     let collectionId=linkedPurchase(entry)?.id;
+    const fullEdit=section==='full';
     const identityOnly=section==='identity', commentOnly=section==='comment', completionOnly=section==='completion'||section==='release';
-    const chooseSource=!existing||identityOnly;
+    const chooseSource=!existing||identityOnly||fullEdit;
     const platforms=[...new Set([...allPlatformNames(),'PC',entry.platform].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
     const customPlatform='__journal_custom_platform__';
     const canComplete=existing&&!done&&!release;
     const precisionField=field('Précision',input('precision',entry.precision,'maxlength="250" placeholder="Version 1.0, suggéré par…"'));
     show(linkOnly?'Relier à la collection':identityOnly?'Modifier le jeu':commentOnly?'Modifier le commentaire':section==='release'?'Modifier la sortie':completionOnly?'Modifier la complétion':existing&&!fromBacklog?'Modifier l’entrée':done?'Ajouter une complétion':release?'Ajouter une sortie':'Ajouter un jeu',
       '<form id="journal-form">'+
-      '<section class="form-section journal-game-section">'+
-      '<div id="journal-game-summary"'+(!existing||identityOnly?' class="hidden"':'')+'>'+identityCard(entry,!fromBacklog&&!completionOnly&&!commentOnly)+'</div>'+
-      '<div id="journal-game-editor"'+(existing&&!identityOnly?' class="hidden"':'')+'>'+
-      (chooseSource?'<fieldset class="journal-source-choice"><legend>Origine du jeu</legend>'+
+      '<section class="form-section journal-game-section"><h3 class="form-section-title">Jeu</h3>'+
+      '<div id="journal-game-summary"'+(!existing||identityOnly||fullEdit?' class="hidden"':'')+'>'+identityCard(entry,!fromBacklog&&!completionOnly&&!commentOnly)+'</div>'+
+      '<div id="journal-game-editor"'+(existing&&!identityOnly&&!fullEdit?' class="hidden"':'')+'>'+
+      (chooseSource?'<fieldset class="journal-source-choice"><legend>Source de la fiche</legend>'+
         '<label><input type="radio" name="origin" value="manual" checked> Saisie manuelle</label>'+
         '<label><input type="radio" name="origin" value="collection"> Depuis la '+(release?'wishlist':'collection')+'</label></fieldset>'+
         '<div id="journal-source-picker" class="hidden">'+field('Rechercher un jeu',input('lookup','','type="search" placeholder="Titre ou plateforme" autocomplete="off"'))+
@@ -303,7 +304,7 @@
       '<div class="image-url-row">'+field('Image du jeu',input('image',entry.image,'id="j-image" maxlength="200000" placeholder="https://…"'))+
       '<div id="j-image-preview" class="image-preview image-preview-compact"><span>Aperçu de l’image</span></div></div>'+
       '<div class="image-fit-field">'+field('Affichage de l’image',select('imageFit',{contain:'Image entière',cover:'Remplir le cadre'},entry.imageFit==='cover'?'cover':'contain'))+'</div>'+
-      '<button type="button" class="btn btn-ghost'+(identityOnly?' hidden':'')+'" id="journal-apply-identity">Réduire les détails</button></div></div></section>'+
+      '<button type="button" class="btn btn-ghost'+(identityOnly||fullEdit?' hidden':'')+'" id="journal-apply-identity">Réduire les détails</button></div></div></section>'+
       '<section class="form-section'+(identityOnly||commentOnly?' hidden':'')+'">'+
       (done?'<div class="form-section-title">Complétion</div>'+
         '<div class="journal-form-grid journal-date-fields">'+
@@ -333,6 +334,8 @@
       '<p id="journal-error" role="alert" class="journal-error"></p></form>',{editing:true,canComplete,canDelete:existing&&!fromBacklog});
     const form=$('journal-form'), elements=form.elements;
     const summary=$('journal-game-summary'), editor=$('journal-game-editor');
+    mountSwitchArtwork(editor,{prefix:'j',name:elements.name,platform:$('journal-platform'),image:$('j-image')});
+    fillArtworkFields('j',entry);
     const platformValue=()=>elements.platform.value===customPlatform?elements.platformCustom.value.trim():elements.platform.value;
     const updatePlatform=()=> $('journal-custom-platform').classList.toggle('hidden',elements.platform.value!==customPlatform);
     iconSelectify('journal-platform',name=>name&&name!==customPlatform?getPlatformOptionIconHtml(name):'',editorEvents.signal);
@@ -356,7 +359,7 @@
         return;
       }
       $('journal-error').textContent='';
-      summary.innerHTML=identityCard({group,name:elements.name.value,platform:platformValue(),image:elements.image.value,format:elements.format.value,imageFit:elements.imageFit.value},true);
+      summary.innerHTML=identityCard({group,name:elements.name.value,platform:platformValue(),image:elements.image.value,...readArtworkFields('j'),format:elements.format.value,imageFit:elements.imageFit.value},true);
       summary.classList.remove('hidden');
       editor.classList.add('hidden');
       (identityOnly?$('journal-save'):elements.estimated||elements.group||$('journal-save')).focus();
@@ -419,6 +422,7 @@
         setSelectValueAndSync('journal-platform',item.plateforme);
         updatePlatform();
         elements.image.value=item.image||'';
+        fillArtworkFields('j',item);
         elements.imageFit.value=item.imageFit==='cover'?'cover':'contain';
         elements.format.value=release?'':JTDData.isAddon(item)?'extension':JTDData.isDigital(item)?'digital':'physical';
         if(release){setFlexibleDate('journal-release',item.date||'TBD');setReleaseDateInputs();releaseDateChanged=true;}
@@ -481,7 +485,7 @@
       if(!value('name')||!platformValue()) throw Error('Renseigne le titre et la plateforme.');
       const art=safeURL(value('image'),true);
       if(value('image')&&!art) throw Error('L’adresse de l’image est invalide.');
-      return {name:value('name'),platform:platformValue(),precision:value('precision'),image:art,imageFit:value('imageFit'),format:value('format')};
+      return {name:value('name'),platform:platformValue(),precision:value('precision'),image:art,...readArtworkFields('j'),imageFit:value('imageFit'),format:value('format')};
     };
     if(existing&&!fromBacklog) bindDelete(entry,generation);
     if(canComplete) $('journal-complete').onclick=()=>{
@@ -524,11 +528,11 @@
     const done=entry.group==='completed';
     const generation=window.JTDAccountGeneration;
     if(['playing','backlog'].includes(entry.group)){ edit(entry); return; }
-    const editButton=(id,label)=>'<button type="button" id="'+id+'" class="context-edit-btn" aria-label="'+label+'" title="'+label+'">'+pencil+'</button>';
-    show(done?'Fiche de complétion':'Fiche du jeu',
-      '<section class="form-section">'+identityCard(entry,true)+'</section>'+
-      '<section class="form-section"><div class="journal-section-heading"><div class="form-section-title">'+(done?completionBadge(entry.completion):entry.group==='release'?'Sortie':'Backlog')+'</div>'+
-      (done?editButton('journal-edit-completion','Modifier la complétion'):entry.group==='release'?editButton('journal-edit-release','Modifier la date de sortie'):'')+'</div>'+
+    show('Journal',
+      '<section class="form-section journal-detail-identity">'+
+      identityCard(entry)+'</section>'+
+      '<section class="form-section journal-detail-section"><div class="journal-section-heading"><h3 class="form-section-title">'+(done?'Complétion':'Sortie')+'</h3>'+
+      (done?completionBadge(entry.completion):'')+'</div>'+
       '<dl class="journal-context-fields'+(done?' journal-context-fields-completion':'')+'">'+
       contextField(done?'Date de complétion':'Sortie','<span class="journal-context-date"'+(entry.estimated?' aria-label="Date approximative"':'')+'>'+calendarIcon+esc(dateLabel(entry))+'</span>')+
       (done?contextField('Mode de jeu',esc(modes[entry.mode]||'—')):'')+
@@ -539,30 +543,45 @@
       (done?'<div class="journal-detail-ratings">'+criteria.map((label,index)=>'<div>'+esc(label)+score(entry.notes?.[index],label)+'</div>').join('')+
       '<div>Ressenti<span class="journal-rating-feeling">'+esc(feelings[entry.feeling]||'–')+'</span></div></div>':'')+
       '</section>'+
-      (done?'<section class="form-section journal-comment-section"><div class="journal-section-heading"><div class="form-section-title journal-comment-heading">'+bubble+'Commentaire</div>'+
-        editButton('journal-edit-comment','Modifier le commentaire')+'</div><p class="journal-comment">'+esc(entry.comment||'Aucun commentaire.')+'</p></section>':''),{canDelete:true});
-    $('journal-dialog-body').querySelector('.identity-edit-btn').onclick=()=>edit(entry,false,'identity');
-    if(entry.group==='release') $('journal-edit-release').onclick=()=>edit(entry,false,'release');
+      (done && entry.comment?'<section class="form-section journal-detail-section journal-comment-section"><div class="journal-section-heading"><h3 class="form-section-title">Commentaire</h3>'+
+        '</div><p class="journal-comment">'+esc(entry.comment)+'</p></section>':''),{canDelete:true});
+    const actions = [['Modifier la fiche', () => edit(entry,false,'full'), 'journal-detail-edit', 'edit']];
     const purchase = linkedPurchase(entry);
+    if(purchase){
+      actions.push(['Délier de la collection', () => {
+        if(generation!==window.JTDAccountGeneration) return;
+        const current=records();
+        const source=current.find(record=>record?.id===entry.id);
+        if(!source || source.collectionId!==purchase.id) return;
+        const {collectionId, ...unlinked}=source;
+        try{
+          commit(current.map(record=>record===source?unlinked:record));
+          render();
+          detail(unlinked);
+          $('journal-detail-actions').querySelector('summary').focus({preventScroll:true});
+        }catch(error){showToast(error.message);}
+      }, 'journal-unlink-collection', 'link']);
+    }
+    actions.push(['Supprimer', () => $('journal-delete').click(), null, 'delete']);
+    $('journal-dialog-body').querySelector('.identity-edit-btn').remove();
+    $('journal-dialog-actions').append(sheetActions(actions,'journal-detail-actions'));
     if(purchase){
       const link=document.createElement('button');
       link.type='button';
-      link.className='manage-link';
-      link.textContent='Voir dans la collection';
+      link.className='sheet-navigation-icon journal-collection-icon';
+      link.title='Voir dans la collection';
+      link.setAttribute('aria-label',link.title);
+      link.innerHTML=statIcon('<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><path d="m18 4 3 15-4 1-3-15"/>');
       link.onclick=()=>{close();openModal(purchase.id);};
-      $('journal-dialog-body').firstElementChild.appendChild(link);
+      $('journal-dialog-body').querySelector('.journal-detail-identity .identity-copy').after(link);
     }
     if(done && !purchase){
       const link=document.createElement('button');
       link.type='button';
-      link.className='manage-link';
+      link.className='manage-link journal-collection-link';
       link.textContent='Relier à la collection';
       link.onclick=()=>edit(entry,false,'identity',true);
-      $('journal-dialog-body').firstElementChild.appendChild(link);
-    }
-    if(done){
-      $('journal-edit-completion').onclick=()=>edit(entry,false,'completion');
-      $('journal-edit-comment').onclick=()=>edit(entry,false,'comment');
+      $('journal-dialog-body').querySelector('.journal-detail-identity').after(link);
     }
     bindDelete(entry,generation);
   }

@@ -25,21 +25,30 @@ const server=createSandboxServer();
    await page.locator('#f-nom').fill('Aventure manuelle fictive');
    await page.locator('#f-identity-editor .icon-select-trigger').click();
    await page.locator('#f-identity-editor .icon-select-option').filter({hasText:/^Switch 2$/}).click();
-   await page.locator('#f-source').fill('Boutique fictive');
-   await page.locator('#f-prix').fill('0');
+   assert.equal(await page.locator('#f-prix').isVisible(),false);
+   assert.equal(await page.locator('#f-image').isVisible(),false);
    await page.locator('#f-nom').scrollIntoViewIfNeeded();
    await page.screenshot({path:`/tmp/jtd-manual-entry-${width}-${theme}.png`});
    await page.locator('#save-btn').click();
    const created=await page.evaluate(()=>GAMES.find(g=>g.nom==='Aventure manuelle fictive'));
-   assert.equal(created.prix,0);assert.equal(created.source,'Boutique fictive');
+   assert.equal(created.prix,null);assert.equal(created.source,null);
+   assert.equal(await page.locator('#f-game-actions summary').isVisible(),true,'Saving opens the new game sheet');
+   assert.equal(await page.locator('#f-content-details').isVisible(),false,'An empty game has no DLC section');
+   await page.locator('#f-game-actions summary').click();
+   await page.keyboard.press('Escape');
+   assert.equal(await page.locator('#f-game-actions').getAttribute('open'),null);
+   assert.equal(await page.locator('#modal-overlay').isVisible(),true);
+   await page.locator('#cancel-btn').click();
    await page.evaluate(id=>{GAMES.find(game=>game.id===id).date='2023-06';openModal(id);},created.id);
    assert.equal(await page.locator('#f-partial-date').inputValue(),'2023-06');
-   await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
+   await page.locator('#f-source').fill('Boutique fictive');
+   await page.locator('#f-prix').fill('0');
    await page.locator('#f-nom').fill('Aventure fictive renommée');
    await page.locator('#save-btn').click();
    assert.equal(await page.evaluate(id=>GAMES.find(game=>game.id===id).date,created.id),'2023-06');
    await page.evaluate(id=>openModal(id),created.id);
-   await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
    assert.equal(await page.locator('#save-btn').innerText(),'Enregistrer');
    await page.keyboard.press('Escape');
    const before=await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST}));
@@ -76,6 +85,7 @@ const server=createSandboxServer();
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(id=>GAMES.some(g=>g.id===id),created.id),true,'Manual add survives reload');
    await checkJournalSources(page);
+   if([390,1440].includes(width) && theme==='dark') await checkNintendoArtwork(page);
    assert.deepEqual(errors,[]);await context.close();console.log('PASS manual entry and module actions',width,theme);
   }
  }finally{await browser.close();server.close();}
@@ -115,7 +125,7 @@ async function checkJournalSources(page){
  assert.equal(await page.locator('#journal-year').inputValue(),'2012');
  await page.locator('.journal-row').filter({hasText:'Complétion à l’année'}).click();
  assert.match(await page.locator('#journal-dialog-body').innerText(),/≈ 2012/);
- await page.locator('#journal-edit-completion').click();
+ {await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
  assert.equal(await page.locator('#journal-form [name="completionYear"]').inputValue(),'2012');
  await page.locator('#journal-save').click();
  await page.locator('#journal-close').click();
@@ -145,3 +155,79 @@ async function checkJournalSources(page){
  assert.equal(await page.evaluate(()=>getJournalReleases().find(item=>item.nom==='Sortie fictive').date),'2028-04-12');
 }
 
+
+async function checkNintendoArtwork(page){
+  const switch2Titles=[
+    ['Star Fox','0400E88025B1A000'],
+    ['Splatoon Raiders','0400380020056000']
+  ];
+  for(const [title,titleId] of switch2Titles){
+    await page.evaluate(()=>{goToPage('collection');openModal(null);});
+    await page.selectOption('#f-plateforme','Switch 2');
+    await page.locator('#f-nom').fill(title);
+    await page.locator('#f-eshop-results button').filter({hasText:title}).first().click();
+    assert.equal(await page.locator('#f-nom').inputValue(),title);
+    assert.equal(await page.locator('#f-plateforme').inputValue(),'Switch 2');
+    assert.equal(await page.locator('#f-nintendo-id').inputValue(),titleId);
+    assert.match(await page.locator('#f-image').inputValue(),/\/16x9_/);
+    assert.match(await page.locator('#f-square-image').inputValue(),/\/1x1_/);
+    await page.locator('#save-btn').click();
+    await page.locator('#cancel-btn').click();
+  }
+
+  await page.evaluate(()=>{goToPage('collection');openModal(null);});
+  await page.selectOption('#f-plateforme','Switch 2');
+  await page.locator('#f-nom').fill('Donkey Kong Ban');
+  const suggestion=page.locator('#f-eshop-results button').filter({hasText:'Donkey Kong Bananza'}).first();
+  await suggestion.waitFor({state:'visible'});
+  const titleBox=await page.locator('#f-nom').boundingBox();
+  const listBox=await page.locator('#f-eshop-results').boundingBox();
+  const platformBox=await page.locator('#f-identity-editor .icon-select-trigger').boundingBox();
+  assert.ok(listBox.y>=titleBox.y+titleBox.height && Math.abs(listBox.x-titleBox.x)<2,'Suggestions appear below the title');
+  assert.ok(platformBox.y<listBox.y+listBox.height-1,'Suggestions float without pushing the platform down');
+  assert.equal(await page.getByRole('button',{name:'Chercher des visuels eShop'}).count(),0);
+  await suggestion.click();
+  assert.equal(await page.locator('#f-nom').inputValue(),'Donkey Kong Bananza');
+  const banner=await page.locator('#f-image').inputValue();
+  const square=await page.locator('#f-square-image').inputValue();
+  assert.match(banner,/^https:\/\/www\.nintendo\.com/);
+  assert.notEqual(square,banner);
+  await page.locator('#save-btn').click();
+  const id=await page.evaluate(()=>GAMES.find(game=>game.nom==='Donkey Kong Bananza').id);
+  assert.deepEqual(await page.evaluate(id=>{
+    const game=GAMES.find(game=>game.id===id);
+    return [game.image,game.squareImage,game.nintendoTitleId];
+  },id),[banner,square,'040074A01BF12000']);
+  await page.evaluate(id=>{
+    const game=GAMES.find(item=>item.id===id);
+    game.image=new URL('preview-assets/garden.svg',location.href).href;
+    game.squareImage=null;
+  },id);
+  await page.locator('#cancel-btn').click();
+  await page.locator('#profile-menu-btn').click();
+  await page.locator('#switch-artwork-open').click();
+  const row=page.locator('.switch-bulk-row').filter({hasText:'Donkey Kong Bananza'});
+  await row.locator('select').selectOption({label:'Donkey Kong Bananza · 040074A01BF12000'});
+  await page.locator('#switch-artwork-apply').click();
+  assert.deepEqual(await page.evaluate(id=>{
+    const game=GAMES.find(game=>game.id===id);
+    return [new URL(game.image).pathname,game.squareImage];
+  },id),['/preview-assets/garden.svg',square]);
+  await page.evaluate(id=>openModal(id),id);
+  await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
+  assert.equal(await page.locator('#f-square-image').isVisible(),true,'The square is available when editing an existing game');
+  assert.equal(await page.locator('#f-square-image').inputValue(),square);
+  await page.selectOption('#f-plateforme','PlayStation 5');
+  await page.locator('#f-nom').fill('Donkey Kong Ban');
+  assert.equal(await page.locator('#f-eshop-results button').count(),0,'No Nintendo suggestions on another console');
+  await page.evaluate(()=>{const field=document.querySelector('#f-plateforme');field.add(new Option('NSW','NSW'));});
+  await page.selectOption('#f-plateforme','NSW');
+  await page.locator('#f-eshop-results').getByText('Aucun titre Switch trouvé', {exact:false}).waitFor();
+  await page.evaluate(()=>{const field=document.querySelector('#f-plateforme');field.add(new Option('NSW2','NSW2'));});
+  await page.selectOption('#f-plateforme','NSW2');
+  await page.locator('#f-eshop-results button').filter({hasText:'Donkey Kong Bananza'}).first().click();
+  assert.equal(await page.locator('#f-plateforme').inputValue(),'NSW2','The selected account platform is preserved');
+  await page.locator('#cancel-btn').click();
+  await page.locator('#confirm-modal-confirm-btn').click();
+
+}

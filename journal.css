@@ -307,3 +307,20 @@ dl.journal-context-fields { padding:10px 12px; border:1px solid var(--ui-border)
 .journal-drag-active [data-journal-drop].journal-drop-over { outline:2px solid var(--ui-accent); background:color-mix(in srgb,var(--ui-accent) 8%,var(--ui-surface)); }
 
 .journal-source-confirmation { margin:8px 0 0; font-size:12px; color:var(--ui-text-muted); overflow-wrap:anywhere; }
+
+#journal-overlay .journal-dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+#journal-overlay .journal-dialog-heading:has(#journal-detail-actions) { margin-bottom:12px; }
+#journal-overlay .journal-dialog-heading:has(#journal-detail-actions) h2 { margin:0; }
+#journal-dialog-body .journal-detail-identity {
+  position:relative; isolation:isolate; display:grid; align-items:end;
+  margin:0; padding:0; border:0; background:none;
+}
+#journal-dialog-body .journal-detail-identity .game-identity-summary { padding:0; }
+#journal-dialog-body .journal-detail-section {
+  margin-top:19px; padding:0; border:0; background:none;
+}
+#journal-dialog-body .journal-detail-section .form-section-title {
+  font-size:16px; font-weight:700; letter-spacing:-.02em;
+}
+.journal-detail-section .journal-context-fields { border:0; border-radius:var(--ui-radius-md); }
+.journal-collection-link { min-height:44px; }

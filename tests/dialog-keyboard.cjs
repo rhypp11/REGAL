@@ -10,12 +10,12 @@ async function checkTrap(page,id){
   assert.equal(await dialog.evaluate(el=>el.contains(document.activeElement)),true,'Focus starts inside '+id);
   for(const direction of ['forward','backward']){
     await dialog.evaluate((el,direction)=>{
-      const items=[...el.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(e=>e.tabIndex>=0&&!e.disabled&&e.getClientRects().length&&!e.closest('.hidden,[inert]'));
+      const items=[...el.querySelectorAll('button,input,select,textarea,a[href],summary,[tabindex]')].filter(e=>e.tabIndex>=0&&!e.disabled&&e.getClientRects().length&&!e.closest('.hidden,[inert]'));
       (direction==='forward'?items.at(-1):items[0]).focus();
     },direction);
     await page.keyboard.press(direction==='forward'?'Tab':'Shift+Tab');
     assert.equal(await dialog.evaluate((el,direction)=>{
-      const items=[...el.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(e=>e.tabIndex>=0&&!e.disabled&&e.getClientRects().length&&!e.closest('.hidden,[inert]'));
+      const items=[...el.querySelectorAll('button,input,select,textarea,a[href],summary,[tabindex]')].filter(e=>e.tabIndex>=0&&!e.disabled&&e.getClientRects().length&&!e.closest('.hidden,[inert]'));
       return document.activeElement===(direction==='forward'?items[0]:items.at(-1));
     },direction),true,'Tab wraps '+direction+' '+id);
   }
@@ -54,7 +54,7 @@ async function checkTrap(page,id){
    assert.equal(await card.evaluate(el=>el===document.activeElement),true,'Keyboard opening ignores a recent pointer on the view switch');
    await page.keyboard.press('Enter');
    await checkTrap(page,'modal-overlay');
-   await page.locator('#f-identity-summary .identity-edit-btn').click();
+   await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
    await page.locator('#save-btn').click();
    assert.equal(await page.evaluate(()=>document.activeElement.matches('#page-collection .card-open-control')),true,'Rebuilt card opening control receives focus');
    // Required-field error is linked, focused, announced, and cleared after correction.
@@ -69,8 +69,8 @@ async function checkTrap(page,id){
    // Confirmations cancel only themselves, and never execute deletion on Escape.
    const count=await page.evaluate(()=>GAMES.length);
    await page.evaluate(()=>openModal(GAMES[0].id));
-   await page.locator('#f-identity-summary .identity-edit-btn').click();
-   await page.locator('#delete-btn').click();
+   await page.locator('#f-game-actions summary').click();
+   await page.locator('#f-game-actions').getByRole('button',{name:'Supprimer',exact:true}).click();
    assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-modal-cancel-btn','Confirmation starts on the safe action');
    await checkTrap(page,'confirm-modal-overlay');
    assert.equal(await page.evaluate(()=>document.activeElement.id),'confirm-modal-confirm-btn'); // checkTrap finishes at the last action

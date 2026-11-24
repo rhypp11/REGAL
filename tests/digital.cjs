@@ -46,7 +46,7 @@ async function openFilters(page){
       assert.ok((await page.locator('#f-content-details').innerText()).includes('40,00'));
       assert.doesNotMatch(await page.locator('#f-context-summary').innerText(),/Compte/);
       assert.doesNotMatch(await page.locator('#f-context-summary').innerText(),/Source/);
-      await page.locator('#f-context-summary .context-edit-btn').click();
+      await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
       assert.equal(await page.locator('#f-source').isVisible(),false);
       assert.equal(await page.locator('#f-digital-version-options').isVisible(),true);
       assert.equal(await page.locator('#f-context-editor #f-account').count(),0);
@@ -54,6 +54,8 @@ async function openFilters(page){
       await page.locator('#cancel-btn').click();
       await page.locator('#add-btn').click();
       await page.locator('#f-nom').fill('Nouvel achat japonais');await page.selectOption('#f-plateforme','Switch 2');
+      await page.locator('#save-btn').click();
+      await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
       await page.locator('#f-digital-version-options summary').click();
       await page.locator('#f-japanese-account').check();
       await page.locator('#f-bundle').check();
@@ -61,9 +63,13 @@ async function openFilters(page){
       await page.locator('#f-prix').fill('3980');await page.locator('#save-btn').click();
       assert.equal(await page.locator('#modal-overlay').isVisible(),false);
       const newId=await page.evaluate(()=>GAMES.find(g=>g.nom==='Nouvel achat japonais').id);
-      await page.locator('#add-btn').click();await page.locator('#f-nom').fill('Nouvelle extension');
-      await page.selectOption('#f-content-type','dlc');await page.locator('#f-parent-enabled').check();await page.locator('#f-parent-search').fill('Nouvel achat japonais');
-      await page.locator('[data-parent-id="'+newId+'"]').click();await page.selectOption('#f-currency','JPY');await page.locator('#f-prix').fill('1000');await page.locator('#save-btn').click();
+      await page.evaluate(id=>openModal(id),newId);
+      await page.locator('#f-game-actions summary').click();
+      await page.getByRole('button',{name:'Ajouter ou rattacher un DLC',exact:true}).click();
+      await page.locator('#collection-content-create').click();
+      await page.locator('#f-nom').fill('Nouvelle extension');
+      assert.equal(await page.locator('#f-parent').inputValue(),newId);
+      await page.selectOption('#f-currency','JPY');await page.locator('#f-prix').fill('1000');await page.locator('#save-btn').click();
       assert.equal(await page.evaluate(()=>JTDData.collectionCards(GAMES,'digital').some(g=>g.nom==='Nouvelle extension')),false);
       // A sale removes only the physical copy; its DLC stays digital and cannot be sold.
       await page.evaluate(()=>{const box=GAMES.find(g=>g.id==='box');commitBoardTransfer('games','cemetery',box.id,{...box,saleStatus:'pending'});buildPlatformList();render();});
@@ -75,11 +81,11 @@ async function openFilters(page){
       const backup=await page.evaluate(()=>buildBackupPayload());
       assert.equal(backup.data.digitalAccounts.length,2);assert.equal(backup.data.games.find(g=>g.nom==='Nouvelle extension').parentId,newId);
       await page.evaluate(()=>{GAMES.push({id:'switch-base',nom:'Jeu Switch de base',plateforme:'Switch',format:'Numérique',prix:40});buildPlatformList();render();});
-      await page.locator('#add-btn').click();await page.locator('#f-nom').fill('Mise à niveau Switch 2');
-      await page.selectOption('#f-content-type','upgrade');await page.locator('#f-parent-enabled').check();await page.locator('#f-parent-search').fill('Jeu Switch de base');await page.locator('[data-parent-id="switch-base"]').click();
-      const optionColors=await page.locator('#f-content-type option').first().evaluate(option=>{const style=getComputedStyle(option);return {foreground:style.color,background:style.backgroundColor};});
-      assert.notEqual(optionColors.foreground,optionColors.background);
-      assert.notEqual(optionColors.background,'rgba(0, 0, 0, 0)');
+      await page.evaluate(()=>openModal('switch-base'));
+      await page.locator('#f-game-actions summary').click();
+      await page.getByRole('button',{name:'Ajouter ou rattacher une mise à niveau',exact:true}).click();
+      await page.locator('#collection-content-create').click();
+      await page.locator('#f-nom').fill('Mise à niveau Switch 2');
       assert.equal(await page.locator('#f-plateforme').inputValue(),'Switch 2');
       assert.equal(await page.locator('#f-parent-preview .content-related-thumb').count(),1);
       await page.locator('#f-prix').fill('10');await page.locator('#save-btn').click();

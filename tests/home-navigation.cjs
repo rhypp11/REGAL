@@ -109,7 +109,7 @@ const server=createSandboxServer();
    await page.evaluate(items=>{WISHLIST=items;renderWishlist();},wishlistBeforeHover);
    await page.evaluate(()=>{GAMES=[];renderHomeStats();});assert.equal(await page.locator('#home-total-games').textContent(),'0');
    await page.evaluate(()=>{
-    GAMES=[{id:'report-zero',nom:'Étoile de test',plateforme:'Switch 2',date:'2023-04-02',prix:0},{id:'report-undated',nom:'Achat sans date',plateforme:'Switch 2',prix:20}];
+    GAMES=[{id:'report-zero',nom:'Étoile de test',plateforme:'Switch 2',date:'2023-04-02',prix:0,image:location.origin+'/preview-assets/garden.svg',squareImage:location.origin+'/preview-assets/lighthouse.svg'},{id:'report-undated',nom:'Achat sans date',plateforme:'Switch 2',prix:20}];
     CEMETERY=[
      {id:'report-sold',nom:'Étoile vendue',plateforme:'PS5',date:'2023-05',prix:30,saleStatus:'sold',salePrice:12},
      {id:'report-pending',nom:'Jeu sans prix',plateforme:'PS5',date:'2023',saleStatus:'pending'}
@@ -208,19 +208,31 @@ const server=createSandboxServer();
    assert.equal(await completionRow.locator('.calendar-day').count(),0,'Completed games use a textual date');
    assert.match(await completionRow.locator('.journal-completion-date').innerText(),/≈.*2022/,'Approximate completion dates stay approximate');
    assert.equal(await completionRow.locator('.journal-completion-badge').innerText(),'Fini');
+   assert.match(await completionRow.locator('.board-thumb .game-art-image').getAttribute('src'),/garden\.svg$/);
    await completionRow.click();
+   const hero=page.locator('.journal-detail-identity');
+   assert.equal(await page.locator('#journal-dialog-title').innerText(),'Journal');
+   assert.equal(await page.locator('#journal-dialog-actions #journal-detail-actions').count(),1);
+   assert.equal(await hero.locator('.journal-detail-banner').count(),0);
+   assert.equal(await hero.getByRole('button',{name:'Voir dans la collection'}).count(),1);
+   const square=hero.locator('.identity-thumb .game-art-image');
+   assert.match(await square.getAttribute('src'),/lighthouse\.svg$/);
+   const thumb=await square.boundingBox();
+   assert.ok(Math.abs(thumb.width-thumb.height)<1,'The Journal header keeps a square icon');
+   assert.equal(await hero.locator('.identity-copy strong').innerText(),'Étoile de test');
    assert.equal(await page.locator('.journal-detail-ratings .journal-grade[data-grade="S+"]').count(),1);
    assert.equal(await page.locator('#journal-dialog-body [aria-label="Date approximative"]').count(),1);
    assert.equal(await page.locator('.journal-comment').innerText(),'Commentaire de test');
    assert.deepEqual(await page.locator('#journal-dialog-body dt').allTextContents(),['Date de complétion','Mode de jeu','Précision']);
    assert.equal(await page.locator('.journal-row .journal-comment-mark').count(),1);
-   await page.locator('#journal-edit-comment').click();
+   {await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
+   await page.locator('#journal-form summary').filter({hasText:'Commentaire'}).click();
    await page.locator('#journal-form [name="comment"]').fill('Commentaire modifié');
    await page.locator('#journal-save').click();
    assert.equal(await page.locator('.journal-comment').innerText(),'Commentaire modifié');
-   await page.locator('#journal-edit-completion').click();
-   assert.equal(await page.locator('#journal-game-summary').isVisible(),true);
-   assert.equal(await page.locator('#journal-game-editor').isVisible(),false);
+   {await page.locator('#journal-detail-actions summary').click();await page.locator('#journal-detail-edit').click();}
+   assert.equal(await page.locator('#journal-game-summary').isVisible(),false);
+   assert.equal(await page.locator('#journal-game-editor').isVisible(),true);
    assert.equal(await page.evaluate(()=>GAMES[0].status),undefined);
    await page.locator('#journal-close').click();
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
@@ -228,11 +240,24 @@ const server=createSandboxServer();
    assert.equal(await page.locator('.journal-row').filter({hasText:'Étoile de test'}).isVisible(),true);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await page.evaluate(()=>openModal('report-zero'));
-   assert.match(await page.locator('#f-sheet-status').innerText(),/Terminé[\s\S]*Fini · ≈ octobre 2022/);
+   assert.equal(await page.locator('#f-sheet-status > h3').innerText(),'Statut');
+   assert.match(await page.locator('.game-status-panel .game-sheet-status').innerText(),/Terminé/);
+   assert.deepEqual(await page.locator('.game-status-completion dd').allTextContents(),['Fini','≈ octobre 2022']);
    await page.locator('#f-sheet-status').getByRole('button',{name:'Voir dans le Journal'}).click();
    await page.getByRole('button',{name:'Voir dans la collection'}).click();
    assert.equal(await page.locator('#modal-overlay').isVisible(),true);
    await page.locator('#cancel-btn').click();
+   await completionRow.click();
+   await page.locator('#journal-detail-actions summary').click();
+   await page.locator('#journal-unlink-collection').click();
+   assert.equal(await page.getByRole('button',{name:'Voir dans la collection'}).count(),0);
+   assert.equal(await page.locator('.journal-comment').innerText(),'Commentaire modifié');
+   assert.equal(await page.evaluate(()=>getLinkedJournalCompletion('report-zero')),undefined);
+   await page.getByRole('button',{name:'Relier à la collection'}).click();
+   await page.locator('[data-journal-source="report-zero"]').click();
+   await page.locator('#journal-save').click();
+   assert.ok(await page.evaluate(()=>getLinkedJournalCompletion('report-zero')));
+   await page.locator('#journal-close').click();
    await page.evaluate(()=>{
     const game=GAMES.find(item=>item.id==='report-zero');
     const moved=commitBoardTransfer('games','cemetery',game.id,{...game,saleStatus:'pending'});
