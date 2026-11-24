@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_24.11.26-10">
-<meta name="regal-pull-request" content="116">
-<meta name="regal-build" content="01036ccf4eb06f1d6b6269f0">
+<meta name="regal-version" content="3_24.11.26-11">
+<meta name="regal-pull-request" content="117">
+<meta name="regal-build" content="f1f2ea3623f129a7bba3c993">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=2">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=2">
 <link rel="manifest" href="manifest.json">
@@ -464,6 +464,7 @@
     <section id="f-quick-hide-fields" class="form-section game-sheet-section" aria-labelledby="game-sheet-purchase-title">
       <div id="f-media-section">
       <h3 class="form-section-title collection-purchase-heading" id="game-sheet-purchase-title">Achat</h3>
+      <div class="field hidden" id="f-catalog-type-field"><label for="f-catalog-type">Type de contenu</label><select id="f-catalog-type"><option value="game">Jeu</option><option value="dlc">Extension</option></select></div>
       <div class="purchase-format-heading">
         <span id="f-editor-format-title">Physique</span>
         <div id="f-media-field"><select id="f-media" class="hidden" tabindex="-1" aria-label="Format de l’achat"><option value="physical">Physique</option><option value="digital">Numérique</option></select><div class="purchase-format-options" role="radiogroup" aria-label="Format de l’achat"><label><input type="radio" name="f-media-choice" value="physical"><span class="purchase-format-icon" data-format-icon="physical" aria-hidden="true"></span><span>Physique</span></label><label><input type="radio" name="f-media-choice" value="digital"><span class="purchase-format-icon" data-format-icon="digital" aria-hidden="true"></span><span>Numérique</span></label></div></div>
