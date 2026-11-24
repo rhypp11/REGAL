@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_24.11.26-12">
-<meta name="regal-pull-request" content="118">
-<meta name="regal-build" content="f7867babfe194f6dd7079878">
+<meta name="regal-version" content="3_24.11.26-14">
+<meta name="regal-pull-request" content="119">
+<meta name="regal-build" content="d6d13bdba5f91981bab7f6b2">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=2">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=2">
 <link rel="manifest" href="manifest.json">
@@ -214,10 +214,11 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="arrival-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="arrival-modal-title">
   <div class="modal">
-    <h2 id="arrival-modal-title">Ajouter un arrivage</h2>
+    <div class="sheet-dialog-heading"><h2 id="arrival-modal-title">Ajouter un arrivage</h2><div id="a-sheet-actions"></div></div>
 
     <div class="form-section">
-      <div class="game-identity-summary hidden" id="a-identity-summary"></div>
+      <h3 class="sheet-section-title hidden" id="a-game-heading">Jeu</h3>
+      <div class="game-identity-summary sheet-identity-card hidden" id="a-identity-summary"></div>
       <div class="game-identity-editor" id="a-identity-editor">
       <div class="field">
         <label for="a-nom">Nom du jeu</label>
@@ -251,8 +252,8 @@
       </div>
 
     <div class="form-section">
-      <div class="form-section-title">Arrivage</div>
-      <div class="context-summary hidden" id="a-context-summary"></div>
+      <h3 class="sheet-section-title">Livraison</h3>
+      <div class="context-summary sheet-summary-card hidden" id="a-context-summary"></div>
       <div class="context-editor" id="a-context-editor">
     <div class="field-row">
       <div class="field">
@@ -283,7 +284,7 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="wishlist-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wishlist-modal-title">
   <div class="modal">
-    <h2 id="wishlist-modal-title">Ajouter à la wishlist</h2>
+    <div class="sheet-dialog-heading"><h2 id="wishlist-modal-title">Ajouter à la wishlist</h2><div id="w-sheet-actions"></div></div>
 
     <div id="w-origin-picker" class="form-section hidden">
       <fieldset class="journal-source-choice"><legend>Origine du jeu</legend>
@@ -297,7 +298,8 @@
     </div>
 
     <div class="form-section">
-      <div class="game-identity-summary hidden" id="w-identity-summary"></div>
+      <h3 class="sheet-section-title hidden" id="w-game-heading">Jeu</h3>
+      <div class="game-identity-summary sheet-identity-card hidden" id="w-identity-summary"></div>
       <div class="game-identity-editor" id="w-identity-editor">
       <div class="field">
         <label for="w-nom">Nom du jeu</label>
@@ -331,8 +333,8 @@
       </div>
 
     <div class="form-section">
-      <div class="form-section-title">Wishlist</div>
-      <div class="context-summary hidden" id="w-context-summary"></div>
+      <h3 class="sheet-section-title">Sortie</h3>
+      <div class="context-summary sheet-summary-card hidden" id="w-context-summary"></div>
       <div class="context-editor" id="w-context-editor">
     <div class="field flexible-date-field">
       <label>Date de sortie</label>
@@ -730,7 +732,7 @@
 <div class="modal-overlay sheet-dialog hidden" id="dex-editor-overlay" role="dialog" aria-modal="true" aria-labelledby="dex-editor-title"><div class="modal dex-editor-modal"><h2 id="dex-editor-title">Créer un Pokédex</h2><form id="dex-create"><div id="dex-picker"><div class="field"><label for="dex-choice-search">Choisir un Pokédex</label><input type="search" id="dex-choice-search" placeholder="HOME, Émeraude, Violet…" autocomplete="off"></div><div id="dex-choices" role="group" aria-label="Catalogue du Pokédex"></div></div><div class="field"><label for="dex-name">Nom du Pokédex</label><input id="dex-name" required maxlength="100" autocomplete="off"></div><p id="dex-editor-error" role="alert"></p><div class="modal-actions modal-edit-actions"><button type="button" id="dex-delete" data-modal-action="delete" class="btn btn-danger hidden">Supprimer</button><button type="button" id="dex-create-cancel" data-modal-action="cancel" class="btn btn-ghost">Annuler</button><button type="submit" id="dex-editor-save" data-modal-action="save" class="btn btn-primary">Créer</button></div></form></div></div>
 <div class="modal-overlay sheet-dialog hidden" id="journal-overlay" role="dialog" aria-modal="true" aria-labelledby="journal-dialog-title">
   <div class="modal journal-modal">
-    <div class="journal-dialog-heading"><h2 id="journal-dialog-title">Journal</h2><div id="journal-dialog-actions"></div></div>
+    <div class="sheet-dialog-heading"><h2 id="journal-dialog-title">Journal</h2><div id="journal-dialog-actions"></div></div>
     <div id="journal-dialog-body"></div>
     <div class="modal-actions modal-edit-actions" id="journal-actions">
       <div class="modal-secondary-actions">
