@@ -35,7 +35,7 @@ const server=createSandboxServer();
     assert.equal(state.preview,true);assert.equal(state.overflow,false,`${width} ${theme} ${name} overflow`);
     assert.equal(state.canvas,'rgb(21, 22, 24)');
     assert.ok(state.logoSource.includes(width<=360?'logo-regal-mark.svg':'brand-header.svg'),'Compact screens keep only the current logo mark');
-    assert.equal(state.header,'rgb(16, 16, 16)');assert.equal(state.logo,true);assert.ok(state.logoRight<=state.searchButtonLeft);assert.match(state.title,/^REGAL \|/);
+    assert.equal(state.header,'rgb(34, 17, 23)');assert.equal(state.logo,true);assert.ok(state.logoRight<=state.searchButtonLeft);assert.match(state.title,/^REGAL \|/);
     await page.screenshot({path:path.join(os.tmpdir(),`jtd-regal-${width}-${theme}-${name}.png`),fullPage:true});
    }
    const branding=await page.evaluate(async()=>{
