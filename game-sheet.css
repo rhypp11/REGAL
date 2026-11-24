@@ -324,19 +324,24 @@
   grid-template-columns:repeat(2,minmax(0,1fr));
 }
 #f-sheet-status .game-status-panel {
-  grid-template-columns:minmax(0,1fr) auto;
-  align-items:center;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center; gap:8px; padding-block:6px;
 }
 .game-status-panel .game-sheet-status { justify-self:start; }
-.game-status-completion { grid-row:2; grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:8px 22px; margin:0; }
-.game-status-completion dt { font-size:11px; color:var(--ui-text-muted); }
-.game-status-completion dd { margin:2px 0 0; font-size:13px; font-weight:600; }
-.game-status-panel .manage-link { display:flex; align-items:center; gap:6px; min-height:44px; }
-.game-status-panel .manage-link svg { width:15px; height:15px; flex:none; }
-@media(max-width:380px){
-  #f-sheet-status .game-status-panel { grid-template-columns:1fr; }
-  .game-status-panel .manage-link { grid-row:3; justify-self:start; }
+.game-status-completion {
+  display:flex; align-items:center; flex-wrap:wrap; gap:2px 10px; min-width:0; margin:0;
 }
+.game-status-completion dt {
+  position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap;
+}
+.game-status-completion dd { margin:0; font-size:12px; font-weight:600; }
+.game-status-completion > div + div dd { color:var(--ui-text-muted); font-weight:500; }
+.sheet-navigation-icon {
+  display:grid; place-items:center; width:44px; height:44px; padding:0;
+  border:0; border-radius:8px; background:var(--ui-surface-raised); color:var(--ui-text); cursor:pointer;
+}
+.sheet-navigation-icon svg { width:19px; height:19px; }
+.sheet-navigation-icon:hover { background:var(--ui-surface); }
 @media(min-width:821px){
   #modal-overlay:not(.game-sheet-viewing):not(.cemetery-game-editor) > .modal,
   #journal-overlay:has(#journal-form) > .modal { width:min(900px,94vw); max-width:900px; }
@@ -391,5 +396,5 @@
 }
 #f-edit-purchase-art:not(:empty) { float:left; margin:0 12px 8px 0; }
 #journal-dialog-body .journal-detail-identity .game-identity-summary:has(.journal-collection-icon) {
-  display:grid; grid-template-columns:auto minmax(0,1fr) auto auto;
+  display:grid; grid-template-columns:auto minmax(0,1fr) auto;
 }

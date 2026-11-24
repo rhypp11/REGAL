@@ -247,6 +247,7 @@
     hasDraftChanges = null;
     editorEvents = new AbortController();
     $('journal-dialog-title').textContent = title;
+    $('journal-dialog-actions').replaceChildren();
     $('journal-dialog-body').innerHTML = html;
     $('journal-save').classList.toggle('hidden',!editing);
     $('journal-save').textContent='Enregistrer';
@@ -527,9 +528,9 @@
     const done=entry.group==='completed';
     const generation=window.JTDAccountGeneration;
     if(['playing','backlog'].includes(entry.group)){ edit(entry); return; }
-    show(entry.name,
+    show('Journal',
       '<section class="form-section journal-detail-identity">'+
-      identityCard(entry,true,true)+'</section>'+
+      identityCard(entry)+'</section>'+
       '<section class="form-section journal-detail-section"><div class="journal-section-heading"><h3 class="form-section-title">'+(done?'Complétion':'Sortie')+'</h3>'+
       (done?completionBadge(entry.completion):'')+'</div>'+
       '<dl class="journal-context-fields'+(done?' journal-context-fields-completion':'')+'">'+
@@ -545,13 +546,29 @@
       (done && entry.comment?'<section class="form-section journal-detail-section journal-comment-section"><div class="journal-section-heading"><h3 class="form-section-title">Commentaire</h3>'+
         '</div><p class="journal-comment">'+esc(entry.comment)+'</p></section>':''),{canDelete:true});
     const actions = [['Modifier la fiche', () => edit(entry,false,'full'), 'journal-detail-edit', 'edit']];
-    actions.push(['Supprimer', () => $('journal-delete').click(), null, 'delete']);
-    $('journal-dialog-body').querySelector('.identity-edit-btn').replaceWith(sheetActions(actions,'journal-detail-actions'));
     const purchase = linkedPurchase(entry);
+    if(purchase){
+      actions.push(['Délier de la collection', () => {
+        if(generation!==window.JTDAccountGeneration) return;
+        const current=records();
+        const source=current.find(record=>record?.id===entry.id);
+        if(!source || source.collectionId!==purchase.id) return;
+        const {collectionId, ...unlinked}=source;
+        try{
+          commit(current.map(record=>record===source?unlinked:record));
+          render();
+          detail(unlinked);
+          $('journal-detail-actions').querySelector('summary').focus({preventScroll:true});
+        }catch(error){showToast(error.message);}
+      }, 'journal-unlink-collection', 'link']);
+    }
+    actions.push(['Supprimer', () => $('journal-delete').click(), null, 'delete']);
+    $('journal-dialog-body').querySelector('.identity-edit-btn').remove();
+    $('journal-dialog-actions').append(sheetActions(actions,'journal-detail-actions'));
     if(purchase){
       const link=document.createElement('button');
       link.type='button';
-      link.className='journal-collection-icon';
+      link.className='sheet-navigation-icon journal-collection-icon';
       link.title='Voir dans la collection';
       link.setAttribute('aria-label',link.title);
       link.innerHTML=statIcon('<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><path d="m18 4 3 15-4 1-3-15"/>');

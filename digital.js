@@ -290,16 +290,17 @@ function renderGameSheetStatus(game){
   if(completion){
     const link = document.createElement('button');
     link.type = 'button';
-    link.className = 'manage-link';
+    link.className = 'sheet-navigation-icon';
+    link.title = 'Voir dans le Journal';
+    link.setAttribute('aria-label',link.title);
     link.innerHTML = document.querySelector('.nav-tab[data-page="journal"] svg')?.outerHTML || '';
-    link.append('Voir dans le Journal');
     link.onclick = () => {closeModal();window.openJournalEntry(completion.id);};
     const summary = document.createElement('dl');
     summary.className = 'game-status-completion';
     summary.innerHTML = [
       ['Type de complétion',completion.result], ['Date de complétion',completion.date]
     ].map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+escapeHTML(value)+'</dd></div>').join('');
-    card.append(link,summary);
+    card.append(summary,link);
   }
 }
 function renderContentDetails(game){

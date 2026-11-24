@@ -2046,7 +2046,7 @@ function renderHomeStats(){
 
 
 function boardThumb(item){
-  item = purchaseArtwork(item,true);
+  item = purchaseArtwork(item);
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
   const logo = getPlatformLogo(item.plateforme);
   const color = getPlatformColor(item.plateforme);
