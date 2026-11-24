@@ -25,6 +25,7 @@
     return active?.entries ?? (IS_PREVIEW_MODE ? previewEntries : []);
   }
   const linkedPurchase = entry => entry.collectionId && GAMES.find(game => game.id === entry.collectionId && game.contentType !== 'upgrade');
+  const withPurchaseIdentity = entry => entry && JTDData.journalPurchaseIdentity(entry,linkedPurchase(entry));
   let indexedArchive, completionsByPurchase;
   window.getLinkedJournalCompletion = id => {
     if(!completionsByPurchase || indexedArchive !== LEGACY_JOURNAL){
@@ -39,10 +40,10 @@
     const entry = completionsByPurchase.get(id);
     return entry && {id:entry.id,date:dateLabel(entry),result:completions[entry.completion] || completions.finished};
   };
-  window.getJournalExportEntries=()=>records();
+  window.getJournalExportEntries=()=>records().map(withPurchaseIdentity);
   window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,squareImage:entry.squareImage,nintendoTitleId:entry.nintendoTitleId,imageFit:entry.imageFit,date:entry.date}));
   const searchLocations={completed:'Terminé',playing:'En cours',backlog:'À faire',release:'Sorties'};
-  window.getJournalSearchEntries=()=>records().filter(entry=>entry && Object.hasOwn(searchLocations,entry.group)).map(entry=>({
+  window.getJournalSearchEntries=()=>records().filter(entry=>entry && Object.hasOwn(searchLocations,entry.group)).map(withPurchaseIdentity).map(entry=>({
     id:entry.id,nom:entry.name,plateforme:entry.platform,searchSupport:formats[entry.format]||'',location:searchLocations[entry.group]
   }));
   window.openJournalEntry=id=>{
@@ -198,7 +199,7 @@
   }
   const sortByYear=new Map();
   function render(){
-    const entries = records();
+    const entries = records().map(withPurchaseIdentity);
     const completed = entries.filter(entry=>entry?.group==='completed' && typeof entry.date==='string');
     const year = $('journal-year');
     const value = year.value || today().slice(0,4);
@@ -272,6 +273,7 @@
     });
   }
   function edit(entry,fromBacklog=false,section='all',linkOnly=false){
+    entry=withPurchaseIdentity(entry);
     const group=entry.group, done=group==='completed', release=group==='release';
     const date=entry.date ?? (done?today():'');
     const existing=records().some(record=>record?.id===entry.id);
@@ -412,19 +414,16 @@
         if(!item) return;
         sourcePending=false;
         if(!release) collectionId=item.id;
-        if(linkOnly){
-          compactIdentity();
-          summary.insertAdjacentHTML('beforeend','<p class="journal-source-confirmation">Collection · '+esc(item.nom)+' · '+esc(item.plateforme)+'</p>');
-          return;
-        }
-        elements.name.value=item.nom;
+        const identity=release ? {name:item.nom,platform:item.plateforme,image:item.image,squareImage:item.squareImage,nintendoTitleId:item.nintendoTitleId,imageFit:item.imageFit,format:''}
+          : JTDData.journalPurchaseIdentity(linkOnly ? entry : {},item);
+        elements.name.value=identity.name;
         if(![...elements.platform.options].some(option=>option.value===item.plateforme)) elements.platform.add(new Option(item.plateforme,item.plateforme));
         setSelectValueAndSync('journal-platform',item.plateforme);
         updatePlatform();
-        elements.image.value=item.image||'';
-        fillArtworkFields('j',item);
-        elements.imageFit.value=item.imageFit==='cover'?'cover':'contain';
-        elements.format.value=release?'':JTDData.isAddon(item)?'extension':JTDData.isDigital(item)?'digital':'physical';
+        elements.image.value=identity.image||'';
+        fillArtworkFields('j',identity);
+        elements.imageFit.value=identity.imageFit==='cover'?'cover':'contain';
+        elements.format.value=identity.format;
         if(release){setFlexibleDate('journal-release',item.date||'TBD');setReleaseDateInputs();releaseDateChanged=true;}
         updatePreview();
         compactIdentity();
@@ -504,7 +503,8 @@
         const releaseDate=release?(getFlexibleDate('journal-release')||(!releaseDateChanged?date:'')||'TBD'):'';
         if(release&&releaseDate!=='TBD'&&!/^\d{4}(?:-(?:0[1-9]|1[0-2]))?$/.test(releaseDate)&&!validDay(releaseDate)) throw Error('Indique une année ou une date valide.');
         const next={...readGame(),id:entry.id||crypto.randomUUID(),group:value('group')||group};
-        if(collectionId && linkedPurchase({collectionId})) next.collectionId=collectionId;
+        const purchase=collectionId && linkedPurchase({collectionId});
+        if(purchase) Object.assign(next,JTDData.journalPurchaseIdentity(next,purchase),{collectionId});
         if(entry.importKey) next.importKey=entry.importKey;
         if(done) next.date=completionDate;
         if(release) next.date=releaseDate;
@@ -525,6 +525,7 @@
   const calendarIcon=statIcon('<rect x="4" y="6" width="16" height="14" rx="2"/><path d="M8 4v4m8-4v4M4 10h16"/>');
   const contextField=(label,value,className='')=>'<div><dt>'+label+'</dt><dd class="'+className+'">'+value+'</dd></div>';
   function detail(entry){
+    entry=withPurchaseIdentity(entry);
     const done=entry.group==='completed';
     const generation=window.JTDAccountGeneration;
     if(['playing','backlog'].includes(entry.group)){ edit(entry); return; }
@@ -553,7 +554,7 @@
         const current=records();
         const source=current.find(record=>record?.id===entry.id);
         if(!source || source.collectionId!==purchase.id) return;
-        const {collectionId, ...unlinked}=source;
+        const {collectionId, ...unlinked}=JTDData.journalPurchaseIdentity(source,purchase);
         try{
           commit(current.map(record=>record===source?unlinked:record));
           render();

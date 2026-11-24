@@ -201,7 +201,19 @@ const server=createSandboxServer();
    await page.locator('#journal-form [name="comment"]').fill('Commentaire de test');
    await page.locator('#journal-save').click();
    assert.equal(await page.locator('#journal-year').inputValue(),'2022');
+   await page.evaluate(()=>{
+    const archive=LEGACY_JOURNAL.find(item=>item.regalJournal===2);
+    const old=archive.entries.find(entry=>entry.collectionId==='report-zero');
+    Object.assign(old,{name:'Ancien titre',platform:'Ancienne plateforme',format:'digital',image:null,squareImage:null});
+    renderJournal();
+   });
    const completionRow=page.locator('.journal-row').filter({hasText:'Étoile de test'});
+   assert.equal(await completionRow.getByText('Physique',{exact:true}).count(),1);
+   assert.match(await completionRow.locator('.journal-platform-name').innerText(),/Switch 2/);
+   assert.deepEqual(await page.evaluate(()=>{
+    const entry=getJournalExportEntries().find(item=>item.collectionId==='report-zero');
+    return [entry.name,entry.format,new URL(entry.image).pathname,new URL(entry.squareImage).pathname];
+   }),['Étoile de test','physical','/preview-assets/garden.svg','/preview-assets/lighthouse.svg']);
    assert.equal(await completionRow.getByText('Collection',{exact:true}).count(),1);
    assert.equal(await page.evaluate(()=>getEffectiveStatus(GAMES.find(game=>game.id==='report-zero'))),'termine');
    assert.equal(await completionRow.locator('.journal-grade').count(),0);
