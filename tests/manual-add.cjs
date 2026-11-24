@@ -184,13 +184,13 @@ async function checkNintendoArtwork(page){
   const listBox=await page.locator('#f-eshop-results').boundingBox();
   const platformBox=await page.locator('#f-identity-editor .icon-select-trigger').boundingBox();
   assert.ok(listBox.y>=titleBox.y+titleBox.height && Math.abs(listBox.x-titleBox.x)<2,'Suggestions appear below the title');
-  assert.ok(platformBox.y>=listBox.y+listBox.height-1,'The platform follows the title and suggestions');
+  assert.ok(platformBox.y<listBox.y+listBox.height-1,'Suggestions float without pushing the platform down');
   assert.equal(await page.getByRole('button',{name:'Chercher des visuels eShop'}).count(),0);
   await suggestion.click();
   assert.equal(await page.locator('#f-nom').inputValue(),'Donkey Kong Bananza');
   const banner=await page.locator('#f-image').inputValue();
   const square=await page.locator('#f-square-image').inputValue();
-  assert.match(banner,/^https:\/\/img-eshop\.cdn\.nintendo\.net/);
+  assert.match(banner,/^https:\/\/www\.nintendo\.com/);
   assert.notEqual(square,banner);
   await page.locator('#save-btn').click();
   const id=await page.evaluate(()=>GAMES.find(game=>game.nom==='Donkey Kong Bananza').id);
@@ -219,10 +219,14 @@ async function checkNintendoArtwork(page){
   assert.equal(await page.locator('#f-square-image').inputValue(),square);
   await page.selectOption('#f-plateforme','PlayStation 5');
   await page.locator('#f-nom').fill('Donkey Kong Ban');
+  assert.equal(await page.locator('#f-eshop-results button').count(),0,'No Nintendo suggestions on another console');
+  await page.evaluate(()=>{const field=document.querySelector('#f-plateforme');field.add(new Option('NSW','NSW'));});
+  await page.selectOption('#f-plateforme','NSW');
+  await page.locator('#f-eshop-results').getByText('Aucun titre Switch trouvé', {exact:false}).waitFor();
+  await page.evaluate(()=>{const field=document.querySelector('#f-plateforme');field.add(new Option('NSW2','NSW2'));});
+  await page.selectOption('#f-plateforme','NSW2');
   await page.locator('#f-eshop-results button').filter({hasText:'Donkey Kong Bananza'}).first().click();
-  assert.equal(await page.locator('#f-plateforme').inputValue(),'PlayStation 5');
-  assert.equal(await page.locator('#f-nom').inputValue(),'Donkey Kong Ban','Reuse on another console updates artwork only');
-  assert.equal(await page.locator('#f-image').inputValue(),banner);
+  assert.equal(await page.locator('#f-plateforme').inputValue(),'NSW2','The selected account platform is preserved');
   await page.locator('#cancel-btn').click();
   await page.locator('#confirm-modal-confirm-btn').click();
 

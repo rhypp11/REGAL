@@ -237,7 +237,7 @@
     confirmAction('Les modifications du Journal seront perdues.',close,{title:'Abandonner la saisie ?',confirmLabel:'Abandonner'});
   };
   window.refreshJournal = () => { if(!$('journal-overlay').classList.contains('hidden')) close(); render(); };
-  function identityCard(entry,editable=false,preferSquare=false){
+  function identityCard(entry,editable=false,preferSquare=true){
     return '<div class="game-identity-summary'+(editable?'':' journal-identity-read')+'">'+
       identitySummaryHtml({nom:entry.name,plateforme:entry.platform,image:safeURL(entry.image,true),squareImage:entry.squareImage,imageFit:entry.imageFit},
         entry.group==='release'?'':formats[entry.format]||'',preferSquare)+'</div>';
@@ -527,10 +527,8 @@
     const done=entry.group==='completed';
     const generation=window.JTDAccountGeneration;
     if(['playing','backlog'].includes(entry.group)){ edit(entry); return; }
-    const banner=purchaseArtwork(entry);
     show(entry.name,
-      '<section class="form-section journal-detail-identity'+(banner.image?' has-journal-art':'')+'">'+
-      (banner.image?'<div class="journal-detail-banner'+gameImageClass(banner)+'" aria-hidden="true">'+gameImageHtml(banner)+'</div>':'')+
+      '<section class="form-section journal-detail-identity">'+
       identityCard(entry,true,true)+'</section>'+
       '<section class="form-section journal-detail-section"><div class="journal-section-heading"><h3 class="form-section-title">'+(done?'Complétion':'Sortie')+'</h3>'+
       (done?completionBadge(entry.completion):'')+'</div>'+
@@ -553,10 +551,12 @@
     if(purchase){
       const link=document.createElement('button');
       link.type='button';
-      link.className='manage-link journal-collection-link';
-      link.textContent='Voir dans la collection';
+      link.className='journal-collection-icon';
+      link.title='Voir dans la collection';
+      link.setAttribute('aria-label',link.title);
+      link.innerHTML=statIcon('<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><path d="m18 4 3 15-4 1-3-15"/>');
       link.onclick=()=>{close();openModal(purchase.id);};
-      $('journal-dialog-body').querySelector('.journal-detail-identity').after(link);
+      $('journal-dialog-body').querySelector('.journal-detail-identity .identity-copy').after(link);
     }
     if(done && !purchase){
       const link=document.createElement('button');

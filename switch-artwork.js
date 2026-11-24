@@ -4,7 +4,9 @@ const switchArtworkMarket = (() => {
   const build = document.querySelector('meta[name="regal-build"]')?.content || '';
   const imageUrl = value => {
     if (/^[a-f0-9]{64}$/i.test(value)) return 'https://img-eshop.cdn.nintendo.net/i/'+value+'.jpg';
-    if (/^https:\/\/www\.nintendo\.com\/eu\/media\/images\/assets\/[^?#]+\.jpg$/i.test(value)) return value;
+    if (/^https:\/\/www\.nintendo\.com\/eu\/media\/images\/[^?#]+\.(?:jpe?g|png|webp)$/i.test(value)) return value;
+    if (typeof value==='string' && /^\/[\w%./-]+\.(?:jpe?g|png|webp)$/i.test(value)) return 'https://www.nintendo.com/eu/media/images'+value;
+    if (/^https:\/\/assets\.nintendo\.eu\/image\/private\/[\w,/-]+$/.test(value)) return value;
     return '';
   };
   let pending;
@@ -17,17 +19,22 @@ const switchArtworkMarket = (() => {
         if(!response.ok) throw Error('Catalogue eShop indisponible.');
         return response.json();
       };
-      pending=get('manifest.json')
-        .then(files=>Promise.all([...files.map(get),get('switch2-fr.json')]))
-        .then(parts=>{
-          const additions=parts.pop();
-          const ids=new Set(additions.map(([id])=>id));
-          return [...parts.flat().filter(([id])=>!ids.has(id)),...additions];
+      pending=Promise.all([get('manifest.json'),get('nintendo-fr-manifest.json')])
+        .then(async ([legacy,official])=>{
+          const [legacyParts,officialParts]=await Promise.all([
+            Promise.all(legacy.map(get)),Promise.all(official.map(get))
+          ]);
+          const rows=officialParts.flat().map(([id,name,square,banner,platform])=>({id,name,square,banner,platform}));
+          const key=row=>row.platform+'|'+JTDData.foldImport(row.name);
+          const known=new Map(rows.map(row=>[key(row),row]));
+          for(const [id,name,square,banner] of legacyParts.flat()){
+            const row={id,name,square,banner,platform:id.startsWith('04')?'Switch 2':'Switch'};
+            const official=known.get(key(row));
+            if(!official) rows.push(row);
+            else if(!official.id) official.id=id;
+          }
+          return rows.map(row=>({...row,key:JTDData.foldImport(row.name),square:imageUrl(row.square),banner:imageUrl(row.banner)}));
         })
-        .then(rows=>rows.map(([id,name,icon,banner])=>({
-          id,name,square:imageUrl(icon),banner:imageUrl(banner),
-          key:JTDData.foldImport(name), platform:id.startsWith('04')?'Switch 2':'Switch'
-        })))
         .catch(error=>{pending=null;throw error;});
     }
     return pending;
@@ -54,7 +61,7 @@ const switchArtworkMarket = (() => {
       ...(rename ? {nom:row.name} : {}),
       ...((replace || !game.image) && row.banner ? {image:row.banner} : {}),
       ...((replace || !game.squareImage) && row.square ? {squareImage:row.square} : {}),
-      nintendoTitleId:row.id
+      ...(row.id ? {nintendoTitleId:row.id} : {})
     };
   }
   return {load,search,platformOf,patch};
@@ -138,7 +145,13 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
   results.id=prefix+'-eshop-results';
   results.className='switch-art-results';
   results.setAttribute('aria-label','Suggestions eShop');
-  name.closest('.field').appendChild(results);
+  const anchor=document.createElement('div');
+  anchor.className='switch-art-anchor';
+  name.before(anchor);
+  anchor.append(name,results);
+  name.setAttribute('autocomplete','off');
+  name.setAttribute('aria-controls',results.id);
+  results.setAttribute('aria-live','polite');
   let timer,revision=0;
   function update(){
     clearTimeout(timer);
@@ -146,18 +159,17 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
     results.replaceChildren();
     const selectedPlatform=switchArtworkMarket.platformOf(platform.value);
     const query=name.value.trim();
-    if(query.length<3 || editor.classList.contains('hidden')) return;
+    if(query.length<3 || (platform.value && !selectedPlatform) || editor.classList.contains('hidden')) return;
     const generation=window.JTDAccountGeneration;
     timer=setTimeout(async()=>{
       try{
         const rows=await switchArtworkMarket.load();
         if(current!==revision || query!==name.value.trim() || generation!==window.JTDAccountGeneration || !results.isConnected ||
             !name.closest('.modal-overlay:not(.hidden)')) return;
-        const exactPlatform=selectedPlatform ? switchArtworkMarket.search(rows,query,selectedPlatform,5) : [];
-        const other=selectedPlatform ? rows.filter(row=>row.platform!==selectedPlatform) : rows;
-        const choices=[...exactPlatform,...switchArtworkMarket.search(other,query,'',8-exactPlatform.length)];
-        if(!choices.length) results.textContent='Aucun titre trouvé dans le catalogue eShop.';
-        const crossPlatform=!!platform.value && !selectedPlatform;
+        const choices=switchArtworkMarket.search(rows,query,selectedPlatform);
+        if(!choices.length) results.textContent=selectedPlatform
+          ? 'Aucun titre '+selectedPlatform+' trouvé dans le catalogue Nintendo.'
+          : 'Aucun titre trouvé dans le catalogue Nintendo.';
         for(const row of choices){
           const button=document.createElement('button');
           button.type='button';
@@ -165,13 +177,15 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
           const title=document.createElement('strong');
           title.textContent=row.name;
           const detail=document.createElement('small');
-          detail.textContent='Visuels '+row.platform+(crossPlatform?' · Réutiliser les images':'');
+          const alias=[...platform.options].find(option=>switchArtworkMarket.platformOf(option.value)===row.platform);
+          const label=alias?.textContent || (row.platform==='Switch' ? 'Nintendo Switch' : 'Nintendo Switch 2');
+          detail.innerHTML=getPlatformOptionIconHtml(alias?.value || row.platform);
+          detail.append(label);
           button.title=row.id;
           button.append(title,detail);
           button.onclick=()=>{
-            if(!crossPlatform) name.value=row.name;
+            name.value=row.name;
             if(!platform.value){
-              const alias=[...platform.options].find(option=>switchArtworkMarket.platformOf(option.value)===row.platform);
               if(!alias) platform.add(new Option(row.platform,row.platform));
               setSelectValueAndSync(platform.id,alias?.value || row.platform);
               platform.dispatchEvent(new Event('change',{bubbles:true}));
@@ -180,9 +194,9 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
             if(row.square){square.value=row.square;square.dispatchEvent(new Event('input',{bubbles:true}));}
             const details=artwork.closest('details');
             if(details) details.open=true;
-            id.value=row.id;
+            id.value=row.id || '';
             id.dispatchEvent(new Event('change'));
-            results.replaceChildren();
+            clear();
             name.focus();
           };
           results.appendChild(button);
@@ -192,6 +206,22 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
       }
     },220);
   }
+  function clear(){
+    clearTimeout(timer);
+    revision++;
+    results.replaceChildren();
+  }
+  anchor.addEventListener('focusout',event=>{
+    if(event.relatedTarget && !anchor.contains(event.relatedTarget)) clear();
+  });
+  anchor.addEventListener('keydown',event=>{
+    if(event.key==='Escape' && results.childNodes.length){
+      event.preventDefault();
+      event.stopPropagation();
+      clear();
+      name.focus();
+    }
+  });
   name.addEventListener('input',update);
   platform.addEventListener('change',update);
   name.addEventListener('keydown',event=>{

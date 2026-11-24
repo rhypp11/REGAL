@@ -256,13 +256,21 @@
 .flexible-date-original { margin:6px 0 0; color:var(--ui-text-muted); font-size:12px; overflow-wrap:anywhere; }
 
 .switch-art-results:empty { display:none; }
-.switch-art-results { display:grid; gap:5px; max-height:230px; overflow:auto; margin-bottom:8px; }
+.switch-art-anchor { position:relative; }
+.switch-art-anchor > input { width:100%; }
+.switch-art-results {
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:12;
+  display:grid; gap:3px; max-height:min(195px,28dvh); overflow:auto; overscroll-behavior:contain;
+  padding:5px; border:1px solid var(--ui-border); border-radius:var(--ui-radius-sm);
+  background:var(--ui-surface); box-shadow:var(--ui-floating-shadow);
+}
 .switch-art-choice,.switch-bulk-row {
   min-width:0; padding:8px 10px; border:1px solid var(--ui-border); border-radius:var(--ui-radius-sm);
   background:var(--ui-surface-raised); color:var(--ui-text); font:inherit; text-align:left;
 }
 .switch-art-choice { display:grid; gap:3px; min-height:44px; cursor:pointer; overflow-wrap:anywhere; }
-.switch-art-choice small { color:var(--ui-text-muted); font-size:11px; }
+.switch-art-choice small { display:flex; align-items:center; gap:5px; color:var(--ui-text-muted); font-size:12px; }
+.switch-art-choice small .icon-select-icon { width:17px; height:17px; object-fit:contain; }
 #switch-artwork-list { display:grid; gap:6px; max-height:40vh; overflow:auto; }
 .switch-bulk-row { display:grid; gap:6px; overflow-wrap:anywhere; }
 .switch-bulk-row select { min-width:0; width:100%; min-height:44px; }
@@ -289,7 +297,6 @@
 }
 .switch-square-preview img { display:block; width:100%; height:100%; object-fit:contain; }
 .collection-purchase-heading,#f-identity-editor > h3 { margin:0 0 7px; }
-#modal-overlay.game-sheet-viewing #f-identity-summary .identity-thumb,
 #journal-dialog-body .journal-detail-identity .identity-thumb {
   --sheet-thumb:clamp(60px,13vw,88px);
   width:var(--sheet-thumb); height:var(--sheet-thumb); flex:0 0 var(--sheet-thumb);
@@ -365,3 +372,24 @@
 .sheet-actions-list button:is(:hover,:focus-visible) { background:var(--ui-surface); }
 #collection-content-overlay .parent-search-results { max-height:min(38vh,280px); overflow:auto; }
 #collection-content-empty:empty { display:none; }
+
+#f-edit-hero:empty,#f-edit-purchase-art:empty { display:none; }
+#f-edit-hero { margin-bottom:16px; }
+#modal-overlay :is(#f-identity-summary:not(.hidden),#f-edit-hero .game-identity-summary) {
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px;
+}
+#modal-overlay :is(#f-identity-summary,#f-edit-hero) .identity-thumb {
+  grid-column:1 / -1; width:100%; height:auto; aspect-ratio:16/9; border-radius:12px;
+}
+#modal-overlay.game-sheet-viewing #f-context-summary:has(.purchase-square) {
+  grid-template-columns:auto minmax(0,1fr);
+}
+#f-context-summary .purchase-square { grid-row:1 / span 2; }
+.purchase-square { width:clamp(54px,12vw,80px); aspect-ratio:1; overflow:hidden; border-radius:8px; }
+#f-context-editor:has(#f-edit-purchase-art:not(:empty)) {
+  display:flow-root;
+}
+#f-edit-purchase-art:not(:empty) { float:left; margin:0 12px 8px 0; }
+#journal-dialog-body .journal-detail-identity .game-identity-summary:has(.journal-collection-icon) {
+  display:grid; grid-template-columns:auto minmax(0,1fr) auto auto;
+}

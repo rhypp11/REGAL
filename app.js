@@ -1561,6 +1561,11 @@ function gameImageHtml(item, alt = '', board = false, loading = 'eager'){
 }
 function gameImageClass(item){ return ' game-art-frame image-fit-' + (item?.imageFit === 'cover' ? 'cover' : 'contain'); }
 
+function sheetArtworkHtml(item, square, className){
+  const art = purchaseArtwork(item,square);
+  return art.image ? '<div class="'+className+gameImageClass(art)+'">'+gameImageHtml(art)+'</div>' : '';
+}
+
 function identitySummaryHtml(item, detail = '', preferSquare = false){
   if(item) item = purchaseArtwork(item,preferSquare);
   const name = item && item.nom ? item.nom : 'Jeu';
@@ -1598,7 +1603,15 @@ function setIdentityEditor(prefix, item, compact){
   const showSummary = !!compact;
   summary.classList.toggle('hidden', !showSummary);
   editor.classList.toggle('hidden', showSummary);
-  if(item) summary.innerHTML = identitySummaryHtml(item,'',prefix === 'f' && editingCollection === 'games' && !convertingArrivalId);
+  if(item) summary.innerHTML = identitySummaryHtml(item);
+  if(prefix === 'f'){
+    const game = editingCollection === 'games' && editingId && !convertingArrivalId ? item : null;
+    const hero = document.getElementById('f-edit-hero');
+    if(item || !editingId){
+      hero.innerHTML = game ? '<div class="game-identity-summary">'+identitySummaryHtml(game)+'</div>' : '';
+      hero.querySelector('.identity-edit-btn')?.remove();
+    }
+  }
 
   const editBtn = summary.querySelector('.identity-edit-btn');
   if(editBtn && prefix === 'f' && editingCollection === 'games' && !convertingArrivalId && item){
@@ -1703,6 +1716,10 @@ function contextSummaryHtml(item, type){
 function setContextEditor(prefix, item, type, compact){
   const summary = document.getElementById(prefix+'-context-summary');
   const editor = document.getElementById(prefix+'-context-editor');
+  if(prefix==='f' && (item || !editingId)){
+    document.getElementById('f-edit-purchase-art').innerHTML = item && editingId && editingCollection==='games' && !convertingArrivalId
+      ? sheetArtworkHtml(item,true,'purchase-square') : '';
+  }
   if(!summary || !editor) return;
   const showSummary = !!compact;
   summary.classList.toggle('hidden', !showSummary);
@@ -1713,7 +1730,7 @@ function setContextEditor(prefix, item, type, compact){
     if(item){
       const format = JTDData.isDigital(item) ? 'digital' : 'physical';
       const label = JTDData.isAddon(item) ? contentKind(item) : format === 'digital' ? 'Numérique' : 'Physique';
-      summary.insertAdjacentHTML('afterbegin','<div id="f-format-title">'+MEDIA_ICONS[format]+escapeHTML(label)+'</div>');
+      summary.insertAdjacentHTML('afterbegin',sheetArtworkHtml(item,true,'purchase-square')+'<div id="f-format-title">'+MEDIA_ICONS[format]+escapeHTML(label)+'</div>');
     }
   }
   const btn = summary.querySelector('.context-edit-btn');

@@ -171,7 +171,8 @@ function updateParentAttachment(){
 }
 function relatedGameHtml(game){
   game = purchaseArtwork(game,true);
-  return '<span class="content-related-thumb'+gameImageClass(game)+'">'+(game.image?gameImageHtml(game):'<span>'+escapeHTML(game.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span><span class="content-related-copy"><strong>'+escapeHTML(game.nom)+'</strong><small>'+escapeHTML(JTDData.effectivePlatform(game,GAMES)+' · '+(JTDData.isAddon(game)?contentKind(game):JTDData.isDigital(game)?'Numérique':'Physique'))+'</small></span>';
+  const art=purchaseArtwork(game,true);
+  return '<span class="content-related-thumb'+gameImageClass(art)+'">'+(art.image?gameImageHtml(art):'<span>'+escapeHTML(game.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span><span class="content-related-copy"><strong>'+escapeHTML(game.nom)+'</strong><small>'+escapeHTML(JTDData.effectivePlatform(game,GAMES)+' · '+(JTDData.isAddon(game)?contentKind(game):JTDData.isDigital(game)?'Numérique':'Physique'))+'</small></span>';
 }
 function renderParentPreview(){
   const parent = GAMES.find(g=>g.id === document.getElementById('f-parent').value);
