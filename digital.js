@@ -225,7 +225,30 @@ function updateDigitalFields(){
   populateParentGames();
   document.getElementById('f-price-currency').textContent = digital ? ({EUR:'€',JPY:'¥',USD:'$',GBP:'£'})[document.getElementById('f-currency').value] : '€';
 }
+function setCatalogPurchaseType(kind){
+  const field = document.getElementById('f-catalog-type-field');
+  const type = document.getElementById('f-content-type');
+  const media = document.getElementById('f-media');
+  const extension = kind==='dlc';
+  if(extension && type.value!=='dlc') field.dataset.previousMedia=media.value;
+  if(extension) media.value='digital';
+  else if(field.dataset.previousMedia) media.value=field.dataset.previousMedia;
+  field.classList.remove('hidden');
+  document.getElementById('f-catalog-type').value=kind;
+  type.value=kind;
+  document.getElementById('f-media-field').classList.toggle('hidden',extension);
+  if(!extension){
+    document.getElementById('f-parent-enabled').checked=false;
+    updateParentAttachment();
+  }
+  updateDigitalFields();
+  updatePurchaseChangeNote();
+}
+
 function openDigitalFields(game, content){
+  const catalogType = document.getElementById('f-catalog-type-field');
+  catalogType.classList.add('hidden');
+  delete catalogType.dataset.previousMedia;
   const physicalOnly = editingCollection === 'cemetery' || !!convertingArrivalId;
   const digital = !physicalOnly && (game ? JTDData.isDigital(game) : !!content || state.media === 'digital');
   document.getElementById('f-media').value = digital ? 'digital' : 'physical';
@@ -427,6 +450,7 @@ function initDigitalControls(){
     state.contentType=[...types].join(',') || null;buildPlatformList();render();
   };
   for(const id of ['f-media','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
+  document.getElementById('f-catalog-type').onchange=event=>setCatalogPurchaseType(event.target.value);
   document.getElementById('f-parent-enabled').onchange=()=>{
     setGameSheetViewing(false);
     updateParentAttachment();

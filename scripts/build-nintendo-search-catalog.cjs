@@ -39,3 +39,30 @@ for(const [offset,platform,slug] of [[0,'Switch','sw1'],[1,'Switch 2','sw2']]){
   console.log(platform,sorted.length);
 }
 fs.writeFileSync(path.join(output,'nintendo-fr-manifest.json'),JSON.stringify(files)+'\n');
+
+// Optional arguments are all pages from a Nintendo France search filtered to type:DLC.
+const dlcPages = process.argv.slice(4);
+if(dlcPages.length){
+  const pages = dlcPages.map(file=>JSON.parse(fs.readFileSync(file,'utf8')).response);
+  const docs = pages.flatMap(page=>page.docs);
+  if(new Set(docs.map(doc=>doc.fs_id)).size!==pages[0].numFound)
+    throw new Error('Catalogue DLC incomplet');
+  const rows = [];
+  for(const doc of docs){
+    const id = /^(?:01|04)[\da-f]{14}$/i.test(doc.application_id_s) ? doc.application_id_s.toUpperCase() : '';
+    const name = doc.title?.trim();
+    if(!name || !id) continue;
+    // Nintendo supplies the base application's ID here, never use it as the DLC's Title ID.
+    rows.push([name,image(doc.image_url_sq_s),image(doc.image_url_h16x9_s),id.startsWith('04')?'Switch 2':'Switch']);
+  }
+  const index = new Map(rows.map(row=>[row[3]+'|'+row[0].toLowerCase(),row]));
+  const sorted = [...index.values()].sort((a,b)=>a[0].localeCompare(b[0],'fr'));
+  const parts = [];
+  for(let i=0;i<sorted.length;i+=500){
+    const file = 'nintendo-dlc-fr-'+i/500+'.json';
+    fs.writeFileSync(path.join(output,file),JSON.stringify(sorted.slice(i,i+500))+'\n');
+    parts.push(file);
+  }
+  fs.writeFileSync(path.join(output,'nintendo-dlc-fr-manifest.json'),JSON.stringify(parts)+'\n');
+  console.log('DLC',sorted.length);
+}

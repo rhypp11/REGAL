@@ -357,7 +357,8 @@
 #modal-overlay .modal-edit-actions { justify-content:flex-end; }
 #modal-overlay:not(.cemetery-game-editor) #delete-btn,
 #journal-overlay:has(#journal-detail-actions) #journal-delete { display:none; }
-.collection-quick-add :is(#f-image-options,#f-context-editor,.collection-purchase-heading,#f-identity-editor > h3) { display:none; }
+.collection-quick-add :is(.collection-purchase-heading,#f-identity-editor > h3),
+.collection-quick-add:not(:has(#f-catalog-type-field:not(.hidden))) :is(#f-image-options,#f-context-editor) { display:none; }
 .sheet-actions-menu { position:relative; flex:none; align-self:flex-start; }
 .sheet-actions-menu > summary { list-style:none; }
 .sheet-actions-menu > summary::-webkit-details-marker { display:none; }

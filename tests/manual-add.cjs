@@ -157,6 +157,27 @@ async function checkJournalSources(page){
 
 
 async function checkNintendoArtwork(page){
+  await page.evaluate(()=>{goToPage('collection');openModal(null);});
+  await page.evaluate(()=>{const select=document.querySelector('#f-plateforme');if(![...select.options].some(option=>option.value==='Switch')) select.add(new Option('Switch','Switch'));});
+  await page.selectOption('#f-plateforme','Switch');
+  await page.locator('#f-nom').fill('Chromapolis');
+  const extension=page.locator('#f-eshop-results button').filter({hasText:'Chromapolis'});
+  await extension.first().click();
+  await page.locator('#f-catalog-type').waitFor();
+  assert.equal(await page.locator('#f-catalog-type').inputValue(),'dlc');
+  assert.equal(await page.locator('#f-media').inputValue(),'digital');
+  assert.equal(await page.locator('#f-parent-enabled').isChecked(),false);
+  assert.equal(await page.locator('#f-nintendo-id').inputValue(),'');
+  await page.selectOption('#f-catalog-type','game');
+  assert.equal(await page.locator('#f-content-type').inputValue(),'game');
+  await page.selectOption('#f-catalog-type','dlc');
+  await page.locator('#save-btn').click();
+  assert.deepEqual(await page.evaluate(()=>{
+    const game=GAMES.find(item=>item.nom.includes('Chromapolis'));
+    return [game.contentType,game.format,game.parentId??null,game.nintendoTitleId??null];
+  }),['dlc','Numérique',null,null]);
+  await page.locator('#cancel-btn').click();
+
   const switch2Titles=[
     ['Star Fox','0400E88025B1A000'],
     ['Splatoon Raiders','0400380020056000']

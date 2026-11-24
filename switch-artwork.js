@@ -9,16 +9,27 @@ const switchArtworkMarket = (() => {
     if (/^https:\/\/assets\.nintendo\.eu\/image\/private\/[\w,/-]+$/.test(value)) return value;
     return '';
   };
-  let pending;
+  let pending, pendingDlc;
+  const get=async name=>{
+    const url=new URL(name,base);
+    url.searchParams.set('v',build);
+    const response=await fetch(url);
+    if(!response.ok) throw Error('Catalogue eShop indisponible.');
+    return response.json();
+  };
+  function loadDlc(){
+    if(!pendingDlc){
+      pendingDlc=get('nintendo-dlc-fr-manifest.json')
+        .then(files=>Promise.all(files.map(get)))
+        .then(parts=>parts.flat().map(([name,square,banner,platform])=>({
+          name,platform,kind:'dlc',key:JTDData.foldImport(name),square:imageUrl(square),banner:imageUrl(banner)
+        })))
+        .catch(error=>{pendingDlc=null;throw error;});
+    }
+    return pendingDlc;
+  }
   function load(){
     if(!pending){
-      const get=async name=>{
-        const url=new URL(name,base);
-        url.searchParams.set('v',build);
-        const response=await fetch(url);
-        if(!response.ok) throw Error('Catalogue eShop indisponible.');
-        return response.json();
-      };
       pending=Promise.all([get('manifest.json'),get('nintendo-fr-manifest.json')])
         .then(async ([legacy,official])=>{
           const [legacyParts,officialParts]=await Promise.all([
@@ -64,7 +75,7 @@ const switchArtworkMarket = (() => {
       ...(row.id ? {nintendoTitleId:row.id} : {})
     };
   }
-  return {load,search,platformOf,patch};
+  return {load,loadDlc,search,platformOf,patch};
 })();
 
 function fillArtworkFields(prefix,item){
@@ -163,10 +174,16 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
     const generation=window.JTDAccountGeneration;
     timer=setTimeout(async()=>{
       try{
-        const rows=await switchArtworkMarket.load();
+        const contentType=document.getElementById('f-content-type').value;
+        const canChooseType=prefix==='f' && document.getElementById('modal-overlay').classList.contains('collection-quick-add');
+        const dlcOnly=prefix==='f' && !canChooseType && contentType==='dlc' && editingCollection==='games' && !convertingArrivalId;
+        const [games,dlcs]=await Promise.all([
+          dlcOnly ? [] : switchArtworkMarket.load(),
+          canChooseType || dlcOnly ? switchArtworkMarket.loadDlc().catch(error=>{if(dlcOnly) throw error;return [];}) : []
+        ]);
         if(current!==revision || query!==name.value.trim() || generation!==window.JTDAccountGeneration || !results.isConnected ||
             !name.closest('.modal-overlay:not(.hidden)')) return;
-        const choices=switchArtworkMarket.search(rows,query,selectedPlatform);
+        const choices=switchArtworkMarket.search([...games,...dlcs],query,selectedPlatform);
         if(!choices.length) results.textContent=selectedPlatform
           ? 'Aucun titre '+selectedPlatform+' trouvé dans le catalogue Nintendo.'
           : 'Aucun titre trouvé dans le catalogue Nintendo.';
@@ -180,18 +197,25 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
           const alias=[...platform.options].find(option=>switchArtworkMarket.platformOf(option.value)===row.platform);
           const label=alias?.textContent || (row.platform==='Switch' ? 'Nintendo Switch' : 'Nintendo Switch 2');
           detail.innerHTML=getPlatformOptionIconHtml(alias?.value || row.platform);
-          detail.append(label);
-          button.title=row.id;
+          detail.append(label+(row.kind==='dlc'?' · Extension':''));
+          if(row.id) button.title=row.id;
           button.append(title,detail);
           button.onclick=()=>{
             name.value=row.name;
+            if(canChooseType && (row.kind==='dlc' || !document.getElementById('f-catalog-type-field').classList.contains('hidden'))){
+              setCatalogPurchaseType(row.kind || 'game');
+            }
             if(!platform.value){
               if(!alias) platform.add(new Option(row.platform,row.platform));
               setSelectValueAndSync(platform.id,alias?.value || row.platform);
               platform.dispatchEvent(new Event('change',{bubbles:true}));
             }
-            if(row.banner){image.value=row.banner;image.dispatchEvent(new Event('input',{bubbles:true}));}
-            if(row.square){square.value=row.square;square.dispatchEvent(new Event('input',{bubbles:true}));}
+            if(row.banner || canChooseType && row.kind==='dlc'){
+              image.value=row.banner;image.dispatchEvent(new Event('input',{bubbles:true}));
+            }
+            if(row.square || canChooseType && row.kind==='dlc'){
+              square.value=row.square;square.dispatchEvent(new Event('input',{bubbles:true}));
+            }
             const details=artwork.closest('details');
             if(details) details.open=true;
             id.value=row.id || '';
