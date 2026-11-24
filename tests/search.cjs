@@ -39,13 +39,14 @@ const server=createSandboxServer();
    assert.equal(await results.filter({hasText:'Ventes · À vendre'}).count(),1);
    assert.doesNotMatch(await page.locator('#global-search-results').textContent(),/Cimetière/);
    await search.fill('  étoile  ');assert.equal(await results.count(),9);
-   for(const [query,label,editable] of [['terminee','Terminé',false],['en cours','En cours',true],['a faire','À faire',true],['sortie','Sorties',false]]){
+   for(const [query,label] of [['terminee','Terminé'],['en cours','En cours'],['a faire','À faire'],['sortie','Sorties']]){
     await search.fill(query);
     assert.equal(await results.count(),1);
     assert.match(await results.first().textContent(),new RegExp('Journal · '+label));
     await search.press('Enter');
     assert.equal(await page.locator('#journal-overlay').isVisible(),true);
-    assert.equal(await page.locator('#journal-save').isVisible(),editable);
+    assert.equal(await page.locator('#journal-save').isVisible(),false);
+    assert.ok(await page.locator('#journal-detail-actions summary').isVisible());
     if(query==='terminee')assert.match(await page.locator('#journal-dialog-body').textContent(),/Étoile terminée/,'Overlapping collection ID opens the Journal entry');
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#global-search-overlay').isVisible(),true);
