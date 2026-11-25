@@ -96,7 +96,8 @@
   .topnav .topnav-inner { display:grid; grid-template-columns:1fr auto; grid-template-rows:52px 44px; gap:0; padding:0 12px; }
   .topnav .topnav-brand { grid-column:1; grid-row:1; }
   .topnav .topnav-actions { grid-column:2; grid-row:1; padding:0; }
-  .topnav .topnav-nav { grid-column:1 / -1; grid-row:2; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%; min-height:44px; height:44px; gap:0; }
+  .topnav .topnav-nav { grid-column:1 / -1; grid-row:2; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; min-height:44px; height:44px; gap:0; }
+  html[data-journal-enabled] .topnav .topnav-nav { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .topnav .topnav-nav .nav-tab { height:44px; padding:0 2px; margin:0; font-size:12px; letter-spacing:0; }
   .topnav .topnav-nav .nav-tab-label { font-size:12px; letter-spacing:0; }
   .topnav .topnav-nav .nav-tab + .nav-tab { border:0; }

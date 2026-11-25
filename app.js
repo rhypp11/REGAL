@@ -1,4 +1,7 @@
 const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true;
+const JOURNAL_ENABLED = window.REGAL_JOURNAL_ENABLED === true;
+document.documentElement.toggleAttribute('data-journal-enabled', JOURNAL_ENABLED);
+document.querySelector('.nav-tab[data-page="journal"]').classList.toggle('hidden', !JOURNAL_ENABLED);
 const mobileFilterToggle = document.getElementById('global-filter-toggle');
 const filterToggleIcon = mobileFilterToggle.innerHTML;
 window.JTD_PREVIEW_MODE = IS_PREVIEW_MODE;
@@ -2591,7 +2594,7 @@ function addArrivalToCollection(id, draft){
 
 function resetWishlistOriginPicker(visible){
   const picker=document.getElementById('w-origin-picker');
-  picker.classList.toggle('hidden',!visible);
+  picker.classList.toggle('hidden',!visible || !JOURNAL_ENABLED);
   picker.querySelector('[value="manual"]').checked=true;
   document.getElementById('w-release-picker').classList.add('hidden');
   document.getElementById('w-release-search').value='';
@@ -3189,6 +3192,10 @@ function navigationHash(view){
   if(['arrivals','wishlist'].includes(view.board)) params.set('board', view.board);
   return '#' + view.page + (params.size ? '?' + params.toString() : '');
 }
+function availablePage(page){
+  if(page === 'journal') return JOURNAL_ENABLED ? page : 'collection';
+  return ['collection','cemetery','pokedex'].includes(page) ? page : 'home';
+}
 function navigationFromHash(){
   const match = location.hash.match(/^#(home|collection|cemetery|journal|pokedex)(?:\?(.*))?$/);
   if(!match) return null;
@@ -3223,7 +3230,7 @@ function setHomeBoard(board){
 }
 function applyNavigation(view = {}){
   restoringNavigation = true;
-  navigationPage = ['collection','cemetery','journal','pokedex'].includes(view.page) ? view.page : 'home';
+  navigationPage = availablePage(view.page);
   state = {
     media:['all','digital'].includes(view.media) ? view.media : 'physical',
     contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
@@ -3271,7 +3278,7 @@ function goToPage(page, push = true){
   const wasRestoring = restoringNavigation;
   // Save the old entry before creating the next one, including current filters.
   persistNavigation();
-  navigationPage = ['collection','cemetery','journal','pokedex'].includes(page) ? page : 'home';
+  navigationPage = availablePage(page);
   const statsControl = navigationPage === 'home' || navigationPage === 'cemetery' || navigationPage === 'journal';
   mobileFilterToggle.classList.toggle('page-stats-toggle', statsControl);
   mobileFilterToggle.innerHTML = statsControl

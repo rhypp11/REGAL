@@ -16,9 +16,9 @@
       [GAMES, () => 'Collection', openModal],
       [ARRIVALS, () => 'Arrivages', openArrivalModal],
       [WISHLIST, () => 'Wishlist', openWishlistModal],
-      [CEMETERY, item => item.saleStatus === 'sold' ? 'Ventes · Vendu' : 'Ventes · À vendre', openSaleModal],
-      [window.getJournalSearchEntries(), item => 'Journal · '+item.location, window.openJournalEntry]
+      [CEMETERY, item => item.saleStatus === 'sold' ? 'Ventes · Vendu' : 'Ventes · À vendre', openSaleModal]
     ];
+    if(JOURNAL_ENABLED) sources.push([window.getJournalSearchEntries(), item => 'Journal · '+item.location, window.openJournalEntry]);
     const matches = [];
     for(const [items, location, open] of sources){
       for(const item of items){
