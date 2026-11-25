@@ -58,6 +58,13 @@ const server=createSandboxServer();
         assert.ok(g.platformFont>=12,'Platform remains readable');
         for(const p of g.parts) assert.ok(p.left>=g.card.left && p.right<=g.card.right+.5 && p.top>=g.card.top && p.bottom<=g.card.bottom+.5,'Card information stays inside');
       }
+      if(width===640 || width===820){
+        const columns=()=>page.locator('#grid').evaluate(grid=>getComputedStyle(grid).gridTemplateColumns.split(' ').length);
+        assert.ok(await columns()>=2,'Tablets fit multiple cards per row');
+        await page.locator('#collection-view-switch [data-view="gallery"]').click();
+        assert.ok(await columns()>=4,'The gallery uses the available tablet width');
+        await page.locator('#collection-view-switch [data-view="cards"]').click();
+      }
       const statusAlignment=await page.locator('#grid .card').first().evaluate(card=>{
         const line=card.querySelector('.card-state-row').getBoundingClientRect(),status=card.querySelector('.card-status-control').getBoundingClientRect();
         return Math.abs(line.right-status.right);

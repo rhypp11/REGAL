@@ -186,7 +186,21 @@ async function checkNintendoArtwork(page){
   assert.ok(listBox.y>=titleBox.y+titleBox.height && Math.abs(listBox.x-titleBox.x)<2,'Suggestions appear below the title');
   assert.ok(platformBox.y<listBox.y+listBox.height-1,'Suggestions float without pushing the platform down');
   assert.equal(await page.getByRole('button',{name:'Chercher des visuels eShop'}).count(),0);
-  await suggestion.click();
+  if(page.viewportSize().width<=820){
+    await page.locator('#f-nom').press('Escape');
+    assert.equal(await suggestion.count(),0);
+    assert.ok(await page.locator('#modal-overlay').isVisible());
+    await page.locator('#f-nom').fill('Donkey Kong Bana');
+    await suggestion.waitFor();
+    await suggestion.evaluate(button=>{
+      button.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'}));
+      document.querySelector('#f-nom').dispatchEvent(new FocusEvent('focusout',{
+        bubbles:true,relatedTarget:document.querySelector('#save-btn')
+      }));
+      button.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerType:'touch'}));
+      button.click();
+    });
+  }else await suggestion.click();
   assert.equal(await page.locator('#f-nom').inputValue(),'Donkey Kong Bananza');
   const banner=await page.locator('#f-image').inputValue();
   const square=await page.locator('#f-square-image').inputValue();

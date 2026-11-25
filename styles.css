@@ -4815,23 +4815,6 @@ input[type="date"] {
     min-width: 0;
     box-sizing: border-box;
   }
-  .modal-overlay > .modal .modal-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    width: 100%;
-    min-height: 0;
-    padding-top: 4px;
-    flex-shrink: 0;
-  }
-  .modal-overlay > .modal .modal-actions > div[style*="flex:1"] {
-    display: none;
-  }
-  .modal-overlay > .modal .modal-actions .btn {
-    width: 100%;
-    min-width: 0;
-    margin: 0;
-  }
 
 }
 
@@ -5125,15 +5108,8 @@ input[type="date"] {
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
   }
-  .modal-overlay > .modal::before {
-    content: "";
-    display: block;
-    width: 36px;
-    height: 4px;
-    margin: -8px auto 5px;
-    border-radius: 999px;
-    background: rgba(var(--ui-rgb),.16);
-    flex: 0 0 auto;
+  .modal-overlay > .modal:has(> .modal-actions) {
+    padding-bottom: 0 !important;
   }
   .modal-overlay > .modal h2 {
     font-size: 18px;
@@ -5164,9 +5140,13 @@ input[type="date"] {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
+    width: auto;
+    min-height: 0;
+    flex-shrink: 0;
+    align-self: stretch;
     margin: 2px -14px 0 !important;
     padding: 10px 14px max(12px,env(safe-area-inset-bottom)) !important;
-    background: linear-gradient(to bottom,rgba(var(--panel-rgb),.94),var(--surface) 28%);
+    background: var(--surface);
     border-top: 1px solid rgba(var(--ui-rgb),.055);
     backdrop-filter: blur(12px);
   }
