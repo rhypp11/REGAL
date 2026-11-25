@@ -23,7 +23,7 @@ async function importFile(page,data){
   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
   assert.equal(await page.locator('#share-btn, #share-disable-btn').count(),0);
   assert.equal(await page.locator('#collection-export-btn').count(),1);
-  assert.equal(await page.locator('#journal-export-btn').textContent().then(s=>s.trim()),'Export JSON journal');
+  assert.equal(await page.locator('#journal-export-btn').textContent().then(s=>s.trim()),'Export JSON du journal archivé');
   await page.evaluate(data=>applyRestoredData(JTDData.normalizeData(data)),fixture);
   assert.equal(await page.locator('[data-page="journal"]').count(),1);
   assert.equal(await page.locator('[id^="f-journal"]').count(),0,'Journal entries do not change collection forms');
