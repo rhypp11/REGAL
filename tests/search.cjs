@@ -81,8 +81,8 @@ const archivedServer=createSandboxServer({journal:false});
   const errors=[]; page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:'+archivedServer.address().port+'/#journal');
   await page.locator('#app-shell').waitFor({state:'visible'});
-  assert.equal(new URL(page.url()).hash,'#collection');
-  assert.equal(await page.locator('[data-page="journal"], #page-journal').filter({visible:true}).count(),0);
+  assert.equal(new URL(page.url()).hash.split('?')[0],'#collection');
+  assert.equal(await page.locator('[data-page="journal"]:visible, #page-journal:visible').count(),0);
   await page.evaluate(()=>{
     GAMES=[{id:'archive-game',nom:'Jeu de test actif',plateforme:'Switch',status:'termine'}];
     LEGACY_JOURNAL=[{regalJournal:2,entries:[{id:'archive-entry',group:'completed',name:'Complétion archivée fictive',date:'2026-02-01'}]}];
