@@ -371,10 +371,10 @@ const server=createSandboxServer();
    }));
    assert.equal(layout.length,4);
    assert.ok(layout.every(row=>!row.overflow),'Long completion titles and metadata stay within the row');
-   if(width<=820){
-    assert.ok(layout.every(row=>row.meta.y>=Math.max(row.title.bottom,row.art.bottom)+5),'Metadata follows the game identity');
-    assert.ok(layout.every(row=>row.status.y<row.platform.bottom&&row.platform.y<row.status.bottom),'Platform and completion status share the metadata line');
-    assert.ok(layout.every(row=>row.tags.y>=row.meta.bottom+5),'Secondary tags follow the metadata line');
+   assert.ok(layout.every(row=>row.art.right<=row.title.x),'Artwork has its own column');
+   if(width<680){
+    assert.ok(layout.every(row=>row.meta.y>=row.title.bottom),'Metadata follows the title');
+    assert.ok(layout.every(row=>row.tags.y>=row.meta.bottom),'Secondary tags follow the metadata line');
     assert.equal(await page.locator('#journal-completed .journal-tags > :last-child.journal-completion-date').count(),4,'Completion date is the last secondary tag');
     for(const key of ['feeling','comment']){
      const positions=layout.flatMap(row=>row[key]?[row[key].x]:[]);

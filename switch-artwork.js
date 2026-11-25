@@ -197,7 +197,7 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
             id.value=row.id || '';
             id.dispatchEvent(new Event('change'));
             clear();
-            name.focus();
+            name.focus({preventScroll:true});
           };
           results.appendChild(button);
         }
@@ -211,8 +211,13 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
     revision++;
     results.replaceChildren();
   }
+  let pointerInside=false;
+  // Mobile Safari can blur the input before delivering the suggestion's click.
+  results.addEventListener('pointerdown',()=>{pointerInside=true;});
+  results.addEventListener('pointercancel',()=>{pointerInside=false;});
+  results.addEventListener('pointerup',()=>setTimeout(()=>{pointerInside=false;},350));
   anchor.addEventListener('focusout',event=>{
-    if(event.relatedTarget && !anchor.contains(event.relatedTarget)) clear();
+    if(!pointerInside && event.relatedTarget && !anchor.contains(event.relatedTarget)) clear();
   });
   anchor.addEventListener('keydown',event=>{
     if(event.key==='Escape' && results.childNodes.length){

@@ -182,7 +182,9 @@
 #page-collection .grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--ui-space-5); }
 @media(min-width:1440px) { #page-collection .grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
 @media(max-width:1100px) { #page-collection .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:820px) { #page-collection .grid { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:820px) {
+  #page-collection .grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,225px),1fr)); gap:12px; }
+}
 #page-collection .card {
   display:flex;
   flex-direction:column;
@@ -351,8 +353,7 @@
 .collection-view-switch svg { width:16px; height:16px; }
 #page-collection #grid[data-view="list"] {
   display:flex; flex-direction:column; gap:0;
-  border:1px solid var(--ui-border); border-radius:var(--ui-radius-lg);
-  background:var(--ui-surface);
+  border-block:1px solid var(--ui-border);
 }
 #page-collection #grid[data-view="list"] .card {
   display:flex; flex-direction:row; align-items:center;
@@ -362,7 +363,7 @@
 #page-collection #grid[data-view="list"] .card + .card { border-top:1px solid var(--ui-border); }
 #page-collection #grid[data-view="list"] .card:hover { background:color-mix(in srgb,var(--ui-accent) 6%,transparent); }
 #page-collection #grid[data-view="list"] .card-banner {
-  flex:0 0 clamp(52px,8vw,72px); width:clamp(52px,8vw,72px); height:auto; aspect-ratio:1;
+  flex:0 0 clamp(42px,7vw,56px); width:clamp(42px,7vw,56px); height:auto; aspect-ratio:1;
   border-radius:var(--ui-radius-sm);
 }
 #page-collection #grid[data-view="list"] .card-body {
@@ -381,7 +382,7 @@
 .card-list-details dd { margin:0; color:var(--ui-text); overflow-wrap:anywhere; }
 
 #page-collection #grid[data-view="gallery"] {
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(clamp(78px,12vw,132px),1fr)); gap:10px;
 }
 #page-collection #grid[data-view="gallery"] .card { border:0 solid transparent; border-radius:0; background:transparent; }
 #page-collection #grid[data-view="gallery"] .card-banner { aspect-ratio:1; border-radius:var(--ui-radius-sm); }
@@ -395,7 +396,6 @@
   align-items:center; padding:4px; border-radius:5px; background:var(--ui-surface);
 }
 @media(max-width:820px){
-  #page-collection #grid[data-view="gallery"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
   #page-collection #grid[data-view="list"] .card { padding:7px 8px; gap:8px; }
 }
 

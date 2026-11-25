@@ -123,6 +123,7 @@
     if(event.key==='Escape'){
       // The inline platform creator handles its own first Escape.
       if(event.target.id==='new-platform-name' && !document.getElementById('add-platform-row').classList.contains('hidden')) return;
+      if(event.target.closest('.switch-art-anchor')?.querySelector('.switch-art-results:not(:empty)')) return;
       const menu = entry.overlay.querySelector('.sheet-actions-menu[open]');
       event.preventDefault();event.stopImmediatePropagation();
       if(menu){menu.open = false;menu.querySelector('summary').focus();}
@@ -143,6 +144,12 @@
     const note=document.getElementById(event.target.id+'-error');if(note){note.hidden=true;note.textContent='';}
     event.target.removeAttribute('aria-invalid');event.target.removeAttribute('data-invalid-field');
   });
+  // WebKit also emits proprietary gesture events for pinch gestures.
+  for(const type of ['gesturestart','gesturechange']){
+    document.addEventListener(type,event=>{
+      if(top()?.overlay.contains(event.target)) event.preventDefault();
+    },{passive:false});
+  }
   const viewport=window.visualViewport;
   if(viewport){
     const fitKeyboard=()=>{
@@ -151,7 +158,7 @@
       const bottom=Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop);
       const root=document.documentElement;
       const editing=field.matches('input:not([type="checkbox"],[type="radio"]),textarea,[contenteditable="true"]');
-      const keyboard=matchMedia('(max-width:820px)').matches && viewport.scale===1 && bottom>100
+      const keyboard=matchMedia('(max-width:820px)').matches && viewport.scale===1 && window.innerHeight-viewport.height>100
         && overlay?.contains(field) && (editing || root.hasAttribute('data-dialog-keyboard'));
       root.toggleAttribute('data-dialog-keyboard',!!keyboard);
       if(keyboard){
