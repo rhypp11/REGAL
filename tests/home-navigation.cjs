@@ -330,7 +330,7 @@ const server=createSandboxServer();
    assert.deepEqual(art.map(entry=>entry.fit),['cover','contain']);
    assert.equal(art[0].display,'none');
    assert.equal(art[1].backdrop,'absolute');
-   assert.ok(art.every(entry=>entry.covers && entry.width>=(width>820?100:60)));
+   assert.ok(art.every(entry=>entry.covers && entry.width>=(width>=680?72:60)));
    const importedRow=page.locator('#journal-completed .journal-row').filter({hasText:'Import ancien !'});
    assert.equal(await importedRow.locator('.journal-row-platform :is(.icon-select-icon,.icon-select-dot)').count(),1);
    assert.deepEqual(await importedRow.locator('.journal-tag').allTextContents(),['Physique','Solo','≈ 2017']);
