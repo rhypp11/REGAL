@@ -303,7 +303,7 @@
 
 /* Le bandeau garde la couleur de la plateforme ; les cartes restent discrètes. */
 #collection-sidebar .toggle-chip:not(.active) { color:var(--ui-text-muted); }
-#collection-sidebar .toggle-chip.active { box-shadow:none; background:color-mix(in srgb,var(--ui-accent) 6%,transparent); }
+#collection-sidebar .toggle-chip.active { box-shadow:none; background:color-mix(in srgb,var(--ui-accent) 6%,var(--ui-surface)); }
 
 #collection-sidebar .reset-btn { border-color:transparent; background:transparent; color:var(--ui-text-muted); }
 #page-collection .results-bar { color:var(--ui-text-muted); }
@@ -359,7 +359,7 @@
   width:100%; max-width:none; margin:0; gap:12px; padding:7px 12px;
   border:1px solid var(--ui-border); border-radius:var(--ui-radius-md); background:var(--ui-surface);
 }
-#page-collection #grid[data-view="list"] .card:hover { background:color-mix(in srgb,var(--ui-accent) 6%,transparent); }
+#page-collection #grid[data-view="list"] .card:hover { background:color-mix(in srgb,var(--ui-accent) 6%,var(--ui-surface)); }
 #page-collection #grid[data-view="list"] .card-banner {
   flex:0 0 clamp(42px,7vw,56px); width:clamp(42px,7vw,56px); height:auto; aspect-ratio:1;
   border-radius:var(--ui-radius-sm);
