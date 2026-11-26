@@ -14,7 +14,7 @@ const server=createSandboxServer();
    assert.equal(await page.evaluate(()=>navigationPage),'collection','Keyboard activates a direct tab');
    let headerGeometry;
    for(const view of ['home','collection','cemetery']){
-    if(view==='cemetery') await page.locator('.topnav-nav [data-page="home"]').click();
+    if(view==='cemetery') await page.locator('#profile-menu-btn').click();
     await page.locator('[data-page="'+view+'"]').click();
     await page.waitForFunction(route=>navigationPage===route,view);
     const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>{

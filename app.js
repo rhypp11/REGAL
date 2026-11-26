@@ -3268,9 +3268,9 @@ function goToPage(page, push = true){
     if(active) b.setAttribute('aria-current', 'page');
     else b.removeAttribute('aria-current');
   });
-  document.title = 'REGAL | ' + (navigationPage === 'collection' ? 'Mes jeux' : 'Vue d’ensemble');
+  document.title = 'RGL | ' + (navigationPage === 'collection' ? 'Mes jeux' : 'Vue d’ensemble');
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
-  if(navigationPage === 'cemetery'){ document.title = 'REGAL | Ventes'; window.renderCemetery?.(); }
+  if(navigationPage === 'cemetery'){ document.title = 'RGL | Ventes'; window.renderCemetery?.(); }
   if(navigationPage === 'cemetery') document.getElementById('cemetery-heading-actions').append(mobileFilterToggle);
   if(navigationPage === 'home') document.getElementById('home-heading-actions').append(mobileFilterToggle);
   if(navigationPage === 'journal') placeJournalControls();
@@ -3279,8 +3279,8 @@ function goToPage(page, push = true){
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   document.getElementById('page-journal').classList.toggle('hidden', navigationPage !== 'journal');
   document.getElementById('page-pokedex').classList.toggle('hidden',navigationPage !== 'pokedex');
-  if(navigationPage === 'pokedex') document.title='REGAL | Pokédex';
-  if(navigationPage === 'journal'){ document.title = 'REGAL | Journal'; window.renderJournal?.(); }
+  if(navigationPage === 'pokedex') document.title='RGL | Pokédex';
+  if(navigationPage === 'journal'){ document.title = 'RGL | Journal'; window.renderJournal?.(); }
   restoringNavigation = true;
   if(navigationPage === 'collection'){
     buildPlatformList({keepSelection:true});
@@ -3303,13 +3303,9 @@ window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
 
-document.querySelectorAll('.nav-tab, #home-sales-link').forEach(control => {
-  control.addEventListener('click', event => {
-    if(control instanceof HTMLAnchorElement){
-      if(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      event.preventDefault();
-    }
-    goToPage(control.dataset.page);
+document.querySelectorAll('.nav-tab, #profile-sales-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    goToPage(button.dataset.page);
     window.scrollTo({top:0, behavior:matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth'});
   });
 });

@@ -65,8 +65,8 @@ const server=createSandboxServer();
     assert.equal(await page.locator('.topnav-nav [aria-current="page"]').getAttribute('data-page'),route);
    }
    assert.equal(await page.locator('.topnav-nav [data-page="cemetery"]').count(),0);
-   await page.locator('.topnav-nav [data-page="home"]').click();
-   await page.locator('#home-sales-link').click();
+   await page.locator('#profile-menu-btn').click();
+   await page.locator('#profile-sales-btn').click();
    assert.ok(await page.locator('#page-cemetery').isVisible());
    await page.evaluate(()=>openPlatformModal());
    const platformRow=page.locator('.platform-row[data-current-name="Switch 2"]');

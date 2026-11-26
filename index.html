@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>REGAL | Accueil</title>
-<meta name="regal-version" content="3_26.11.26-4">
+<title>RGL | Accueil</title>
+<meta name="regal-version" content="3_26.11.26-5">
 <meta name="regal-pull-request" content="122">
-<meta name="regal-build" content="eb7ab9eb3301f27f6ba5a43c">
-<link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=4">
-<link rel="apple-touch-icon" href="logo-regal-apple.png?v=4">
+<meta name="regal-build" content="89df2aaf8d48e3d1df1b392f">
+<link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=5">
+<link rel="apple-touch-icon" href="logo-regal-apple.png?v=5">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#101010">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="REGAL">
+<meta name="apple-mobile-web-app-title" content="RGL">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;650;700;800&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="home-dashboard.css?v=density-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=mobile-121">
-<link rel="stylesheet" href="regal.css?v=direct-nav-3">
+<link rel="stylesheet" href="regal.css?v=rgl-brand-1">
 <link rel="stylesheet" href="game-sheet.css?v=rgl-dark-1">
 <link rel="stylesheet" href="collection.css?v=mobile-121">
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
@@ -35,13 +35,13 @@
 <body>
 
 <div class="auth-loading" id="auth-loading">
-  <span class="eyebrow">REGAL</span>
+  <span class="eyebrow">RGL</span>
 </div>
 
 <div class="login-gate hidden" id="login-gate" data-mode="signin">
   <div class="login-card">
     <div class="login-brand">
-      <span class="eyebrow">REGAL</span>
+      <span class="eyebrow">RGL</span>
       <h1 id="login-title">Connexion</h1>
       <p class="login-sub">Connecte-toi pour retrouver ta ludothèque, synchronisée sur tous tes appareils.</p>
     </div>
@@ -80,8 +80,8 @@
 <nav class="topnav">
   <div class="topnav-inner">
     <div class="topnav-brand">
-      <h1 class="brand-logo" aria-label="REGAL">
-        <picture><source media="(max-width:360px)" srcset="logo-regal-mark.svg?v=4"><img class="brand-word regal-logo" src="brand-header.svg?v=rouge-2" alt="REGAL" width="112" height="42"></picture>
+      <h1 class="brand-logo" aria-label="RGL">
+        <picture><source media="(max-width:360px)" srcset="logo-regal-mark.svg?v=5"><img class="brand-word regal-logo" src="brand-header.svg?v=rgl-brand-1" alt="RGL" width="86" height="42"></picture>
       </h1>
     </div>
 
@@ -128,7 +128,7 @@
             <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Export JSON collection</span></span>
           </button>
           </section>
-          <section class="profile-group"><h3>Gestion</h3><button type="button" class="profile-menu-item" id="manage-platforms-btn"><span>Plateformes</span></button></section>
+          <section class="profile-group"><h3>Gestion</h3><button type="button" class="profile-menu-item" id="profile-sales-btn" data-page="cemetery"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 12 21l-9-9V3h9l8 8a1.4 1.4 0 0 1 0 2Z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Ventes</span></span></button><button type="button" class="profile-menu-item" id="manage-platforms-btn"><span>Plateformes</span></button></section>
           <div class="profile-menu-version"><span id="site-version-label"></span><button type="button" id="site-update-btn" class="hidden">Actualiser</button></div>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
@@ -201,7 +201,6 @@
       </section>
 
     </div>
-    <footer class="home-secondary-links"><a id="home-sales-link" href="#cemetery" data-page="cemetery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 12 21l-9-9V3h9l8 8a1.4 1.4 0 0 1 0 2Z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Ventes</span></a></footer>
   </main>
   </div>
 </div>
@@ -779,7 +778,7 @@
 <script src="dialogs.js?v=mobile-121"></script>
 <script src="digital.js?v=density-1"></script>
 <script src="switch-artwork.js?v=mobile-121"></script>
-<script src="app.js?v=direct-nav-3"></script>
+<script src="app.js?v=rgl-brand-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>
