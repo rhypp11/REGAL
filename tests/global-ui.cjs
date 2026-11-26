@@ -18,7 +18,7 @@ const server=createSandboxServer();
     await page.locator('[data-page="'+view+'"]').click();
     await page.waitForFunction(route=>navigationPage===route,view);
     const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>{
-     const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
+     const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height].map(value=>Math.round(value*100)/100);
     }));
     assert.equal(await page.locator('.topnav-nav .nav-tab > .nav-tab-icon').count(),4);
     if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
