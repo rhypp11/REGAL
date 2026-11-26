@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RGL | Accueil</title>
-<meta name="regal-version" content="3_26.11.26-5">
+<meta name="regal-version" content="3_26.11.26-7">
 <meta name="regal-pull-request" content="122">
-<meta name="regal-build" content="89df2aaf8d48e3d1df1b392f">
-<link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=5">
-<link rel="apple-touch-icon" href="logo-regal-apple.png?v=5">
+<meta name="regal-build" content="3b746f33ff35c923f4e3f628">
+<link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=6">
+<link rel="apple-touch-icon" href="logo-regal-apple.png?v=6">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#101010">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="home-dashboard.css?v=density-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=mobile-121">
-<link rel="stylesheet" href="regal.css?v=rgl-brand-1">
+<link rel="stylesheet" href="regal.css?v=rgl-drive-1">
 <link rel="stylesheet" href="game-sheet.css?v=rgl-dark-1">
 <link rel="stylesheet" href="collection.css?v=mobile-121">
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
@@ -81,7 +81,7 @@
   <div class="topnav-inner">
     <div class="topnav-brand">
       <h1 class="brand-logo" aria-label="RGL">
-        <picture><source media="(max-width:360px)" srcset="logo-regal-mark.svg?v=5"><img class="brand-word regal-logo" src="brand-header.svg?v=rgl-brand-1" alt="RGL" width="86" height="42"></picture>
+        <picture><source media="(max-width:360px)" srcset="logo-regal-mark.svg?v=6"><img class="brand-word regal-logo" src="brand-header.svg?v=rgl-drive-1" alt="R:GL" width="86" height="42"></picture>
       </h1>
     </div>
 
@@ -109,26 +109,31 @@
               <svg class="profile-avatar-fallback" data-avatar-fallback viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg>
               <button type="button" class="profile-menu-avatar-edit-btn" id="profile-avatar-edit-btn" title="Changer la photo" aria-label="Changer la photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg></button>
             </div>
-            <input type="text" class="profile-menu-name-input" id="profile-name-input" placeholder="Ton pseudo" maxlength="24">
+            <label class="profile-menu-identity">
+              <span>Pseudo</span>
+              <input type="text" class="profile-menu-name-input" id="profile-name-input" placeholder="Ton pseudo" maxlength="24">
+            </label>
           </div>
-          <div class="profile-menu-divider"></div>
-          <section class="profile-maintenance"><h3>Sauvegarde et restauration</h3>
-          <button class="profile-menu-item" id="backup-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg><span>Sauvegarde complète</span></span>
-            <span class="profile-menu-sub" id="backup-note"></span>
-          </button>
-          <label class="profile-menu-item" id="restore-trigger" for="restore-input">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg><span>Restaurer une sauvegarde</span></span>
-            <span class="profile-menu-sub">Remplacer toutes les données par celles du fichier</span>
-          </label>
+          <section class="profile-group">
+            <h3>Collection</h3>
+            <button type="button" class="profile-menu-item" id="profile-sales-btn" data-page="cemetery"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 12 21l-9-9V3h9l8 8a1.4 1.4 0 0 1 0 2Z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Ventes</span></span></button>
+            <button type="button" class="profile-menu-item" id="manage-platforms-btn"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8m-4-5v5"/></svg><span>Plateformes</span></span></button>
+            <button type="button" class="profile-menu-item" id="switch-artwork-open"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Compléter les visuels Switch</span></span></button>
           </section>
-          <section class="profile-group" id="profile-share-group"><h3>Export</h3>
-          <button type="button" class="profile-menu-item" id="switch-artwork-open">Compléter les visuels Switch</button>
-          <button class="profile-menu-item" id="collection-export-btn">
-            <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Export JSON collection</span></span>
-          </button>
+          <section class="profile-maintenance">
+            <h3>Données</h3>
+            <button class="profile-menu-item" id="backup-btn">
+              <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg><span>Sauvegarde complète</span></span>
+              <span class="profile-menu-sub" id="backup-note"></span>
+            </button>
+            <label class="profile-menu-item" id="restore-trigger" for="restore-input">
+              <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg><span>Restaurer une sauvegarde</span></span>
+              <span class="profile-menu-sub">Remplacer toutes les données par celles du fichier</span>
+            </label>
+            <button class="profile-menu-item" id="collection-export-btn">
+              <span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M10 12l-3 3 3 3m4-6 3 3-3 3"/></svg><span>Exporter la collection (JSON)</span></span>
+            </button>
           </section>
-          <section class="profile-group"><h3>Gestion</h3><button type="button" class="profile-menu-item" id="profile-sales-btn" data-page="cemetery"><span class="profile-menu-item-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 12 21l-9-9V3h9l8 8a1.4 1.4 0 0 1 0 2Z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Ventes</span></span></button><button type="button" class="profile-menu-item" id="manage-platforms-btn"><span>Plateformes</span></button></section>
           <div class="profile-menu-version"><span id="site-version-label"></span><button type="button" id="site-update-btn" class="hidden">Actualiser</button></div>
           <div class="profile-menu-divider hidden" id="profile-menu-divider"></div>
           <button class="profile-menu-item profile-menu-danger hidden" id="logout-btn">
@@ -778,7 +783,7 @@
 <script src="dialogs.js?v=mobile-121"></script>
 <script src="digital.js?v=density-1"></script>
 <script src="switch-artwork.js?v=mobile-121"></script>
-<script src="app.js?v=rgl-brand-1"></script>
+<script src="app.js?v=rgl-drive-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>
