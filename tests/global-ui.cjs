@@ -1,8 +1,3 @@
-async function openCollectionMenu(page){
- if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
- const rows=await page.locator('#collection-views button').evaluateAll(buttons=>buttons.map(button=>{const r=button.getBoundingClientRect();return [r.left,r.width];}));
- assert.ok(rows.every(row=>Math.abs(row[0]-rows[0][0])<1 && Math.abs(row[1]-rows[0][1])<1),'Collection views share the same left edge and width');
-}
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
@@ -15,43 +10,18 @@ const server=createSandboxServer();
    const context=await sandboxContext(browser,{viewport:{width,height:900},colorScheme:theme});
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
-   const initialPage=await page.evaluate(()=>navigationPage);
-   await page.locator('[data-page="library"]').hover();
-   await page.waitForTimeout(220);
-   assert.equal(await page.locator('#collection-views').isVisible(),false,'Brief hover does not open the menu');
-   await page.mouse.move(0,0);
-   await page.waitForTimeout(240);
-   assert.equal(await page.locator('#collection-views').isVisible(),false,'Leaving cancels delayed opening');
-   await page.locator('[data-page="library"]').hover();
-   await page.locator('#collection-views').waitFor({state:'visible'});
-   assert.equal(await page.evaluate(()=>navigationPage),initialPage,'Hover opens the menu without changing view');
-   for(const view of ['home','collection','cemetery']){
-    await page.locator('#collection-views [data-page="'+view+'"]').hover();
-    await page.waitForTimeout(300);
-    assert.equal(await page.locator('#collection-views').isVisible(),true,'Submenu remains within the hover zone');
-   }
-   await page.mouse.move(0,0);
-   await page.locator('#collection-views').waitFor({state:'hidden'});
-   await page.evaluate(()=>goToPage('journal'));
-   const journalURL=await page.evaluate(()=>location.href);
-   await page.locator('[data-page="library"]').click();
-   assert.equal(await page.evaluate(()=>navigationPage),'journal','Click opens the menu without navigating');
-   assert.equal(await page.evaluate(()=>location.href),journalURL,'Click preserves the current URL');
-   assert.equal(await page.locator('#collection-views').isVisible(),true);
-   await page.locator('[data-page="library"]').click();
-   assert.equal(await page.locator('#collection-views').isVisible(),true,'Click keeps an already-open menu visible');
-   await page.keyboard.press('Escape');
-   await page.locator('[data-page="library"]').focus();await page.keyboard.press('ArrowDown');
-   assert.equal(await page.evaluate(()=>document.activeElement.closest('#collection-views')!==null),true,'Keyboard opening focuses a menu item from Journal');
-   await page.keyboard.press('Escape');
+   await page.locator('.topnav-nav [data-page="collection"]').press('Enter');
+   assert.equal(await page.evaluate(()=>navigationPage),'collection','Keyboard activates a direct tab');
    let headerGeometry;
    for(const view of ['home','collection','cemetery']){
-    await openCollectionMenu(page);await page.locator('[data-page="'+view+'"]').click();
-    const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>{
-     const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
-    }));
-    assert.equal(await page.locator('#collection-views').isVisible(),false,'Navigation collapses after selection');
-    assert.equal(await page.locator('.topnav-nav .nav-tab > .nav-tab-icon').count(),3);
+    if(view==='cemetery') await page.locator('#profile-menu-btn').click();
+    await page.locator('[data-page="'+view+'"]').click();
+    await page.waitForFunction(route=>navigationPage===route,view);
+    const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>[
+     // Layout coordinates exclude the hover translation on the header buttons.
+     node.offsetLeft,node.offsetTop,node.offsetWidth,node.offsetHeight
+    ]));
+    assert.equal(await page.locator('.topnav-nav .nav-tab > .nav-tab-icon').count(),4);
     if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
     else headerGeometry=geometry;
     assert.equal(await page.locator('.topnav-nav').evaluate(el=>{
@@ -77,7 +47,9 @@ const server=createSandboxServer();
     if(view==='collection'&&width>=1101){
      assert.equal(await page.locator('#grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),width>=1440?4:3,'Collection uses four cards on large screens');
     }
-    assert.equal(await page.locator('#collection-views [aria-current="page"]').getAttribute('data-page'),view);
+    const current=page.locator('.topnav-nav [aria-current="page"]');
+    if(view==='cemetery') assert.equal(await current.count(),0);
+    else assert.equal(await current.getAttribute('data-page'),view);
     const controls=view==='home'?'.board-add-btn':view==='collection'?'#search-input,#sort-select,#add-btn':'#cemetery-search,#cemetery-platform';
     for(const control of await page.locator(controls).all()){
      if(!await control.isVisible())continue;
@@ -98,13 +70,13 @@ const server=createSandboxServer();
     }
     await page.screenshot({path:'/tmp/jtd-global-'+view+'-'+width+'-'+theme+'.png',fullPage:true});
    }
-   await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
+   await page.locator('[data-page="home"]').click();
    if(width<=820){
     await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('[data-target="arrivals"]').getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#arrivals-board').isVisible(),true);
     await page.locator('[data-target="wishlist"]').click();assert.equal(await page.locator('[data-target="wishlist"]').getAttribute('aria-pressed'),'true');
    }
-   await openCollectionMenu(page);await page.locator('[data-page="collection"]').click();
+   await page.locator('[data-page="collection"]').click();
    if(await page.locator('#global-filter-toggle').isVisible())await page.locator('#global-filter-toggle').click();
    const chip=page.locator('#format-toggles [role="button"]').first();
    await chip.focus();await page.keyboard.press('Space');

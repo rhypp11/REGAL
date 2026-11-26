@@ -137,13 +137,14 @@ async function checkTrap(page,id){
    await page.evaluate(()=>{state.status='termine';render();});
    await badge.click();await page.locator('#grid [data-status="a_jouer"]').click();
    assert.equal(await page.evaluate(()=>document.activeElement.id),'search-input','Empty filtered grid has a focus fallback');
-   // Both dropdowns keep a theme-aware keyboard outline inside the black header.
-   for(const [trigger,item] of [['[data-page="library"]','#collection-views button'],['#profile-menu-btn','.profile-menu-item']]){
-    await page.locator(trigger).click();await page.keyboard.press('Tab');await page.locator(item).first().focus();
-    assert.equal(await page.locator(item).first().evaluate(el=>getComputedStyle(el).outlineColor),await page.evaluate(()=>{const probe=document.createElement('span');probe.style.color='var(--ui-accent)';document.body.append(probe);const c=getComputedStyle(probe).color;probe.remove();return c;}));
-    await page.keyboard.press('Escape');
-    await page.mouse.click(width-2,800);
-   }
+   // The profile menu keeps a theme-aware keyboard outline inside the header.
+   await page.locator('#profile-menu-btn').click();
+   await page.keyboard.press('Tab');
+   const profileItem=page.locator('.profile-menu-item').first();
+   await profileItem.focus();
+   assert.equal(await profileItem.evaluate(el=>getComputedStyle(el).outlineColor),await page.evaluate(()=>{const probe=document.createElement('span');probe.style.color='var(--ui-accent)';document.body.append(probe);const color=getComputedStyle(probe).color;probe.remove();return color;}));
+   await page.keyboard.press('Escape');
+   await page.mouse.click(width-2,800);
    await page.emulateMedia({reducedMotion:'reduce'});
    await page.evaluate(()=>showToast('Une confirmation fictive suffisamment longue pour revenir à la ligne sur un écran mobile, sans masquer la fin du message.','Annuler',()=>{}));
    assert.equal(await page.locator('#toast-stack').getAttribute('role'),'status');

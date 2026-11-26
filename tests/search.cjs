@@ -2,8 +2,9 @@ const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
 const server=createSandboxServer();
+const archivedServer=createSandboxServer({journal:false});
 (async()=>{
- await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ await Promise.all([server,archivedServer].map(instance=>new Promise(r=>instance.listen(0,'127.0.0.1',r))));
  const browser=await chromium.launch({headless:true,executablePath:process.env.JTD_CHROME,args:['--no-sandbox']});
  try{
   for(const width of [320,390,1440])for(const theme of ['light','dark']){
@@ -75,5 +76,36 @@ const server=createSandboxServer();
    console.log('PASS consistent search',width,theme);
    await context.close();
   }
- }finally{await browser.close();server.close()}
-})().catch(e=>{console.error(e);server.close();process.exitCode=1});
+  const context=await sandboxContext(browser,{viewport:{width:390,height:900}});
+  const page=await context.newPage();
+  const errors=[]; page.on('pageerror',error=>errors.push(error.message));
+  await page.goto('http://127.0.0.1:'+archivedServer.address().port+'/#journal');
+  await page.locator('#app-shell').waitFor({state:'visible'});
+  assert.equal(new URL(page.url()).hash.split('?')[0],'#collection');
+  assert.equal(await page.locator('[data-page="journal"]:visible, #page-journal:visible').count(),0);
+  assert.deepEqual(await page.locator('.topnav-nav .nav-tab:visible').evaluateAll(tabs=>tabs.map(tab=>tab.dataset.page)),['home','collection','pokedex']);
+  assert.equal(await page.locator('.topnav-nav [aria-current="page"]').getAttribute('data-page'),'collection');
+  assert.equal(await page.locator('#journal-export-btn').count(),0);
+  await page.evaluate(()=>{
+    GAMES=[{id:'archive-game',nom:'Jeu de test actif',plateforme:'Switch',status:'termine'}];
+    LEGACY_JOURNAL=[{regalJournal:2,entries:[{id:'archive-entry',group:'completed',name:'Complétion archivée fictive',date:'2026-02-01'}]}];
+  });
+  assert.equal(await page.evaluate(()=>buildBackupPayload().data.journal[0].entries[0].id),'archive-entry');
+  assert.equal(await page.evaluate(()=>getJournalExportEntries()[0].id),'archive-entry');
+  assert.equal(await page.evaluate(()=>getEffectiveStatus(GAMES[0])),'termine');
+  await page.locator('#global-search-open').click();
+  const search=page.locator('#global-search-input');
+  await search.fill('archivée fictive');
+  assert.equal(await page.locator('#global-search-results button').count(),0);
+  await search.fill('Jeu de test actif');
+  assert.equal(await page.locator('#global-search-results button').count(),1);
+  await page.locator('#global-search-close').click();
+  await page.evaluate(()=>openWishlistModal(null));
+  assert.equal(await page.locator('#w-origin-picker').isVisible(),false);
+  await page.locator('#w-cancel-btn').click();
+  await page.locator('#pokedex-nav').click();
+  assert.equal(await page.locator('#page-pokedex').isVisible(),true);
+  assert.deepEqual(errors,[]);
+  await context.close();
+ }finally{await browser.close();server.close();archivedServer.close()}
+})().catch(e=>{console.error(e);server.close();archivedServer.close();process.exitCode=1});

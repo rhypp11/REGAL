@@ -26,6 +26,9 @@
   }
   const linkedPurchase = entry => entry.collectionId && GAMES.find(game => game.id === entry.collectionId && game.contentType !== 'upgrade');
   const withPurchaseIdentity = entry => entry && JTDData.journalPurchaseIdentity(entry,linkedPurchase(entry));
+  window.getJournalExportEntries=()=>records().map(withPurchaseIdentity);
+  if(!JOURNAL_ENABLED) return;
+
   let indexedArchive, completionsByPurchase;
   window.getLinkedJournalCompletion = id => {
     if(!completionsByPurchase || indexedArchive !== LEGACY_JOURNAL){
@@ -40,7 +43,6 @@
     const entry = completionsByPurchase.get(id);
     return entry && {id:entry.id,date:dateLabel(entry),result:completions[entry.completion] || completions.finished};
   };
-  window.getJournalExportEntries=()=>records().map(withPurchaseIdentity);
   window.getJournalReleases=()=>records().filter(entry=>entry?.group==='release').map(entry=>({id:entry.id,nom:entry.name,plateforme:entry.platform,image:entry.image,squareImage:entry.squareImage,nintendoTitleId:entry.nintendoTitleId,imageFit:entry.imageFit,date:entry.date}));
   const searchLocations={completed:'Terminé',playing:'En cours',backlog:'À faire',release:'Sorties'};
   window.getJournalSearchEntries=()=>records().filter(entry=>entry && Object.hasOwn(searchLocations,entry.group)).map(withPurchaseIdentity).map(entry=>({

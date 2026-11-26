@@ -23,7 +23,7 @@ async function importFile(page,data){
   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#app-shell').waitFor({state:'visible'});
   assert.equal(await page.locator('#share-btn, #share-disable-btn').count(),0);
   assert.equal(await page.locator('#collection-export-btn').count(),1);
-  assert.equal(await page.locator('#journal-export-btn').textContent().then(s=>s.trim()),'Export JSON journal');
+  assert.equal(await page.locator('#journal-export-btn').count(),0);
   await page.evaluate(data=>applyRestoredData(JTDData.normalizeData(data)),fixture);
   assert.equal(await page.locator('[data-page="journal"]').count(),1);
   assert.equal(await page.locator('[id^="f-journal"]').count(),0,'Journal entries do not change collection forms');
@@ -66,11 +66,7 @@ async function importFile(page,data){
   const advice=JSON.parse(fs.readFileSync(await (await downloadEvent).path(),'utf8'));
   assert.equal('journal' in advice.data,false);
   await page.evaluate(()=>{LEGACY_JOURNAL.push({regalJournal:2,entries:[{id:'active-j',group:'completed',name:'Jeu fictif',platform:'PC',date:'2026-11-14',notes:['S','A','','B','C'],comment:'Avis fictif',image:'https://example.com/private.png'}]});});
-  const journalDownload=page.waitForEvent('download');
-  await page.locator('#profile-menu-btn').click();await page.locator('#journal-export-btn').click();
-  const downloaded=await journalDownload;
-  assert.match(downloaded.suggestedFilename(),/^regal-export-journal-.*\.json$/);
-  const journal=JSON.parse(fs.readFileSync(await downloaded.path(),'utf8'));
+  const journal=await page.evaluate(()=>JTDData.createJournalPayload(getJournalExportEntries()));
   assert.equal(journal.data.journal.length,1);
   assert.equal(journal.data.journal[0].id,'active-j');
   assert.equal(journal.data.journal[0].comment,'Avis fictif');

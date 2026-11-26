@@ -1,6 +1,3 @@
-async function openCollectionMenu(page){
- if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
-}
 /* Manual entry and explicit transfer actions; fake sandbox data only. */
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
@@ -63,10 +60,14 @@ const server=createSandboxServer();
    assert.equal(await page.locator('#modal-title').innerText(),'Confirmer la réception');
    await page.keyboard.press('Escape');
    assert.equal(await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST})),before,'Opening and cancelling transfers keeps all lists');
-   for(const route of ['home','collection','cemetery']){
-    await openCollectionMenu(page);await page.locator(`#collection-views [data-page="${route}"]`).click();
-    assert.equal(await page.locator('#collection-views [aria-current="page"]').getAttribute('data-page'),route);
+   for(const route of ['home','collection']){
+    await page.locator(`.topnav-nav [data-page="${route}"]`).click();
+    assert.equal(await page.locator('.topnav-nav [aria-current="page"]').getAttribute('data-page'),route);
    }
+   assert.equal(await page.locator('.topnav-nav [data-page="cemetery"]').count(),0);
+   await page.locator('#profile-menu-btn').click();
+   await page.locator('#profile-sales-btn').click();
+   assert.ok(await page.locator('#page-cemetery').isVisible());
    await page.evaluate(()=>openPlatformModal());
    const platformRow=page.locator('.platform-row[data-current-name="Switch 2"]');
    await platformRow.locator('.platform-edit-btn').click();
