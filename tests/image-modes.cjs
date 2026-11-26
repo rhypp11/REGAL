@@ -35,6 +35,10 @@ const server=createSandboxServer();
    await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
    assert.equal(await page.locator('#f-image-options').getAttribute('open'),'');
    assert.equal(await page.locator('#f-image-fit').inputValue(),'contain');
+   await page.locator('#f-square-image').fill(url+'/art-portrait.svg');
+   await page.locator('#f-square-image-fit').selectOption('cover');
+   assert.equal(await page.locator('.switch-square-preview img').evaluate(img=>getComputedStyle(img).objectFit),'cover');
+   assert.equal(await page.locator('#f-image-fit').inputValue(),'contain','Square fit is independent of banner fit');
    // Native dropdowns must stay readable with either OS preference.
     const contrast=await page.locator('#f-image-fit option').evaluateAll(options=>{
      const rgb=color=>color.match(/[\d.]+/g).slice(0,3).map(Number);
@@ -52,6 +56,7 @@ const server=createSandboxServer();
    await page.locator('#save-btn').click();
    await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
    assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='art-wide').imageFit),'cover');
+   assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='art-wide').squareImageFit),'cover');
    // All identity editors share the same control; transfers carry the saved choice.
    await page.evaluate(url=>{WISHLIST.push({id:'art-flow',nom:'Image transférée',plateforme:'Switch 2',image:url+'/art-wide.svg',imageFit:'cover'});saveWishlist();moveWishlistToArrivals('art-flow');},url);
    assert.equal(await page.locator('#a-image-fit').inputValue(),'cover');await page.locator('#a-save-btn').click();

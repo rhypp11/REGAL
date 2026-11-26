@@ -205,7 +205,7 @@ jobs:
           curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$PREVIEW_URL/" > /tmp/preview.html
           curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$PREVIEW_URL/app.js" > /tmp/app.js
           curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3 "$PREVIEW_URL/firebase.js" > /tmp/firebase.js
-          grep -q '<title>RGL' /tmp/preview.html
+          grep -q '<title>Accueil</title>' /tmp/preview.html
           grep -q "jtd-sandbox-rhypp11.web.app" /tmp/preview.html
           grep -q "const IS_PREVIEW_MODE = window.JTD_PREVIEW_MODE === true" /tmp/app.js
           grep -q "const fbApp = previewMode ? null : initializeApp(firebaseConfig)" /tmp/firebase.js

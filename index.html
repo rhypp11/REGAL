@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RGL | Accueil</title>
-<meta name="regal-version" content="3_26.11.26-7">
+<title>Accueil</title>
+<meta name="regal-version" content="3_26.11.26-8">
 <meta name="regal-pull-request" content="122">
-<meta name="regal-build" content="3b746f33ff35c923f4e3f628">
+<meta name="regal-build" content="7fd6c46de9aa1720cb4f3996">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=6">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=6">
 <link rel="manifest" href="manifest.json">
@@ -20,12 +20,12 @@
 <link rel="stylesheet" href="styles.css?v=mobile-121">
 <link rel="stylesheet" href="cemetery.css?v=sale-steps-4">
 <link rel="stylesheet" href="home-boards-v2.css?v=density-1">
-<link rel="stylesheet" href="home-dashboard.css?v=density-1">
+<link rel="stylesheet" href="home-dashboard.css?v=home-sheet-1">
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=mobile-121">
 <link rel="stylesheet" href="regal.css?v=rgl-drive-1">
-<link rel="stylesheet" href="game-sheet.css?v=rgl-dark-1">
-<link rel="stylesheet" href="collection.css?v=mobile-121">
+<link rel="stylesheet" href="game-sheet.css?v=home-sheet-1">
+<link rel="stylesheet" href="collection.css?v=home-sheet-1">
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=listes-2">
@@ -86,7 +86,7 @@
     </div>
 
     <div class="topnav-nav" aria-label="Navigation principale">
-      <button type="button" class="nav-tab active" data-page="home" aria-current="page"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="nav-tab-label">Vue d’ensemble</span></button>
+      <button type="button" class="nav-tab active" data-page="home" aria-current="page"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span class="nav-tab-label">Accueil</span></button>
       <button type="button" class="nav-tab" data-page="collection"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><path d="m18 4 3 15-4 1-3-15"/></svg><span class="nav-tab-label">Mes jeux</span></button>
       <button type="button" class="nav-tab hidden" data-page="journal" title="Journal"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v15M3 4h5a4 4 0 0 1 4 2 4 4 0 0 1 4-2h5v15h-5a4 4 0 0 0-4 2 4 4 0 0 0-4-2H3Z"/></svg><span class="nav-tab-label">Journal</span></button>
       <button type="button" class="nav-tab" id="pokedex-nav" data-page="pokedex"><svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M3 12h6m6 0h6"/></svg><span class="nav-tab-label">Pokédex</span></button>
@@ -165,7 +165,7 @@
     </aside>
   <main class="home-main">
     <header class="home-heading">
-      <div class="home-title-row"><h1>Vue d’ensemble</h1><div id="home-heading-actions"></div></div>
+      <div class="home-title-row"><h1>Accueil</h1><div id="home-heading-actions"></div></div>
     <div class="home-view-controls" id="home-view-controls">
     <div class="home-boards-switcher" id="home-boards-switcher" role="group" aria-label="Arrivages et wishlist">
       <button type="button" class="home-boards-switch-btn active" data-target="arrivals">
@@ -438,7 +438,6 @@
       <div class="game-identity-summary hidden" id="f-identity-summary"></div>
       <div class="game-identity-editor" id="f-identity-editor">
         <div id="f-edit-hero"></div>
-        <h3 class="form-section-title">Jeu</h3>
         <div class="field-row collection-identity-fields">
       <div class="field">
         <label for="f-nom">Nom du jeu</label>
@@ -466,7 +465,15 @@
       <h3 class="form-section-title collection-purchase-heading" id="game-sheet-purchase-title">Achat</h3>
       <div class="purchase-format-heading">
         <span id="f-editor-format-title">Physique</span>
-        <div id="f-media-field"><select id="f-media" class="hidden" tabindex="-1" aria-label="Format de l’achat"><option value="physical">Physique</option><option value="digital">Numérique</option></select><div class="purchase-format-options" role="radiogroup" aria-label="Format de l’achat"><label><input type="radio" name="f-media-choice" value="physical"><span class="purchase-format-icon" data-format-icon="physical" aria-hidden="true"></span><span>Physique</span></label><label><input type="radio" name="f-media-choice" value="digital"><span class="purchase-format-icon" data-format-icon="digital" aria-hidden="true"></span><span>Numérique</span></label></div></div>
+        <div id="f-media-field">
+          <select id="f-media" class="hidden" tabindex="-1" aria-label="Format de l’achat"><option value="physical">Physique</option><option value="digital">Numérique</option></select>
+          <div class="purchase-format-options" role="radiogroup" aria-label="Type de contenu">
+            <label><input type="radio" name="f-media-choice" value="physical"><span class="purchase-format-icon" data-format-icon="physical" aria-hidden="true"></span><span>Physique</span></label>
+            <label><input type="radio" name="f-media-choice" value="digital"><span class="purchase-format-icon" data-format-icon="digital" aria-hidden="true"></span><span>Numérique</span></label>
+            <label><input type="radio" name="f-media-choice" value="dlc"><span class="purchase-format-icon" data-format-icon="dlc" aria-hidden="true"></span><span>Extension</span></label>
+            <label><input type="radio" name="f-media-choice" value="upgrade"><span class="purchase-format-icon" data-format-icon="upgrade" aria-hidden="true"></span><span>Mise à niveau</span></label>
+          </div>
+        </div>
       </div>
       <div class="context-summary hidden" id="f-context-summary"></div>
       <div class="context-editor" id="f-context-editor">
@@ -505,8 +512,7 @@
         <div id="f-partial-date-note" class="hidden"><span></span> <button type="button" class="manage-link">Effacer cette date</button></div>
       </div>
       <div class="field" id="f-source-field"><label for="f-source">Enseigne / source</label><input type="text" id="f-source" placeholder="ex. Fnac, boutique, particulier…"></div>
-      <details id="f-edition-options" class="purchase-options">
-        <summary>Options d’édition</summary>
+      <div id="f-edition-options" class="purchase-options">
         <div class="field edition-options" id="f-collector-field" role="group" aria-label="Édition, optionnel">
           <span class="edition-options-label">Édition <span class="optional-label">optionnel</span></span>
           <label class="identity-collector-control" for="f-collector">
@@ -520,14 +526,14 @@
             <span>Japonais</span>
           </label>
         </div>
-      </details>
-      <details id="f-digital-version-options" class="purchase-options hidden">
-        <summary>Version numérique</summary>
+      </div>
+      <div id="f-digital-version-options" class="purchase-options hidden">
         <div class="field edition-options" role="group" aria-label="Version numérique">
+          <span class="edition-options-label">Version numérique</span>
           <label class="identity-collector-control" for="f-japanese-account"><input type="checkbox" id="f-japanese-account"><span class="japanese-flag" aria-hidden="true"></span><span>Compte japonais</span></label>
           <label class="identity-collector-control" for="f-bundle"><input type="checkbox" id="f-bundle"><span class="bundle-choice-icon" data-format-icon="bundle"></span><span>Bundle</span></label>
         </div>
-      </details>
+      </div>
       <p id="f-purchase-change-note" class="content-parent-note hidden" role="status"></p>
  </div>
       </div>
@@ -779,11 +785,11 @@
     <div class="modal-actions"><button type="button" class="btn btn-ghost" id="purchase-report-close">Fermer</button></div>
   </div>
 </div>
-<script src="jtd-data.js?v=account-pokedex-1"></script>
+<script src="jtd-data.js?v=home-sheet-1"></script>
 <script src="dialogs.js?v=mobile-121"></script>
-<script src="digital.js?v=density-1"></script>
-<script src="switch-artwork.js?v=mobile-121"></script>
-<script src="app.js?v=rgl-drive-1"></script>
+<script src="digital.js?v=home-sheet-1"></script>
+<script src="switch-artwork.js?v=home-sheet-1"></script>
+<script src="app.js?v=home-sheet-1"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>

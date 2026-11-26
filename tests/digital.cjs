@@ -56,7 +56,6 @@ async function openFilters(page){
       await page.locator('#f-nom').fill('Nouvel achat japonais');await page.selectOption('#f-plateforme','Switch 2');
       await page.locator('#save-btn').click();
       await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
-      await page.locator('#f-digital-version-options summary').click();
       await page.locator('#f-japanese-account').check();
       await page.locator('#f-bundle').check();
       await page.selectOption('#f-currency','JPY');

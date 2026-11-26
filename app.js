@@ -1549,7 +1549,7 @@ function setLastUsed(key, value){
 function purchaseArtwork(item, preferSquare = false){
   const banner = safeURL(item?.image,true), square = safeURL(item?.squareImage,true);
   const useSquare = square && (preferSquare || !banner);
-  return {...item,image:useSquare ? square : banner,imageFit:useSquare ? 'contain' : item?.imageFit,
+  return {...item,image:useSquare ? square : banner,imageFit:useSquare ? item?.squareImageFit : item?.imageFit,
     alternateImage:useSquare ? banner : square};
 }
 
@@ -1611,8 +1611,7 @@ function setIdentityEditor(prefix, item, compact){
     const game = editingCollection === 'games' && editingId && !convertingArrivalId ? item : null;
     const hero = document.getElementById('f-edit-hero');
     if(item || !editingId){
-      hero.innerHTML = game ? '<div class="game-identity-summary">'+identitySummaryHtml(game)+'</div>' : '';
-      hero.querySelector('.identity-edit-btn')?.remove();
+      hero.innerHTML = game ? sheetArtworkHtml(game,false,'identity-thumb') : '';
     }
   }
 
@@ -1898,7 +1897,6 @@ function openModal(id, collection = 'games', content = null){
   updateImagePreview();
   const identityItem = editingId ? items.find(x => x.id === editingId) : null;
   document.getElementById('f-image-options').open = false;
-  document.getElementById('f-edition-options').open = false;
   fillArtworkFields('f',identityItem);
   openDigitalFields(identityItem, content);
   const quickAdd = !editingId && editingCollection === 'games' && document.getElementById('f-content-type').value === 'game';
@@ -1942,6 +1940,13 @@ function saveModal(){
   const fields = {nom, plateforme, prix, date, source, collector, japanese, image, imageFit, ...artwork};
   try { Object.assign(fields, readDigitalFields()); }
   catch(error){ window.JTDDialogs.error(error.field || 'f-parent',error.message); return; }
+  const owned = GAMES.find(game => game.id === editingId);
+  if(editingCollection === 'games' && owned && hasIncompatibleContent(owned,fields)){
+    const note = document.getElementById('f-purchase-change-note');
+    updatePurchaseChangeNote();
+    note.scrollIntoView({block:'nearest'});
+    return;
+  }
   const editedCemetery = editingCollection === 'cemetery' && !!editingId;
   const wasEditing = !!editingId;
   const quickAdd = document.getElementById('modal-overlay').classList.contains('collection-quick-add');
@@ -2025,7 +2030,7 @@ function renderHomeStats(){
   const row=(label,value,content='')=>`<div class="home-summary-stat">${content ? icon(content) : ''}<span>${label}</span><strong>${value}</strong></div>`;
   const meta=document.getElementById('home-summary-meta');
   const sums=new Map();GAMES.forEach(g=>{if(g.prix!=null)sums.set(g.currency || 'EUR',(sums.get(g.currency || 'EUR') || 0)+g.prix);});
-  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>JTDData.effectivePlatform(g,GAMES))).size,ICON_STATUS_PLAYING)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
+  if(meta) meta.innerHTML=row('Physique',physical.length,MEDIA_ICONS.physical)+row('Numérique',digital.length,MEDIA_ICONS.digital)+row('Plateformes',new Set(games.map(g=>JTDData.effectivePlatform(g,GAMES))).size,document.querySelector('#manage-platforms-btn svg').outerHTML)+row('Collectors',physical.filter(g=>g.collector).length,FORMAT_ICON_STAR)+row('Éditions japonaises',physical.filter(g=>g.japanese).length,ICON_EDITION_REGION)+row('DLC et mises à niveau',GAMES.filter(g=>JTDData.isAddon(g)).length,MEDIA_ICONS.dlc)+`<button type="button" class="home-value-stat" id="purchase-report-open" aria-label="Valeur d’achat, ouvrir le bilan annuel" aria-haspopup="dialog"><span>Valeur d’achat</span><strong>${[...sums].map(([currency,prix])=>`<span>${escapeHTML(purchaseMoney({currency,prix}))}</span>`).join('') || '—'}</strong></button>`;
   const breakdown=document.getElementById('home-status-breakdown');
   if(breakdown) breakdown.innerHTML = [['physical','Physique'],['digital','Numérique']].map(([format,label])=>{
     const playable=GAMES.filter(game=>isPlayablePurchase(game) && JTDData.isDigital(game)===(format==='digital'));
@@ -2575,7 +2580,6 @@ function addArrivalToCollection(id, draft){
   editingCollection = 'games';
   fillIdentityFields('f', item);
   document.getElementById('f-image-options').open = false;
-  document.getElementById('f-edition-options').open = false;
   openDigitalFields(item);
 
   document.getElementById('modal-title').textContent = 'Confirmer la réception';
@@ -3268,9 +3272,9 @@ function goToPage(page, push = true){
     if(active) b.setAttribute('aria-current', 'page');
     else b.removeAttribute('aria-current');
   });
-  document.title = 'RGL | ' + (navigationPage === 'collection' ? 'Mes jeux' : 'Vue d’ensemble');
+  document.title = {home:'Accueil',collection:'Mes jeux',cemetery:'Ventes',pokedex:'Pokédex',journal:'Journal'}[navigationPage];
   document.getElementById('page-cemetery').classList.toggle('hidden', navigationPage !== 'cemetery');
-  if(navigationPage === 'cemetery'){ document.title = 'RGL | Ventes'; window.renderCemetery?.(); }
+  if(navigationPage === 'cemetery') window.renderCemetery?.();
   if(navigationPage === 'cemetery') document.getElementById('cemetery-heading-actions').append(mobileFilterToggle);
   if(navigationPage === 'home') document.getElementById('home-heading-actions').append(mobileFilterToggle);
   if(navigationPage === 'journal') placeJournalControls();
@@ -3279,8 +3283,7 @@ function goToPage(page, push = true){
   document.getElementById('page-collection').classList.toggle('hidden', navigationPage !== 'collection');
   document.getElementById('page-journal').classList.toggle('hidden', navigationPage !== 'journal');
   document.getElementById('page-pokedex').classList.toggle('hidden',navigationPage !== 'pokedex');
-  if(navigationPage === 'pokedex') document.title='RGL | Pokédex';
-  if(navigationPage === 'journal'){ document.title = 'RGL | Journal'; window.renderJournal?.(); }
+  if(navigationPage === 'journal') window.renderJournal?.();
   restoringNavigation = true;
   if(navigationPage === 'collection'){
     buildPlatformList({keepSelection:true});

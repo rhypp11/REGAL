@@ -296,7 +296,7 @@
   color:var(--ui-text-muted); font-size:12px; text-align:center;
 }
 .switch-square-preview img { display:block; width:100%; height:100%; object-fit:contain; }
-.collection-purchase-heading,#f-identity-editor > h3 { margin:0 0 7px; }
+.collection-purchase-heading { margin:0 0 7px; }
 .sheet-dialog .sheet-identity-card .identity-thumb {
   --sheet-thumb:clamp(54px,13vw,80px);
   width:var(--sheet-thumb); height:var(--sheet-thumb); flex:0 0 var(--sheet-thumb);
@@ -357,7 +357,7 @@
 #modal-overlay .modal-edit-actions { justify-content:flex-end; }
 #modal-overlay:not(.cemetery-game-editor) #delete-btn,
 #journal-overlay:has(#journal-detail-actions) #journal-delete { display:none; }
-.collection-quick-add :is(#f-image-options,#f-context-editor,.collection-purchase-heading,#f-identity-editor > h3) { display:none; }
+.collection-quick-add :is(#f-image-options,#f-context-editor,.collection-purchase-heading) { display:none; }
 .sheet-actions-menu { position:relative; flex:none; align-self:flex-start; }
 .sheet-actions-menu > summary { list-style:none; }
 .sheet-actions-menu > summary::-webkit-details-marker { display:none; }
@@ -380,7 +380,7 @@
 
 #f-edit-hero:empty,#f-edit-purchase-art:empty { display:none; }
 #f-edit-hero { margin-bottom:16px; }
-#modal-overlay :is(#f-identity-summary:not(.hidden),#f-edit-hero .game-identity-summary) {
+#modal-overlay #f-identity-summary:not(.hidden) {
   display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px;
 }
 #modal-overlay :is(#f-identity-summary,#f-edit-hero) .identity-thumb {
@@ -406,3 +406,7 @@
 .sheet-dialog .sheet-summary-card.context-summary { grid-template-columns:minmax(0,1fr); }
 .sheet-dialog:has(#a-sheet-actions .sheet-actions-menu,#w-sheet-actions .sheet-actions-menu)
   :is(.sheet-identity-card .identity-edit-btn,.sheet-summary-card .context-edit-btn,#a-delete-btn,#w-delete-btn) { display:none; }
+
+#f-context-editor .edition-options { margin-top:10px; }
+.switch-square-field > label:has(select) { display:grid; gap:6px; }
+.purchase-format-options label { min-height:44px; }
