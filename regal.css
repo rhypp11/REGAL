@@ -94,7 +94,7 @@
   .topnav .topnav-nav { grid-column:1 / -1; grid-row:2; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); width:100%; min-height:44px; height:44px; gap:0; }
   html[data-journal-enabled] .topnav .topnav-nav { grid-template-columns:repeat(5,minmax(0,1fr)); }
   .topnav .topnav-nav .nav-tab { flex-direction:column; gap:2px; height:44px; padding:1px 2px 3px; margin:0; font-size:12px; letter-spacing:0; }
-  .topnav .topnav-nav .nav-tab-label { font-size:clamp(10px,3vw,12px); letter-spacing:0; white-space:normal; line-height:1.05; text-align:center; }
+  .topnav .topnav-nav .nav-tab-label { font-size:clamp(10px,3vw,12px); letter-spacing:0; white-space:normal; width:100%; min-width:0; overflow-wrap:anywhere; line-height:1.05; text-align:center; }
   .topnav .topnav-nav .nav-tab .nav-tab-icon { width:15px; height:15px; }
   .topnav .topnav-nav .nav-tab + .nav-tab { border:0; }
 }
