@@ -17,15 +17,12 @@ const server=createSandboxServer();
     if(view==='cemetery') await page.locator('#profile-menu-btn').click();
     await page.locator('[data-page="'+view+'"]').click();
     await page.waitForFunction(route=>navigationPage===route,view);
-    const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>{
-     const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
-    }));
+    const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>[
+     // Layout coordinates exclude the hover translation on the header buttons.
+     node.offsetLeft,node.offsetTop,node.offsetWidth,node.offsetHeight
+    ]));
     assert.equal(await page.locator('.topnav-nav .nav-tab > .nav-tab-icon').count(),4);
-    if(headerGeometry){
-     geometry.forEach((rect,index)=>rect.forEach((value,dimension)=>{
-      assert.ok(Math.abs(value-headerGeometry[index][dimension])<0.1,'Header geometry stays stable between pages');
-     }));
-    }
+    if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
     else headerGeometry=geometry;
     assert.equal(await page.locator('.topnav-nav').evaluate(el=>{
      const nav=el.getBoundingClientRect();
