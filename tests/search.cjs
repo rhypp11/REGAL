@@ -83,6 +83,9 @@ const archivedServer=createSandboxServer({journal:false});
   await page.locator('#app-shell').waitFor({state:'visible'});
   assert.equal(new URL(page.url()).hash.split('?')[0],'#collection');
   assert.equal(await page.locator('[data-page="journal"]:visible, #page-journal:visible').count(),0);
+  assert.deepEqual(await page.locator('.topnav-nav .nav-tab:visible').evaluateAll(tabs=>tabs.map(tab=>tab.dataset.page)),['home','collection','cemetery','pokedex']);
+  assert.equal(await page.locator('.topnav-nav [aria-current="page"]').getAttribute('data-page'),'collection');
+  assert.equal(await page.locator('#journal-export-btn').count(),0);
   await page.evaluate(()=>{
     GAMES=[{id:'archive-game',nom:'Jeu de test actif',plateforme:'Switch',status:'termine'}];
     LEGACY_JOURNAL=[{regalJournal:2,entries:[{id:'archive-entry',group:'completed',name:'Complétion archivée fictive',date:'2026-02-01'}]}];

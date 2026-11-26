@@ -3078,25 +3078,6 @@ function downloadCollectionSnapshot(){
 }
 
 document.getElementById('collection-export-btn').addEventListener('click', downloadCollectionSnapshot);
-document.getElementById('journal-export-btn').addEventListener('click', () => {
-  try {
-    const payload = JTDData.createJournalPayload(window.getJournalExportEntries());
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'regal-export-journal-' + new Date().toISOString().slice(0,10) + '.json';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('Export JSON téléchargé.');
-  } catch(error) {
-    console.error('Export du journal impossible', error);
-    showToast('Impossible de préparer l’export JSON.');
-  }
-});
-
 document.getElementById('profile-menu-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   document.getElementById('profile-menu').classList.toggle('hidden');
@@ -3175,13 +3156,11 @@ const NAVIGATION_KEY = 'navigation-v1';
 let navigationReady = false;
 let restoringNavigation = false;
 let navigationPage = 'home';
-const collectionPages = ['home','collection','cemetery'];
-let lastCollectionPage = 'home';
 let navigationBoard = 'arrivals';
 let firstNavigation = true;
 
 function navigationSnapshot(){
-  return {page:navigationPage, board:navigationBoard, collectionPage:lastCollectionPage, ...state};
+  return {page:navigationPage, board:navigationBoard, ...state};
 }
 function navigationHash(view){
   const params = new URLSearchParams();
@@ -3252,7 +3231,6 @@ function initializeNavigation(){
   let saved = null;
   try { saved = JSON.parse(IS_PREVIEW_MODE ? sessionStorage.getItem('jtd:sandbox-navigation') : accountStorage.getItem(NAVIGATION_KEY)); } catch {}
   const view = (firstNavigation && navigationFromHash()) || saved || {};
-  lastCollectionPage = collectionPages.includes(saved?.collectionPage) ? saved.collectionPage : collectionPages.includes(saved?.page) ? saved.page : 'home';
   firstNavigation = false;
   navigationReady = true;
   applyNavigation(view && typeof view === 'object' ? view : {});
@@ -3284,17 +3262,8 @@ function goToPage(page, push = true){
   mobileFilterToggle.innerHTML = statsControl
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10m8 10V4m8 16v-7"/></svg><span>Statistiques</span>'
     : filterToggleIcon;
-  const inCollection = collectionPages.includes(navigationPage);
-  if(inCollection) lastCollectionPage = navigationPage;
-  const views = document.getElementById('collection-views');
-  views.classList.add('hidden');
-  document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
-  for(const button of views.querySelectorAll('button')){
-    if(button.dataset.page === navigationPage) button.setAttribute('aria-current','page');
-    else button.removeAttribute('aria-current');
-  }
   document.querySelectorAll('.nav-tab').forEach(b => {
-    const active = b.dataset.page === (inCollection ? 'library' : navigationPage);
+    const active = b.dataset.page === navigationPage;
     b.classList.toggle('active', active);
     if(active) b.setAttribute('aria-current', 'page');
     else b.removeAttribute('aria-current');
@@ -3334,83 +3303,11 @@ window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
 
-let collectionHoverTimer;
-let collectionOpenTimer;
-const collectionTrigger = document.querySelector('[data-page="library"]');
-const collectionMenu = document.getElementById('collection-views');
-const collectionGroup = document.querySelector('.collection-nav-group');
-const collectionHover = matchMedia('(hover:hover) and (pointer:fine)');
-function cancelCollectionHover(){
-  clearTimeout(collectionOpenTimer);
-  clearTimeout(collectionHoverTimer);
-}
-collectionGroup.addEventListener('pointerenter',()=>{
-  cancelCollectionHover();
-  if(!collectionHover.matches || !collectionMenu.classList.contains('hidden')) return;
-  collectionOpenTimer = setTimeout(()=>{
-    if(!collectionGroup.matches(':hover')) return;
-    collectionMenu.classList.remove('hidden');
-    collectionTrigger.setAttribute('aria-expanded','true');
-  },350);
-});
-collectionGroup.addEventListener('pointerleave',()=>{
-  cancelCollectionHover();
-  if(!collectionHover.matches) return;
-  collectionHoverTimer = setTimeout(()=>{
-    if(collectionGroup.matches(':hover') || collectionMenu.contains(document.activeElement)) return;
-    collectionMenu.classList.add('hidden');
-    collectionTrigger.setAttribute('aria-expanded','false');
-  },250);
-});
-
-document.querySelectorAll('.nav-tab, #collection-views button').forEach(btn => {
-  btn.addEventListener('click', event => {
-    if(btn.dataset.page === 'library'){
-      const menu = document.getElementById('collection-views');
-      cancelCollectionHover();
-      menu.classList.remove('hidden');
-      btn.setAttribute('aria-expanded','true');
-      return;
-    }
-    goToPage(btn.dataset.page);
-    if(btn.closest('#collection-views')) document.querySelector('[data-page="library"]').focus({preventScroll:true});
-    window.scrollTo({top: 0, behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth'});
+document.querySelectorAll('.nav-tab').forEach(button => {
+  button.addEventListener('click', () => {
+    goToPage(button.dataset.page);
+    window.scrollTo({top:0, behavior:matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth'});
   });
-});
-
-document.addEventListener('keydown',event=>{
-  if(event.key==='Escape') cancelCollectionHover();
-  if(event.key==='Escape' && !document.getElementById('collection-views').classList.contains('hidden')){
-    document.getElementById('collection-views').classList.add('hidden');
-    document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
-  }
-});
-document.addEventListener('click',event=>{
-  const menu=document.getElementById('collection-views');
-  if(!menu.contains(event.target) && !event.target.closest('[data-page="library"]')){
-    cancelCollectionHover();
-    menu.classList.add('hidden');
-    document.querySelector('[data-page="library"]').setAttribute('aria-expanded','false');
-  }
-});
-document.querySelector('[data-page="library"]').addEventListener('keydown',event=>{
-  if(event.key==='ArrowDown'){
-    cancelCollectionHover();
-    event.preventDefault();
-    document.getElementById('collection-views').classList.remove('hidden');
-    event.currentTarget.setAttribute('aria-expanded','true');
-    (document.querySelector('#collection-views [aria-current="page"]') || collectionMenu.querySelector('button'))?.focus();
-  }
-});
-document.getElementById('collection-views').addEventListener('keydown',event=>{
-  if(event.key==='Escape'){
-    event.stopPropagation();
-    cancelCollectionHover();
-    event.currentTarget.classList.add('hidden');
-    const trigger=document.querySelector('[data-page="library"]');
-    trigger.setAttribute('aria-expanded','false');
-    trigger.focus();
-  }
 });
 
 /* ---------- Navigation mobile ---------- */

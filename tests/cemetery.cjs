@@ -1,6 +1,3 @@
-async function openCollectionMenu(page){
- if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
-}
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
 const {createSandboxServer,sandboxContext} = require('./sandbox.cjs');
@@ -16,7 +13,7 @@ const server = createSandboxServer();
       page.on('request',r=>{if(/firebasejs|firestore.googleapis|identitytoolkit|securetoken/.test(r.url())) requests.push(r.url());});
       await page.goto('http://127.0.0.1:'+server.address().port);
       await page.locator('#app-shell').waitFor({state:'visible'});
-      await openCollectionMenu(page);await page.locator('[data-page="collection"]').click();
+      await page.locator('[data-page="collection"]').click();
       await page.evaluate(()=>{
         CEMETERY.push({id:'no-date-test',nom:'Sans date',plateforme:'PSV',source:'Brocante',prix:0,saleStatus:'pending'});
         renderCemetery();

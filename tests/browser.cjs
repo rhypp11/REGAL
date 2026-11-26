@@ -1,7 +1,4 @@
 const releaseConfig = require('../release-config.json');
-async function openCollectionMenu(page){
- if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
-}
 /* Run with Playwright and Chromium available; never logs in or accesses Firebase. */
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
@@ -54,7 +51,7 @@ async function restore(page, value, confirm=true){
       await page.goto(url);
       await page.locator('#app-shell').waitFor({state:'visible'});
       // Navigation survives reload; Back/Forward restore the preceding view.
-      await openCollectionMenu(page);await page.locator('[data-page="collection"]').click();
+      await page.locator('[data-page="collection"]').click();
       await page.evaluate(() => {state.platform='Switch 2';state.status='a_jouer';buildPlatformList();buildStatusToggles();render();});
       await page.locator('#search-input').fill('Fire');
       await page.locator('#sort-select').selectOption('date-desc');
@@ -65,11 +62,11 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.evaluate(()=>state.platform),'Switch 2');
       assert.equal(await page.evaluate(()=>state.status),'a_jouer');
       assert.equal(await page.locator('#page-collection .card').count(),1);
-      await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
+      await page.locator('[data-page="home"]').click();
       await page.goBack();await page.waitForFunction(()=>!document.getElementById('page-collection').classList.contains('hidden'));
       assert.equal(page.url(),collectionURL);
       await page.goForward();await page.waitForFunction(()=>!document.getElementById('page-home').classList.contains('hidden'));
-      await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
+      await page.locator('[data-page="home"]').click();
       if(width<500){
         await page.locator('[data-target="arrivals"]').click();
         await page.reload();await page.locator('#app-shell').waitFor({state:'visible'});
@@ -119,7 +116,7 @@ async function restore(page, value, confirm=true){
       assert.equal(await page.evaluate(()=>window.INJECTED),undefined);
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.games[0].nom),payload.data.games[0].nom);
       assert.equal(await page.evaluate(()=>buildBackupPayload().data.wishlist[0].lien),null);
-      await openCollectionMenu(page);await page.locator('[data-page="collection"]').click();
+      await page.locator('[data-page="collection"]').click();
       assert.equal(await page.locator('#page-collection .card-name-text').innerText(),payload.data.games[0].nom);
       assert.equal(await page.locator('#page-collection .card-source').count(),0);
       await page.locator('#page-collection .card-name-text').click();

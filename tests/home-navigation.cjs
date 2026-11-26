@@ -1,6 +1,3 @@
-async function openCollectionMenu(page){
- if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
-}
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const {createSandboxServer,sandboxContext}=require('./sandbox.cjs');
@@ -48,13 +45,9 @@ const server=createSandboxServer();
    assert.equal(await page.locator('.home-widget-title a').count(),0,'No duplicate collection shortcut');
    assert.equal(await page.locator('.home-widget-title h2').textContent(),'Statistiques');
    await page.keyboard.press('Escape');
-   await openCollectionMenu(page);await page.locator('[data-page="collection"]').click();await page.waitForFunction(()=>navigationPage==='collection');
+   await page.locator('[data-page="collection"]').click();await page.waitForFunction(()=>navigationPage==='collection');
    await page.locator('[data-page="journal"]').click();
-   await page.locator('[data-page="library"]').click();
-   assert.equal(await page.evaluate(()=>navigationPage),'journal','Collection trigger only opens the menu');
-   assert.equal(await page.locator('#collection-views').isVisible(),true);
-   if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
-   await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
+   await page.locator('[data-page="home"]').click();
    assert.equal(await page.locator('#home-boards-switcher').isVisible(),width<=820);
    if(width<=820){await page.locator('[data-target="arrivals"]').click();assert.equal(await page.locator('.board.wishlist').isVisible(),false)}
    else {assert.equal(await page.locator('.board.wishlist').isVisible(),true);const left=await page.locator('#arrivals-board').boundingBox(),right=await page.locator('.board.wishlist').boundingBox();assert.ok(left.x+left.width<=right.x);assert.ok(left.width>right.width*1.4)}
@@ -307,8 +300,7 @@ const server=createSandboxServer();
     'juil.,,NSW,Import au mois,🌐,📺,🏆,B,-,S,A,S+,🩷'
    ].join('\n'))};
    const input=page.locator('#journal-import-file');
-   if(await page.locator('#collection-views').isHidden()) await page.locator('[data-page="library"]').click();
-   await openCollectionMenu(page);await page.locator('[data-page="home"]').click();
+   await page.locator('[data-page="home"]').click();
    await input.setInputFiles(csv);
    await page.locator('#journal-import-count').waitFor();
    assert.match(await page.locator('#journal-import-count').innerText(),/3 sélectionnées/);
