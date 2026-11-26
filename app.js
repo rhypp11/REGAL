@@ -3303,9 +3303,13 @@ window.addEventListener('hashchange', () => {
   if(navigationReady) applyNavigation(navigationFromHash() || {});
 });
 
-document.querySelectorAll('.nav-tab').forEach(button => {
-  button.addEventListener('click', () => {
-    goToPage(button.dataset.page);
+document.querySelectorAll('.nav-tab, #home-sales-link').forEach(control => {
+  control.addEventListener('click', event => {
+    if(control instanceof HTMLAnchorElement){
+      if(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+    }
+    goToPage(control.dataset.page);
     window.scrollTo({top:0, behavior:matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth'});
   });
 });

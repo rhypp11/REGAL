@@ -83,7 +83,7 @@ const archivedServer=createSandboxServer({journal:false});
   await page.locator('#app-shell').waitFor({state:'visible'});
   assert.equal(new URL(page.url()).hash.split('?')[0],'#collection');
   assert.equal(await page.locator('[data-page="journal"]:visible, #page-journal:visible').count(),0);
-  assert.deepEqual(await page.locator('.topnav-nav .nav-tab:visible').evaluateAll(tabs=>tabs.map(tab=>tab.dataset.page)),['home','collection','cemetery','pokedex']);
+  assert.deepEqual(await page.locator('.topnav-nav .nav-tab:visible').evaluateAll(tabs=>tabs.map(tab=>tab.dataset.page)),['home','collection','pokedex']);
   assert.equal(await page.locator('.topnav-nav [aria-current="page"]').getAttribute('data-page'),'collection');
   assert.equal(await page.locator('#journal-export-btn').count(),0);
   await page.evaluate(()=>{

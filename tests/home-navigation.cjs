@@ -25,7 +25,7 @@ const server=createSandboxServer();
    await page.locator('#manage-platforms-btn').click();
    assert.equal(await page.locator('#platform-modal-overlay').isVisible(),true);
    await page.keyboard.press('Escape');
-   assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','collection','cemetery','journal','pokedex']);
+   assert.deepEqual(await page.locator('.nav-tab').evaluateAll(t=>t.map(e=>e.dataset.page)),['home','collection','journal','pokedex']);
    assert.equal(await page.locator('#page-lists').count(),0);
    assert.match(await page.locator('[data-home-progress="physical"] .home-completion-legend').textContent(),/Terminés0Multi0À faire1/);
    assert.doesNotMatch(await page.locator('#home-summary-meta').textContent(),/Terminés|À faire/);

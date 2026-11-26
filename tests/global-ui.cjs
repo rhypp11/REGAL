@@ -14,11 +14,13 @@ const server=createSandboxServer();
    assert.equal(await page.evaluate(()=>navigationPage),'collection','Keyboard activates a direct tab');
    let headerGeometry;
    for(const view of ['home','collection','cemetery']){
+    if(view==='cemetery') await page.locator('.topnav-nav [data-page="home"]').click();
     await page.locator('[data-page="'+view+'"]').click();
+    await page.waitForFunction(route=>navigationPage===route,view);
     const geometry=await page.locator('.topnav').evaluate(el=>[el,...el.querySelectorAll('.nav-tab,.regal-logo,#global-search-open,#profile-menu-btn')].map(node=>{
      const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height];
     }));
-    assert.equal(await page.locator('.topnav-nav .nav-tab > .nav-tab-icon').count(),5);
+    assert.equal(await page.locator('.topnav-nav .nav-tab > .nav-tab-icon').count(),4);
     if(headerGeometry)assert.deepEqual(geometry,headerGeometry,'Header geometry stays stable between pages');
     else headerGeometry=geometry;
     assert.equal(await page.locator('.topnav-nav').evaluate(el=>{
@@ -44,7 +46,9 @@ const server=createSandboxServer();
     if(view==='collection'&&width>=1101){
      assert.equal(await page.locator('#grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),width>=1440?4:3,'Collection uses four cards on large screens');
     }
-    assert.equal(await page.locator('.topnav-nav [aria-current="page"]').getAttribute('data-page'),view);
+    const current=page.locator('.topnav-nav [aria-current="page"]');
+    if(view==='cemetery') assert.equal(await current.count(),0);
+    else assert.equal(await current.getAttribute('data-page'),view);
     const controls=view==='home'?'.board-add-btn':view==='collection'?'#search-input,#sort-select,#add-btn':'#cemetery-search,#cemetery-platform';
     for(const control of await page.locator(controls).all()){
      if(!await control.isVisible())continue;

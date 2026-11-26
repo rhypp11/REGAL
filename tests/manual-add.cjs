@@ -60,10 +60,14 @@ const server=createSandboxServer();
    assert.equal(await page.locator('#modal-title').innerText(),'Confirmer la réception');
    await page.keyboard.press('Escape');
    assert.equal(await page.evaluate(()=>JSON.stringify({games:GAMES,arrivals:ARRIVALS,wishlist:WISHLIST})),before,'Opening and cancelling transfers keeps all lists');
-   for(const route of ['home','collection','cemetery']){
+   for(const route of ['home','collection']){
     await page.locator(`.topnav-nav [data-page="${route}"]`).click();
     assert.equal(await page.locator('.topnav-nav [aria-current="page"]').getAttribute('data-page'),route);
    }
+   assert.equal(await page.locator('.topnav-nav [data-page="cemetery"]').count(),0);
+   await page.locator('.topnav-nav [data-page="home"]').click();
+   await page.locator('#home-sales-link').click();
+   assert.ok(await page.locator('#page-cemetery').isVisible());
    await page.evaluate(()=>openPlatformModal());
    const platformRow=page.locator('.platform-row[data-current-name="Switch 2"]');
    await platformRow.locator('.platform-edit-btn').click();
