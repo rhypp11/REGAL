@@ -121,13 +121,13 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
           return {physicalShadow:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).boxShadow,digitalShadow:getComputedStyle(card).boxShadow,physicalStyle:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderLeftStyle,radius:getComputedStyle(card).borderTopLeftRadius,physicalBorder:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderLeftWidth,digitalBorder:getComputedStyle(card).borderLeftWidth,physicalRadius:getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).borderTopLeftRadius,borderStyle:getComputedStyle(card).borderTopStyle,background:rgb(background),physical:rgb(getComputedStyle(document.querySelector('[data-dialog-trigger="game:box"]')).backgroundColor),contrasts,dlc:rgb(getComputedStyle(dlc).backgroundColor),upgrade:rgb(getComputedStyle(upgrade).backgroundColor),heights:[dlc,upgrade].map(el=>el.getBoundingClientRect().height)};
         });
         assert.ok(appearance.contrasts.every(ratio=>ratio>=4.5),JSON.stringify(appearance));
-        assert.ok(appearance.physical.every(value=>value<40),'Physical cards retain the base surface');
+        if(view==='cards') assert.ok(appearance.physical.every(value=>value<40),'Physical cards retain the base surface');
         assert.deepEqual(appearance.background,appearance.physical,'Both formats share the same surface');
-        assert.equal(appearance.radius,view==='cards'?'16px':'0px');
+        assert.equal(appearance.radius,({cards:'16px',list:'12px',gallery:'0px'})[view]);
         assert.equal(appearance.physicalRadius,appearance.radius);
         assert.equal(appearance.physicalShadow,'none');
         assert.equal(appearance.digitalShadow,'none');
-        assert.equal(appearance.physicalBorder,view==='cards'?'1px':'0px');assert.equal(appearance.digitalBorder,appearance.physicalBorder);
+        assert.equal(appearance.physicalBorder,view==='gallery'?'0px':'1px');assert.equal(appearance.digitalBorder,appearance.physicalBorder);
         assert.ok(appearance.upgrade[2]>appearance.upgrade[0]);
         assert.ok(appearance.dlc[1]>appearance.dlc[0]);
         assert.ok(appearance.heights.every(height=>height<=22),'Content bands stay compact in all views');
@@ -150,10 +150,14 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       assert.equal(await page.evaluate(()=>document.getElementById('f-media-section').compareDocumentPosition(document.getElementById('f-identity-summary')) & Node.DOCUMENT_POSITION_PRECEDING),2);
       await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
       assert.equal(await page.locator('#f-digital-version-options').isVisible(),true);
+      await page.locator('[name="f-media-choice"][value="dlc"]').check();
+      await page.locator('#save-btn').click();
+      assert.match(await page.locator('#f-purchase-change-note').innerText(),/Détache ou rattache/);
+      assert.equal(await page.locator('#f-content-details .content-addon-link').count(),2);
+      await page.locator('[name="f-media-choice"][value="digital"]').check();
       assert.equal(await page.locator('#f-collector-field').isVisible(),false);
       assert.equal(await page.locator('#f-content-type').isVisible(),false);
       await page.locator('[name="f-media-choice"][value="physical"]').check();
-      await page.locator('#f-edition-options summary').click();
       assert.equal(await page.locator('#f-collector-field').isVisible(),true);
       assert.equal(await page.locator('#f-content-type').isVisible(),false);
       assert.equal(await page.locator('#f-media-section #f-collector-field').count(),1);
@@ -202,6 +206,13 @@ async function stat(page,key){return Number(await page.locator('[data-stat="'+ke
       await page.locator('#f-prix').fill('12,34');await page.locator('#save-btn').click();
       assert.equal(await page.locator('#modal-overlay').isVisible(),false);
       assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='conversion').prix),12.34);
+      await page.evaluate(()=>openModal('conversion'));
+      await page.locator('#f-game-actions summary').click();await page.locator('#f-edit-game').click();
+      await page.locator('[name="f-media-choice"][value="dlc"]').check();
+      await page.locator('#save-btn').click();
+      assert.equal(await page.locator('#modal-overlay').isVisible(),false);
+      assert.equal(await page.evaluate(()=>GAMES.find(g=>g.id==='conversion').contentType),'dlc');
+
       await page.evaluate(()=>{
         applyRestoredData(JTDData.normalizeData({games:[
           {id:'label-long',nom:'Aventure fictive au titre long pour vérifier la fiche',plateforme:'Nintendo Game Boy Advance',format:'Physique',status:'termine_ailleurs'},

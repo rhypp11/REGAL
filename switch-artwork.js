@@ -70,6 +70,8 @@ const switchArtworkMarket = (() => {
 function fillArtworkFields(prefix,item){
   const square=document.getElementById(prefix+'-square-image');
   const title=document.getElementById(prefix+'-nintendo-id');
+  const fit=document.getElementById(prefix+'-square-image-fit');
+  if(fit) fit.value=item?.squareImageFit==='cover'?'cover':'contain';
   if(square){square.value=item?.squareImage || '';square.dataset.hadValue=item?.squareImage?'1':'';square.dispatchEvent(new Event('input'));}
   if(title){title.value=item?.nintendoTitleId || '';title.dispatchEvent(new Event('change'));}
   const suggestions=document.getElementById(prefix+'-eshop-results');
@@ -78,7 +80,8 @@ function fillArtworkFields(prefix,item){
 function readArtworkFields(prefix){
   const squareImage=safeURL(document.getElementById(prefix+'-square-image')?.value.trim(),true) || null;
   const id=document.getElementById(prefix+'-nintendo-id')?.value;
-  return {...(squareImage || document.getElementById(prefix+'-square-image')?.dataset.hadValue ? {squareImage} : {}), ...(id ? {nintendoTitleId:id} : {})};
+  const fit=document.getElementById(prefix+'-square-image-fit');
+  return {...(squareImage || document.getElementById(prefix+'-square-image')?.dataset.hadValue ? {squareImage,...(fit ? {squareImageFit:fit.value} : {})} : {}), ...(id ? {nintendoTitleId:id} : {})};
 }
 
 function mountSwitchArtwork(editor,{prefix,name,platform,image}){
@@ -89,12 +92,20 @@ function mountSwitchArtwork(editor,{prefix,name,platform,image}){
   field.className='field switch-square-field';
   field.innerHTML='<label for="'+prefix+'-square-image">Icône carrée</label><input type="url" id="'+prefix+'-square-image" name="squareImage" placeholder="https://…"><div class="switch-square-preview">Aperçu de l’icône</div>';
   const square=field.querySelector('input'), squarePreview=field.lastElementChild;
+  const squareFit = prefix==='f' ? document.createElement('label') : null;
+  if(squareFit){
+    squareFit.textContent='Affichage de l’icône';
+    squareFit.innerHTML+='<select id="f-square-image-fit"><option value="contain">Image entière</option><option value="cover">Remplir le cadre</option></select>';
+    squarePreview.after(squareFit);
+    squareFit.addEventListener('change',previewSquare);
+  }
   function previewSquare(){
     const url=safeURL(square.value.trim(),true);
     squarePreview.textContent='Aperçu de l’icône';
     if(!url) return;
     const preview=new Image();
     preview.alt='Aperçu de l’icône'; preview.src=url;
+    preview.style.objectFit=squareFit?.firstElementChild.value==='cover'?'cover':'contain';
     preview.onerror=()=>{if(preview.isConnected) squarePreview.textContent='Image introuvable';};
     squarePreview.replaceChildren(preview);
   }

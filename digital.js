@@ -171,7 +171,6 @@ function updateParentAttachment(){
   document.getElementById('f-parent-enabled').setAttribute('aria-expanded',String(enabled));
 }
 function relatedGameHtml(game){
-  game = purchaseArtwork(game,true);
   const art=purchaseArtwork(game,true);
   return '<span class="content-related-thumb'+gameImageClass(art)+'">'+(art.image?gameImageHtml(art):'<span>'+escapeHTML(game.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span><span class="content-related-copy"><strong>'+escapeHTML(game.nom)+'</strong><small>'+escapeHTML(JTDData.effectivePlatform(game,GAMES)+' · '+(JTDData.isAddon(game)?contentKind(game):JTDData.isDigital(game)?'Numérique':'Physique'))+'</small></span>';
 }
@@ -182,6 +181,9 @@ function renderParentPreview(){
   container.classList.toggle('content-related-card',!!parent);
   updatePurchaseChangeNote();
   document.getElementById('f-parent-clear').classList.toggle('hidden',!parent);
+}
+function hasIncompatibleContent(game, fields){
+  return gameContents(game).some(child=>!JTDData.canAttachContent(child,{...game,...fields}));
 }
 function updatePurchaseChangeNote(){
   const owned = GAMES.find(game => game.id === editingId);
@@ -198,6 +200,10 @@ function updatePurchaseChangeNote(){
     id:editingId, format:'Numérique', contentType:document.getElementById('f-content-type').value,
     plateforme:document.getElementById('f-plateforme').value
   },parent)) changes.push('Le jeu de base est incompatible avec cette plateforme. Choisis un autre jeu ou retire le rattachement.');
+  if(owned && hasIncompatibleContent(owned,{
+    format:digital?'Numérique':'Physique', contentType:document.getElementById('f-content-type').value,
+    plateforme:document.getElementById('f-plateforme').value
+  })) changes.push('Détache ou rattache ailleurs les extensions et mises à niveau de ce jeu avant de changer son type ou sa plateforme.');
   const note = document.getElementById('f-purchase-change-note');
   note.textContent = changes.join(' ');
   note.classList.toggle('hidden',!changes.length);
@@ -206,12 +212,13 @@ function updatePurchaseChangeNote(){
 function updateDigitalFields(){
   const digital = document.getElementById('f-media').value === 'digital';
   document.getElementById('f-editor-format-title').innerHTML = MEDIA_ICONS[digital?'digital':'physical']+'<span>'+(digital?'Numérique':'Physique')+'</span>';
-  document.querySelectorAll('[name="f-media-choice"]').forEach(input=>{input.checked=input.value===(digital?'digital':'physical');});
   const dlc = digital && ['dlc','upgrade'].includes(document.getElementById('f-content-type').value);
   const upgrade = document.getElementById('f-content-type').value === 'upgrade';
+  document.querySelectorAll('[name="f-media-choice"]').forEach(input=>{
+    input.checked=input.value===(dlc?(upgrade?'upgrade':'dlc'):digital?'digital':'physical');
+  });
   if(dlc) document.getElementById('f-editor-format-title').innerHTML = MEDIA_ICONS[upgrade?'upgrade':'dlc']+'<span>'+(upgrade?'Mise à niveau · Switch 2 Edition':'DLC')+'</span>';
   document.querySelector('label[for="f-nom"]').textContent = dlc ? 'Nom du contenu' : 'Nom du jeu';
-  document.getElementById('game-sheet-purchase-title').textContent = dlc || !editingId || editingCollection !== 'games' ? 'Achat' : 'Jeu';
   if(!convertingArrivalId && editingCollection !== 'cemetery'){
     const title = document.getElementById('modal-title');
     title.textContent = editingId ? document.getElementById('f-nom').value : dlc ? (upgrade?'Ajouter une mise à niveau':'Ajouter un DLC') : 'Ajouter un jeu';
@@ -233,7 +240,7 @@ function openDigitalFields(game, content){
   const types = selectedContentTypes();
   const newContentType = digital && types.length === 1 ? types[0] : 'game';
   document.getElementById('f-content-type').value = game ? (JTDData.isAddon(game) ? game.contentType : 'game') : content?.kind || newContentType;
-  document.getElementById('f-media-field').classList.toggle('hidden',physicalOnly || (!game && digital && document.getElementById('f-content-type').value !== 'game'));
+  document.getElementById('f-media-field').classList.toggle('hidden',physicalOnly);
   document.getElementById('f-currency').value = game?.currency || 'EUR';
   document.getElementById('f-content-status').innerHTML='<option value="">Non défini</option>'+STATUS_OPTIONS.map(s=>'<option value="'+s.key+'">'+s.label+'</option>').join('');
   document.getElementById('f-content-status').value=game ? (game.status==='en_cours'?'a_jouer':game.status) || '' : '';
@@ -241,7 +248,6 @@ function openDigitalFields(game, content){
   document.getElementById('f-parent-search').value = '';
   document.getElementById('f-parent-enabled').checked=!!(content?.parentId || JTDData.contentParent(game,GAMES));
   updateParentAttachment();
-  document.getElementById('f-digital-version-options').open = false;
   document.getElementById('f-japanese-account').checked = game?.japaneseAccount === true;
   document.getElementById('f-bundle').checked = game?.bundle === true;
   populateParentGames(game?.parentId || content?.parentId || '');
@@ -409,7 +415,10 @@ function initDigitalControls(){
   document.querySelectorAll('[data-format-icon]').forEach(element=>{element.innerHTML=MEDIA_ICONS[element.dataset.formatIcon];});
   document.querySelectorAll('[name="f-media-choice"]').forEach(input=>input.addEventListener('change',()=>{
     if(!input.checked)return;
-    const select=document.getElementById('f-media');select.value=input.value;
+    const addon=['dlc','upgrade'].includes(input.value);
+    document.getElementById('f-content-type').value=addon?input.value:'game';
+    if(!editingId && !convertingArrivalId) document.getElementById('modal-overlay').classList.toggle('collection-quick-add',!addon);
+    const select=document.getElementById('f-media');select.value=input.value==='physical'?'physical':'digital';
     select.dispatchEvent(new Event('change',{bubbles:true}));
   }));
   document.getElementById('collection-media-tabs').addEventListener('click',event=>{
@@ -427,7 +436,7 @@ function initDigitalControls(){
     const type=button.dataset.contentType;types.has(type) ? types.delete(type) : types.add(type);
     state.contentType=[...types].join(',') || null;buildPlatformList();render();
   };
-  for(const id of ['f-media','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();});
+  for(const id of ['f-media','f-currency']) document.getElementById(id).addEventListener('change',()=>{setGameSheetViewing(false);updateDigitalFields();updatePurchaseChangeNote();});
   document.getElementById('f-parent-enabled').onchange=()=>{
     setGameSheetViewing(false);
     updateParentAttachment();
