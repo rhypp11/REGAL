@@ -19,12 +19,15 @@ function collectionGameVersions(game){
   const formatOf = game => JTDData.isAddon(game) ? contentKind(game) : JTDData.isDigital(game) ? 'Numérique' : 'Physique';
   const shortPlatform = name => name.replace(/^PlayStation\s*(\d+)$/i,'PS$1').replace(/^Nintendo /i,'');
   const settings = [display,group];
+  let preferredGroup=group.value;
   for(const field of settings){
     try{
       const value=localStorage.getItem('rgl:'+field.id);
       if([...field.options].some(option=>option.value===value)) field.value=value;
     }catch{}
+    if(field===group) preferredGroup=field.value;
     field.addEventListener('change',()=>{
+      if(field===group) preferredGroup=field.value;
       try{localStorage.setItem('rgl:'+field.id,field.value);}catch{}
       render();
     });
@@ -54,6 +57,9 @@ function collectionGameVersions(game){
   }
   function renderGallery(grid,games){
     grid.dataset.view='rgl';
+    const singlePlatform=!!state.platform;
+    group.querySelector('[value="platform"]').disabled=singlePlatform;
+    group.value=singlePlatform && preferredGroup==='platform' ? 'none' : preferredGroup;
     const sections=new Map();
     const statusLabels=new Map(STATUS_OPTIONS.map(option=>[option.key,option.label]));
     for(const game of games){
@@ -157,16 +163,15 @@ function collectionGameVersions(game){
         topMenu.querySelector('summary').focus({preventScroll:true});
         invoke();
       };
-      topMenu.querySelector('.sheet-actions-list').append(button);
+      const list=topMenu.querySelector('.sheet-actions-list');
+      list.insertBefore(button,list.querySelector('.sheet-action-danger'));
     }
   }
   function addPurchaseActions(topMenu,copies){
-    const label=copy=>shortPlatform(copy.plateforme)+' · '+formatOf(copy);
-    const actions=copies.flatMap(copy=>[
-      ['Modifier l’achat · '+label(copy),()=>editPurchase(copy),null,'edit'],
-      ...(copies.length>1?[['Dissocier · '+label(copy),()=>detach(copy),null,'link']]:[])
-    ]);
-    appendActions(topMenu,actions);
+    if(copies.length<2) return;
+    appendActions(topMenu,copies.map(copy=>[
+      'Dissocier · '+shortPlatform(copy.plateforme)+' · '+formatOf(copy),()=>detach(copy),null,'link'
+    ]));
   }
   function renderSheet(game){
     clearSheet();
@@ -207,7 +212,14 @@ function collectionGameVersions(game){
         details.innerHTML=fields.map(([label,value])=>'<div><dt>'+escapeHTML(label)+'</dt><dd>'+escapeHTML(value)+'</dd></div>').join('');
         info.append(details);
       }
-      row.append(info);
+      const edit=document.createElement('button');
+      edit.type='button';
+      edit.className='gallery-purchase-edit';
+      edit.title='Modifier cet achat';
+      edit.setAttribute('aria-label','Modifier cet achat · '+copy.plateforme+' · '+format);
+      edit.innerHTML=contextEditIcon();
+      edit.onclick=()=>editPurchase(copy);
+      row.append(info,edit);
       purchaseSection.append(row);
     }
     purchaseSection.classList.remove('hidden');
@@ -254,7 +266,6 @@ function collectionGameVersions(game){
     }
     updateTag();
     original.replaceWith(menu);
-    if(existingMenu) appendActions(existingMenu,[['Modifier la complétion',()=>{ menu.open=true; tag.focus(); },null,'edit']]);
   }
   window.RGLGallery={active:true,render:renderGallery,sheet:renderSheet,clearSheet,
     openGrouping(){
