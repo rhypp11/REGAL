@@ -21,21 +21,30 @@
 .gallery-mark + .gallery-mark { padding-left:7px; border-left:1px solid var(--ui-border); }
 .gallery-platform, .gallery-format { display:inline-flex; align-items:center; color:var(--ui-text-muted); font-size:.68rem; }
 .gallery-platform img, .gallery-format svg { width:17px; height:17px; object-fit:contain; }
-#modal-overlay.gallery-sheet > .modal { position:relative; }
+.gallery-sheet-header { flex:none; }
 #gallery-sheet-actions { display:none; }
-#modal-overlay.gallery-sheet #gallery-sheet-actions { display:block; position:absolute; top:12px; right:14px; z-index:3; }
-#gallery-sheet-back { position:absolute; left:14px; top:12px; width:40px; height:38px; border:0; border-radius:8px; background:var(--surface-raised); color:var(--ui-text); font-size:22px; z-index:2; }
-#modal-overlay.gallery-sheet #modal-title { min-height:36px; padding:4px 48px; }
+#modal-overlay.gallery-sheet .gallery-sheet-header {
+  display:grid; grid-template-columns:44px minmax(0,1fr) 44px; align-items:center;
+  gap:8px; padding:8px 0; border-bottom:1px solid var(--ui-border); margin-bottom:12px;
+  background:var(--surface);
+}
+#modal-overlay.gallery-sheet #gallery-sheet-actions { display:flex; justify-content:center; position:relative; z-index:3; }
+#gallery-sheet-back { width:44px; height:44px; border:0; border-radius:8px; background:transparent; color:var(--ui-text); font-size:24px; }
+#modal-overlay.gallery-sheet #modal-title { margin:0; padding:0; font-size:1rem; text-align:center; }
 #modal-overlay.gallery-sheet #f-identity-summary { display:grid; grid-template-columns:minmax(0,1fr); }
 #modal-overlay.gallery-sheet #f-identity-summary .identity-copy > span { display:none; }
 #modal-overlay.gallery-sheet.gallery-sheet-purchases-visible #f-media-section { display:none; }
 #modal-overlay.gallery-sheet-purchases-visible #f-sheet-status:has(select) .game-status-panel { display:none; }
 #gallery-sheet-purchases:not(.hidden) { display:grid; gap:8px; }
 .gallery-purchase-row { display:flex; align-items:center; gap:6px; min-width:0; padding:3px 8px; border:1px solid var(--ui-border); border-radius:8px; background:var(--surface-raised); }
-.gallery-purchase-row > button { display:flex; align-items:center; gap:9px; flex:1; min-width:0; min-height:42px; padding:3px 0; text-align:left; border:0; background:none; color:var(--ui-text); }
-.gallery-purchase-row small { margin-left:auto; color:var(--ui-text-muted); text-align:right; }
+.gallery-purchases-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.gallery-purchases-header h3 { margin:0; }
+.gallery-link-toggle { min-height:36px; padding:4px 9px; border:1px solid var(--ui-border); border-radius:8px; background:var(--surface-raised); color:var(--ui-text); }
+.gallery-purchase-info { display:flex; align-items:center; gap:9px; flex:1; min-width:0; min-height:42px; }
+.gallery-purchase-info small { display:block; margin-top:3px; color:var(--ui-text-muted); }
+.gallery-purchase-edit { width:40px; height:40px; flex:none; display:grid; place-items:center; border:0; border-radius:8px; color:var(--ui-text); background:transparent; }
+.gallery-purchase-edit svg { width:18px; height:18px; }
 #gallery-link-panel { padding:9px; border:1px solid var(--ui-border); border-radius:8px; }
-#gallery-link-panel summary { cursor:pointer; }
 .gallery-link-form { display:grid; gap:8px; margin-top:8px; }
 .gallery-link-form label:not(.hidden) { display:grid; gap:4px; }
 @media(max-width:680px) {
@@ -43,8 +52,10 @@
   #collection-gallery-controls { gap:6px; }
   #collection-gallery-controls label { min-width:0; flex:1 1 130px; }
   #collection-gallery-controls select { width:100%; font-size:.8rem; }
-  #modal-overlay.gallery-sheet { padding:0; }
-  #modal-overlay.gallery-sheet > .modal { width:100%; height:100dvh; max-width:none; max-height:100dvh; border:0; border-radius:0; padding:12px; }
+  #modal-overlay.gallery-sheet { position:fixed; inset:0; padding:0; align-items:stretch; }
+  #modal-overlay.gallery-sheet > .modal { width:100%; height:100dvh; max-width:none; max-height:100dvh; border:0; border-radius:0; padding:0; margin:0; overflow:hidden; }
+  #modal-overlay.gallery-sheet .gallery-sheet-header { padding:calc(6px + env(safe-area-inset-top)) 12px 6px; margin:0; }
+  #modal-overlay.gallery-sheet.game-sheet-viewing .collection-sheet-body { padding:12px 14px calc(18px + env(safe-area-inset-bottom)); }
   #modal-overlay.gallery-sheet .collection-sheet-body { min-height:0; flex:1; overflow:auto; }
   #modal-overlay.gallery-sheet #cancel-btn { display:none; }
 }

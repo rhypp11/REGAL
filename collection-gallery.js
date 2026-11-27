@@ -100,16 +100,11 @@ function collectionGameVersions(game){
       saveGroup(GAMES.map(game=>game.id===copy.id?{...game,gameGroup:null}:game),copy.id);
     },{title:'Dissocier cet exemplaire ?',confirmLabel:'Dissocier'});
   }
-  function openGrouping(){
-    const panel=byId('gallery-link-panel');
-    if(!panel) return;
-    panel.open=true;
-    panel.querySelector('input').focus();
-  }
   function groupingPanel(game){
-    const panel=document.createElement('details');
+    const panel=document.createElement('div');
     panel.id='gallery-link-panel';
-    panel.innerHTML='<summary>Regrouper avec un jeu</summary><div class="gallery-link-form">'+
+    panel.className='hidden';
+    panel.innerHTML='<div class="gallery-link-form">'+
       '<label>Rechercher <input type="search" placeholder="Titre du jeu"></label>'+
       '<label>Jeu à regrouper <select><option value="">Choisir un autre achat</option></select></label>'+
       '<label class="hidden">Statut commun <select></select></label>'+
@@ -165,22 +160,44 @@ function collectionGameVersions(game){
     identity.querySelector('.identity-edit-btn')?.remove();
     const heading=document.createElement('h3');
     heading.className='form-section-title';
-    heading.textContent='Jeu / Achats';
-    purchaseSection.append(heading);
+    heading.textContent='Jeu';
+    const sectionHeader=document.createElement('div');
+    sectionHeader.className='gallery-purchases-header';
+    const toggle=document.createElement('button');
+    toggle.type='button';
+    toggle.className='gallery-link-toggle';
+    toggle.textContent='Associer';
+    toggle.setAttribute('aria-label','Associer un exemplaire');
+    toggle.setAttribute('aria-controls','gallery-link-panel');
+    toggle.setAttribute('aria-expanded','false');
+    const panel=groupingPanel(game);
+    toggle.onclick=()=>{
+      const shown=toggle.getAttribute('aria-expanded')==='true';
+      toggle.setAttribute('aria-expanded',String(!shown));
+      panel.classList.toggle('hidden',shown);
+      if(!shown) panel.querySelector('input').focus();
+    };
+    sectionHeader.append(heading,toggle);
+    purchaseSection.append(sectionHeader,panel);
     for(const copy of copies){
       const row=document.createElement('div');
       row.className='gallery-purchase-row';
-      const button=document.createElement('button');
-      button.type='button';
-      button.innerHTML=platformMark(copy.plateforme)+'<strong>'+escapeHTML(shortPlatform(copy.plateforme)+' · '+formatOf(copy))+'</strong>'+
-        '<small>'+escapeHTML([copy.prix!=null?purchaseMoney(copy):'',copy.date?dateFR(copy.date):''].filter(Boolean).join(' · '))+'</small>';
-      button.title='Modifier cet achat';
-      button.onclick=()=>editPurchase(copy);
-      row.append(button);
-      if(copies.length>1) row.append(sheetActions([['Modifier cet achat',()=>editPurchase(copy),null,'edit'],['Dissocier cet exemplaire',()=>detach(copy),null,'link']]));
+      const info=document.createElement('div');
+      info.className='gallery-purchase-info';
+      const metadata=[copy.prix!=null?purchaseMoney(copy):'',copy.date?dateFR(copy.date):'',copy.source].filter(Boolean).join(' · ');
+      info.innerHTML=platformMark(copy.plateforme)+'<div><strong>'+escapeHTML(shortPlatform(copy.plateforme)+' · '+formatOf(copy))+'</strong>'+
+        (metadata ? '<small>'+escapeHTML(metadata)+'</small>' : '')+'</div>';
+      const edit=document.createElement('button');
+      edit.type='button';
+      edit.className='gallery-purchase-edit';
+      edit.title='Modifier cet achat';
+      edit.setAttribute('aria-label','Modifier cet achat · '+copy.plateforme);
+      edit.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 20 5-1L20 8l-4-4L5 15l-1 5zM14 6l4 4"/></svg>';
+      edit.onclick=()=>editPurchase(copy);
+      row.append(info,edit);
+      if(copies.length>1) row.append(sheetActions([['Dissocier cet exemplaire',()=>detach(copy),null,'link']]));
       purchaseSection.append(row);
     }
-    purchaseSection.append(groupingPanel(game));
     purchaseSection.classList.remove('hidden');
     overlay.classList.add('gallery-sheet-purchases-visible');
     const statusSection=byId('f-sheet-status');
@@ -192,13 +209,15 @@ function collectionGameVersions(game){
     selector.value=getEffectiveStatus(game) || '';
     selector.addEventListener('change',()=>{
       setStatus(game.id,selector.value || null);
-      openModal(game.id);
+      const updated=GAMES.find(copy=>copy.id===game.id);
+      selector.value=updated ? getEffectiveStatus(updated) || '' : '';
+      selector.focus({preventScroll:true});
     });
     statusSection.append(selector);
   }
   window.RGLGallery={active:true,render:renderGallery,sheet:renderSheet,clearSheet(){
     overlay.classList.remove('gallery-sheet-purchases-visible');
     clearSheet();
-  },openGrouping};
+  }};
   if(IS_PREVIEW_MODE) render();
 })();
