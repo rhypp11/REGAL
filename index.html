@@ -30,7 +30,6 @@
 <link rel="stylesheet" href="deku-import.css?v=1">
 <link rel="stylesheet" href="overview.css?v=listes-2">
 <link rel="stylesheet" href="pokedex.css?v=collection-navigation-1">
-<link rel="stylesheet" href="journal.css?v=mobile-121">
 </head>
 <body>
 
@@ -721,6 +720,12 @@
 
 <script>
   window.REGAL_JOURNAL_ENABLED = false;
+  if(window.REGAL_JOURNAL_ENABLED){
+    const journalStyle = document.createElement('link');
+    journalStyle.rel = 'stylesheet';
+    journalStyle.href = 'journal.css?v=mobile-121';
+    document.head.appendChild(journalStyle);
+  }
   window.JTD_PREVIEW_MODE =
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
@@ -755,8 +760,8 @@
   <div class="modal">
     <h2 id="switch-artwork-title">Compléter les visuels Switch</h2>
     <p id="switch-artwork-status" role="status"></p>
-    <label class="journal-checkbox"><input type="checkbox" id="switch-artwork-rename"> Utiliser les titres eShop français</label>
-    <label class="journal-checkbox"><input type="checkbox" id="switch-artwork-replace"> Remplacer aussi les images existantes</label>
+    <label class="switch-artwork-checkbox"><input type="checkbox" id="switch-artwork-rename"> Utiliser les titres eShop français</label>
+    <label class="switch-artwork-checkbox"><input type="checkbox" id="switch-artwork-replace"> Remplacer aussi les images existantes</label>
     <div id="switch-artwork-list"></div>
     <div class="modal-actions">
       <button type="button" class="btn btn-ghost" id="switch-artwork-close">Annuler</button>
@@ -795,8 +800,12 @@
 <script src="cemetery.js?v=sale-cards-37"></script>
 <script src="cemetery-import.js?v=account-pokedex-1"></script>
 <script src="overview.js?v=journal-archive-1"></script>
-<script src="journal-import.js?v=1"></script>
-<script src="journal.js?v=journal-archive-1"></script>
+<script>
+  if(window.REGAL_JOURNAL_ENABLED){
+    document.write('<script src="journal-import.js?v=1"><\/script>');
+    document.write('<script src="journal.js?v=journal-archive-1"><\/script>');
+  }
+</script>
 <script src="pokedex-data.js?v=account-pokedex-1"></script>
 <script src="pokedex.js?v=box-undo-1"></script>
 <script src="lifecycle.js?v=json-exports-1"></script>

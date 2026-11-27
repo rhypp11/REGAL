@@ -50,9 +50,11 @@ async function importFile(page,data){
   await source.selectOption('copy-b');assert.equal(await action.inputValue(),'','changing the proposed copy requires a fresh decision');await action.selectOption('transfer');
   await page.screenshot({path:'/tmp/jtd-import-export-'+width+'-'+theme+'.png',fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.evaluate(()=>LEGACY_JOURNAL.push({regalJournal:2,entries:[{id:'transfer-history',collectionId:'copy-b',name:'Titre historique'}]}));
+  const beforeTransfer=await page.evaluate(()=>structuredClone(LEGACY_JOURNAL));
   await page.locator('#cemetery-import-apply').click();
   const after=await page.evaluate(()=>buildBackupPayload().data);
-  assert.equal(after.games.length,1);assert.equal(after.games[0].id,'copy-a');assert.ok(after.cemetery.some(g=>g.id==='copy-b'));assert.deepEqual(after.journal,original.journal);
+  assert.equal(after.games.length,1);assert.equal(after.games[0].id,'copy-a');assert.ok(after.cemetery.some(g=>g.id==='copy-b'));assert.deepEqual(after.journal,beforeTransfer);
   await importFile(page,[{id:'renamed',nom:'Tout autre titre',plateforme:'PS4',saleStatus:'pending'}]);
   await page.locator('.cemetery-import-picker').evaluate(el=>el.open=true);
   await page.locator('.cemetery-import-picker input').fill('Aventure');await source.selectOption('sold');await action.selectOption('transfer');
@@ -65,7 +67,7 @@ async function importFile(page,data){
   const downloadEvent=page.waitForEvent('download');await page.locator('#profile-menu-btn').click();await page.locator('#collection-export-btn').click();
   const advice=JSON.parse(fs.readFileSync(await (await downloadEvent).path(),'utf8'));
   assert.equal('journal' in advice.data,false);
-  await page.evaluate(()=>{LEGACY_JOURNAL.push({regalJournal:2,entries:[{id:'active-j',group:'completed',name:'Jeu fictif',platform:'PC',date:'2026-11-14',notes:['S','A','','B','C'],comment:'Avis fictif',image:'https://example.com/private.png'}]});});
+  await page.evaluate(()=>{LEGACY_JOURNAL = [...LEGACY_JOURNAL.filter(record=>record.regalJournal!==2),{regalJournal:2,entries:[{id:'active-j',group:'completed',name:'Jeu fictif',platform:'PC',date:'2026-11-14',notes:['S','A','','B','C'],comment:'Avis fictif',image:'https://example.com/private.png'}]}];});
   const journal=await page.evaluate(()=>JTDData.createJournalPayload(getJournalExportEntries()));
   assert.equal(journal.data.journal.length,1);
   assert.equal(journal.data.journal[0].id,'active-j');

@@ -410,3 +410,5 @@
 #f-context-editor .edition-options { margin-top:10px; }
 .switch-square-field > label:has(select) { display:grid; gap:6px; }
 .purchase-format-options label { min-height:44px; }
+
+.switch-artwork-checkbox { display:flex; gap:8px; align-items:center; padding:8px 0; }

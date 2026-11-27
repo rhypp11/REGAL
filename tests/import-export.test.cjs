@@ -21,12 +21,13 @@ test('complete v4 backup round trip preserves links, former status, lot, profile
   assert.deepEqual(D.normalizeData(restored),restored);
 });
 test('legacy journal is inert even for duplicate IDs and unknown retired record shapes',()=>{
-  const data={games:[game('g','Test','PC',{status:'termine',journalPreviousStatus:'multi'}),game('g')],journal:[record('r','g'),{future:'archive'}]};
+  const data={games:[game('g','Test','PC',{status:'termine',journalPreviousStatus:'multi'}),game('g')],journal:[record('r','g'),{future:'archive'},{regalJournal:2,entries:[{id:'linked',collectionId:'g',name:'Titre historique'},{id:'missing',collectionId:'missing'}]}]};
   const restored=D.normalizeData(data);
   assert.equal(restored.games[0].status,'termine');
   assert.equal(restored.games[0].journalPreviousStatus,'multi');
   assert.notEqual(restored.games[0].id,restored.games[1].id);
   assert.deepEqual(restored.journal,data.journal);
+  assert.deepEqual(D.normalizeData({...restored,games:[]}).journal,data.journal);
   assert.deepEqual(D.normalizeData({...restored,games:restored.games.map(g=>({...g,status:'a_jouer'}))}).games.map(g=>g.status),['a_jouer','a_jouer']);
   for(const version of [1,2,3,4])assert.equal(D.parseBackup({app:'Jeux Tout Doux',version,data}).games.length,2);
 });
