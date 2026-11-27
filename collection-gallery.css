@@ -28,7 +28,8 @@
 #modal-overlay.gallery-sheet #modal-title { min-height:36px; padding:4px 48px; }
 #modal-overlay.gallery-sheet #f-identity-summary { display:grid; grid-template-columns:minmax(0,1fr); }
 #modal-overlay.gallery-sheet #f-identity-summary .identity-copy > span { display:none; }
-#modal-overlay.gallery-sheet-purchases-visible #f-media-section { display:none; }
+#modal-overlay.gallery-sheet.gallery-sheet-purchases-visible #f-media-section { display:none; }
+#modal-overlay.gallery-sheet-purchases-visible #f-sheet-status:has(select) .game-status-panel { display:none; }
 #gallery-sheet-purchases:not(.hidden) { display:grid; gap:8px; }
 .gallery-purchase-row { display:flex; align-items:center; gap:6px; min-width:0; padding:3px 8px; border:1px solid var(--ui-border); border-radius:8px; background:var(--surface-raised); }
 .gallery-purchase-row > button { display:flex; align-items:center; gap:9px; flex:1; min-width:0; min-height:42px; padding:3px 0; text-align:left; border:0; background:none; color:var(--ui-text); }

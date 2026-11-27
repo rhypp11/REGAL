@@ -35,6 +35,8 @@ const server=createSandboxServer({journal:false,gallery:true});
       await page.locator('#gallery-link-panel select').nth(1).selectOption('termine');
       await page.locator('#gallery-link-panel button').click();
       assert.equal(await page.locator('.gallery-purchase-row').count(),2);
+      assert.equal(await page.locator('#f-media-section').isVisible(),false);
+      assert.equal(await page.locator('#f-sheet-status .game-status-panel').isVisible(),false);
       await page.getByRole('button',{name:'Retour',exact:true}).click();
       assert.equal(await cards.count(),2);
       await page.locator('#gallery-group').selectOption('platform');

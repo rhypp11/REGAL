@@ -77,7 +77,10 @@ function buildPreviewCollectionDemo(){
     status:statuses[i % statuses.length], image:new URL('preview-assets/'+['garden','lighthouse','mountains'][i % 3]+'.svg',location.href).href
   }));
   if(window.RGL_GALLERY_ENABLED){
-    for(const game of games) game.squareImage=game.image;
+    for(const game of games){
+      game.squareImage=game.image;
+      game.squareImageFit='cover';
+    }
     const first=games[0];
     first.gameGroup='demo-jardins-aster';
     first.status='termine';
