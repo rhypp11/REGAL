@@ -725,17 +725,14 @@ function applyRestoredData(data){
 // Cemetery imports write only the boards they actually change.
 window.JTDApplyCemeteryImport = (games, cemetery) => {
   games = [...games,...GAMES.filter(game => JTDData.isDigital(game))];
-  const journal = JTDData.detachJournalPurchases(LEGACY_JOURNAL,games,GAMES);
-  JTDData.assertCloudSize({...buildBackupPayload().data,games,cemetery,journal,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
-  if(IS_PREVIEW_MODE) savePreviewData({games, cemetery, journal});
+  JTDData.assertCloudSize({...buildBackupPayload().data,games,cemetery,shareToken:SHARE_TOKEN,updatedAt:Date.now()});
+  if(IS_PREVIEW_MODE) savePreviewData({games, cemetery});
   else accountStorage.atomicWrite([
     [STORAGE_KEY, JSON.stringify(games)],
-    [CEMETERY_KEY, JSON.stringify(cemetery)],
-    ...(journal === LEGACY_JOURNAL ? [] : [[LEGACY_JOURNAL_KEY, JSON.stringify(journal)]])
+    [CEMETERY_KEY, JSON.stringify(cemetery)]
   ]);
   GAMES = games;
   CEMETERY = cemetery;
-  LEGACY_JOURNAL = journal;
   buildPlatformList();
   render();
   window.renderCemetery?.();
@@ -1776,14 +1773,11 @@ function commitBoardTransfer(from, to, id, draft){
   try {
     const moved = JTDData.transferItem(lists[from], lists[to], id, draft);
     lists[from] = moved.source; lists[to] = moved.target;
-    const journal = from === 'games' ? JTDData.detachJournalPurchases(LEGACY_JOURNAL,lists.games,GAMES) : LEGACY_JOURNAL;
-    if(IS_PREVIEW_MODE) savePreviewData({...lists,journal});
+    if(IS_PREVIEW_MODE) savePreviewData(lists);
     else accountStorage.atomicWrite([
-      [keys[from], JSON.stringify(moved.source)], [keys[to], JSON.stringify(moved.target)],
-      ...(journal === LEGACY_JOURNAL ? [] : [[LEGACY_JOURNAL_KEY, JSON.stringify(journal)]])
+      [keys[from], JSON.stringify(moved.source)], [keys[to], JSON.stringify(moved.target)]
     ]);
     GAMES = lists.games; ARRIVALS = lists.arrivals; WISHLIST = lists.wishlist; CEMETERY = lists.cemetery;
-    LEGACY_JOURNAL = journal;
     if(window.JTDDataChanged) window.JTDDataChanged();
     return moved.target.at(-1);
   } catch(error) {
