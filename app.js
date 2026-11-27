@@ -76,7 +76,7 @@ function buildPreviewCollectionDemo(){
     source:i % 3 === 0 ? 'Boutique démo' : 'Enseigne démo',
     status:statuses[i % statuses.length], image:new URL('preview-assets/'+['garden','lighthouse','mountains'][i % 3]+'.svg',location.href).href
   }));
-  if(window.RGLGallery?.active){
+  if(window.RGL_GALLERY_ENABLED){
     for(const game of games) game.squareImage=game.image;
     const first=games[0];
     first.gameGroup='demo-jardins-aster';
@@ -475,7 +475,7 @@ let convertingArrivalId = null; // id de l'arrivage en cours de bascule vers la 
 let convertingArrivalToWishlistId = null; // id de l'arrivage en cours de bascule vers la wishlist
 
 let state = {
-  media: 'physical',
+  media: window.RGL_GALLERY_ENABLED ? 'all' : 'physical',
   contentType: null,
   bundle: false,
   platform: null,
@@ -3187,7 +3187,7 @@ function navigationSnapshot(){
 function navigationHash(view){
   const params = new URLSearchParams();
   for(const key of ['platform','status','search','contentType']) if(view[key]) params.set(key, view[key]);
-  if(view.media && view.media !== 'physical') params.set('media',view.media);
+  if(view.media && view.media !== (window.RGL_GALLERY_ENABLED ? 'all' : 'physical')) params.set('media',view.media);
   for(const key of ['collector','japanese','bundle']) if(view[key]) params.set(key, '1');
   if(view.sort && view.sort !== 'name-asc') params.set('sort', view.sort);
   if(['arrivals','wishlist'].includes(view.board)) params.set('board', view.board);
@@ -3233,7 +3233,7 @@ function applyNavigation(view = {}){
   restoringNavigation = true;
   navigationPage = availablePage(view.page);
   state = {
-    media:['all','digital'].includes(view.media) ? view.media : 'physical',
+    media:['all','physical','digital'].includes(view.media) ? view.media : (window.RGL_GALLERY_ENABLED ? 'all' : 'physical'),
     contentType:['all','digital'].includes(view.media) && selectedContentTypes(view.contentType || null).length ? selectedContentTypes(view.contentType || null).join(',') : null,
     bundle:['all','digital'].includes(view.media) && view.bundle === true,
     platform:allPlatformNames().includes(view.platform) ? view.platform : null,

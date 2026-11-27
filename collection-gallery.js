@@ -200,4 +200,5 @@ function collectionGameVersions(game){
     overlay.classList.remove('gallery-sheet-purchases-visible');
     clearSheet();
   },openGrouping};
+  if(IS_PREVIEW_MODE) render();
 })();

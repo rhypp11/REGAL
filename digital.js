@@ -327,20 +327,29 @@ function renderContentDetails(game){
     button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(parent.id));section.appendChild(button);
   }
   if(children.length){
-    const title = document.createElement('h3');title.className='form-section-title';title.textContent='DLC et mises à niveau';section.appendChild(title);
-    for(const child of children){
-      const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-addon-link content-type-'+child.contentType;
-      const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;
-      const art=purchaseArtwork(child,true);
-      const thumb='<span class="content-related-thumb'+gameImageClass(art)+'">'+(art.image?gameImageHtml(art):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
-      button.innerHTML=thumb+
-        '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
-        '<span class="content-related-meta"><span class="content-kind-label"><span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+contentKind(child)+'</span>'+
-        '<span>'+escapeHTML(child.plateforme)+'</span>'+
-        (status?'<span class="content-dlc-status">'+escapeHTML(status.label)+'</span>':'')+'</span></span>'+
-        (child.prix != null?'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span>':'')+
-        '<svg class="content-row-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>';
-      button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(child.id));section.appendChild(button);
+    const groups=window.RGLGallery?.active
+      ? [['DLC',children.filter(JTDData.isDLC)],['Mises à niveau',children.filter(child=>child.contentType==='upgrade')]]
+      : [['DLC et mises à niveau',children]];
+    for(const [label,items] of groups){
+      if(!items.length) continue;
+      const title=document.createElement('h3');
+      title.className='form-section-title';
+      title.textContent=label;
+      section.append(title);
+      for(const child of items){
+        const button = document.createElement('button');button.type='button';button.className='content-purchase-link content-addon-link content-type-'+child.contentType;
+        const status=JTDData.isDLC(child)?STATUS_OPTIONS.find(s=>s.key===getEffectiveStatus(child)):null;
+        const art=purchaseArtwork(child,true);
+        const thumb='<span class="content-related-thumb'+gameImageClass(art)+'">'+(art.image?gameImageHtml(art):'<span>'+escapeHTML(child.plateforme.slice(0,2).toUpperCase())+'</span>')+'</span>';
+        button.innerHTML=thumb+
+          '<span class="content-related-copy"><strong>'+escapeHTML(child.nom)+'</strong>'+
+          '<span class="content-related-meta"><span class="content-kind-label"><span class="content-kind-icon" aria-hidden="true">'+contentIcon(child)+'</span>'+contentKind(child)+'</span>'+
+          '<span>'+escapeHTML(child.plateforme)+'</span>'+
+          (status?'<span class="content-dlc-status">'+escapeHTML(status.label)+'</span>':'')+'</span></span>'+
+          (child.prix != null?'<span class="content-related-price">'+escapeHTML(purchaseMoney(child))+'</span>':'')+
+          '<svg class="content-row-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>';
+        button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(child.id));section.appendChild(button);
+      }
     }
     const sums = new Map();
     for(const purchase of [...versions,...children]) if(purchase.prix != null) sums.set(purchase.currency || 'EUR',(sums.get(purchase.currency || 'EUR') || 0)+purchase.prix);
