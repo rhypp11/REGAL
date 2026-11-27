@@ -45,12 +45,19 @@
 .gallery-completion-menu .sheet-actions-list { inset: auto auto calc(100% + 5px) 0; }
 .gallery-completion-menu .sheet-actions-list [aria-pressed="true"] { background:var(--ui-surface); }
 #gallery-sheet-purchases:not(.hidden) { display:grid; gap:8px; }
-.gallery-purchase-row { display:flex; align-items:center; gap:6px; min-width:0; padding:3px 8px; border:1px solid var(--ui-border); border-radius:8px; background:var(--surface-raised); }
 #gallery-sheet-purchases > h3 { margin:0; }
-.gallery-purchase-info { display:flex; align-items:center; gap:9px; flex:1; min-width:0; min-height:42px; }
-.gallery-purchase-info small { display:block; margin-top:3px; color:var(--ui-text-muted); }
-.gallery-purchase-edit { width:40px; height:40px; flex:none; display:grid; place-items:center; border:0; border-radius:8px; color:var(--ui-text); background:transparent; }
-.gallery-purchase-edit svg { width:18px; height:18px; }
+.gallery-purchase-row { min-width:0; padding:var(--ui-space-4); background:var(--ui-surface-raised); }
+.gallery-purchase-row:not(.gallery-purchase-row + .gallery-purchase-row) { border-radius:var(--ui-radius-md) var(--ui-radius-md) 0 0; }
+.gallery-purchase-row:last-of-type { border-radius:0 0 var(--ui-radius-md) var(--ui-radius-md); }
+.gallery-purchase-row:not(.gallery-purchase-row + .gallery-purchase-row):last-of-type { border-radius:var(--ui-radius-md); }
+.gallery-purchase-row + .gallery-purchase-row { margin-top:-8px; border-top:1px solid var(--ui-border); }
+.gallery-purchase-info { display:grid; min-width:0; gap:var(--ui-space-3); }
+.gallery-purchase-title { display:flex; align-items:center; flex-wrap:wrap; gap:var(--ui-space-2); font-size:var(--ui-text-lg); }
+.gallery-purchase-format { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:var(--ui-radius-pill); background:var(--ui-surface); color:var(--ui-text-muted); font-size:var(--ui-text-xs); font-weight:600; }
+.gallery-purchase-format svg { width:14px; height:14px; }
+.gallery-purchase-details { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,90px),1fr)); gap:var(--ui-space-2) var(--ui-space-4); margin:0; }
+.gallery-purchase-details dt { color:var(--ui-text-muted); font-size:var(--ui-text-xs); }
+.gallery-purchase-details dd { margin:2px 0 0; font-size:var(--ui-text-md); font-weight:600; overflow-wrap:anywhere; }
 #gallery-link-panel { padding:9px; border:1px solid var(--ui-border); border-radius:8px; }
 .gallery-link-form { display:grid; gap:8px; }
 .gallery-link-actions { display:flex; justify-content:flex-end; gap:8px; }
@@ -67,3 +74,24 @@
   #modal-overlay.gallery-sheet .collection-sheet-body { min-height:0; flex:1; overflow:auto; }
   #modal-overlay.gallery-sheet #cancel-btn { display:none; }
 }
+
+#modal-overlay.gallery-sheet { font-family:var(--ui-font-sans); }
+#modal-overlay.gallery-sheet .gallery-sheet-header { background:var(--ui-surface); }
+#modal-overlay.gallery-sheet #modal-title { font-size:var(--ui-text-md); font-weight:650; }
+#modal-overlay.gallery-sheet.game-sheet-viewing .collection-sheet-body { gap:var(--ui-space-7); }
+#modal-overlay.gallery-sheet.game-sheet-viewing #f-identity-summary { gap:var(--ui-space-4); }
+#modal-overlay.gallery-sheet.game-sheet-viewing #f-identity-summary .identity-thumb { border-radius:var(--ui-radius-lg); }
+#modal-overlay.gallery-sheet.game-sheet-viewing #f-identity-summary .identity-copy strong {
+  font-family:var(--ui-font-sans); font-size:clamp(22px,4vw,32px); font-weight:750; letter-spacing:-.035em; line-height:1.18;
+}
+#modal-overlay.gallery-sheet.game-sheet-viewing :is(#gallery-sheet-purchases,#f-sheet-status,.content-purchases) > h3 {
+  margin:0 0 var(--ui-space-1); font-family:var(--ui-font-sans); font-size:var(--ui-text-lg); font-weight:700; letter-spacing:-.015em;
+}
+.gallery-completion-menu .sheet-actions-list { gap:4px; }
+#f-sheet-status .gallery-completion-menu .sheet-actions-list button {
+  color:var(--choice-color); background:var(--choice-bg); border:1px solid transparent;
+}
+#f-sheet-status .gallery-completion-menu .sheet-actions-list button:is([aria-pressed="true"],:hover,:focus-visible) { border-color:var(--choice-border); }
+#f-sheet-status .gallery-completion-menu .gallery-status-symbol { display:inline-grid; place-items:center; width:18px; }
+#f-sheet-status .gallery-completion-menu .gallery-status-symbol svg { color:inherit; }
+#gallery-sheet-actions .sheet-actions-list { max-height:min(56dvh,430px); overflow-y:auto; }

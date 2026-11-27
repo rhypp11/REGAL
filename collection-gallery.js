@@ -148,6 +148,26 @@ function collectionGameVersions(game){
     back.classList.add('hidden');
     actionSlot.replaceChildren();
   }
+  function appendActions(topMenu,actions){
+    const buttons=sheetActions(actions).querySelectorAll('.sheet-actions-list button');
+    for(const button of buttons){
+      const invoke=button.onclick;
+      button.onclick=()=>{
+        topMenu.open=false;
+        topMenu.querySelector('summary').focus({preventScroll:true});
+        invoke();
+      };
+      topMenu.querySelector('.sheet-actions-list').append(button);
+    }
+  }
+  function addPurchaseActions(topMenu,copies){
+    const label=copy=>shortPlatform(copy.plateforme)+' · '+formatOf(copy);
+    const actions=copies.flatMap(copy=>[
+      ['Modifier l’achat · '+label(copy),()=>editPurchase(copy),null,'edit'],
+      ...(copies.length>1?[['Dissocier · '+label(copy),()=>detach(copy),null,'link']]:[])
+    ]);
+    appendActions(topMenu,actions);
+  }
   function renderSheet(game){
     clearSheet();
     if(!game) return;
@@ -159,6 +179,7 @@ function collectionGameVersions(game){
     const copies=collectionGameVersions(game);
     const canonical=copies[0];
     const art=copies.find(copy=>copy.image) || canonical;
+    if(existingMenu) addPurchaseActions(existingMenu,copies);
     const identity=byId('f-identity-summary');
     identity.innerHTML=identitySummaryHtml({...art,nom:canonical.nom});
     identity.querySelector('.identity-edit-btn')?.remove();
@@ -171,18 +192,22 @@ function collectionGameVersions(game){
       row.className='gallery-purchase-row';
       const info=document.createElement('div');
       info.className='gallery-purchase-info';
-      const metadata=[copy.prix!=null?purchaseMoney(copy):'',copy.date?dateFR(copy.date):'',copy.source].filter(Boolean).join(' · ');
-      info.innerHTML=platformMark(copy.plateforme)+'<div><strong>'+escapeHTML(shortPlatform(copy.plateforme)+' · '+formatOf(copy))+'</strong>'+
-        (metadata ? '<small>'+escapeHTML(metadata)+'</small>' : '')+'</div>';
-      const edit=document.createElement('button');
-      edit.type='button';
-      edit.className='gallery-purchase-edit';
-      edit.title='Modifier cet achat';
-      edit.setAttribute('aria-label','Modifier cet achat · '+copy.plateforme);
-      edit.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 20 5-1L20 8l-4-4L5 15l-1 5zM14 6l4 4"/></svg>';
-      edit.onclick=()=>editPurchase(copy);
-      row.append(info,edit);
-      if(copies.length>1) row.append(sheetActions([['Dissocier cet exemplaire',()=>detach(copy),null,'link']]));
+      const format=formatOf(copy);
+      const formatIcon=MEDIA_ICONS[JTDData.isDigital(copy)?'digital':'physical'];
+      info.innerHTML='<div class="gallery-purchase-title">'+platformMark(copy.plateforme)+
+        '<strong>'+escapeHTML(copy.plateforme)+'</strong><span class="gallery-purchase-format">'+formatIcon+escapeHTML(format)+'</span></div>';
+      const fields=[
+        ['Prix',copy.prix!=null?purchaseMoney(copy):''],
+        ['Date d’achat',copy.date?dateFR(copy.date):''],
+        ['Enseigne',copy.source]
+      ].filter(([,value])=>value);
+      if(fields.length){
+        const details=document.createElement('dl');
+        details.className='gallery-purchase-details';
+        details.innerHTML=fields.map(([label,value])=>'<div><dt>'+escapeHTML(label)+'</dt><dd>'+escapeHTML(value)+'</dd></div>').join('');
+        info.append(details);
+      }
+      row.append(info);
       purchaseSection.append(row);
     }
     purchaseSection.classList.remove('hidden');
@@ -203,6 +228,16 @@ function collectionGameVersions(game){
       ['Sans statut',()=>change(null)]
     ]);
     menu.classList.add('gallery-completion-menu');
+    menu.querySelectorAll('button').forEach((button,index)=>{
+      const status=STATUS_OPTIONS[index];
+      const icon=document.createElement('span');
+      icon.className='gallery-status-symbol';
+      icon.innerHTML=status?.icon || '—';
+      button.prepend(icon);
+      button.style.setProperty('--choice-color',status?.color || 'var(--ui-text-muted)');
+      button.style.setProperty('--choice-bg',status?.bg || 'var(--ui-surface)');
+      button.style.setProperty('--choice-border',status?.border || 'var(--ui-border)');
+    });
     const tag=menu.querySelector('summary');
     tag.className='game-sheet-status';
     function updateTag(){
@@ -219,6 +254,7 @@ function collectionGameVersions(game){
     }
     updateTag();
     original.replaceWith(menu);
+    if(existingMenu) appendActions(existingMenu,[['Modifier la complétion',()=>{ menu.open=true; tag.focus(); },null,'edit']]);
   }
   window.RGLGallery={active:true,render:renderGallery,sheet:renderSheet,clearSheet,
     openGrouping(){
