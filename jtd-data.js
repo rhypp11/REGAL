@@ -394,7 +394,40 @@
     },data:{journal}};
   }
 
-  const api = {journalPurchaseIdentity,detachJournalPurchases,effectivePlatform,createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
+  // Compare Firestore maps independently of property order.
+  function sameCloudValue(left, right){
+    if(Object.is(left,right)) return true;
+    if(Array.isArray(left) && Array.isArray(right)){
+      return left.length===right.length && left.every((value,index)=>sameCloudValue(value,right[index]));
+    }
+    if(!isRecord(left) || !isRecord(right)) return false;
+    const keys=Object.keys(left);
+    return keys.length===Object.keys(right).length &&
+      keys.every(key=>Object.hasOwn(right,key) && sameCloudValue(left[key],right[key]));
+  }
+  function mergeCloudValue(base, local, remote, label){
+    if(sameCloudValue(base,local)) return remote;
+    if(sameCloudValue(base,remote) || sameCloudValue(local,remote)) return local;
+    const error=new Error('Modification concurrente : '+label);
+    error.code='rgl/sync-conflict';
+    throw error;
+  }
+  function mergeCloudData(base, local, remote){
+    const boards=['games','arrivals','wishlist','cemetery'];
+    const locate = data => new Map(boards.flatMap(board=>data[board].map(item=>[item.id,{board,item}])));
+    const previous=locate(base), changes=locate(local), latest=locate(remote);
+    const merged={...remote,games:[],arrivals:[],wishlist:[],cemetery:[]};
+    for(const id of new Set([...latest.keys(),...changes.keys()])){
+      const label=(changes.get(id) || latest.get(id)).item.nom;
+      const record=mergeCloudValue(previous.get(id),changes.get(id),latest.get(id),label);
+      if(record) merged[record.board].push(record.item);
+    }
+    for(const key of ['journal','pokedex','digitalAccounts','platformMeta','platformOrder','profileName','profileAvatar']){
+      merged[key]=mergeCloudValue(base[key],local[key],remote[key],key);
+    }
+    return merged;
+  }
+  const api = {mergeCloudData,journalPurchaseIdentity,detachJournalPurchases,effectivePlatform,createJournalPayload,searchKey,isDigital,isDLC,isAddon,canAttachContent,contentParent,collectionCards,assertCloudSize, parseDelimited, foldImport, importPlatform, importKey, importCandidates, createCollectionPayload, escapeHTML, safeURL, normalizeData, normalizePokedex, parseBackup, transferItem, createStorage, createSession, createPublicSharePayload};
   root.JTDData = api;
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

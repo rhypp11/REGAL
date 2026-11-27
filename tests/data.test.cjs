@@ -87,6 +87,7 @@ test('old sessions remain invalid after logout and login with the same UID', () 
 
 async function cloudHarness(){
   const raw = memory(), storage = D.createStorage(raw), writes = [];
+  const committed = new Map();
   const element = {classList:{add(){},remove(){},toggle(){}},addEventListener(){},setAttribute(name,value){this[name]=value;},dataset:{}};
   const ctx = {
     console,JSON,Date,Uint8Array,crypto:require('node:crypto').webcrypto,
@@ -95,6 +96,21 @@ async function cloudHarness(){
     GAMES:[],ARRIVALS:[],WISHLIST:[],CEMETERY:[],LEGACY_JOURNAL:[],POKEDEX_TRACKERS:[],DIGITAL_ACCOUNTS:[],CEMETERY_KEY:'cemetery',platformMeta:{},platformOrder:[],PROFILE_NAME:'',PROFILE_AVATAR:null,SHARE_TOKEN:null,STORAGE_KEY:'games',
     initializeApp:()=>({}),getAuth:()=>({}),getFirestore:()=>({}),doc:(_db,collection,id)=>({collection,id}),
     getDoc:async()=>({exists:()=>false}),setDoc:async(ref,data)=>writes.push({ref,data}),deleteDoc:async()=>{},
+    runTransaction:async(_db,update)=>{
+      const operations=[];
+      const result=await update({
+        get:async ref=>committed.has(ref.id)
+          ? {exists:()=>true,data:()=>committed.get(ref.id)}
+          : ctx.getDoc(ref),
+        set:(ref,data)=>operations.push(async()=>{
+          await ctx.setDoc(ref,data);
+          if(ref.collection==='users') committed.set(ref.id,data);
+        }),
+        delete:ref=>operations.push(()=>ctx.deleteDoc(ref))
+      });
+      for(const operation of operations) await operation();
+      return result;
+    },
     onAuthStateChanged:(_auth,callback)=>{ctx.authCallback=callback;},signInWithEmailAndPassword(){},createUserWithEmailAndPassword(){},signOut(){},
     initializeNavigation(){},resetNavigationSession(){},showToast(){},normalizeCollectionEditions(){},buildPlatformList(){},buildFormatToggles(){},buildStatusToggles(){},render(){},renderArrivals(){},renderWishlist(){},renderProfileAvatar(){},updateBackupNote(){},closeModal(){},closeArrivalModal(){},closeWishlistModal(){},closePlatformModal(){},closeMobileDrawers(){}
   };
@@ -105,7 +121,7 @@ async function cloudHarness(){
   const file = fs.readFileSync(require.resolve('../firebase.js'),'utf8');
   const source = file.slice(file.indexOf('  const firebaseConfig'));
   await vm.runInContext('(async()=>{'+source+'\nwindow.testCloud={scheduleCloudSync,doCloudSync,sessions};})()',ctx);
-  return {ctx,writes,storage};
+  return {ctx,writes,storage,committed};
 }
 
 test('Pokédex follow the cloud account, reload flush and authoritative empty data',async()=>{
@@ -207,7 +223,7 @@ test('revoking a share waits for an in-flight save and leaves the token revoked'
   assert.equal(order.includes('delete-share'),false);
   release();await revoke;
   assert.equal(ctx.SHARE_TOKEN,null);
-  assert.equal(writes.at(-1).data.shareToken,null);
+  assert.equal(writes.filter(write=>write.ref.collection==='users').at(-1).data.shareToken,null);
   assert.ok(order.indexOf('delete-share')>order.indexOf('write-users'));
 });
 test('a failed restore does not replace memory or request cloud sync', () => {
@@ -363,4 +379,30 @@ test('abandoned games and DLC preserve their status in backups and public snapsh
  const saved=D.parseBackup({app:'Jeux Tout Doux',version:5,data:input});
  assert.deepEqual(saved.games.map(g=>g.status),['abandonne','abandonne']);
  assert.deepEqual(D.createPublicSharePayload(saved).games.map(g=>g.status),['abandonne','abandonne']);
+});
+
+test('an older tab merges edits to different games and refuses a conflicting edit',async()=>{
+  const {ctx,writes,committed}=await cloudHarness();
+  const original=D.normalizeData({games:[game({id:'a',nom:'A'}),game({id:'b',nom:'B'})]});
+  ctx.getDoc=async()=>({exists:()=>true,data:()=>original});
+  await ctx.authCallback({uid:'A'});
+  const change=(data,id,status)=>({...data,games:data.games.map(item=>item.id===id?{...item,status}:item)});
+  committed.set('A',change(original,'a','termine'));
+  ctx.GAMES=change(original,'b','a_jouer').games;
+  assert.equal(await ctx.window.JTDPrepareReload(),true);
+  assert.deepEqual(committed.get('A').games.map(item=>item.status),['termine','a_jouer']);
+  ctx.GAMES=change({games:ctx.GAMES},'a','abandonne').games;
+  const writeCount=writes.length;
+  ctx.console={error(){}};
+  assert.equal(await ctx.window.JTDPrepareReload(),false);
+  assert.equal(writes.length,writeCount);
+  assert.equal(ctx.GAMES.find(item=>item.id==='a').status,'abandonne');
+  assert.match(ctx.document.getElementById('cloud-sync-status')['aria-label'],/Modification concurrente : A/);
+});
+
+test('two competing transfers of the same game cannot create duplicate copies',()=>{
+  const base=D.normalizeData({games:[game({id:'move'})]});
+  const local=D.normalizeData({games:[],arrivals:base.games});
+  const remote=D.normalizeData({games:[],cemetery:base.games});
+  assert.throws(()=>D.mergeCloudData(base,local,remote),{code:'rgl/sync-conflict'});
 });

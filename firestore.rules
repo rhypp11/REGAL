@@ -16,6 +16,11 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.shareToken == shareId;
     }
 
+    function ownsShareAfter(shareId) {
+      return signedIn()
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.shareToken == shareId;
+    }
+
     function validPublicShare() {
       return request.resource.data.keys().hasOnly([
           'version', 'publishedAt', 'games', 'wishlist', 'arrivals', 'cemetery'
@@ -36,7 +41,7 @@ service cloud.firestore {
       // Le token du document est l'autorisation de lecture : pas de listing global.
       allow get: if true;
       allow list: if false;
-      allow create, update: if ownsShare(shareId) && validPublicShare();
+      allow create, update: if (ownsShare(shareId) || ownsShareAfter(shareId)) && validPublicShare();
       allow delete: if ownsShare(shareId);
     }
   }
