@@ -142,8 +142,7 @@ function decorateDigitalCard(card, game, options){
 }
 function commitCollection(games, digitalAccounts = DIGITAL_ACCOUNTS){
   try{
-    const journal = JTDData.detachJournalPurchases(LEGACY_JOURNAL,games,GAMES);
-    const next = JTDData.normalizeData({...buildBackupPayload().data,games,digitalAccounts,journal});
+    const next = JTDData.normalizeData({...buildBackupPayload().data,games,digitalAccounts});
     window.persistAppData(next);
     replaceAppData(next);
     window.JTDDataChanged?.();
