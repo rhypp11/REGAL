@@ -1646,6 +1646,7 @@ function setIdentityEditor(prefix, item, compact){
       }
       if(!JTDData.isDigital(game)) actions.push(['Mettre en vente', () => openSaleModal(game.id, 'new'), 'f-sell-btn', 'sale']);
     }
+    if(window.RGLGallery?.active && !JTDData.isAddon(game)) actions.push(['Associer un exemplaire', () => window.RGLGallery.openGrouping(), null, 'link']);
     actions.push(['Supprimer', () => document.getElementById('delete-btn').click(), null, 'delete']);
     editBtn.replaceWith(sheetActions(actions, 'f-game-actions'));
   }else if(editBtn){

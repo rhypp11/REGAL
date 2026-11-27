@@ -108,10 +108,14 @@ function collectionGameVersions(game){
       '<label>Rechercher <input type="search" placeholder="Titre du jeu"></label>'+
       '<label>Jeu à regrouper <select><option value="">Choisir un autre achat</option></select></label>'+
       '<label class="hidden">Statut commun <select></select></label>'+
-      '<button type="button" class="btn btn-primary" disabled>Regrouper</button></div>';
+      '<div class="gallery-link-actions"><button type="button" class="btn btn-ghost">Annuler</button><button type="button" class="btn btn-primary" disabled>Associer</button></div></div>';
     const search=panel.querySelector('input');
     const [target,status]=panel.querySelectorAll('select');
-    const submit=panel.querySelector('button');
+    const [cancel,submit]=panel.querySelectorAll('button');
+    cancel.onclick=()=>{
+      panel.classList.add('hidden');
+      byId('f-game-actions')?.querySelector('summary').focus();
+    };
     const optionsFor=selected=>{
       const possible=[game.status || null,selected?.status || null];
       const choices=[...new Set(possible)];
@@ -161,24 +165,7 @@ function collectionGameVersions(game){
     const heading=document.createElement('h3');
     heading.className='form-section-title';
     heading.textContent='Jeu';
-    const sectionHeader=document.createElement('div');
-    sectionHeader.className='gallery-purchases-header';
-    const toggle=document.createElement('button');
-    toggle.type='button';
-    toggle.className='gallery-link-toggle';
-    toggle.textContent='Associer';
-    toggle.setAttribute('aria-label','Associer un exemplaire');
-    toggle.setAttribute('aria-controls','gallery-link-panel');
-    toggle.setAttribute('aria-expanded','false');
-    const panel=groupingPanel(game);
-    toggle.onclick=()=>{
-      const shown=toggle.getAttribute('aria-expanded')==='true';
-      toggle.setAttribute('aria-expanded',String(!shown));
-      panel.classList.toggle('hidden',shown);
-      if(!shown) panel.querySelector('input').focus();
-    };
-    sectionHeader.append(heading,toggle);
-    purchaseSection.append(sectionHeader,panel);
+    purchaseSection.append(heading,groupingPanel(game));
     for(const copy of copies){
       const row=document.createElement('div');
       row.className='gallery-purchase-row';
@@ -203,21 +190,43 @@ function collectionGameVersions(game){
     const statusSection=byId('f-sheet-status');
     const statusHeading=statusSection.querySelector('h3');
     if(statusHeading) statusHeading.textContent='Complétion';
-    const selector=document.createElement('select');
-    selector.setAttribute('aria-label','Statut de complétion');
-    selector.replaceChildren(new Option('Sans statut',''),...STATUS_OPTIONS.map(item=>new Option(item.label,item.key)));
-    selector.value=getEffectiveStatus(game) || '';
-    selector.addEventListener('change',()=>{
-      setStatus(game.id,selector.value || null);
-      const updated=GAMES.find(copy=>copy.id===game.id);
-      selector.value=updated ? getEffectiveStatus(updated) || '' : '';
-      selector.focus({preventScroll:true});
-    });
-    statusSection.append(selector);
+    const statusPanel=statusSection.querySelector('.game-status-panel');
+    const original=statusPanel?.querySelector('.game-sheet-status');
+    if(!original) return;
+    const change=key=>{
+      if(key!==(getEffectiveStatus(GAMES.find(copy=>copy.id===game.id)) || null)) setStatus(game.id,key);
+      updateTag();
+      tag.focus({preventScroll:true});
+    };
+    const menu=sheetActions([
+      ...STATUS_OPTIONS.map(option=>[option.label,()=>change(option.key)]),
+      ['Sans statut',()=>change(null)]
+    ]);
+    menu.classList.add('gallery-completion-menu');
+    const tag=menu.querySelector('summary');
+    tag.className='game-sheet-status';
+    function updateTag(){
+      const current=GAMES.find(copy=>copy.id===game.id);
+      const key=current ? getEffectiveStatus(current) || null : null;
+      const status=STATUS_OPTIONS.find(option=>option.key===key);
+      tag.style.setProperty('--status-color',status?.color || 'var(--ui-text-muted)');
+      tag.style.setProperty('--status-fill',status?.fill || 'var(--ui-border)');
+      tag.innerHTML=(status?.icon || '')+'<span>'+escapeHTML(status?.label || 'Sans statut')+'</span><svg class="gallery-status-chevron" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 6 4 4 4-4"/></svg>';
+      tag.setAttribute('aria-label','Modifier le statut de complétion · '+(status?.label || 'Sans statut'));
+      menu.querySelectorAll('button').forEach((button,index)=>{
+        button.setAttribute('aria-pressed',String((STATUS_OPTIONS[index]?.key || null)===key));
+      });
+    }
+    updateTag();
+    original.replaceWith(menu);
   }
-  window.RGLGallery={active:true,render:renderGallery,sheet:renderSheet,clearSheet(){
-    overlay.classList.remove('gallery-sheet-purchases-visible');
-    clearSheet();
-  }};
+  window.RGLGallery={active:true,render:renderGallery,sheet:renderSheet,clearSheet,
+    openGrouping(){
+      const panel=byId('gallery-link-panel');
+      if(!panel) return;
+      panel.classList.remove('hidden');
+      panel.querySelector('input').focus();
+    }
+  };
   if(IS_PREVIEW_MODE) render();
 })();
