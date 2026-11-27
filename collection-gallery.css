@@ -1,0 +1,49 @@
+#collection-gallery-controls { display:flex; flex-wrap:wrap; gap:12px; margin:12px 0; }
+#collection-gallery-controls.hidden { display:none; }
+.collection-gallery-controls label { display:grid; gap:4px; color:var(--ui-text-muted); font-size:.8rem; }
+.collection-gallery-controls select, #gallery-link-panel :is(input,select), #f-sheet-status select {
+  min-height:38px; padding:6px 10px; border:1px solid var(--ui-border); border-radius:8px;
+  background:var(--surface-raised); color:var(--ui-text);
+}
+#grid[data-view="rgl"] { display:block; }
+.gallery-group + .gallery-group { margin-top:24px; padding-top:14px; border-top:1px solid var(--ui-border); }
+.gallery-group h2 { margin:0 0 12px; padding-left:10px; border-left:3px solid var(--accent); font-size:1.25rem; }
+.gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,165px),1fr)); gap:22px 16px; }
+#grid[data-view="rgl"] .card { display:block; min-width:0; overflow:visible; border:0; background:none; box-shadow:none; transform:none; }
+#grid[data-view="rgl"] .card-banner { aspect-ratio:1; height:auto; border-radius:9px; border:1px solid var(--ui-border); overflow:hidden; }
+#grid[data-view="rgl"] .card-body { display:block; min-height:0; padding:7px 0 0; }
+#grid[data-view="rgl"] .card-open-control { display:flex; padding:0; min-height:0; text-align:left; font-size:.9rem; line-height:1.2; }
+#grid[data-view="rgl"] .card-name-text { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; white-space:normal; }
+#grid[data-view="rgl"] :is(.card-platform,.card-media-mark,.card-dlc-count,.card-list-details,.card-status-control,.card-acquisition,.dlc-label) { display:none; }
+#grid[data-view="rgl"] .card-state-row { display:none; }
+.gallery-marks, .gallery-mark { display:flex; align-items:center; gap:5px; }
+.gallery-marks { margin-top:4px; min-height:20px; flex-wrap:wrap; gap:4px 8px; }
+.gallery-mark + .gallery-mark { padding-left:7px; border-left:1px solid var(--ui-border); }
+.gallery-platform, .gallery-format { display:inline-flex; align-items:center; color:var(--ui-text-muted); font-size:.68rem; }
+.gallery-platform img, .gallery-format svg { width:17px; height:17px; object-fit:contain; }
+#modal-overlay.gallery-sheet > .modal { position:relative; }
+#gallery-sheet-actions { display:none; }
+#modal-overlay.gallery-sheet #gallery-sheet-actions { display:block; position:absolute; top:12px; right:14px; z-index:3; }
+#gallery-sheet-back { position:absolute; left:14px; top:12px; width:40px; height:38px; border:0; border-radius:8px; background:var(--surface-raised); color:var(--ui-text); font-size:22px; z-index:2; }
+#modal-overlay.gallery-sheet #modal-title { min-height:36px; padding:4px 48px; }
+#modal-overlay.gallery-sheet #f-identity-summary { display:grid; grid-template-columns:minmax(0,1fr); }
+#modal-overlay.gallery-sheet #f-identity-summary .identity-copy > span { display:none; }
+#modal-overlay.gallery-sheet-purchases-visible #f-media-section { display:none; }
+#gallery-sheet-purchases:not(.hidden) { display:grid; gap:8px; }
+.gallery-purchase-row { display:flex; align-items:center; gap:6px; min-width:0; padding:3px 8px; border:1px solid var(--ui-border); border-radius:8px; background:var(--surface-raised); }
+.gallery-purchase-row > button { display:flex; align-items:center; gap:9px; flex:1; min-width:0; min-height:42px; padding:3px 0; text-align:left; border:0; background:none; color:var(--ui-text); }
+.gallery-purchase-row small { margin-left:auto; color:var(--ui-text-muted); text-align:right; }
+#gallery-link-panel { padding:9px; border:1px solid var(--ui-border); border-radius:8px; }
+#gallery-link-panel summary { cursor:pointer; }
+.gallery-link-form { display:grid; gap:8px; margin-top:8px; }
+.gallery-link-form label:not(.hidden) { display:grid; gap:4px; }
+@media(max-width:680px) {
+  .gallery-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 12px; }
+  #collection-gallery-controls { gap:6px; }
+  #collection-gallery-controls label { min-width:0; flex:1 1 130px; }
+  #collection-gallery-controls select { width:100%; font-size:.8rem; }
+  #modal-overlay.gallery-sheet { padding:0; }
+  #modal-overlay.gallery-sheet > .modal { width:100%; height:100dvh; max-width:none; max-height:100dvh; border:0; border-radius:0; padding:12px; }
+  #modal-overlay.gallery-sheet .collection-sheet-body { min-height:0; flex:1; overflow:auto; }
+  #modal-overlay.gallery-sheet #cancel-btn { display:none; }
+}

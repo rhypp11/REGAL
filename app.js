@@ -66,7 +66,7 @@ function buildPreviewCollectionDemo(){
     'L’Archipel oublié','Les Voyageurs de l’aube','Le Dernier atelier','Sous les lunes jumelles',
     'La Route des étoiles','Mémoires de la forêt','Les Gardiens du phare','Un été à Solaria'];
   const statuses = ['en_cours','a_jouer','termine','termine_ailleurs','multi',null];
-  return Array.from({length:72}, (_,i) => ({
+  const games = Array.from({length:72}, (_,i) => ({
     id:'demo-collection-'+i,
     nom:titles[i % titles.length] + ' ' + (Math.floor(i / titles.length) + 1) + ' — Démo',
     plateforme:i < 48 ? 'Switch 2' : i < 64 ? 'PlayStation 5' : 'PlayStation 4',
@@ -76,6 +76,14 @@ function buildPreviewCollectionDemo(){
     source:i % 3 === 0 ? 'Boutique démo' : 'Enseigne démo',
     status:statuses[i % statuses.length], image:new URL('preview-assets/'+['garden','lighthouse','mountains'][i % 3]+'.svg',location.href).href
   }));
+  if(window.RGLGallery?.active){
+    for(const game of games) game.squareImage=game.image;
+    const first=games[0];
+    first.gameGroup='demo-jardins-aster';
+    first.status='termine';
+    games.push({...first,id:'demo-collection-aster-ps4',plateforme:'PlayStation 4',format:'Numérique',prix:19.99});
+  }
+  return games;
 }
 function decoratePreviewData(data){
   const art = ['garden','lighthouse','mountains'];
@@ -93,7 +101,7 @@ function decoratePreviewData(data){
   }
   return data;
 }
-const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1' + (HAS_PREVIEW_COLLECTION_DEMO ? ':collection-demo-v1' : '');
+const PREVIEW_STORAGE_KEY = 'jtd:sandbox:cemetery-poc-v1' + (HAS_PREVIEW_COLLECTION_DEMO ? ':collection-demo-v2' : '');
 let previewData;
 function hasPreviewSnapshot(){try {const raw=localStorage.getItem(PREVIEW_STORAGE_KEY);return raw!==null;}catch{return true;}}
 function loadPreviewData(){
@@ -795,10 +803,11 @@ function setStatus(id, statusKey){
   const g = GAMES.find(x => x.id === id);
   if(!g || !isPlayablePurchase(g)) return;
   if(window.getLinkedJournalCompletion?.(id)) return;
-  const previousStatus = g.status;
+  const matches = game => game.id === id || (!!g.gameGroup && game.gameGroup === g.gameGroup && !JTDData.isAddon(game));
+  const previousStatuses = new Map(GAMES.filter(matches).map(game => [game.id,game.status]));
   const nextStatus = (getEffectiveStatus(g) === statusKey) ? null : statusKey;
   const generation = window.JTDAccountGeneration;
-  if(!commitCollection(GAMES.map(game => game.id === id ? {...game,status:nextStatus} : game))) return;
+  if(!commitCollection(GAMES.map(game => matches(game) ? {...game,status:nextStatus} : game))) return;
   const cards = [...document.querySelectorAll('#grid .card')];
   const index = cards.findIndex(card=>card.dataset.dialogTrigger==='game:'+id);
   render();
@@ -811,7 +820,7 @@ function setStatus(id, statusKey){
     if(generation !== window.JTDAccountGeneration) return;
     const current = GAMES.find(game => game.id === id);
     if(!current || current.status !== nextStatus) return;
-    if(!commitCollection(GAMES.map(game => game.id === id ? {...game,status:previousStatus} : game))) return;
+    if(!commitCollection(GAMES.map(game => previousStatuses.has(game.id) && game.status === nextStatus ? {...game,status:previousStatuses.get(game.id)} : game))) return;
     render();
     const card = [...document.querySelectorAll('#grid .card')].find(card => card.dataset.dialogTrigger === 'game:'+id);
     card?.querySelector('.card-status-badge')?.focus({preventScroll:true});
@@ -1195,7 +1204,7 @@ function renderCard(g, options = {}){
     ? `<span class="card-title-collector" title="Édition collector" aria-label="Édition collector">${FORMAT_ICON_STAR}</span>`
     : '';
 
-  const art = purchaseArtwork(g,!options.readOnly && collectionView !== 'cards');
+  const art = window.RGLGallery?.active ? collectionSquareArtwork(g) : purchaseArtwork(g,!options.readOnly && collectionView !== 'cards');
   const bannerInner = art.image
     ? gameImageHtml(art, g.nom, false, options.imageLoading || 'lazy')
     : '';
@@ -1272,7 +1281,7 @@ function renderCard(g, options = {}){
   decorateDigitalCard(card, g, options);
   if(!options.readOnly){
     const identity = card.querySelector('.card-identity');
-    const gallery = collectionView === 'gallery';
+    const gallery = collectionView === 'gallery' && !window.RGLGallery?.active;
     const metadata = document.createElement('div');
     metadata.className = 'card-state-row';
     const formatLine = document.createElement('div');
@@ -1402,6 +1411,7 @@ function render(){
     return;
   }
 
+  if(window.RGLGallery?.render(grid,games)) return;
   games.forEach((g,index) => grid.appendChild(renderCard(g,{imageLoading:navigationPage === 'collection' && index < 12 ? 'eager' : 'lazy'})));
 }
 
@@ -1546,6 +1556,11 @@ function setLastUsed(key, value){
   try { accountStorage.setItem('jtd-last-'+key, value); } catch(e){}
 }
 
+function collectionSquareArtwork(item){
+  const image = safeURL(item?.squareImage,true);
+  return {...item,image,imageFit:item?.squareImageFit,alternateImage:null};
+}
+
 function purchaseArtwork(item, preferSquare = false){
   const banner = safeURL(item?.image,true), square = safeURL(item?.squareImage,true);
   const useSquare = square && (preferSquare || !banner);
@@ -1628,6 +1643,7 @@ function setIdentityEditor(prefix, item, compact){
       }
       if(!JTDData.isDigital(game)) actions.push(['Mettre en vente', () => openSaleModal(game.id, 'new'), 'f-sell-btn', 'sale']);
     }
+    if(window.RGLGallery?.active && !JTDData.isAddon(game)) actions.push(['Regrouper avec un jeu', () => window.RGLGallery.openGrouping(), null, 'link']);
     actions.push(['Supprimer', () => document.getElementById('delete-btn').click(), null, 'delete']);
     editBtn.replaceWith(sheetActions(actions, 'f-game-actions'));
   }else if(editBtn){
@@ -1803,6 +1819,7 @@ function setGameSheetViewing(viewing){
     }
   }
   document.getElementById('modal-overlay').classList.toggle('game-sheet-viewing', viewing);
+  if(!viewing) window.RGLGallery?.clearSheet();
   document.getElementById('cancel-btn').textContent = viewing ? 'Fermer' : 'Annuler';
 }
 
@@ -1906,6 +1923,7 @@ function openModal(id, collection = 'games', content = null){
   setContextEditor('f', identityItem, 'purchase', !!editingId);
   document.getElementById('modal-overlay').classList.toggle('cemetery-game-editor', editingCollection === 'cemetery');
   setGameSheetViewing(!!editingId && editingCollection === 'games');
+  window.RGLGallery?.sheet(editingCollection === 'games' ? identityItem : null);
   document.getElementById('save-btn').textContent = editingId ? 'Enregistrer' : 'Ajouter';
   openBoardEditor('modal-overlay', 'f', closeModal);
   if(!editingId) document.getElementById('f-nom').focus();
@@ -2054,7 +2072,7 @@ function renderHomeStats(){
 
 
 function boardThumb(item){
-  item = purchaseArtwork(item);
+  item = window.RGLGallery?.active ? collectionSquareArtwork(item) : purchaseArtwork(item);
   const initials = (item.plateforme || item.nom || '??').slice(0,2).toUpperCase();
   const logo = getPlatformLogo(item.plateforme);
   const color = getPlatformColor(item.plateforme);

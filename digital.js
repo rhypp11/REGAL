@@ -315,7 +315,8 @@ function renderContentDetails(game){
   container.replaceChildren();
   if(!game) return;
   const parent = JTDData.contentParent(game,GAMES);
-  const children = gameContents(game);
+  const versions = typeof collectionGameVersions === 'function' ? collectionGameVersions(game) : [game];
+  const children = versions.flatMap(gameContents);
   const section = document.createElement('section');
   section.className = 'content-purchases';
   if(game.dekuNote){const note=document.createElement('p');note.className='content-parent-note';note.textContent='Note Deku Deals : '+game.dekuNote;section.appendChild(note);}
@@ -342,7 +343,7 @@ function renderContentDetails(game){
       button.onclick=()=>withBoardEditorChanges('modal-overlay','f',()=>openModal(child.id));section.appendChild(button);
     }
     const sums = new Map();
-    for(const purchase of [game,...children]) if(purchase.prix != null) sums.set(purchase.currency || 'EUR',(sums.get(purchase.currency || 'EUR') || 0)+purchase.prix);
+    for(const purchase of [...versions,...children]) if(purchase.prix != null) sums.set(purchase.currency || 'EUR',(sums.get(purchase.currency || 'EUR') || 0)+purchase.prix);
     const total = document.createElement('div');total.className='content-purchase-total';
     total.textContent = 'Total jeu et contenus : '+[...sums].map(([currency,prix])=>purchaseMoney({currency,prix})).join(' + ');
     if(sums.size) section.appendChild(total);
