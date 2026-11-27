@@ -4,7 +4,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     createUserWithEmailAndPassword, signOut
   } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc, setDoc, deleteDoc
+    getFirestore, doc, getDoc, runTransaction
   } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -23,6 +23,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   let currentUser = null;
   let syncTimer = null;
   let syncRevision = 0;
+  let savedRevision = 0;
+  let lastLocalState = null;
   // Reste à true tant que le chargement initial (local + cloud) n'est pas terminé,
   // pour qu'aucune sauvegarde locale déclenchée pendant l'init ne parte écraser
   // le document Firestore avant qu'on ait pu lire les vraies données du compte.
@@ -85,15 +87,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   const FIRESTORE_SHARE_BASE = 'https://firestore.googleapis.com/v1/projects/' +
     firebaseConfig.projectId + '/databases/(default)/documents/shares/';
 
-  function buildPublicSharePayload(){
-    return JTDData.createPublicSharePayload({
-      games:GAMES,
-      wishlist:WISHLIST,
-      arrivals:ARRIVALS,
-      cemetery:CEMETERY
-    });
-  }
-
   function generateShareToken(){
     const bytes = new Uint8Array(24);
     crypto.getRandomValues(bytes);
@@ -124,68 +117,58 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     }
   }
 
-  async function publishSharedSnapshot(session = sessions.current(), token = SHARE_TOKEN, payload = buildPublicSharePayload()){
-    if(previewMode || suppressSync || !sessionIsCurrent(session) || !token) return;
-    await setDoc(doc(db, 'shares', token), payload);
+  async function commitCloudState(session, payload, shareAction){
+    const local=JTDData.normalizeData(payload);
+    const base=lastLocalState;
+    const ref=doc(db,'users',session.uid);
+    const candidateToken=shareAction==='create' ? generateShareToken() : null;
+    const result=await runTransaction(db,async transaction=>{
+      const snapshot=await transaction.get(ref);
+      if(!sessionIsCurrent(session)) throw Error('Session terminée');
+      const current=snapshot.exists() ? snapshot.data() : {};
+      const remote=snapshot.exists() ? JTDData.normalizeData(current) : emptyData();
+      const merged=base
+        ? JTDData.mergeCloudData(base,local,remote)
+        : JTDData.mergeCloudData(emptyData(),local,remote);
+      const previousToken=current.shareToken || null;
+      const shareToken=shareAction==='disable' ? null : previousToken || candidateToken;
+      const data={...merged,shareToken,updatedAt:payload.updatedAt};
+      JTDData.assertCloudSize(data);
+      transaction.set(ref,data);
+      if(previousToken && shareAction==='disable') transaction.delete(doc(db,'shares',previousToken));
+      else if(shareToken) transaction.set(doc(db,'shares',shareToken),JTDData.createPublicSharePayload(merged));
+      return shareToken;
+    });
+    if(sessionIsCurrent(session)){
+      lastLocalState=local;
+      SHARE_TOKEN=result;
+      renderShareUI();
+    }
+    return result;
   }
 
   async function createOrCopyShare(session){
-    if(previewMode){
-      SHARE_TOKEN = 'sandbox-preview';
-      renderShareUI();
-      await copyText('https://jtd-sandbox-rhypp11.web.app/?share-preview=sandbox');
-      showToast('Lien de partage test copié. Aucune donnée réelle n’est publiée.');
-      return;
-    }
     if(!currentUser || suppressSync || !sessionIsCurrent(session)) return;
     try{
-      if(!SHARE_TOKEN){
-        SHARE_TOKEN = generateShareToken();
-        // Le token doit d'abord être enregistré sur le document privé de l'utilisateur :
-        // les règles Firestore s'en servent pour autoriser l'écriture du snapshot public.
-        await setDoc(doc(db, 'users', session.uid), buildCloudPayload());
-      }
-      if(!sessionIsCurrent(session)) return;
-      const token = SHARE_TOKEN;
-      await publishSharedSnapshot(session, token);
+      const token=await commitCloudState(session,buildCloudPayload(),'create');
       if(!sessionIsCurrent(session)) return;
       await copyText(shareUrl(token));
-      renderShareUI();
       showToast('Lien de partage copié. Il restera à jour avec ta collection.');
     }catch(err){
       if(!sessionIsCurrent(session)) return;
-      console.error('Création du partage impossible', err);
-      setSyncStatus('error', 'Partage impossible : ' + err.message);
-      showToast("Impossible de créer le lien de partage pour l'instant.");
+      reportSyncError(err);
     }
   }
 
   async function disableShare(session){
-    if(previewMode){
-      SHARE_TOKEN = null;
-      renderShareUI();
-      showToast('Partage test désactivé.');
-      return;
-    }
-    if(!currentUser || suppressSync || !SHARE_TOKEN || !sessionIsCurrent(session)) return;
+    if(!currentUser || suppressSync || !sessionIsCurrent(session)) return;
     try{
-      clearTimeout(syncTimer);
-      const oldToken = SHARE_TOKEN;
-      // Suppression avant d'effacer le token privé, sinon la règle d'écriture ne
-      // reconnaîtrait plus le propriétaire du document public.
-      await deleteDoc(doc(db, 'shares', oldToken));
+      await commitCloudState(session,buildCloudPayload(),'disable');
       if(!sessionIsCurrent(session)) return;
-      SHARE_TOKEN = null;
-      await setDoc(doc(db, 'users', session.uid), buildCloudPayload());
-      if(!sessionIsCurrent(session)) return;
-      renderShareUI();
-      setSyncStatus('ok', 'Synchronisé avec le cloud');
       showToast('Partage désactivé. L’ancien lien ne fonctionne plus.');
     }catch(err){
       if(!sessionIsCurrent(session)) return;
-      console.error('Désactivation du partage impossible', err);
-      setSyncStatus('error', 'Désactivation du partage impossible : ' + err.message);
-      showToast("Impossible de désactiver le partage pour l'instant.");
+      reportSyncError(err);
     }
   }
 
@@ -209,26 +192,30 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     el.className = 'cloud-sync-status ' + status;
     el.title = message || '';
     el.setAttribute('aria-label', message || 'Synchronisation');
-    el.textContent = ({error:'Échec sync',syncing:'Synchronisation…',pending:'En attente…',ok:'Synchronisé'})[status] || 'Synchronisation';
+    el.textContent = ({conflict:'Conflit sync',error:'Échec sync',syncing:'Synchronisation…',pending:'En attente…',ok:'Synchronisé'})[status] || 'Synchronisation';
   }
 
-  async function doCloudSync(session, payload, publicPayload, revision = syncRevision){
-    if(suppressSync || !sessionIsCurrent(session)) return;
-    if(revision === syncRevision) setSyncStatus('syncing', 'Synchronisation en cours…');
+  function reportSyncError(error){
+    console.error('Erreur de synchronisation Firebase',error);
+    if(error.code==='rgl/sync-conflict'){
+      setSyncStatus('conflict',error.message);
+      showToast('Conflit de synchronisation. Télécharge une sauvegarde de tes modifications avant de fermer cet onglet.', 'Sauvegarder', () => document.getElementById('backup-btn')?.click(),15000);
+    }else{
+      setSyncStatus('error','Erreur de synchronisation : '+error.message);
+    }
+  }
+
+  async function doCloudSync(session, payload, revision = syncRevision){
+    if(suppressSync || !sessionIsCurrent(session)) return false;
+    if(revision === syncRevision) setSyncStatus('syncing','Synchronisation en cours…');
     try{
-      // The UID and data are captured together; a later login cannot retarget this write.
-      payload.shareToken = SHARE_TOKEN;
-      await setDoc(doc(db, 'users', session.uid), payload);
-      if(!sessionIsCurrent(session)) return;
-      if(payload.shareToken && payload.shareToken === SHARE_TOKEN){
-        await publishSharedSnapshot(session, payload.shareToken, publicPayload);
-      }
-      if(sessionIsCurrent(session) && revision === syncRevision) setSyncStatus('ok', 'Synchronisé avec le cloud');
-      return sessionIsCurrent(session);
-    }catch(err){
-      if(!sessionIsCurrent(session)) return;
-      console.error('Erreur de synchronisation Firebase', err);
-      if(revision === syncRevision) setSyncStatus('error', 'Erreur de synchronisation : ' + err.message);
+      await commitCloudState(session,payload);
+      if(!sessionIsCurrent(session)) return false;
+      savedRevision=revision;
+      if(revision===syncRevision) setSyncStatus('ok','Synchronisé avec le cloud');
+      return true;
+    }catch(error){
+      if(sessionIsCurrent(session) && revision===syncRevision) reportSyncError(error);
       return false;
     }
   }
@@ -242,8 +229,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     syncTimer = setTimeout(() => {
       if(!sessionIsCurrent(session) || suppressSync) return;
       const payload = buildCloudPayload();
-      const publicPayload = buildPublicSharePayload();
-      enqueueCloudOperation(() => doCloudSync(session, payload, publicPayload, revision));
+      enqueueCloudOperation(() => doCloudSync(session, payload, revision));
     }, 900);
   }
   window.JTDDataChanged = scheduleCloudSync;
@@ -254,7 +240,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     const session = sessions.current();
     cancelPendingSync();
     const revision = syncRevision;
-    return enqueueCloudOperation(() => doCloudSync(session, buildCloudPayload(), buildPublicSharePayload(), revision));
+    return enqueueCloudOperation(() => doCloudSync(session, buildCloudPayload(), revision));
   };
 
   async function loadFromCloudOrSeed(session){
@@ -277,12 +263,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
       }else{
         // Only scoped data loaded for this UID may initialize its new document.
         replaceAppData(JTDData.normalizeData(buildCloudPayload()));
-        await setDoc(ref, buildCloudPayload());
+        await commitCloudState(session,buildCloudPayload());
         if(!sessionIsCurrent(session)) return false;
       }
       refreshAllViews();
       suppressSync = false;
-      if(SHARE_TOKEN) await publishSharedSnapshot(session);
+      lastLocalState=JTDData.normalizeData(buildCloudPayload());
       if(!sessionIsCurrent(session)) return false;
       setSyncStatus('ok', 'Synchronisé avec le cloud');
       return true;
@@ -400,7 +386,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
   });
 
   document.getElementById('logout-btn').addEventListener('click', () => {
-    if(confirm('Se déconnecter ?')) signOut(auth);
+    if(!confirm('Se déconnecter ?')) return;
+    window.JTDPrepareReload().then(saved=>{if(saved) return signOut(auth);});
+  });
+
+  window.addEventListener?.('beforeunload',event=>{
+    if(!currentUser || syncRevision===savedRevision) return;
+    event.preventDefault();
+    event.returnValue='';
   });
 
   function hideAuthLoading(){
@@ -427,6 +420,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/fireba
     document.getElementById('search-input').value = '';
     cancelPendingSync();
     suppressSync = true;
+    lastLocalState = null;
+    syncRevision = savedRevision = 0;
     currentUser = user || null;
     accountStorage.setAccount(user && user.uid);
     replaceAppData(emptyData());
