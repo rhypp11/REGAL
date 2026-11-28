@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Accueil</title>
-<meta name="regal-version" content="3_27.11.26-1">
-<meta name="regal-pull-request" content="122">
-<meta name="regal-build" content="aff03f3f47f52a27d8f904d9">
+<meta name="regal-version" content="3_28.11.26-2">
+<meta name="regal-pull-request" content="126">
+<meta name="regal-build" content="86ae16afa2020e321975d13c">
 <link rel="icon" type="image/svg+xml" href="logo-regal.svg?v=6">
 <link rel="apple-touch-icon" href="logo-regal-apple.png?v=6">
 <link rel="manifest" href="manifest.json">
@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="cemetery-import.css?v=import-review-2">
 <link rel="stylesheet" href="ui-foundations.css?v=mobile-121">
 <link rel="stylesheet" href="regal.css?v=rgl-drive-1">
+<link rel="stylesheet" href="collection-gallery.css?v=purchase-actions">
 <link rel="stylesheet" href="game-sheet.css?v=home-sheet-1">
 <link rel="stylesheet" href="collection.css?v=home-sheet-1">
 <link rel="stylesheet" href="digital.css?v=rgl-dark-icons-1">
@@ -423,6 +424,10 @@
 <button type="button" data-view="list" aria-pressed="false" title="Liste" aria-label="Liste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M3 5h2M3 12h2M3 19h2"/></svg></button></div>
     </div>
 
+    <div class="collection-gallery-controls hidden" id="collection-gallery-controls">
+      <label>Afficher <select id="gallery-display"><option value="games">Une tuile par jeu</option><option value="copies">Une tuile par exemplaire</option></select></label>
+      <label>Grouper par <select id="gallery-group"><option value="none">Aucun</option><option value="platform">Plateforme</option><option value="status">Statut de complétion</option></select></label>
+    </div>
     <div class="results-bar" id="results-bar" role="status" aria-live="polite"></div>
     <div class="grid" id="grid"></div>
   </main>
@@ -431,7 +436,11 @@
 
 <div class="modal-overlay sheet-dialog hidden" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
-    <h2 id="modal-title">Ajouter un jeu</h2>
+    <header class="gallery-sheet-header">
+      <button type="button" id="gallery-sheet-back" class="hidden" aria-label="Retour">←</button>
+      <h2 id="modal-title">Ajouter un jeu</h2>
+      <div id="gallery-sheet-actions"></div>
+    </header>
     <div class="collection-sheet-body">
     <p id="receipt-status-note" class="hidden">Destination : Collection · Statut : À faire</p>
     <div class="form-section game-sheet-section">
@@ -538,6 +547,7 @@
  </div>
       </div>
     </section>
+    <section id="gallery-sheet-purchases" class="hidden"></section>
     <div id="f-content-details"></div>
     <section id="f-sheet-status"></section>
     </div>
@@ -721,6 +731,7 @@
 
 <script>
   window.REGAL_JOURNAL_ENABLED = false;
+  window.RGL_GALLERY_ENABLED = true;
   window.JTD_PREVIEW_MODE =
     (location.hostname === 'jtd-preview-rhypp11.web.app' || location.hostname === 'jtd-sandbox-rhypp11.web.app') ||
     (location.hostname.includes('--') && location.hostname.endsWith('.web.app'));
@@ -789,7 +800,7 @@
 <script src="dialogs.js?v=mobile-121"></script>
 <script src="digital.js?v=home-sheet-1"></script>
 <script src="switch-artwork.js?v=home-sheet-1"></script>
-<script src="app.js?v=home-sheet-1"></script>
+<script src="app.js?v=purchase-actions"></script>
 <script src="deku-data.js?v=1"></script>
 <script src="deku-import.js?v=1"></script>
 <script src="cemetery.js?v=sale-cards-37"></script>
@@ -799,6 +810,7 @@
 <script src="journal.js?v=journal-archive-1"></script>
 <script src="pokedex-data.js?v=account-pokedex-1"></script>
 <script src="pokedex.js?v=box-undo-1"></script>
+<script src="collection-gallery.js?v=purchase-actions"></script>
 <script src="lifecycle.js?v=json-exports-1"></script>
 <script>
   if(!window.JTD_PREVIEW_MODE){

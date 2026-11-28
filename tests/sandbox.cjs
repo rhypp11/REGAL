@@ -4,7 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const types = {'.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.json':'application/json', '.png':'image/png', '.svg':'image/svg+xml'};
-function createSandboxServer({journal=true}={}){
+function createSandboxServer({journal=true,gallery=false}={}){
   return http.createServer((request, response) => {
     const pathname = new URL(request.url, 'http://localhost').pathname;
     const file = path.join(root, pathname === '/' ? 'index.html' : pathname);
@@ -12,6 +12,7 @@ function createSandboxServer({journal=true}={}){
     try {
       let content = fs.readFileSync(file);
       if(file.endsWith('index.html')) content = Buffer.from(content.toString().replace('window.JTD_PREVIEW_MODE =', 'window.JTD_PREVIEW_MODE = true ||')
+        .replace('window.RGL_GALLERY_ENABLED = true;', 'window.RGL_GALLERY_ENABLED = '+gallery+';')
         .replace('window.REGAL_JOURNAL_ENABLED = false;', journal ? 'window.REGAL_JOURNAL_ENABLED = true;' : 'window.REGAL_JOURNAL_ENABLED = false;'));
       response.setHeader('Content-Type', types[path.extname(file)] || 'application/octet-stream');
       response.setHeader('ETag', '"' + crypto.createHash('sha256').update(content).digest('hex') + '"');

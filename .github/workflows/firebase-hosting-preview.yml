@@ -81,6 +81,9 @@ jobs:
       - name: Check import decisions, restoration guards and ChatGPT exports
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/import-export.cjs
 
+      - name: Check grouped RGL gallery and game sheets
+        run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/collection-gallery.cjs
+
       - name: Check collection cards on mobile
         run: NODE_PATH="$RUNNER_TEMP/jtd-browser/node_modules" JTD_CHROME="$(command -v google-chrome)" node tests/collection-layout.cjs
 
